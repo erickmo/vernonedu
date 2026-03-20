@@ -1,0 +1,40 @@
+name: vernonedu_website
+description: VernonEdu - Platform Edukasi Wirausaha Terdepan di Indonesia
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Navigation
+  go_router: ^14.0.0
+
+  # Typography
+  google_fonts: ^6.2.1
+
+  # Animations
+  flutter_animate: ^4.5.0
+
+  # External links
+  url_launcher: ^6.3.0
+
+  # Scroll-triggered animations
+  visibility_detector: ^0.4.0+2
+
+  # Web interop for SEO
+  web: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Beranda -->
+  <url>
+    <loc>https://vernonedu.id/</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="id" href="https://vernonedu.id/"/>
+  </url>
+
+  <!-- Kursus -->
+  <url>
+    <loc>https://vernonedu.id/kursus</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="id" href="https://vernonedu.id/kursus"/>
+  </url>
+
+  <!-- Update / Blog -->
+  <url>
+    <loc>https://vernonedu.id/update</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="id" href="https://vernonedu.id/update"/>
+  </url>
+
+  <!-- Hubungi Kami -->
+  <url>
+    <loc>https://vernonedu.id/hubungi</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="id" href="https://vernonedu.id/hubungi"/>
+  </url>
+
+</urlset>

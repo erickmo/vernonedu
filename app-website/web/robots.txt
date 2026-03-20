@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://vernonedu.id/sitemap.xml
+
+# Crawl-delay untuk mengurangi beban server
+Crawl-delay: 10
+
+# Blokir halaman yang tidak perlu diindex
+Disallow: /flutter_service_worker.js
+Disallow: /flutter_bootstrap.js
+Disallow: /*.dart
