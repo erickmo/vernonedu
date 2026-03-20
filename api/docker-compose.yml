@@ -1,0 +1,85 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: entrepreneurship_api_postgres
+    environment:
+      POSTGRES_DB: entrepreneurship_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - entrepreneurship_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: entrepreneurship_api_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - entrepreneurship_network
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: entrepreneurship_api_nats
+    command: ["--js", "--sd", "/data"]
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - nats_data:/data
+    healthcheck:
+      test: ["CMD", "nats-server", "-version"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - entrepreneurship_network
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.51
+    container_name: entrepreneurship_api_jaeger
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    networks:
+      - entrepreneurship_network
+
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: entrepreneurship_api_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - entrepreneurship_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  nats_data:
+  prometheus_data:
+
+networks:
+  entrepreneurship_network:
+    driver: bridge

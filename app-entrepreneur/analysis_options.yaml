@@ -1,0 +1,21 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    - prefer_final_fields
+    - prefer_final_locals
+    - avoid_print
+    - avoid_unnecessary_containers
+    - use_key_in_widget_constructors
+    - always_declare_return_types
+    - annotate_overrides
+    - avoid_empty_else
+
+analyzer:
+  errors:
+    avoid_print: error
+    use_key_in_widget_constructors: error
+    prefer_const_constructors: warning
