@@ -61,6 +61,10 @@ type CourseType struct {
 	CertificationType string   // salah satu dari ValidCertTypes
 	// Khusus program_karir: konfigurasi perilaku saat komponen gagal
 	ComponentFailureConfig *ComponentFailureConfig
+	NormalPrice            int64 // regular/normal price (IDR, in rupiah)
+	MinPrice               int64 // minimum/floor price that batch pricing can go down to
+	MinParticipants        int   // minimum participants required to run
+	MaxParticipants        int   // maximum participants allowed
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
 }
@@ -87,7 +91,7 @@ func isValidCertType(certType string) bool {
 
 // NewCourseType membuat entitas CourseType baru dengan validasi awal.
 // Status awal selalu aktif (IsActive = true).
-func NewCourseType(masterCourseID uuid.UUID, typeName, priceType, priceCurrency, targetAudience, certType string, extraDocs []string, failureConfig *ComponentFailureConfig) (*CourseType, error) {
+func NewCourseType(masterCourseID uuid.UUID, typeName, priceType, priceCurrency, targetAudience, certType string, extraDocs []string, failureConfig *ComponentFailureConfig, normalPrice, minPrice int64, minParticipants, maxParticipants int) (*CourseType, error) {
 	if !isValidType(typeName) {
 		return nil, ErrInvalidTypeName
 	}
@@ -108,6 +112,10 @@ func NewCourseType(masterCourseID uuid.UUID, typeName, priceType, priceCurrency,
 		ExtraDocs:              extraDocs,
 		CertificationType:      certType,
 		ComponentFailureConfig: failureConfig,
+		NormalPrice:            normalPrice,
+		MinPrice:               minPrice,
+		MinParticipants:        minParticipants,
+		MaxParticipants:        maxParticipants,
 		CreatedAt:              time.Now(),
 		UpdatedAt:              time.Now(),
 	}, nil
@@ -146,8 +154,22 @@ func (ct *CourseType) UpdatePrice(priceType string, priceMin, priceMax *int64, p
 	ct.UpdatedAt = time.Now()
 }
 
+// UpdateParticipants memperbarui batas minimum dan maksimum peserta.
+func (ct *CourseType) UpdateParticipants(min, max int) {
+	ct.MinParticipants = min
+	ct.MaxParticipants = max
+	ct.UpdatedAt = time.Now()
+}
+
+// UpdatePricing memperbarui harga normal dan harga minimum batch.
+func (ct *CourseType) UpdatePricing(normalPrice, minPrice int64) {
+	ct.NormalPrice = normalPrice
+	ct.MinPrice = minPrice
+	ct.UpdatedAt = time.Now()
+}
+
 // Update memperbarui data konfigurasi course type.
-func (ct *CourseType) Update(targetAudience, certType string, extraDocs []string, failureConfig *ComponentFailureConfig) error {
+func (ct *CourseType) Update(targetAudience, certType string, extraDocs []string, failureConfig *ComponentFailureConfig, normalPrice, minPrice int64, minParticipants, maxParticipants int) error {
 	if certType != "" && !isValidCertType(certType) {
 		return ErrInvalidCertType
 	}
@@ -158,6 +180,10 @@ func (ct *CourseType) Update(targetAudience, certType string, extraDocs []string
 	ct.CertificationType = certType
 	ct.ExtraDocs = extraDocs
 	ct.ComponentFailureConfig = failureConfig
+	ct.NormalPrice = normalPrice
+	ct.MinPrice = minPrice
+	ct.MinParticipants = minParticipants
+	ct.MaxParticipants = maxParticipants
 	ct.UpdatedAt = time.Now()
 	return nil
 }

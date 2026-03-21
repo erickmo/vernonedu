@@ -180,7 +180,21 @@ AppColors.chartColors      // [#1A237E, #00695C, #F57F17, #C62828, #6A1B9A, #027
 /payments                           → PaymentPage
 /departments                        → DepartmentPage
   /departments/:departmentId        → DepartmentDashboardPage
-/accounting                         → AccountingPage
+/accounting                         → (deprecated — redirect to /finance)
+/finance                            → FinanceMainPage (dashboard)
+  /finance/transactions             → TransactionPage
+  /finance/transactions/new         → TransactionFormPage
+  /finance/journal                  → JournalPage
+  /finance/coa                      → ChartOfAccountsPage
+  /finance/invoices                 → InvoicePage
+  /finance/payables                 → PayablePage
+  /finance/reports                  → ReportNavigationPage
+    /finance/reports/balance-sheet  → BalanceSheetPage
+    /finance/reports/profit-loss    → ProfitLossPage
+    /finance/reports/cash-flow      → CashFlowPage
+    /finance/reports/ledger         → GeneralLedgerPage
+    /finance/reports/trial-balance  → TrialBalancePage
+  /finance/analysis                 → FinancialAnalysisPage
 /hrm                                → HrmPage
   /hrm/:sdmId                       → SdmDetailPage
 /projects                           → ProjectPage
@@ -200,6 +214,11 @@ AppColors.chartColors      // [#1A237E, #00695C, #F57F17, #C62828, #6A1B9A, #027
 /notifications                      → NotificationPage
 /approvals                          → ApprovalPage (pending approvals queue)
 /settings                           → SettingsPage (certificate templates, commission, CoA, domains, etc.)
+/cms                                → CmsPage (website content management)
+  /cms/pages/:slug/edit             → PageEditorPage
+  /cms/articles                     → ArticleListPage
+  /cms/articles/new                 → ArticleEditorPage
+  /cms/articles/:id/edit            → ArticleEditorPage
 ```
 
 Auth redirect: unauthenticated → `/login`; authenticated on `/login` → `/dashboard`
@@ -241,6 +260,14 @@ All routes use `NoTransitionPage` (no animation).
 | Business Development | [screen-bizdev.md](docs/requirements/screen-bizdev.md) |
 | Partner Detail | [screen-partner-detail.md](docs/requirements/screen-partner-detail.md) |
 | Marketing | [screen-marketing.md](docs/requirements/screen-marketing.md) |
+| Finance Main | [screen-finance-main.md](docs/requirements/screen-finance-main.md) |
+| Finance Reports | [screen-finance-reports.md](docs/requirements/screen-finance-reports.md) |
+| Finance Invoices | [screen-finance-invoices.md](docs/requirements/screen-finance-invoices.md) |
+| Finance Payables | [screen-finance-payables.md](docs/requirements/screen-finance-payables.md) |
+| Finance Transactions & CoA | [screen-finance-transactions.md](docs/requirements/screen-finance-transactions.md) |
+| Finance Analysis | [screen-finance-analysis.md](docs/requirements/screen-finance-analysis.md) |
+| Finance Automation Hooks | [finance-automation.md](docs/requirements/finance-automation.md) |
+| CMS (Website Content) | [screen-cms.md](docs/requirements/screen-cms.md) |
 
 ---
 

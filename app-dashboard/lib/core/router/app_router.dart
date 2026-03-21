@@ -10,20 +10,24 @@ import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/shell/presentation/pages/shell_page.dart';
 import '../../features/course/presentation/pages/course_page.dart';
 import '../../features/course/presentation/pages/course_dashboard_page.dart';
+import '../../features/course/presentation/pages/education_page.dart';
 import '../../features/course_batch/presentation/pages/course_batch_page.dart';
 import '../../features/course_batch/presentation/pages/course_batch_detail_page.dart';
 import '../../features/course_version/presentation/pages/course_version_page.dart';
 import '../../features/course_version/presentation/pages/course_module_page.dart';
+import '../../features/course_version/presentation/pages/propose_version_page.dart';
 import '../../features/talentpool/presentation/pages/talentpool_page.dart';
 import '../../features/enrollment/presentation/pages/enrollment_page.dart';
 import '../../features/evaluation/presentation/pages/evaluation_page.dart';
 import '../../features/student/presentation/pages/student_page.dart';
 import '../../features/student/presentation/pages/student_dashboard_page.dart';
+import '../../features/student/presentation/pages/student_form_page.dart';
 import '../../features/certificate/presentation/pages/certificate_page.dart';
 import '../../features/payment/presentation/pages/payment_page.dart';
 import '../../features/department/presentation/pages/department_page.dart';
 import '../../features/department/presentation/pages/department_dashboard_page.dart';
-import '../../features/accounting/presentation/pages/accounting_page.dart';
+import '../../features/finance/presentation/pages/finance_main_page.dart';
+import '../../features/finance/presentation/pages/finance_stub_pages.dart';
 import '../../features/hrm/presentation/pages/hrm_page.dart';
 import '../../features/hrm/presentation/pages/sdm_detail_page.dart';
 import '../../features/project_mgmt/presentation/pages/project_page.dart';
@@ -35,6 +39,7 @@ import '../../features/notifications/presentation/pages/notification_page.dart';
 import '../../features/approvals/presentation/pages/approval_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/business_dev/presentation/pages/business_development_page.dart';
+import '../../features/business_dev/presentation/pages/partner_detail_page.dart';
 import '../../features/business_dev/presentation/pages/bmc_page.dart';
 import '../../features/business_dev/presentation/pages/branch_management_page.dart';
 import '../../features/business_dev/presentation/pages/franchise_management_page.dart';
@@ -42,6 +47,8 @@ import '../../features/business_dev/presentation/pages/okr_page.dart';
 import '../../features/business_dev/presentation/pages/investment_plan_page.dart';
 import '../../features/business_dev/presentation/pages/projection_reports_page.dart';
 import '../../features/business_dev/presentation/pages/delegation_page.dart';
+import '../../features/marketing/presentation/pages/marketing_page.dart';
+import '../../features/cms/presentation/pages/cms_page.dart';
 import '../constants/app_constants.dart';
 import '../di/injection.dart';
 
@@ -85,7 +92,7 @@ class AppRouter {
               GoRoute(
                 path: '/curriculum',
                 pageBuilder: (_, __) =>
-                    const NoTransitionPage(child: CoursePage()),
+                    const NoTransitionPage(child: EducationPage()),
                 routes: [
                   GoRoute(
                     path: 'types/:typeId',
@@ -104,6 +111,11 @@ class AppRouter {
                     ),
                   ),
                   GoRoute(
+                    path: 'propose-version',
+                    pageBuilder: (_, __) =>
+                        const NoTransitionPage(child: ProposeVersionPage()),
+                  ),
+                  GoRoute(
                     path: ':courseId',
                     pageBuilder: (_, state) => NoTransitionPage(
                       child: CourseDashboardPage(
@@ -112,6 +124,12 @@ class AppRouter {
                     ),
                   ),
                 ],
+              ),
+              // ── Route lama backward compat — CoursePage tetap tersedia ──
+              GoRoute(
+                path: '/course-list',
+                pageBuilder: (_, __) =>
+                    const NoTransitionPage(child: CoursePage()),
               ),
               GoRoute(
                 path: '/talentpool',
@@ -166,12 +184,27 @@ class AppRouter {
                     const NoTransitionPage(child: StudentPage()),
                 routes: [
                   GoRoute(
+                    path: 'new',
+                    pageBuilder: (_, __) =>
+                        const NoTransitionPage(child: StudentFormPage()),
+                  ),
+                  GoRoute(
                     path: ':studentId',
                     pageBuilder: (_, state) => NoTransitionPage(
                       child: StudentDashboardPage(
                         studentId: state.pathParameters['studentId']!,
                       ),
                     ),
+                    routes: [
+                      GoRoute(
+                        path: 'edit',
+                        pageBuilder: (_, state) => NoTransitionPage(
+                          child: StudentFormPage(
+                            studentId: state.pathParameters['studentId'],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -202,8 +235,83 @@ class AppRouter {
               ),
               GoRoute(
                 path: '/accounting',
+                redirect: (_, __) => '/finance',
+              ),
+              GoRoute(
+                path: '/finance',
                 pageBuilder: (_, __) =>
-                    const NoTransitionPage(child: AccountingPage()),
+                    const NoTransitionPage(child: FinanceMainPage()),
+                routes: [
+                  GoRoute(
+                    path: 'transactions',
+                    pageBuilder: (_, __) =>
+                        const NoTransitionPage(child: TransactionPage()),
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        pageBuilder: (_, __) =>
+                            const NoTransitionPage(child: TransactionFormPage()),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'journal',
+                    pageBuilder: (_, __) =>
+                        const NoTransitionPage(child: JournalPage()),
+                  ),
+                  GoRoute(
+                    path: 'coa',
+                    pageBuilder: (_, __) =>
+                        const NoTransitionPage(child: ChartOfAccountsPage()),
+                  ),
+                  GoRoute(
+                    path: 'invoices',
+                    pageBuilder: (_, __) =>
+                        const NoTransitionPage(child: InvoicePage()),
+                  ),
+                  GoRoute(
+                    path: 'payables',
+                    pageBuilder: (_, __) =>
+                        const NoTransitionPage(child: PayablePage()),
+                  ),
+                  GoRoute(
+                    path: 'reports',
+                    pageBuilder: (_, __) =>
+                        const NoTransitionPage(child: ReportNavigationPage()),
+                    routes: [
+                      GoRoute(
+                        path: 'balance-sheet',
+                        pageBuilder: (_, __) =>
+                            const NoTransitionPage(child: BalanceSheetPage()),
+                      ),
+                      GoRoute(
+                        path: 'profit-loss',
+                        pageBuilder: (_, __) =>
+                            const NoTransitionPage(child: ProfitLossPage()),
+                      ),
+                      GoRoute(
+                        path: 'cash-flow',
+                        pageBuilder: (_, __) =>
+                            const NoTransitionPage(child: CashFlowPage()),
+                      ),
+                      GoRoute(
+                        path: 'ledger',
+                        pageBuilder: (_, __) =>
+                            const NoTransitionPage(child: GeneralLedgerPage()),
+                      ),
+                      GoRoute(
+                        path: 'trial-balance',
+                        pageBuilder: (_, __) =>
+                            const NoTransitionPage(child: TrialBalancePage()),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'analysis',
+                    pageBuilder: (_, __) =>
+                        const NoTransitionPage(child: FinancialAnalysisPage()),
+                  ),
+                ],
               ),
               GoRoute(
                 path: '/hrm',
@@ -285,7 +393,20 @@ class AppRouter {
                     pageBuilder: (_, __) =>
                         const NoTransitionPage(child: DelegationPage()),
                   ),
+                  GoRoute(
+                    path: 'partners/:partnerId',
+                    pageBuilder: (_, state) => NoTransitionPage(
+                      child: PartnerDetailPage(
+                        partnerId: state.pathParameters['partnerId']!,
+                      ),
+                    ),
+                  ),
                 ],
+              ),
+              GoRoute(
+                path: '/marketing',
+                pageBuilder: (_, __) =>
+                    const NoTransitionPage(child: MarketingPage()),
               ),
               GoRoute(
                 path: '/notifications',
@@ -301,6 +422,11 @@ class AppRouter {
                 path: '/settings',
                 pageBuilder: (_, __) =>
                     const NoTransitionPage(child: SettingsPage()),
+              ),
+              GoRoute(
+                path: '/cms',
+                pageBuilder: (_, __) =>
+                    const NoTransitionPage(child: CmsPage()),
               ),
             ],
           ),

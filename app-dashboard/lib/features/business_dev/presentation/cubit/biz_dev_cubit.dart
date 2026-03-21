@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/partner_entity.dart';
 import '../../domain/entities/partner_stats_entity.dart';
 import '../../domain/entities/branch_entity.dart';
+import '../../domain/entities/okr_entity.dart';
 import '../../domain/entities/investment_entity.dart';
 import '../../domain/entities/delegation_entity.dart';
 import '../../domain/usecases/get_partners_usecase.dart';
@@ -111,13 +112,18 @@ class BizDevCubit extends Cubit<BizDevState> {
     }
 
     // Parse OKR
-    final okrResult = results[2];
-    final objectives = okrResult.fold(
+    List<OkrObjectiveEntity> objectives = [];
+    results[2].fold(
       (f) {
         errorMessage = f.message;
-        return [];
       },
-      (data) => data,
+      (data) {
+        if (data is List) {
+          objectives = List<OkrObjectiveEntity>.from(
+            data.whereType<OkrObjectiveEntity>(),
+          );
+        }
+      },
     );
     if (errorMessage != null) {
       emit(BizDevError(errorMessage!));

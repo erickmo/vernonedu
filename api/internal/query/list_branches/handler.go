@@ -12,12 +12,16 @@ type ListBranchesQuery struct {
 }
 
 type BranchReadModel struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	City        string `json:"city"`
-	Address     string `json:"address"`
-	PartnerName string `json:"partner_name"`
-	IsActive    bool   `json:"is_active"`
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	City         string `json:"city"`
+	Address      string `json:"address"`
+	Region       string `json:"region"`
+	ContactName  string `json:"contact_name"`
+	ContactPhone string `json:"contact_phone"`
+	Status       string `json:"status"`
+	PartnerName  string `json:"partner_name"`
+	IsActive     bool   `json:"is_active"`
 }
 
 type ListBranchResult struct {
@@ -48,12 +52,16 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 	models := make([]*BranchReadModel, len(branches))
 	for i, b := range branches {
 		models[i] = &BranchReadModel{
-			ID:          b.ID.String(),
-			Name:        b.Name,
-			City:        b.City,
-			Address:     b.Address,
-			PartnerName: b.PartnerName,
-			IsActive:    b.IsActive,
+			ID:           b.ID.String(),
+			Name:         b.Name,
+			City:         b.City,
+			Address:      b.Address,
+			Region:       b.Region,
+			ContactName:  b.ContactName,
+			ContactPhone: b.ContactPhone,
+			Status:       b.Status,
+			PartnerName:  b.PartnerName,
+			IsActive:     b.IsActive,
 		}
 	}
 	return &ListBranchResult{

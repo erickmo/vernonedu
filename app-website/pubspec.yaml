@@ -25,6 +25,15 @@ dependencies:
   # Scroll-triggered animations
   visibility_detector: ^0.4.0+2
 
+  # HTTP client
+  dio: ^5.7.0
+
+  # Date formatting
+  intl: ^0.19.0
+
+  # State management (API-connected pages)
+  flutter_bloc: ^8.1.6
+
   # Web interop for SEO
   web: ^1.1.0
 

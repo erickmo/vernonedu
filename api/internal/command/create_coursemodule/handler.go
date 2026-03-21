@@ -27,6 +27,7 @@ type CreateCourseModuleCommand struct {
 	PracticalActivities []string
 	AssessmentMethod    string
 	ToolsRequired       []string
+	Requirements        []string
 	IsReference         bool
 	RefModuleID         *uuid.UUID
 }
@@ -52,7 +53,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 	cm, err := coursemodule.NewCourseModule(
 		c.CourseVersionID, c.ModuleCode, c.ModuleTitle, c.ContentDepth, c.AssessmentMethod,
 		c.DurationHours, c.Sequence, c.Topics, c.PracticalActivities, c.ToolsRequired,
-		c.IsReference, c.RefModuleID,
+		c.Requirements, c.IsReference, c.RefModuleID,
 	)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create course module entity")

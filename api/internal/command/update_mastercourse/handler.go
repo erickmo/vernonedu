@@ -20,6 +20,7 @@ type UpdateMasterCourseCommand struct {
 	Field            string    `validate:"required"`
 	CoreCompetencies []string
 	Description      string
+	SupportingAppUrl string
 }
 
 // Handler menangani UpdateMasterCourseCommand.
@@ -47,7 +48,13 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		return err
 	}
 
-	if err := mc.Update(c.CourseName, c.Field, c.Description, c.CoreCompetencies); err != nil {
+	var supportingAppUrl *string
+	if c.SupportingAppUrl != "" {
+		url := c.SupportingAppUrl
+		supportingAppUrl = &url
+	}
+
+	if err := mc.Update(c.CourseName, c.Field, c.Description, c.CoreCompetencies, supportingAppUrl); err != nil {
 		log.Error().Err(err).Msg("failed to update master course entity")
 		return err
 	}

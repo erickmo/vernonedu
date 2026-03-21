@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,13 +12,17 @@ import (
 	"github.com/rs/zerolog/log"
 
 	assignfacilitator "github.com/vernonedu/entrepreneurship-api/internal/command/assign_batch_facilitator"
+	create_batch_schedule "github.com/vernonedu/entrepreneurship-api/internal/command/create_batch_schedule"
 	"github.com/vernonedu/entrepreneurship-api/internal/command/create_course_batch"
 	"github.com/vernonedu/entrepreneurship-api/internal/command/delete_course_batch"
 	"github.com/vernonedu/entrepreneurship-api/internal/command/update_course_batch"
+	"github.com/vernonedu/entrepreneurship-api/internal/domain/batchschedule"
 	"github.com/vernonedu/entrepreneurship-api/internal/query/get_course_batch"
 	getcoursebatchdetail "github.com/vernonedu/entrepreneurship-api/internal/query/get_course_batch_detail"
 	"github.com/vernonedu/entrepreneurship-api/internal/query/list_course_batch"
+	list_batch_schedules "github.com/vernonedu/entrepreneurship-api/internal/query/list_batch_schedules"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
+	pkgmiddleware "github.com/vernonedu/entrepreneurship-api/pkg/middleware"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
 )
 
@@ -36,6 +41,7 @@ func NewCourseBatchHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBu
 type CreateCourseBatchRequest struct {
 	CourseID        string `json:"course_id"`
 	MasterCourseID  string `json:"master_course_id"`
+	BranchID        string `json:"branch_id"` // optional UUID string
 	Code            string `json:"code"`
 	Name            string `json:"name" validate:"required,min=1"`
 	StartDate       string `json:"start_date" validate:"required"`
@@ -56,6 +62,7 @@ func parseDate(s string) (time.Time, error) {
 }
 
 type UpdateCourseBatchRequest struct {
+	BranchID        string `json:"branch_id"` // optional UUID string
 	Name            string `json:"name" validate:"required,min=1"`
 	StartDate       string `json:"start_date" validate:"required"`
 	EndDate         string `json:"end_date" validate:"required"`
@@ -88,6 +95,13 @@ func (h *CourseBatchHandler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	var branchID *uuid.UUID
+	if req.BranchID != "" {
+		if id, err := uuid.Parse(req.BranchID); err == nil {
+			branchID = &id
+		}
+	}
+
 	startDate, err := parseDate(req.StartDate)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid start_date format, use YYYY-MM-DD or RFC3339")
@@ -100,9 +114,30 @@ func (h *CourseBatchHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Extract creator role and initiator ID from context
+	roles := pkgmiddleware.GetRolesFromContext(r.Context())
+	creatorRole := ""
+	for _, role := range roles {
+		if role == "operation_admin" {
+			creatorRole = "operation_admin"
+			break
+		}
+		if role == "course_owner" {
+			creatorRole = "course_owner"
+		}
+	}
+
+	initiatorID := uuid.Nil
+	if userIDStr := pkgmiddleware.GetUserIDFromContext(r.Context()); userIDStr != "" {
+		if id, err := uuid.Parse(userIDStr); err == nil {
+			initiatorID = id
+		}
+	}
+
 	cmd := &create_course_batch.CreateCourseBatchCommand{
 		CourseID:        courseID,
 		MasterCourseID:  masterCourseID,
+		BranchID:        branchID,
 		Code:            req.Code,
 		Name:            req.Name,
 		StartDate:       startDate,
@@ -113,6 +148,8 @@ func (h *CourseBatchHandler) Create(w http.ResponseWriter, r *http.Request) {
 		WebsiteVisible:  req.WebsiteVisible,
 		Price:           req.Price,
 		PaymentMethod:   req.PaymentMethod,
+		CreatorRole:     creatorRole,
+		InitiatorID:     initiatorID,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute create course batch command")
@@ -174,6 +211,13 @@ func (h *CourseBatchHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var updateBranchID *uuid.UUID
+	if req.BranchID != "" {
+		if id, err := uuid.Parse(req.BranchID); err == nil {
+			updateBranchID = &id
+		}
+	}
+
 	startDate, err := parseDate(req.StartDate)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "invalid start_date format, use YYYY-MM-DD or RFC3339")
@@ -188,6 +232,7 @@ func (h *CourseBatchHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	cmd := &update_course_batch.UpdateCourseBatchCommand{
 		CourseBatchID:   courseBatchID,
+		BranchID:        updateBranchID,
 		Name:            req.Name,
 		StartDate:       startDate,
 		EndDate:         endDate,
@@ -274,11 +319,77 @@ func (h *CourseBatchHandler) AssignFacilitator(w http.ResponseWriter, r *http.Re
 	writeJSON(w, http.StatusOK, map[string]string{"message": "facilitator assigned successfully"})
 }
 
+// CreateSchedule handles POST /api/v1/course-batches/{id}/schedules
+func (h *CourseBatchHandler) CreateSchedule(w http.ResponseWriter, r *http.Request) {
+	batchIDStr := chi.URLParam(r, "id")
+	batchID, err := uuid.Parse(batchIDStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid batch id")
+		return
+	}
+
+	var body struct {
+		ModuleID        string    `json:"module_id"`
+		RoomID          string    `json:"room_id"`
+		ScheduledAt     time.Time `json:"scheduled_at"`
+		DurationMinutes int       `json:"duration_minutes"`
+		Notes           string    `json:"notes"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if body.DurationMinutes == 0 {
+		body.DurationMinutes = 60 // default 60 minutes
+	}
+
+	cmd := &create_batch_schedule.CreateBatchScheduleCommand{
+		CourseBatchID:   batchID,
+		ModuleID:        body.ModuleID,
+		RoomID:          body.RoomID,
+		ScheduledAt:     body.ScheduledAt,
+		DurationMinutes: body.DurationMinutes,
+		Notes:           body.Notes,
+	}
+	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
+		if errors.Is(err, batchschedule.ErrRoomConflict) {
+			writeError(w, http.StatusConflict, "room is already booked for the requested time slot")
+			return
+		}
+		log.Error().Err(err).Msg("failed to create batch schedule")
+		writeError(w, http.StatusInternalServerError, "failed to create schedule")
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, map[string]string{"message": "schedule created successfully"})
+}
+
+// ListSchedules handles GET /api/v1/course-batches/{id}/schedules
+func (h *CourseBatchHandler) ListSchedules(w http.ResponseWriter, r *http.Request) {
+	batchIDStr := chi.URLParam(r, "id")
+	batchID, err := uuid.Parse(batchIDStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid batch id")
+		return
+	}
+
+	result, err := h.qryBus.Execute(r.Context(), &list_batch_schedules.ListBatchSchedulesQuery{CourseBatchID: batchID})
+	if err != nil {
+		log.Error().Err(err).Msg("failed to list batch schedules")
+		writeError(w, http.StatusInternalServerError, "failed to list schedules")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, result)
+}
+
 func RegisterCourseBatchRoutes(h *CourseBatchHandler, r chi.Router) {
 	r.Post("/api/v1/course-batches", h.Create)
 	r.Get("/api/v1/course-batches", h.List)
 	r.Get("/api/v1/course-batches/{id}/detail", h.GetDetail)
 	r.Put("/api/v1/course-batches/{id}/facilitator", h.AssignFacilitator)
+	r.Post("/api/v1/course-batches/{id}/schedules", h.CreateSchedule)
+	r.Get("/api/v1/course-batches/{id}/schedules", h.ListSchedules)
 	r.Get("/api/v1/course-batches/{id}", h.GetByID)
 	r.Put("/api/v1/course-batches/{id}", h.Update)
 	r.Delete("/api/v1/course-batches/{id}", h.Delete)

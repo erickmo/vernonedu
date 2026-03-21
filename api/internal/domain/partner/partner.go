@@ -40,9 +40,13 @@ type PartnerGroup struct {
 type MOU struct {
 	ID             uuid.UUID
 	PartnerID      uuid.UUID
+	PartnerName    string
 	DocumentNumber string
+	Title          string
 	StartDate      string
 	EndDate        string
+	Status         string
+	DocumentURL    string
 	Notes          string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
@@ -65,7 +69,11 @@ type WriteRepository interface {
 	Update(ctx context.Context, p *Partner) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	SaveGroup(ctx context.Context, g *PartnerGroup) error
+	UpdateGroup(ctx context.Context, g *PartnerGroup) error
+	DeleteGroup(ctx context.Context, id uuid.UUID) error
 	SaveMOU(ctx context.Context, m *MOU) error
+	UpdateMOU(ctx context.Context, m *MOU) error
+	DeleteMOU(ctx context.Context, id uuid.UUID) error
 	SaveLog(ctx context.Context, l *PartnershipLog) error
 }
 
@@ -74,6 +82,8 @@ type ReadRepository interface {
 	List(ctx context.Context, offset, limit int, status string) ([]*Partner, int, error)
 	ListGroups(ctx context.Context) ([]*PartnerGroup, error)
 	ListMOUs(ctx context.Context, partnerID uuid.UUID) ([]*MOU, error)
+	GetMOUByID(ctx context.Context, id uuid.UUID) (*MOU, error)
+	ListExpiringMOUs(ctx context.Context, withinMonths int) ([]*MOU, error)
 	ListLogs(ctx context.Context, partnerID uuid.UUID) ([]*PartnershipLog, error)
 	Stats(ctx context.Context) (*PartnerStats, error)
 }

@@ -30,12 +30,19 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		return ErrInvalidPartnerID
 	}
 	now := time.Now()
+	status := c.Status
+	if status == "" {
+		status = "active"
+	}
 	m := &partner.MOU{
 		ID:             uuid.New(),
 		PartnerID:      partnerID,
 		DocumentNumber: c.DocumentNumber,
+		Title:          c.Title,
 		StartDate:      c.StartDate,
 		EndDate:        c.EndDate,
+		Status:         status,
+		DocumentURL:    c.DocumentURL,
 		Notes:          c.Notes,
 		CreatedAt:      now,
 		UpdatedAt:      now,

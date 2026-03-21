@@ -36,6 +36,7 @@ type courseModuleRecord struct {
 	PracticalActivities []byte     `db:"practical_activities"` // JSONB → []string
 	AssessmentMethod    string     `db:"assessment_method"`
 	ToolsRequired       []byte     `db:"tools_required"` // JSONB → []string
+	Requirements        []byte     `db:"requirements"`   // TEXT[] → []string
 	IsReference         bool       `db:"is_reference"`
 	RefModuleID         *uuid.UUID `db:"ref_module_id"`
 	CreatedAt           time.Time  `db:"created_at"`
@@ -74,6 +75,16 @@ func (rec *courseModuleRecord) toDomain() (*coursemodule.CourseModule, error) {
 		toolsRequired = []string{}
 	}
 
+	var requirements []string
+	if len(rec.Requirements) > 0 {
+		if err := json.Unmarshal(rec.Requirements, &requirements); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal requirements: %w", err)
+		}
+	}
+	if requirements == nil {
+		requirements = []string{}
+	}
+
 	return &coursemodule.CourseModule{
 		ID:                  rec.ID,
 		CourseVersionID:     rec.CourseVersionID,
@@ -86,6 +97,7 @@ func (rec *courseModuleRecord) toDomain() (*coursemodule.CourseModule, error) {
 		PracticalActivities: practicalActivities,
 		AssessmentMethod:    rec.AssessmentMethod,
 		ToolsRequired:       toolsRequired,
+		Requirements:        requirements,
 		IsReference:         rec.IsReference,
 		RefModuleID:         rec.RefModuleID,
 		CreatedAt:           rec.CreatedAt,
@@ -107,17 +119,21 @@ func (r *CourseModuleRepository) Save(ctx context.Context, cm *coursemodule.Cour
 	if err != nil {
 		return fmt.Errorf("failed to marshal tools_required: %w", err)
 	}
+	requirementsJSON, err := json.Marshal(cm.Requirements)
+	if err != nil {
+		return fmt.Errorf("failed to marshal requirements: %w", err)
+	}
 
 	query := `
 		INSERT INTO course_modules (id, course_version_id, module_code, module_title, duration_hours, sequence,
 		                            content_depth, topics, practical_activities, assessment_method,
-		                            tools_required, is_reference, ref_module_id, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		                            tools_required, requirements, is_reference, ref_module_id, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 	`
 	_, err = r.db.ExecContext(ctx, query,
 		cm.ID, cm.CourseVersionID, cm.ModuleCode, cm.ModuleTitle, cm.DurationHours, cm.Sequence,
 		cm.ContentDepth, topicsJSON, activitiesJSON, cm.AssessmentMethod,
-		toolsJSON, cm.IsReference, cm.RefModuleID, cm.CreatedAt, cm.UpdatedAt,
+		toolsJSON, requirementsJSON, cm.IsReference, cm.RefModuleID, cm.CreatedAt, cm.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to save course module: %w", err)
@@ -139,18 +155,22 @@ func (r *CourseModuleRepository) Update(ctx context.Context, cm *coursemodule.Co
 	if err != nil {
 		return fmt.Errorf("failed to marshal tools_required: %w", err)
 	}
+	requirementsJSON, err := json.Marshal(cm.Requirements)
+	if err != nil {
+		return fmt.Errorf("failed to marshal requirements: %w", err)
+	}
 
 	query := `
 		UPDATE course_modules
 		SET module_title = $1, duration_hours = $2, sequence = $3, content_depth = $4,
 		    topics = $5, practical_activities = $6, assessment_method = $7,
-		    tools_required = $8, updated_at = $9
-		WHERE id = $10
+		    tools_required = $8, requirements = $9, updated_at = $10
+		WHERE id = $11
 	`
 	_, err = r.db.ExecContext(ctx, query,
 		cm.ModuleTitle, cm.DurationHours, cm.Sequence, cm.ContentDepth,
 		topicsJSON, activitiesJSON, cm.AssessmentMethod,
-		toolsJSON, cm.UpdatedAt, cm.ID,
+		toolsJSON, requirementsJSON, cm.UpdatedAt, cm.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update course module: %w", err)
@@ -184,7 +204,7 @@ func (r *CourseModuleRepository) GetByID(ctx context.Context, id uuid.UUID) (*co
 	query := `
 		SELECT id, course_version_id, module_code, module_title, duration_hours, sequence,
 		       content_depth, topics, practical_activities, assessment_method,
-		       tools_required, is_reference, ref_module_id, created_at, updated_at
+		       tools_required, requirements, is_reference, ref_module_id, created_at, updated_at
 		FROM course_modules WHERE id = $1
 	`
 	if err := r.db.GetContext(ctx, &rec, query, id); err != nil {
@@ -199,7 +219,7 @@ func (r *CourseModuleRepository) ListByVersion(ctx context.Context, courseVersio
 	query := `
 		SELECT id, course_version_id, module_code, module_title, duration_hours, sequence,
 		       content_depth, topics, practical_activities, assessment_method,
-		       tools_required, is_reference, ref_module_id, created_at, updated_at
+		       tools_required, requirements, is_reference, ref_module_id, created_at, updated_at
 		FROM course_modules WHERE course_version_id = $1 ORDER BY sequence ASC
 	`
 	if err := r.db.SelectContext(ctx, &recs, query, courseVersionID); err != nil {
@@ -223,7 +243,7 @@ func (r *CourseModuleRepository) GetByCode(ctx context.Context, courseVersionID 
 	query := `
 		SELECT id, course_version_id, module_code, module_title, duration_hours, sequence,
 		       content_depth, topics, practical_activities, assessment_method,
-		       tools_required, is_reference, ref_module_id, created_at, updated_at
+		       tools_required, requirements, is_reference, ref_module_id, created_at, updated_at
 		FROM course_modules WHERE course_version_id = $1 AND module_code = $2
 	`
 	if err := r.db.GetContext(ctx, &rec, query, courseVersionID, moduleCode); err != nil {

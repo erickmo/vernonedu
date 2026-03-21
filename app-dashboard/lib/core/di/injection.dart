@@ -103,7 +103,10 @@ import '../../features/student/domain/usecases/get_student_recommendations_useca
 import '../../features/student/domain/usecases/get_student_notes_usecase.dart';
 import '../../features/student/domain/usecases/add_student_note_usecase.dart';
 import '../../features/student/domain/usecases/update_student_usecase.dart';
+import '../../features/student/domain/usecases/get_student_crm_logs_usecase.dart';
+import '../../features/student/domain/usecases/add_student_crm_log_usecase.dart';
 import '../../features/student/presentation/cubit/student_dashboard_cubit.dart';
+import '../../features/student/presentation/cubit/student_form_cubit.dart';
 import '../../features/hrm/data/datasources/sdm_remote_datasource.dart';
 import '../../features/hrm/data/repositories/sdm_repository_impl.dart';
 import '../../features/hrm/domain/repositories/sdm_repository.dart';
@@ -111,6 +114,134 @@ import '../../features/hrm/domain/usecases/get_sdm_list_usecase.dart';
 import '../../features/hrm/domain/usecases/get_sdm_detail_usecase.dart';
 import '../../features/hrm/presentation/cubit/sdm_list_cubit.dart';
 import '../../features/hrm/presentation/cubit/sdm_detail_cubit.dart';
+import '../../features/business_dev/data/datasources/biz_dev_remote_datasource.dart';
+import '../../features/business_dev/data/datasources/partner_detail_remote_datasource.dart';
+import '../../features/business_dev/data/repositories/biz_dev_repository_impl.dart';
+import '../../features/business_dev/data/repositories/partner_detail_repository_impl.dart';
+import '../../features/business_dev/domain/repositories/biz_dev_repository.dart';
+import '../../features/business_dev/domain/repositories/partner_detail_repository.dart';
+import '../../features/business_dev/domain/usecases/get_partners_usecase.dart';
+import '../../features/business_dev/domain/usecases/get_branches_usecase.dart';
+import '../../features/business_dev/domain/usecases/get_okr_usecase.dart';
+import '../../features/business_dev/domain/usecases/get_investments_usecase.dart';
+import '../../features/business_dev/domain/usecases/get_delegations_usecase.dart';
+import '../../features/business_dev/domain/usecases/get_partner_detail_usecase.dart';
+import '../../features/business_dev/domain/usecases/add_mou_usecase.dart';
+import '../../features/business_dev/presentation/cubit/biz_dev_cubit.dart';
+import '../../features/business_dev/presentation/cubit/partner_detail_cubit.dart';
+import '../../features/leads/data/datasources/lead_remote_datasource.dart';
+import '../../features/leads/data/repositories/lead_repository_impl.dart';
+import '../../features/leads/domain/repositories/lead_repository.dart';
+import '../../features/leads/domain/usecases/get_leads_usecase.dart';
+import '../../features/leads/domain/usecases/create_lead_usecase.dart';
+import '../../features/leads/domain/usecases/update_lead_usecase.dart';
+import '../../features/leads/domain/usecases/delete_lead_usecase.dart';
+import '../../features/leads/domain/usecases/get_crm_logs_usecase.dart';
+import '../../features/leads/domain/usecases/add_crm_log_usecase.dart';
+import '../../features/leads/domain/usecases/convert_lead_usecase.dart';
+import '../../features/leads/presentation/cubit/lead_cubit.dart';
+import '../../features/certificate/data/datasources/certificate_remote_datasource.dart';
+import '../../features/certificate/data/repositories/certificate_repository_impl.dart';
+import '../../features/certificate/domain/repositories/certificate_repository.dart';
+import '../../features/certificate/domain/usecases/get_certificates_usecase.dart';
+import '../../features/certificate/domain/usecases/issue_certificate_usecase.dart';
+import '../../features/certificate/domain/usecases/revoke_certificate_usecase.dart';
+import '../../features/certificate/domain/usecases/get_certificate_templates_usecase.dart';
+import '../../features/certificate/domain/usecases/create_certificate_template_usecase.dart';
+import '../../features/certificate/presentation/cubit/certificate_cubit.dart';
+import '../../features/accounting/data/datasources/accounting_remote_datasource.dart';
+import '../../features/accounting/data/repositories/accounting_repository_impl.dart';
+import '../../features/accounting/domain/repositories/accounting_repository.dart';
+import '../../features/accounting/domain/usecases/get_accounting_stats_usecase.dart';
+import '../../features/accounting/domain/usecases/get_transactions_usecase.dart';
+import '../../features/accounting/domain/usecases/create_transaction_usecase.dart';
+import '../../features/accounting/domain/usecases/get_invoices_usecase.dart';
+import '../../features/accounting/domain/usecases/update_invoice_status_usecase.dart';
+import '../../features/accounting/domain/usecases/get_coa_usecase.dart';
+import '../../features/accounting/domain/usecases/get_budget_vs_actual_usecase.dart';
+import '../../features/accounting/presentation/cubit/accounting_cubit.dart';
+import '../../features/finance/presentation/cubit/finance_dashboard_cubit.dart';
+import '../../features/finance_reports/data/datasources/finance_reports_remote_datasource.dart';
+import '../../features/finance_reports/data/repositories/finance_reports_repository_impl.dart';
+import '../../features/finance_reports/domain/repositories/finance_reports_repository.dart';
+import '../../features/finance_reports/domain/usecases/get_balance_sheet_usecase.dart';
+import '../../features/finance_reports/domain/usecases/get_cash_flow_usecase.dart';
+import '../../features/finance_reports/domain/usecases/get_ledger_usecase.dart';
+import '../../features/finance_reports/domain/usecases/get_profit_loss_usecase.dart';
+import '../../features/finance_reports/domain/usecases/get_trial_balance_usecase.dart';
+import '../../features/finance_reports/presentation/cubit/balance_sheet_cubit.dart';
+import '../../features/finance_reports/presentation/cubit/cash_flow_cubit.dart';
+import '../../features/finance_reports/presentation/cubit/ledger_cubit.dart';
+import '../../features/finance_reports/presentation/cubit/profit_loss_cubit.dart';
+import '../../features/finance_reports/presentation/cubit/trial_balance_cubit.dart';
+import '../../features/marketing/data/datasources/marketing_remote_datasource.dart';
+import '../../features/marketing/data/repositories/marketing_repository_impl.dart';
+import '../../features/marketing/domain/repositories/marketing_repository.dart';
+import '../../features/marketing/domain/usecases/get_marketing_stats_usecase.dart';
+import '../../features/marketing/domain/usecases/get_posts_usecase.dart';
+import '../../features/marketing/domain/usecases/create_post_usecase.dart';
+import '../../features/marketing/domain/usecases/update_post_usecase.dart';
+import '../../features/marketing/domain/usecases/submit_post_url_usecase.dart';
+import '../../features/marketing/domain/usecases/delete_post_usecase.dart';
+import '../../features/marketing/domain/usecases/get_class_docs_usecase.dart';
+import '../../features/marketing/domain/usecases/get_pr_usecase.dart';
+import '../../features/marketing/domain/usecases/create_pr_usecase.dart';
+import '../../features/marketing/domain/usecases/update_pr_usecase.dart';
+import '../../features/marketing/domain/usecases/delete_pr_usecase.dart';
+import '../../features/marketing/domain/usecases/get_referral_partners_usecase.dart';
+import '../../features/marketing/domain/usecases/create_referral_partner_usecase.dart';
+import '../../features/marketing/domain/usecases/update_referral_partner_usecase.dart';
+import '../../features/marketing/domain/usecases/get_referrals_usecase.dart';
+import '../../features/marketing/presentation/cubit/marketing_cubit.dart';
+import '../../features/finance_invoices/data/datasources/invoice_remote_datasource.dart';
+import '../../features/finance_invoices/data/repositories/invoice_repository_impl.dart';
+import '../../features/finance_invoices/domain/repositories/invoice_repository.dart';
+import '../../features/finance_invoices/domain/usecases/get_invoice_stats_usecase.dart';
+import '../../features/finance_invoices/domain/usecases/get_invoice_list_usecase.dart';
+import '../../features/finance_invoices/domain/usecases/get_invoice_detail_usecase.dart';
+import '../../features/finance_invoices/domain/usecases/mark_invoice_paid_usecase.dart';
+import '../../features/finance_invoices/domain/usecases/resend_invoice_usecase.dart';
+import '../../features/finance_invoices/domain/usecases/cancel_invoice_usecase.dart';
+import '../../features/finance_invoices/domain/usecases/create_manual_invoice_usecase.dart';
+import '../../features/finance_invoices/presentation/cubit/invoice_cubit.dart';
+import '../../features/payable/data/datasources/payable_remote_datasource.dart';
+import '../../features/payable/data/repositories/payable_repository_impl.dart';
+import '../../features/payable/domain/repositories/payable_repository.dart';
+import '../../features/payable/domain/usecases/get_payable_stats_usecase.dart';
+import '../../features/payable/domain/usecases/get_payables_usecase.dart';
+import '../../features/payable/domain/usecases/mark_payable_paid_usecase.dart';
+import '../../features/payable/presentation/cubit/payable_cubit.dart';
+import '../../features/finance_analysis/data/datasources/finance_analysis_remote_datasource.dart';
+import '../../features/finance_analysis/data/repositories/finance_analysis_repository_impl.dart';
+import '../../features/finance_analysis/domain/repositories/finance_analysis_repository.dart';
+import '../../features/finance_analysis/domain/usecases/get_financial_ratios_usecase.dart';
+import '../../features/finance_analysis/domain/usecases/get_revenue_analysis_usecase.dart';
+import '../../features/finance_analysis/domain/usecases/get_cost_analysis_usecase.dart';
+import '../../features/finance_analysis/domain/usecases/get_batch_profit_analysis_usecase.dart';
+import '../../features/finance_analysis/domain/usecases/get_cash_forecast_usecase.dart';
+import '../../features/finance_analysis/domain/usecases/get_finance_alerts_usecase.dart';
+import '../../features/finance_analysis/domain/usecases/get_finance_suggestions_usecase.dart';
+import '../../features/finance_analysis/presentation/cubit/finance_analysis_cubit.dart';
+import '../../features/cms/data/datasources/cms_remote_datasource.dart';
+import '../../features/cms/data/repositories/cms_repository_impl.dart';
+import '../../features/cms/domain/repositories/cms_repository.dart';
+import '../../features/cms/domain/usecases/get_cms_pages_usecase.dart';
+import '../../features/cms/domain/usecases/update_cms_page_usecase.dart';
+import '../../features/cms/domain/usecases/get_cms_articles_usecase.dart';
+import '../../features/cms/domain/usecases/create_cms_article_usecase.dart';
+import '../../features/cms/domain/usecases/update_cms_article_usecase.dart';
+import '../../features/cms/domain/usecases/delete_cms_article_usecase.dart';
+import '../../features/cms/domain/usecases/get_cms_testimonials_usecase.dart';
+import '../../features/cms/domain/usecases/create_cms_testimonial_usecase.dart';
+import '../../features/cms/domain/usecases/update_cms_testimonial_usecase.dart';
+import '../../features/cms/domain/usecases/delete_cms_testimonial_usecase.dart';
+import '../../features/cms/domain/usecases/get_cms_faq_usecase.dart';
+import '../../features/cms/domain/usecases/create_cms_faq_usecase.dart';
+import '../../features/cms/domain/usecases/update_cms_faq_usecase.dart';
+import '../../features/cms/domain/usecases/delete_cms_faq_usecase.dart';
+import '../../features/cms/domain/usecases/get_cms_media_usecase.dart';
+import '../../features/cms/domain/usecases/delete_cms_media_usecase.dart';
+import '../../features/cms/presentation/cubit/cms_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -379,6 +510,10 @@ Future<void> configureDependencies() async {
       () => AddStudentNoteUseCase(getIt<StudentDetailRepository>()));
   getIt.registerFactory(
       () => UpdateStudentUseCase(getIt<StudentDetailRepository>()));
+  getIt.registerFactory(
+      () => GetStudentCrmLogsUseCase(getIt<StudentDetailRepository>()));
+  getIt.registerFactory(
+      () => AddStudentCrmLogUseCase(getIt<StudentDetailRepository>()));
   getIt.registerFactory(() => StudentDashboardCubit(
     getStudentDetail: getIt<GetStudentDetailUseCase>(),
     getEnrollmentHistory: getIt<GetStudentEnrollmentHistoryUseCase>(),
@@ -387,6 +522,14 @@ Future<void> configureDependencies() async {
     addNote: getIt<AddStudentNoteUseCase>(),
     updateStudent: getIt<UpdateStudentUseCase>(),
     getTalentPool: getIt<GetTalentPoolUseCase>(),
+    getCrmLogs: getIt<GetStudentCrmLogsUseCase>(),
+    addCrmLog: getIt<AddStudentCrmLogUseCase>(),
+  ));
+  getIt.registerFactory(() => StudentFormCubit(
+    getDepartments: getIt<GetDepartmentsUseCase>(),
+    getStudentDetail: getIt<GetStudentDetailUseCase>(),
+    createStudent: getIt<CreateStudentUseCase>(),
+    updateStudent: getIt<UpdateStudentUseCase>(),
   ));
 
   // SDM (HRM)
@@ -406,5 +549,313 @@ Future<void> configureDependencies() async {
   ));
   getIt.registerFactory(() => SdmDetailCubit(
     getSdmDetailUseCase: getIt<GetSdmDetailUseCase>(),
+  ));
+
+  // Business Development
+  getIt.registerSingleton<BizDevRemoteDataSource>(
+    BizDevRemoteDataSourceImpl(getIt<ApiClient>().dio),
+  );
+  getIt.registerSingleton<PartnerDetailRemoteDataSource>(
+    PartnerDetailRemoteDataSourceImpl(getIt<ApiClient>().dio),
+  );
+  getIt.registerSingleton<BizDevRepository>(
+    BizDevRepositoryImpl(
+      remoteDataSource: getIt<BizDevRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerSingleton<PartnerDetailRepository>(
+    PartnerDetailRepositoryImpl(
+      remoteDataSource: getIt<PartnerDetailRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerFactory(() => GetPartnersUseCase(getIt<BizDevRepository>()));
+  getIt.registerFactory(() => GetBranchesUseCase(getIt<BizDevRepository>()));
+  getIt.registerFactory(() => GetOkrUseCase(getIt<BizDevRepository>()));
+  getIt.registerFactory(() => GetInvestmentsUseCase(getIt<BizDevRepository>()));
+  getIt.registerFactory(() => GetDelegationsUseCase(getIt<BizDevRepository>()));
+  getIt.registerFactory(
+      () => GetPartnerDetailUseCase(getIt<PartnerDetailRepository>()));
+  getIt.registerFactory(
+      () => AddMouUseCase(getIt<PartnerDetailRepository>()));
+  getIt.registerFactory(() => BizDevCubit(
+    getPartners: getIt<GetPartnersUseCase>(),
+    getBranches: getIt<GetBranchesUseCase>(),
+    getOkr: getIt<GetOkrUseCase>(),
+    getInvestments: getIt<GetInvestmentsUseCase>(),
+    getDelegations: getIt<GetDelegationsUseCase>(),
+  ));
+  getIt.registerFactory(() => PartnerDetailCubit(
+    getPartnerDetail: getIt<GetPartnerDetailUseCase>(),
+    addMou: getIt<AddMouUseCase>(),
+  ));
+
+  // Leads
+  getIt.registerSingleton<LeadRemoteDataSource>(
+    LeadRemoteDataSourceImpl(getIt<ApiClient>().dio),
+  );
+  getIt.registerSingleton<LeadRepository>(
+    LeadRepositoryImpl(
+      remoteDataSource: getIt<LeadRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerFactory(() => GetLeadsUseCase(getIt<LeadRepository>()));
+  getIt.registerFactory(() => CreateLeadUseCase(getIt<LeadRepository>()));
+  getIt.registerFactory(() => UpdateLeadUseCase(getIt<LeadRepository>()));
+  getIt.registerFactory(() => DeleteLeadUseCase(getIt<LeadRepository>()));
+  getIt.registerFactory(() => GetCrmLogsUseCase(getIt<LeadRepository>()));
+  getIt.registerFactory(() => AddCrmLogUseCase(getIt<LeadRepository>()));
+  getIt.registerFactory(() => ConvertLeadUseCase(getIt<LeadRepository>()));
+  getIt.registerFactory(() => LeadCubit(
+    getLeadsUseCase: getIt<GetLeadsUseCase>(),
+    createLeadUseCase: getIt<CreateLeadUseCase>(),
+    updateLeadUseCase: getIt<UpdateLeadUseCase>(),
+    deleteLeadUseCase: getIt<DeleteLeadUseCase>(),
+    getCrmLogsUseCase: getIt<GetCrmLogsUseCase>(),
+    addCrmLogUseCase: getIt<AddCrmLogUseCase>(),
+    convertLeadUseCase: getIt<ConvertLeadUseCase>(),
+  ));
+
+  // Certificate
+  getIt.registerSingleton<CertificateRemoteDataSource>(
+    CertificateRemoteDataSourceImpl(getIt<ApiClient>().dio),
+  );
+  getIt.registerSingleton<CertificateRepository>(
+    CertificateRepositoryImpl(
+      remoteDataSource: getIt<CertificateRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerFactory(() => GetCertificatesUseCase(getIt<CertificateRepository>()));
+  getIt.registerFactory(() => IssueCertificateUseCase(getIt<CertificateRepository>()));
+  getIt.registerFactory(() => RevokeCertificateUseCase(getIt<CertificateRepository>()));
+  getIt.registerFactory(() => GetCertificateTemplatesUseCase(getIt<CertificateRepository>()));
+  getIt.registerFactory(() => CreateCertificateTemplateUseCase(getIt<CertificateRepository>()));
+  getIt.registerFactory(() => CertificateCubit(
+    getCertificatesUseCase: getIt<GetCertificatesUseCase>(),
+    getTemplatesUseCase: getIt<GetCertificateTemplatesUseCase>(),
+    issueCertificateUseCase: getIt<IssueCertificateUseCase>(),
+    revokeCertificateUseCase: getIt<RevokeCertificateUseCase>(),
+    createTemplateUseCase: getIt<CreateCertificateTemplateUseCase>(),
+  ));
+
+  // Accounting
+  getIt.registerSingleton<AccountingRemoteDataSource>(
+    AccountingRemoteDataSourceImpl(getIt<ApiClient>().dio),
+  );
+  getIt.registerSingleton<AccountingRepository>(
+    AccountingRepositoryImpl(
+      remoteDataSource: getIt<AccountingRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerFactory(() => GetAccountingStatsUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => GetTransactionsUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => CreateTransactionUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => GetInvoicesUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => UpdateInvoiceStatusUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => GetCoaUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => GetBudgetVsActualUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => AccountingCubit(
+    getStatsUseCase: getIt<GetAccountingStatsUseCase>(),
+    getTransactionsUseCase: getIt<GetTransactionsUseCase>(),
+    createTransactionUseCase: getIt<CreateTransactionUseCase>(),
+    getInvoicesUseCase: getIt<GetInvoicesUseCase>(),
+    updateInvoiceStatusUseCase: getIt<UpdateInvoiceStatusUseCase>(),
+    getCoaUseCase: getIt<GetCoaUseCase>(),
+    getBudgetVsActualUseCase: getIt<GetBudgetVsActualUseCase>(),
+  ));
+  // Marketing
+  getIt.registerSingleton<MarketingRemoteDataSource>(
+    MarketingRemoteDataSourceImpl(getIt<ApiClient>().dio),
+  );
+  getIt.registerSingleton<MarketingRepository>(
+    MarketingRepositoryImpl(
+      remoteDataSource: getIt<MarketingRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerFactory(() => GetMarketingStatsUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => GetPostsUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => CreatePostUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => UpdatePostUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => SubmitPostUrlUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => DeletePostUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => GetClassDocsUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => GetPrUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => CreatePrUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => UpdatePrUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => DeletePrUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => GetReferralPartnersUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => CreateReferralPartnerUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => UpdateReferralPartnerUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => GetReferralsUseCase(getIt<MarketingRepository>()));
+  getIt.registerFactory(() => MarketingCubit(
+    getStatsUseCase: getIt<GetMarketingStatsUseCase>(),
+    getPostsUseCase: getIt<GetPostsUseCase>(),
+    createPostUseCase: getIt<CreatePostUseCase>(),
+    updatePostUseCase: getIt<UpdatePostUseCase>(),
+    submitPostUrlUseCase: getIt<SubmitPostUrlUseCase>(),
+    deletePostUseCase: getIt<DeletePostUseCase>(),
+    getClassDocsUseCase: getIt<GetClassDocsUseCase>(),
+    getPrUseCase: getIt<GetPrUseCase>(),
+    createPrUseCase: getIt<CreatePrUseCase>(),
+    updatePrUseCase: getIt<UpdatePrUseCase>(),
+    deletePrUseCase: getIt<DeletePrUseCase>(),
+    getReferralPartnersUseCase: getIt<GetReferralPartnersUseCase>(),
+    createReferralPartnerUseCase: getIt<CreateReferralPartnerUseCase>(),
+    updateReferralPartnerUseCase: getIt<UpdateReferralPartnerUseCase>(),
+    getReferralsUseCase: getIt<GetReferralsUseCase>(),
+  ));
+
+  getIt.registerFactory(() => FinanceDashboardCubit(
+    getStatsUseCase: getIt<GetAccountingStatsUseCase>(),
+    getTransactionsUseCase: getIt<GetTransactionsUseCase>(),
+    getInvoicesUseCase: getIt<GetInvoicesUseCase>(),
+    getBudgetVsActualUseCase: getIt<GetBudgetVsActualUseCase>(),
+    createTransactionUseCase: getIt<CreateTransactionUseCase>(),
+    updateInvoiceStatusUseCase: getIt<UpdateInvoiceStatusUseCase>(),
+  ));
+
+  // Finance Reports
+  getIt.registerSingleton<FinanceReportsRemoteDataSource>(
+    FinanceReportsRemoteDataSourceImpl(getIt<ApiClient>().dio),
+  );
+  getIt.registerSingleton<FinanceReportsRepository>(
+    FinanceReportsRepositoryImpl(
+      remoteDataSource: getIt<FinanceReportsRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerFactory(() => GetBalanceSheetUseCase(getIt<FinanceReportsRepository>()));
+  getIt.registerFactory(() => GetProfitLossUseCase(getIt<FinanceReportsRepository>()));
+  getIt.registerFactory(() => GetCashFlowUseCase(getIt<FinanceReportsRepository>()));
+  getIt.registerFactory(() => GetLedgerUseCase(getIt<FinanceReportsRepository>()));
+  getIt.registerFactory(() => GetTrialBalanceUseCase(getIt<FinanceReportsRepository>()));
+  getIt.registerFactory(() => BalanceSheetCubit(getIt<GetBalanceSheetUseCase>()));
+  getIt.registerFactory(() => ProfitLossCubit(getIt<GetProfitLossUseCase>()));
+  getIt.registerFactory(() => CashFlowCubit(getIt<GetCashFlowUseCase>()));
+  getIt.registerFactory(() => LedgerCubit(getIt<GetLedgerUseCase>()));
+  getIt.registerFactory(() => TrialBalanceCubit(getIt<GetTrialBalanceUseCase>()));
+
+  // Finance Invoices
+  getIt.registerSingleton<InvoiceRemoteDataSource>(
+    InvoiceRemoteDataSourceImpl(getIt<ApiClient>().dio),
+  );
+  getIt.registerSingleton<InvoiceRepository>(
+    InvoiceRepositoryImpl(
+      remoteDataSource: getIt<InvoiceRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerFactory(() => GetInvoiceStatsUseCase(getIt<InvoiceRepository>()));
+  getIt.registerFactory(() => GetInvoiceListUseCase(getIt<InvoiceRepository>()));
+  getIt.registerFactory(() => GetInvoiceDetailUseCase(getIt<InvoiceRepository>()));
+  getIt.registerFactory(() => MarkInvoicePaidUseCase(getIt<InvoiceRepository>()));
+  getIt.registerFactory(() => ResendInvoiceUseCase(getIt<InvoiceRepository>()));
+  getIt.registerFactory(() => CancelInvoiceUseCase(getIt<InvoiceRepository>()));
+  getIt.registerFactory(
+      () => CreateManualInvoiceUseCase(getIt<InvoiceRepository>()));
+  getIt.registerFactory(() => InvoiceCubit(
+        getStats: getIt<GetInvoiceStatsUseCase>(),
+        getInvoices: getIt<GetInvoiceListUseCase>(),
+        getDetail: getIt<GetInvoiceDetailUseCase>(),
+        markPaid: getIt<MarkInvoicePaidUseCase>(),
+        resend: getIt<ResendInvoiceUseCase>(),
+        cancel: getIt<CancelInvoiceUseCase>(),
+        createManual: getIt<CreateManualInvoiceUseCase>(),
+      ));
+
+  // Payable
+  getIt.registerSingleton<PayableRemoteDataSource>(
+    PayableRemoteDataSourceImpl(getIt<ApiClient>().dio),
+  );
+  getIt.registerSingleton<PayableRepository>(
+    PayableRepositoryImpl(
+      remoteDataSource: getIt<PayableRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerFactory(() => GetPayableStatsUseCase(getIt<PayableRepository>()));
+  getIt.registerFactory(() => GetPayablesUseCase(getIt<PayableRepository>()));
+  getIt.registerFactory(() => MarkPayablePaidUseCase(getIt<PayableRepository>()));
+  getIt.registerFactory(() => PayableCubit(
+        getPayableStatsUseCase: getIt<GetPayableStatsUseCase>(),
+        getPayablesUseCase: getIt<GetPayablesUseCase>(),
+        markPayablePaidUseCase: getIt<MarkPayablePaidUseCase>(),
+      ));
+
+  // Finance Analysis
+  getIt.registerSingleton<FinanceAnalysisRemoteDataSource>(
+    FinanceAnalysisRemoteDataSourceImpl(getIt<ApiClient>().dio),
+  );
+  getIt.registerSingleton<FinanceAnalysisRepository>(
+    FinanceAnalysisRepositoryImpl(
+      remoteDataSource: getIt<FinanceAnalysisRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerFactory(() => GetFinancialRatiosUseCase(getIt<FinanceAnalysisRepository>()));
+  getIt.registerFactory(() => GetRevenueAnalysisUseCase(getIt<FinanceAnalysisRepository>()));
+  getIt.registerFactory(() => GetCostAnalysisUseCase(getIt<FinanceAnalysisRepository>()));
+  getIt.registerFactory(() => GetBatchProfitAnalysisUseCase(getIt<FinanceAnalysisRepository>()));
+  getIt.registerFactory(() => GetCashForecastUseCase(getIt<FinanceAnalysisRepository>()));
+  getIt.registerFactory(() => GetFinanceAlertsUseCase(getIt<FinanceAnalysisRepository>()));
+  getIt.registerFactory(() => GetFinanceSuggestionsUseCase(getIt<FinanceAnalysisRepository>()));
+  getIt.registerFactory(() => FinanceAnalysisCubit(
+    getRatios: getIt<GetFinancialRatiosUseCase>(),
+    getRevenue: getIt<GetRevenueAnalysisUseCase>(),
+    getCosts: getIt<GetCostAnalysisUseCase>(),
+    getBatchProfit: getIt<GetBatchProfitAnalysisUseCase>(),
+    getCashForecast: getIt<GetCashForecastUseCase>(),
+    getAlerts: getIt<GetFinanceAlertsUseCase>(),
+    getSuggestions: getIt<GetFinanceSuggestionsUseCase>(),
+  ));
+
+  // CMS
+  getIt.registerSingleton<CmsRemoteDataSource>(
+    CmsRemoteDataSourceImpl(getIt<ApiClient>().dio),
+  );
+  getIt.registerSingleton<CmsRepository>(
+    CmsRepositoryImpl(
+      remoteDataSource: getIt<CmsRemoteDataSource>(),
+      networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+  getIt.registerFactory(() => GetCmsPagesUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => UpdateCmsPageUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => GetCmsArticlesUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => CreateCmsArticleUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => UpdateCmsArticleUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => DeleteCmsArticleUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => GetCmsTestimonialsUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => CreateCmsTestimonialUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => UpdateCmsTestimonialUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => DeleteCmsTestimonialUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => GetCmsFaqUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => CreateCmsFaqUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => UpdateCmsFaqUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => DeleteCmsFaqUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => GetCmsMediaUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => DeleteCmsMediaUseCase(getIt<CmsRepository>()));
+  getIt.registerFactory(() => CmsCubit(
+    getPages: getIt<GetCmsPagesUseCase>(),
+    updatePage: getIt<UpdateCmsPageUseCase>(),
+    getArticles: getIt<GetCmsArticlesUseCase>(),
+    createArticle: getIt<CreateCmsArticleUseCase>(),
+    updateArticle: getIt<UpdateCmsArticleUseCase>(),
+    deleteArticle: getIt<DeleteCmsArticleUseCase>(),
+    getTestimonials: getIt<GetCmsTestimonialsUseCase>(),
+    createTestimonial: getIt<CreateCmsTestimonialUseCase>(),
+    updateTestimonial: getIt<UpdateCmsTestimonialUseCase>(),
+    deleteTestimonial: getIt<DeleteCmsTestimonialUseCase>(),
+    getFaq: getIt<GetCmsFaqUseCase>(),
+    createFaq: getIt<CreateCmsFaqUseCase>(),
+    updateFaq: getIt<UpdateCmsFaqUseCase>(),
+    deleteFaq: getIt<DeleteCmsFaqUseCase>(),
+    getMedia: getIt<GetCmsMediaUseCase>(),
+    deleteMedia: getIt<DeleteCmsMediaUseCase>(),
   ));
 }

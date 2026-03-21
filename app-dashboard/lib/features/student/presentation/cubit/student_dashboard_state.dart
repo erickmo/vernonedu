@@ -4,6 +4,7 @@ import '../../domain/entities/student_detail_entity.dart';
 import '../../domain/entities/student_enrollment_history_entity.dart';
 import '../../domain/entities/student_note_entity.dart';
 import '../../domain/entities/recommended_course_entity.dart';
+import '../../domain/entities/student_crm_log_entity.dart';
 import '../../../talentpool/domain/entities/talentpool_entity.dart';
 
 abstract class StudentDashboardState extends Equatable {
@@ -27,8 +28,10 @@ class StudentDashboardLoaded extends StudentDashboardState {
   final List<RecommendedCourseEntity> recommendations;
   final TalentPoolEntity? talentPool;
   final List<StudentNoteEntity> notes;
+  final List<StudentCrmLogEntity> crmLogs;
   final bool isAddingNote;
   final bool isUpdating;
+  final bool isAddingCrmLog;
 
   const StudentDashboardLoaded({
     required this.student,
@@ -36,8 +39,10 @@ class StudentDashboardLoaded extends StudentDashboardState {
     required this.recommendations,
     this.talentPool,
     required this.notes,
+    this.crmLogs = const [],
     this.isAddingNote = false,
     this.isUpdating = false,
+    this.isAddingCrmLog = false,
   });
 
   StudentDashboardLoaded copyWith({
@@ -47,8 +52,10 @@ class StudentDashboardLoaded extends StudentDashboardState {
     TalentPoolEntity? talentPool,
     bool clearTalentPool = false,
     List<StudentNoteEntity>? notes,
+    List<StudentCrmLogEntity>? crmLogs,
     bool? isAddingNote,
     bool? isUpdating,
+    bool? isAddingCrmLog,
   }) {
     return StudentDashboardLoaded(
       student: student ?? this.student,
@@ -56,8 +63,10 @@ class StudentDashboardLoaded extends StudentDashboardState {
       recommendations: recommendations ?? this.recommendations,
       talentPool: clearTalentPool ? null : (talentPool ?? this.talentPool),
       notes: notes ?? this.notes,
+      crmLogs: crmLogs ?? this.crmLogs,
       isAddingNote: isAddingNote ?? this.isAddingNote,
       isUpdating: isUpdating ?? this.isUpdating,
+      isAddingCrmLog: isAddingCrmLog ?? this.isAddingCrmLog,
     );
   }
 
@@ -68,8 +77,10 @@ class StudentDashboardLoaded extends StudentDashboardState {
         recommendations,
         talentPool,
         notes,
+        crmLogs,
         isAddingNote,
         isUpdating,
+        isAddingCrmLog,
       ];
 }
 

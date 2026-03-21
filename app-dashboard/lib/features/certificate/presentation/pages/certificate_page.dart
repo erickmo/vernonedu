@@ -1,431 +1,440 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/di/injection.dart';
-import '../../../../core/network/api_client.dart';
 import '../../../../core/utils/date_format_util.dart';
+import '../../domain/entities/certificate_entity.dart';
+import '../../domain/entities/certificate_template_entity.dart';
+import '../cubit/certificate_cubit.dart';
 
-// ---------------------------------------------------------------------------
-// Data models
-// ---------------------------------------------------------------------------
+class CertificatePage extends StatelessWidget {
+  const CertificatePage({super.key});
 
-class _CertItem {
-  final String id;
-  final String studentName;
-  final String courseName;
-  final String batchCode;
-  final String type; // 'participant' | 'competency'
-  final DateTime issuedAt;
-  final String certificateNumber;
-  final bool isRevoked;
-
-  const _CertItem({
-    required this.id,
-    required this.studentName,
-    required this.courseName,
-    required this.batchCode,
-    required this.type,
-    required this.issuedAt,
-    required this.certificateNumber,
-    required this.isRevoked,
-  });
-
-  factory _CertItem.fromJson(Map<String, dynamic> json) {
-    final issuedAtRaw = json['issued_at'];
-    DateTime issuedAt;
-    try {
-      issuedAt = issuedAtRaw != null
-          ? DateTime.parse(issuedAtRaw as String)
-          : DateTime.now();
-    } catch (_) {
-      issuedAt = DateTime.now();
-    }
-    return _CertItem(
-      id: json['id'] as String? ?? '',
-      studentName: json['student_name'] as String? ?? '',
-      courseName: json['course_name'] as String? ?? '',
-      batchCode: json['batch_code'] as String? ?? '',
-      type: json['type'] as String? ?? 'participant',
-      issuedAt: issuedAt,
-      certificateNumber: json['certificate_number'] as String? ?? '',
-      isRevoked: json['is_revoked'] as bool? ?? false,
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => getIt<CertificateCubit>()..loadAll(),
+      child: const _CertificateView(),
     );
   }
 }
 
-class _CertStats {
-  final int total;
-  final int issuedThisMonth;
-
-  const _CertStats({required this.total, required this.issuedThisMonth});
-}
-
-// ---------------------------------------------------------------------------
-// Enrollment dropdown item for the issue dialog
-// ---------------------------------------------------------------------------
-
-class _EnrollmentOption {
-  final String id;
-  final String label;
-
-  const _EnrollmentOption({required this.id, required this.label});
-}
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
-class CertificatePage extends StatefulWidget {
-  const CertificatePage({super.key});
+class _CertificateView extends StatefulWidget {
+  const _CertificateView();
 
   @override
-  State<CertificatePage> createState() => _CertificatePageState();
+  State<_CertificateView> createState() => _CertificateViewState();
 }
 
-class _CertificatePageState extends State<CertificatePage> {
-  late Future<List<_CertItem>> _certsFuture;
+class _CertificateViewState extends State<_CertificateView> {
+  String? _statusFilter;
+  String? _typeFilter;
 
-  @override
-  void initState() {
-    super.initState();
-    _certsFuture = _loadCerts();
-  }
-
-  void _reload() => setState(() => _certsFuture = _loadCerts());
-
-  Future<List<_CertItem>> _loadCerts() async {
-    try {
-      final dio = getIt<ApiClient>().dio;
-      final res = await dio.get('/certificates', queryParameters: {'limit': 100});
-      final raw = res.data;
-      final list = (raw is Map && raw['data'] != null)
-          ? raw['data'] as List
-          : raw is List
-              ? raw
-              : <dynamic>[];
-      return list
-          .cast<Map<String, dynamic>>()
-          .map(_CertItem.fromJson)
-          .toList();
-    } catch (_) {
-      // Return empty list on error so we can show the empty state gracefully.
-      return <_CertItem>[];
-    }
-  }
-
-  _CertStats _computeStats(List<_CertItem> certs) {
-    final now = DateTime.now();
-    final issuedThisMonth = certs
-        .where((c) =>
-            c.issuedAt.year == now.year && c.issuedAt.month == now.month)
-        .length;
-    return _CertStats(total: certs.length, issuedThisMonth: issuedThisMonth);
-  }
-
-  Future<List<_EnrollmentOption>> _loadEnrollments() async {
-    try {
-      final dio = getIt<ApiClient>().dio;
-      final res =
-          await dio.get('/enrollments', queryParameters: {'limit': 200});
-      final raw = res.data;
-      final list = (raw is Map && raw['data'] != null)
-          ? raw['data'] as List
-          : raw is List
-              ? raw
-              : <dynamic>[];
-      return list.cast<Map<String, dynamic>>().map((e) {
-        final studentName = e['student_name'] as String? ?? 'Siswa';
-        final batchCode = e['batch_code'] as String? ?? e['course_batch_id'] as String? ?? '-';
-        return _EnrollmentOption(
-          id: e['id'] as String? ?? '',
-          label: '$studentName — $batchCode',
+  void _applyFilter() {
+    context.read<CertificateCubit>().loadAll(
+          statusFilter: _statusFilter,
+          typeFilter: _typeFilter,
         );
-      }).toList();
-    } catch (_) {
-      return <_EnrollmentOption>[];
-    }
   }
 
-  void _showIssueDialog() {
+  void _showIssueDialog(List<CertificateTemplateEntity> templates) {
     showDialog(
       context: context,
-      builder: (_) => _IssueDialog(
-        loadEnrollments: _loadEnrollments,
-        onSuccess: () {
-          _reload();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Sertifikat berhasil diterbitkan'),
-              backgroundColor: AppColors.success,
-            ),
-          );
-        },
-        onError: (msg) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Gagal menerbitkan sertifikat: $msg'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-        },
+      builder: (_) => BlocProvider.value(
+        value: context.read<CertificateCubit>(),
+        child: _IssueDialog(templates: templates),
+      ),
+    );
+  }
+
+  void _showRevokeDialog(CertificateEntity cert) {
+    showDialog(
+      context: context,
+      builder: (_) => BlocProvider.value(
+        value: context.read<CertificateCubit>(),
+        child: _RevokeDialog(certificate: cert),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppDimensions.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ------------------------------------------------------------------
-          // Section 1: Page Header
-          // ------------------------------------------------------------------
-          Row(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Sertifikat',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                  ),
-                  Text(
-                    'Kelola penerbitan sertifikat course',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              IconButton.outlined(
-                onPressed: _reload,
-                icon: const Icon(Icons.refresh),
-                tooltip: 'Refresh',
-              ),
-              const SizedBox(width: AppDimensions.sm),
-              FilledButton.icon(
-                onPressed: _showIssueDialog,
-                icon: const Icon(Icons.workspace_premium_outlined),
-                label: const Text('Terbitkan Sertifikat'),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDimensions.lg),
-
-          // ------------------------------------------------------------------
-          // Sections 2 & 3 driven by FutureBuilder
-          // ------------------------------------------------------------------
-          Expanded(
-            child: FutureBuilder<List<_CertItem>>(
-              future: _certsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+    return BlocListener<CertificateCubit, CertificateState>(
+      listener: (context, state) {
+        if (state is CertificateError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(),
+            const SizedBox(height: AppDimensions.md),
+            _buildFilterRow(),
+            const SizedBox(height: AppDimensions.md),
+            BlocBuilder<CertificateCubit, CertificateState>(
+              builder: (context, state) {
+                if (state is CertificateLoading || state is CertificateInitial) {
+                  return const Expanded(
+                    child: Center(child: CircularProgressIndicator()),
+                  );
                 }
-
-                final certs = snapshot.data ?? <_CertItem>[];
-                final stats = _computeStats(certs);
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // --------------------------------------------------------
-                    // Section 2: Stats Row
-                    // --------------------------------------------------------
-                    Row(
+                if (state is CertificateError) {
+                  return Expanded(child: _buildError(state.message));
+                }
+                if (state is CertificateLoaded) {
+                  return Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _StatCard(
-                          label: 'Total Sertifikat',
-                          value: '${stats.total}',
-                          icon: Icons.workspace_premium_outlined,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: AppDimensions.md),
-                        _StatCard(
-                          label: 'Terbit Bulan Ini',
-                          value: '${stats.issuedThisMonth}',
-                          icon: Icons.calendar_month_outlined,
-                          color: AppColors.success,
+                        _buildStats(state.certificates),
+                        const SizedBox(height: AppDimensions.md),
+                        Expanded(
+                          child: _buildTable(
+                            state.certificates,
+                            state.templates,
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppDimensions.md),
-
-                    // --------------------------------------------------------
-                    // Section 3: Certificate List
-                    // --------------------------------------------------------
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius:
-                              BorderRadius.circular(AppDimensions.radiusLg),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: certs.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.workspace_premium_outlined,
-                                      size: 48,
-                                      color: AppColors.textHint,
-                                    ),
-                                    const SizedBox(height: AppDimensions.md),
-                                    Text(
-                                      'Belum ada sertifikat terbit',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                              color: AppColors.textSecondary),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                    AppDimensions.radiusLg),
-                                child: DataTable2(
-                                  columnSpacing: AppDimensions.md,
-                                  horizontalMargin: AppDimensions.md,
-                                  headingRowHeight: AppDimensions.tableHeaderHeight,
-                                  dataRowHeight: AppDimensions.tableRowHeight,
-                                  headingRowColor: WidgetStateProperty.all(
-                                      AppColors.surfaceVariant),
-                                  border: TableBorder(
-                                    horizontalInside: BorderSide(
-                                        color: AppColors.border, width: 1),
-                                  ),
-                                  columns: const [
-                                    DataColumn2(
-                                      label: Text('No. Sertifikat',
-                                          style: _tableHeaderStyle),
-                                      fixedWidth: 180,
-                                    ),
-                                    DataColumn2(
-                                      label: Text('Siswa',
-                                          style: _tableHeaderStyle),
-                                      size: ColumnSize.M,
-                                    ),
-                                    DataColumn2(
-                                      label: Text('Course',
-                                          style: _tableHeaderStyle),
-                                      size: ColumnSize.M,
-                                    ),
-                                    DataColumn2(
-                                      label: Text('Tipe',
-                                          style: _tableHeaderStyle),
-                                      fixedWidth: 140,
-                                    ),
-                                    DataColumn2(
-                                      label: Text('Tanggal Terbit',
-                                          style: _tableHeaderStyle),
-                                      fixedWidth: 130,
-                                    ),
-                                    DataColumn2(
-                                      label: Text('Status',
-                                          style: _tableHeaderStyle),
-                                      fixedWidth: 100,
-                                    ),
-                                  ],
-                                  rows: certs
-                                      .map((cert) => DataRow2(
-                                            cells: [
-                                              DataCell(
-                                                Text(
-                                                  cert.certificateNumber.isEmpty
-                                                      ? '-'
-                                                      : cert.certificateNumber,
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontFamily: 'monospace',
-                                                    color: AppColors.primary,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              DataCell(
-                                                Text(
-                                                  cert.studentName.isEmpty
-                                                      ? '-'
-                                                      : cert.studentName,
-                                                  style: const TextStyle(
-                                                      fontSize: 13,
-                                                      fontWeight:
-                                                          FontWeight.w500),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              DataCell(
-                                                Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      cert.courseName.isEmpty
-                                                          ? '-'
-                                                          : cert.courseName,
-                                                      style: const TextStyle(
-                                                          fontSize: 13,
-                                                          fontWeight:
-                                                              FontWeight.w500),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                    if (cert.batchCode
-                                                        .isNotEmpty)
-                                                      Text(
-                                                        cert.batchCode,
-                                                        style: const TextStyle(
-                                                            fontSize: 11,
-                                                            color: AppColors
-                                                                .textSecondary),
-                                                      ),
-                                                  ],
-                                                ),
-                                              ),
-                                              DataCell(
-                                                  _CertTypeBadge(type: cert.type)),
-                                              DataCell(
-                                                Text(
-                                                  DateFormatUtil.toDisplay(
-                                                      cert.issuedAt),
-                                                  style: const TextStyle(
-                                                      fontSize: 12,
-                                                      color: AppColors
-                                                          .textSecondary),
-                                                ),
-                                              ),
-                                              DataCell(
-                                                  _CertStatusBadge(
-                                                      isRevoked: cert.isRevoked)),
-                                            ],
-                                          ))
-                                      .toList(),
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
-                );
+                  );
+                }
+                return const SizedBox.shrink();
               },
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return BlocBuilder<CertificateCubit, CertificateState>(
+      builder: (context, state) {
+        final templates = state is CertificateLoaded ? state.templates : <CertificateTemplateEntity>[];
+        return Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Sertifikat',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                ),
+                Text(
+                  'Kelola penerbitan & pencabutan sertifikat course',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            IconButton.outlined(
+              onPressed: _applyFilter,
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Refresh',
+            ),
+            const SizedBox(width: AppDimensions.sm),
+            FilledButton.icon(
+              onPressed: () => _showIssueDialog(templates),
+              icon: const Icon(Icons.workspace_premium_outlined),
+              label: const Text('Terbitkan Sertifikat'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFilterRow() {
+    return Row(
+      children: [
+        SizedBox(
+          width: 180,
+          child: DropdownButtonFormField<String>(
+            value: _statusFilter,
+            decoration: InputDecoration(
+              labelText: 'Status',
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.md,
+                vertical: AppDimensions.sm,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+              ),
+            ),
+            items: const [
+              DropdownMenuItem(value: null, child: Text('Semua Status')),
+              DropdownMenuItem(value: 'active', child: Text('Aktif')),
+              DropdownMenuItem(value: 'revoked', child: Text('Dicabut')),
+            ],
+            onChanged: (v) {
+              setState(() => _statusFilter = v);
+              _applyFilter();
+            },
+          ),
+        ),
+        const SizedBox(width: AppDimensions.md),
+        SizedBox(
+          width: 180,
+          child: DropdownButtonFormField<String>(
+            value: _typeFilter,
+            decoration: InputDecoration(
+              labelText: 'Tipe',
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.md,
+                vertical: AppDimensions.sm,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+              ),
+            ),
+            items: const [
+              DropdownMenuItem(value: null, child: Text('Semua Tipe')),
+              DropdownMenuItem(
+                  value: 'participant', child: Text('Peserta')),
+              DropdownMenuItem(
+                  value: 'competency', child: Text('Kompetensi')),
+            ],
+            onChanged: (v) {
+              setState(() => _typeFilter = v);
+              _applyFilter();
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStats(List<CertificateEntity> certs) {
+    final now = DateTime.now();
+    final total = certs.length;
+    final thisMonth =
+        certs.where((c) => c.issuedAt.year == now.year && c.issuedAt.month == now.month).length;
+    final active = certs.where((c) => !c.isRevoked).length;
+    final revoked = certs.where((c) => c.isRevoked).length;
+
+    return Row(
+      children: [
+        _StatCard(
+          label: 'Total Sertifikat',
+          value: '$total',
+          icon: Icons.workspace_premium_outlined,
+          color: AppColors.primary,
+        ),
+        const SizedBox(width: AppDimensions.md),
+        _StatCard(
+          label: 'Terbit Bulan Ini',
+          value: '$thisMonth',
+          icon: Icons.calendar_month_outlined,
+          color: AppColors.success,
+        ),
+        const SizedBox(width: AppDimensions.md),
+        _StatCard(
+          label: 'Aktif',
+          value: '$active',
+          icon: Icons.verified_outlined,
+          color: AppColors.info,
+        ),
+        const SizedBox(width: AppDimensions.md),
+        _StatCard(
+          label: 'Dicabut',
+          value: '$revoked',
+          icon: Icons.cancel_outlined,
+          color: AppColors.error,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTable(
+    List<CertificateEntity> certs,
+    List<CertificateTemplateEntity> templates,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: certs.isEmpty
+          ? const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.workspace_premium_outlined,
+                    size: 48,
+                    color: AppColors.textHint,
+                  ),
+                  SizedBox(height: AppDimensions.md),
+                  Text(
+                    'Belum ada sertifikat terbit',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+              child: DataTable2(
+                columnSpacing: AppDimensions.md,
+                horizontalMargin: AppDimensions.md,
+                headingRowHeight: AppDimensions.tableHeaderHeight,
+                dataRowHeight: AppDimensions.tableRowHeight,
+                headingRowColor:
+                    WidgetStateProperty.all(AppColors.surfaceVariant),
+                border: TableBorder(
+                  horizontalInside:
+                      BorderSide(color: AppColors.border, width: 1),
+                ),
+                columns: const [
+                  DataColumn2(
+                    label: Text('Kode Sertifikat', style: _headerStyle),
+                    fixedWidth: 200,
+                  ),
+                  DataColumn2(
+                    label: Text('Siswa', style: _headerStyle),
+                    size: ColumnSize.M,
+                  ),
+                  DataColumn2(
+                    label: Text('Course / Kelas', style: _headerStyle),
+                    size: ColumnSize.M,
+                  ),
+                  DataColumn2(
+                    label: Text('Tipe', style: _headerStyle),
+                    fixedWidth: 130,
+                  ),
+                  DataColumn2(
+                    label: Text('Tanggal Terbit', style: _headerStyle),
+                    fixedWidth: 130,
+                  ),
+                  DataColumn2(
+                    label: Text('Status', style: _headerStyle),
+                    fixedWidth: 110,
+                  ),
+                  DataColumn2(
+                    label: Text('Aksi', style: _headerStyle),
+                    fixedWidth: 80,
+                  ),
+                ],
+                rows: certs
+                    .map((cert) => DataRow2(
+                          cells: [
+                            DataCell(
+                              Text(
+                                cert.certificateCode.isEmpty
+                                    ? '-'
+                                    : cert.certificateCode,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: 'monospace',
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                cert.studentName.isEmpty ? '-' : cert.studentName,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            DataCell(
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    cert.courseName.isEmpty
+                                        ? '-'
+                                        : cert.courseName,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  if (cert.batchName.isNotEmpty)
+                                    Text(
+                                      cert.batchName,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            DataCell(_CertTypeBadge(type: cert.type)),
+                            DataCell(
+                              Text(
+                                DateFormatUtil.toDisplay(cert.issuedAt),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              _CertStatusBadge(isRevoked: cert.isRevoked),
+                            ),
+                            DataCell(
+                              cert.isRevoked
+                                  ? const SizedBox.shrink()
+                                  : IconButton(
+                                      onPressed: () =>
+                                          _showRevokeDialog(cert),
+                                      icon: const Icon(
+                                        Icons.block_outlined,
+                                        size: 18,
+                                        color: AppColors.error,
+                                      ),
+                                      tooltip: 'Cabut Sertifikat',
+                                    ),
+                            ),
+                          ],
+                        ))
+                    .toList(),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildError(String message) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+          const SizedBox(height: AppDimensions.md),
+          Text(message, style: const TextStyle(color: AppColors.textSecondary)),
+          const SizedBox(height: AppDimensions.md),
+          OutlinedButton(
+            onPressed: _applyFilter,
+            child: const Text('Coba Lagi'),
           ),
         ],
       ),
@@ -433,15 +442,15 @@ class _CertificatePageState extends State<CertificatePage> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Private widgets
-// ---------------------------------------------------------------------------
-
-const _tableHeaderStyle = TextStyle(
+const _headerStyle = TextStyle(
   fontWeight: FontWeight.w600,
   fontSize: 12,
   color: AppColors.textPrimary,
 );
+
+// ---------------------------------------------------------------------------
+// Stat card
+// ---------------------------------------------------------------------------
 
 class _StatCard extends StatelessWidget {
   final String label;
@@ -472,7 +481,7 @@ class _StatCard extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius:
                     BorderRadius.circular(AppDimensions.radiusMd),
               ),
@@ -505,6 +514,10 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Badges
+// ---------------------------------------------------------------------------
 
 class _CertTypeBadge extends StatelessWidget {
   final String type;
@@ -562,54 +575,55 @@ class _CertStatusBadge extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Issue Certificate Dialog
+// Issue dialog
 // ---------------------------------------------------------------------------
 
 class _IssueDialog extends StatefulWidget {
-  final Future<List<_EnrollmentOption>> Function() loadEnrollments;
-  final VoidCallback onSuccess;
-  final void Function(String) onError;
-
-  const _IssueDialog({
-    required this.loadEnrollments,
-    required this.onSuccess,
-    required this.onError,
-  });
+  final List<CertificateTemplateEntity> templates;
+  const _IssueDialog({required this.templates});
 
   @override
   State<_IssueDialog> createState() => _IssueDialogState();
 }
 
 class _IssueDialogState extends State<_IssueDialog> {
-  late Future<List<_EnrollmentOption>> _enrollmentsFuture;
-  String? _selectedEnrollmentId;
+  final _enrollmentController = TextEditingController();
   String _selectedType = 'participant';
+  String? _selectedTemplateId;
   bool _isSubmitting = false;
 
   @override
-  void initState() {
-    super.initState();
-    _enrollmentsFuture = widget.loadEnrollments();
+  void dispose() {
+    _enrollmentController.dispose();
+    super.dispose();
   }
 
   Future<void> _submit() async {
-    if (_selectedEnrollmentId == null) return;
+    final enrollmentId = _enrollmentController.text.trim();
+    if (enrollmentId.isEmpty) return;
+
     setState(() => _isSubmitting = true);
-    try {
-      final dio = getIt<ApiClient>().dio;
-      await dio.post('/certificates', data: {
-        'enrollment_id': _selectedEnrollmentId,
-        'type': _selectedType,
-      });
-      if (mounted) {
-        context.pop();
-        widget.onSuccess();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-        widget.onError(e.toString());
-      }
+
+    final body = <String, dynamic>{
+      'enrollment_id': enrollmentId,
+      'type': _selectedType,
+    };
+    if (_selectedTemplateId != null) body['template_id'] = _selectedTemplateId;
+
+    final ok =
+        await context.read<CertificateCubit>().issueCertificate(body: body);
+
+    if (!mounted) return;
+    if (ok) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sertifikat berhasil diterbitkan'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } else {
+      setState(() => _isSubmitting = false);
     }
   }
 
@@ -626,7 +640,6 @@ class _IssueDialogState extends State<_IssueDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
               Row(
                 children: [
                   Container(
@@ -651,47 +664,18 @@ class _IssueDialogState extends State<_IssueDialog> {
                 ],
               ),
               const SizedBox(height: AppDimensions.lg),
-
-              // Enrollment dropdown
-              FutureBuilder<List<_EnrollmentOption>>(
-                future: _enrollmentsFuture,
-                builder: (context, snapshot) {
-                  final options = snapshot.data ?? <_EnrollmentOption>[];
-                  final isLoading =
-                      snapshot.connectionState == ConnectionState.waiting;
-                  return DropdownButtonFormField<String>(
-                    value: _selectedEnrollmentId,
-                    isExpanded: true,
-                    decoration: InputDecoration(
-                      labelText: 'Enrollment',
-                      hintText: isLoading
-                          ? 'Memuat data...'
-                          : 'Pilih enrollment siswa',
-                      border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppDimensions.radiusMd),
-                      ),
-                    ),
-                    items: options
-                        .map((o) => DropdownMenuItem(
-                              value: o.id,
-                              child: Text(
-                                o.label,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                            ))
-                        .toList(),
-                    onChanged: isLoading
-                        ? null
-                        : (val) =>
-                            setState(() => _selectedEnrollmentId = val),
-                  );
-                },
+              TextFormField(
+                controller: _enrollmentController,
+                decoration: InputDecoration(
+                  labelText: 'ID Enrollment',
+                  hintText: 'Masukkan ID enrollment siswa',
+                  border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.radiusMd),
+                  ),
+                ),
               ),
               const SizedBox(height: AppDimensions.md),
-
-              // Type dropdown
               DropdownButtonFormField<String>(
                 value: _selectedType,
                 isExpanded: true,
@@ -711,22 +695,48 @@ class _IssueDialogState extends State<_IssueDialog> {
                 onChanged: (val) =>
                     setState(() => _selectedType = val ?? 'participant'),
               ),
+              if (widget.templates.isNotEmpty) ...[
+                const SizedBox(height: AppDimensions.md),
+                DropdownButtonFormField<String>(
+                  value: _selectedTemplateId,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: 'Template (opsional)',
+                    border: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusMd),
+                    ),
+                  ),
+                  items: [
+                    const DropdownMenuItem(
+                        value: null, child: Text('Default')),
+                    ...widget.templates.map(
+                      (t) => DropdownMenuItem(
+                        value: t.id,
+                        child: Text(
+                          t.name,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ],
+                  onChanged: (val) =>
+                      setState(() => _selectedTemplateId = val),
+                ),
+              ],
               const SizedBox(height: AppDimensions.lg),
-
-              // Footer buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed:
-                        _isSubmitting ? null : () => context.pop(),
+                    onPressed: _isSubmitting
+                        ? null
+                        : () => Navigator.of(context).pop(),
                     child: const Text('Batal'),
                   ),
                   const SizedBox(width: AppDimensions.sm),
                   FilledButton(
-                    onPressed: (_selectedEnrollmentId == null || _isSubmitting)
-                        ? null
-                        : _submit,
+                    onPressed: _isSubmitting ? null : _submit,
                     child: _isSubmitting
                         ? const SizedBox(
                             width: 16,
@@ -737,6 +747,173 @@ class _IssueDialogState extends State<_IssueDialog> {
                             ),
                           )
                         : const Text('Terbitkan'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Revoke dialog
+// ---------------------------------------------------------------------------
+
+class _RevokeDialog extends StatefulWidget {
+  final CertificateEntity certificate;
+  const _RevokeDialog({required this.certificate});
+
+  @override
+  State<_RevokeDialog> createState() => _RevokeDialogState();
+}
+
+class _RevokeDialogState extends State<_RevokeDialog> {
+  final _reasonController = TextEditingController();
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final reason = _reasonController.text.trim();
+    if (reason.isEmpty) return;
+
+    setState(() => _isSubmitting = true);
+
+    final ok = await context.read<CertificateCubit>().revokeCertificate(
+          id: widget.certificate.id,
+          reason: reason,
+        );
+
+    if (!mounted) return;
+    if (ok) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sertifikat berhasil dicabut'),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+    } else {
+      setState(() => _isSubmitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg)),
+      child: SizedBox(
+        width: 440,
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.errorSurface,
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusMd),
+                    ),
+                    child: const Icon(Icons.block_outlined,
+                        color: AppColors.error, size: 20),
+                  ),
+                  const SizedBox(width: AppDimensions.md),
+                  Expanded(
+                    child: Text(
+                      'Cabut Sertifikat',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppDimensions.md),
+              Container(
+                padding: const EdgeInsets.all(AppDimensions.md),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.certificate.certificateCode,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontFamily: 'monospace',
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.certificate.studentName,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      widget.certificate.courseName,
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppDimensions.md),
+              TextFormField(
+                controller: _reasonController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Alasan Pencabutan *',
+                  hintText: 'Tuliskan alasan pencabutan sertifikat ini...',
+                  border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.radiusMd),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppDimensions.lg),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: _isSubmitting
+                        ? null
+                        : () => Navigator.of(context).pop(),
+                    child: const Text('Batal'),
+                  ),
+                  const SizedBox(width: AppDimensions.sm),
+                  FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                    ),
+                    onPressed: _isSubmitting ? null : _submit,
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Cabut Sertifikat'),
                   ),
                 ],
               ),

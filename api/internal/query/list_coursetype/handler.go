@@ -33,6 +33,10 @@ type CourseTypeReadModel struct {
 	ExtraDocs              []string                            `json:"extra_docs"`
 	CertificationType      string                              `json:"certification_type"`
 	ComponentFailureConfig *coursetype.ComponentFailureConfig  `json:"component_failure_config"`
+	NormalPrice            int64                               `json:"normal_price"`
+	MinPrice               int64                               `json:"min_price"`
+	MinParticipants        int                                 `json:"min_participants"`
+	MaxParticipants        int                                 `json:"max_participants"`
 	CreatedAt              int64                               `json:"created_at"`
 	UpdatedAt              int64                               `json:"updated_at"`
 }
@@ -76,6 +80,10 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 			ExtraDocs:              ct.ExtraDocs,
 			CertificationType:      ct.CertificationType,
 			ComponentFailureConfig: ct.ComponentFailureConfig,
+			NormalPrice:            ct.NormalPrice,
+			MinPrice:               ct.MinPrice,
+			MinParticipants:        ct.MinParticipants,
+			MaxParticipants:        ct.MaxParticipants,
 			CreatedAt:              ct.CreatedAt.Unix(),
 			UpdatedAt:              ct.UpdatedAt.Unix(),
 		}

@@ -5,6 +5,7 @@ import '../entities/student_detail_entity.dart';
 import '../entities/student_enrollment_history_entity.dart';
 import '../entities/student_note_entity.dart';
 import '../entities/recommended_course_entity.dart';
+import '../entities/student_crm_log_entity.dart';
 
 abstract class StudentDetailRepository {
   Future<Either<Failure, StudentDetailEntity>> getStudentDetail(String id);
@@ -26,5 +27,22 @@ abstract class StudentDetailRepository {
     required String name,
     required String email,
     required String phone,
+    String? nik,
+    String? gender,
+    String? address,
+    String? birthDate,
+    String? departmentId,
+    required String status,
+    String? studentCode,
+  });
+
+  Future<Either<Failure, List<StudentCrmLogEntity>>> getStudentCrmLogs(
+      String studentId);
+
+  Future<Either<Failure, StudentCrmLogEntity>> addStudentCrmLog(
+    String studentId, {
+    required String contactMethod,
+    required String response,
+    String? contactedBy,
   });
 }

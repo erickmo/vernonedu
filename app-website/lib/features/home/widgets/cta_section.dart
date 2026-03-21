@@ -141,7 +141,7 @@ class _CtaText extends StatelessWidget {
           alignment: centered ? WrapAlignment.center : WrapAlignment.start,
           children: [
             GradientButton(
-              label: 'Daftar Sekarang — GRATIS',
+              label: 'Daftar Sekarang',
               onTap: () => context.go(AppRouter.kursus),
               height: 56,
               horizontalPadding: 28,
@@ -149,8 +149,8 @@ class _CtaText extends StatelessWidget {
               gradient: AppColors.goldGradient,
             ),
             _WhiteOutlineButton(
-              label: 'Coba Demo',
-              onTap: () => context.go(AppRouter.kursus),
+              label: 'Hubungi Kami',
+              onTap: () => context.go(AppRouter.hubungi),
             ),
           ],
         ),

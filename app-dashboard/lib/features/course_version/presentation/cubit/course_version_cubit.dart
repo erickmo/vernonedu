@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/entities/internship_config_entity.dart';
+import '../../domain/entities/character_test_config_entity.dart';
 import '../../domain/usecases/get_course_versions_usecase.dart';
 import '../../domain/usecases/create_course_version_usecase.dart';
 import '../../domain/usecases/promote_course_version_usecase.dart';
@@ -56,8 +58,10 @@ class CourseVersionCubit extends Cubit<CourseVersionState> {
           getCharacterTestConfigUseCase(targetVersion.id),
         ]);
 
-        final internshipConfig = configs[0].fold((_) => null, (c) => c);
-        final characterTestConfig = configs[1].fold((_) => null, (c) => c);
+        final InternshipConfigEntity? internshipConfig =
+            configs[0].fold((_) => null, (c) => c as InternshipConfigEntity?);
+        final CharacterTestConfigEntity? characterTestConfig =
+            configs[1].fold((_) => null, (c) => c as CharacterTestConfigEntity?);
 
         emit(CourseVersionLoaded(
           versions,
@@ -78,8 +82,10 @@ class CourseVersionCubit extends Cubit<CourseVersionState> {
       getCharacterTestConfigUseCase(versionId),
     ]);
 
-    final internshipConfig = configs[0].fold((_) => null, (c) => c);
-    final characterTestConfig = configs[1].fold((_) => null, (c) => c);
+    final InternshipConfigEntity? internshipConfig =
+        configs[0].fold((_) => null, (c) => c as InternshipConfigEntity?);
+    final CharacterTestConfigEntity? characterTestConfig =
+        configs[1].fold((_) => null, (c) => c as CharacterTestConfigEntity?);
 
     emit(current.copyWith(
       internshipConfig: internshipConfig,

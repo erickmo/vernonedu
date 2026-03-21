@@ -28,6 +28,10 @@ type UpdateCourseTypeCommand struct {
 	PriceMax               *int64
 	PriceCurrency          string
 	PriceNotes             string
+	NormalPrice            int64
+	MinPrice               int64
+	MinParticipants        int
+	MaxParticipants        int
 }
 
 // Handler menangani UpdateCourseTypeCommand.
@@ -55,7 +59,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		return err
 	}
 
-	if err := ct.Update(c.TargetAudience, c.CertificationType, c.ExtraDocs, c.ComponentFailureConfig); err != nil {
+	if err := ct.Update(c.TargetAudience, c.CertificationType, c.ExtraDocs, c.ComponentFailureConfig, c.NormalPrice, c.MinPrice, c.MinParticipants, c.MaxParticipants); err != nil {
 		log.Error().Err(err).Msg("failed to update course type entity")
 		return err
 	}

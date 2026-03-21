@@ -31,35 +31,36 @@ class _StudentView extends StatefulWidget {
 }
 
 class _StudentViewState extends State<_StudentView> {
-  final _searchCtrl = TextEditingController();
-  String _searchQuery = '';
+  final _nameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+
+  String _nameQuery = '';
+  String _phoneQuery = '';
+  String _emailQuery = '';
+  // 'semua' | 'aktif' | 'tidak_aktif' | 'lulus'
+  String _statusFilter = 'semua';
 
   @override
   void dispose() {
-    _searchCtrl.dispose();
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
+    _emailCtrl.dispose();
     super.dispose();
   }
 
-  void _showCreateDialog(BuildContext context) {
-    final cubit = context.read<StudentCubit>();
-    showDialog(
-      context: context,
-      builder: (_) => _CreateStudentDialog(
-        onCreate: ({required name, required email, phone}) =>
-            cubit.createStudent(name: name, email: email, phone: phone ?? ''),
-      ),
-    );
-  }
-
   List<StudentEntity> _filtered(List<StudentEntity> students) {
-    if (_searchQuery.isEmpty) return students;
-    final q = _searchQuery.toLowerCase();
-    return students
-        .where((s) =>
-            s.name.toLowerCase().contains(q) ||
-            s.email.toLowerCase().contains(q) ||
-            s.phone.contains(q))
-        .toList();
+    return students.where((s) {
+      final matchName = _nameQuery.isEmpty ||
+          s.name.toLowerCase().contains(_nameQuery.toLowerCase());
+      final matchPhone =
+          _phoneQuery.isEmpty || s.phone.contains(_phoneQuery);
+      final matchEmail = _emailQuery.isEmpty ||
+          s.email.toLowerCase().contains(_emailQuery.toLowerCase());
+      final matchStatus = _statusFilter == 'semua' ||
+          s.status == _statusFilter;
+      return matchName && matchPhone && matchEmail && matchStatus;
+    }).toList();
   }
 
   @override
@@ -68,7 +69,9 @@ class _StudentViewState extends State<_StudentView> {
       listener: (context, state) {
         if (state is StudentError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
+            SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error),
           );
         }
       },
@@ -77,6 +80,7 @@ class _StudentViewState extends State<_StudentView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Header ──────────────────────────────────────────────
             Row(
               children: [
                 Expanded(
@@ -85,57 +89,148 @@ class _StudentViewState extends State<_StudentView> {
                     children: [
                       Text(
                         'Manajemen Siswa',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: AppColors.textPrimary,
                             ),
                       ),
                       Text(
                         'Data seluruh siswa terdaftar',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: AppColors.textSecondary),
                       ),
                     ],
                   ),
                 ),
                 IconButton.outlined(
-                  onPressed: () => context.read<StudentCubit>().loadStudents(),
+                  onPressed: () =>
+                      context.read<StudentCubit>().loadStudents(),
                   icon: const Icon(Icons.refresh, size: AppDimensions.iconMd),
                   tooltip: 'Refresh',
                 ),
                 const SizedBox(width: AppDimensions.sm),
                 FilledButton.icon(
-                  onPressed: () => _showCreateDialog(context),
+                  onPressed: () => context.go('/students/new'),
                   icon: const Icon(Icons.add, size: AppDimensions.iconMd),
                   label: const Text('Tambah Siswa'),
                 ),
               ],
             ),
             const SizedBox(height: AppDimensions.lg),
-            SizedBox(
-              width: 320,
-              child: TextField(
-                controller: _searchCtrl,
-                onChanged: (v) => setState(() => _searchQuery = v),
-                decoration: InputDecoration(
-                  hintText: 'Cari siswa...',
-                  prefixIcon: const Icon(Icons.search, size: AppDimensions.iconMd),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, size: AppDimensions.iconMd),
-                          onPressed: () {
-                            _searchCtrl.clear();
-                            setState(() => _searchQuery = '');
-                          },
-                        )
-                      : null,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                  isDense: true,
+
+            // ── Filter Row ───────────────────────────────────────────
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _nameCtrl,
+                    onChanged: (v) => setState(() => _nameQuery = v),
+                    decoration: InputDecoration(
+                      hintText: 'Nama',
+                      prefixIcon: const Icon(Icons.search,
+                          size: AppDimensions.iconMd),
+                      suffixIcon: _nameQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear,
+                                  size: AppDimensions.iconMd),
+                              onPressed: () {
+                                _nameCtrl.clear();
+                                setState(() => _nameQuery = '');
+                              },
+                            )
+                          : null,
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 10),
+                      isDense: true,
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: AppDimensions.sm),
+                Expanded(
+                  child: TextField(
+                    controller: _phoneCtrl,
+                    onChanged: (v) => setState(() => _phoneQuery = v),
+                    decoration: InputDecoration(
+                      hintText: 'Telp',
+                      prefixIcon: const Icon(Icons.phone_outlined,
+                          size: AppDimensions.iconMd),
+                      suffixIcon: _phoneQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear,
+                                  size: AppDimensions.iconMd),
+                              onPressed: () {
+                                _phoneCtrl.clear();
+                                setState(() => _phoneQuery = '');
+                              },
+                            )
+                          : null,
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 10),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppDimensions.sm),
+                Expanded(
+                  child: TextField(
+                    controller: _emailCtrl,
+                    onChanged: (v) => setState(() => _emailQuery = v),
+                    decoration: InputDecoration(
+                      hintText: 'Email',
+                      prefixIcon: const Icon(Icons.email_outlined,
+                          size: AppDimensions.iconMd),
+                      suffixIcon: _emailQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear,
+                                  size: AppDimensions.iconMd),
+                              onPressed: () {
+                                _emailCtrl.clear();
+                                setState(() => _emailQuery = '');
+                              },
+                            )
+                          : null,
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 10),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppDimensions.sm),
+                SizedBox(
+                  width: 180,
+                  child: DropdownButtonFormField<String>(
+                    value: _statusFilter,
+                    decoration: const InputDecoration(
+                      labelText: 'Status Siswa',
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      isDense: true,
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                          value: 'semua', child: Text('Semua')),
+                      DropdownMenuItem(
+                          value: 'aktif', child: Text('Aktif')),
+                      DropdownMenuItem(
+                          value: 'tidak_aktif',
+                          child: Text('Tidak Aktif')),
+                      DropdownMenuItem(
+                          value: 'lulus', child: Text('Lulus')),
+                    ],
+                    onChanged: (v) =>
+                        setState(() => _statusFilter = v ?? 'semua'),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppDimensions.md),
+
+            // ── Table ────────────────────────────────────────────────
             Expanded(
               child: BlocBuilder<StudentCubit, StudentState>(
                 builder: (context, state) {
@@ -147,13 +242,16 @@ class _StudentViewState extends State<_StudentView> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                          const Icon(Icons.error_outline,
+                              size: 48, color: AppColors.error),
                           const SizedBox(height: AppDimensions.md),
                           Text(state.message,
-                              style: const TextStyle(color: AppColors.textSecondary)),
+                              style: const TextStyle(
+                                  color: AppColors.textSecondary)),
                           const SizedBox(height: AppDimensions.md),
                           FilledButton.icon(
-                            onPressed: () => context.read<StudentCubit>().loadStudents(),
+                            onPressed: () =>
+                                context.read<StudentCubit>().loadStudents(),
                             icon: const Icon(Icons.refresh),
                             label: const Text('Coba Lagi'),
                           ),
@@ -167,7 +265,8 @@ class _StudentViewState extends State<_StudentView> {
                       return Container(
                         decoration: BoxDecoration(
                           color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                          borderRadius: BorderRadius.circular(
+                              AppDimensions.radiusLg),
                           border: Border.all(color: AppColors.border),
                         ),
                         child: Center(
@@ -178,13 +277,17 @@ class _StudentViewState extends State<_StudentView> {
                                   size: 48, color: AppColors.textHint),
                               const SizedBox(height: AppDimensions.md),
                               Text(
-                                _searchQuery.isNotEmpty
+                                _nameQuery.isNotEmpty ||
+                                        _phoneQuery.isNotEmpty ||
+                                        _emailQuery.isNotEmpty ||
+                                        _statusFilter != 'semua'
                                     ? 'Tidak ada siswa yang cocok'
                                     : 'Belum ada data siswa',
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleMedium
-                                    ?.copyWith(color: AppColors.textSecondary),
+                                    ?.copyWith(
+                                        color: AppColors.textSecondary),
                               ),
                             ],
                           ),
@@ -194,7 +297,8 @@ class _StudentViewState extends State<_StudentView> {
                     return Container(
                       decoration: BoxDecoration(
                         color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.radiusLg),
                         border: Border.all(color: AppColors.border),
                       ),
                       child: DataTable2(
@@ -202,12 +306,14 @@ class _StudentViewState extends State<_StudentView> {
                         horizontalMargin: AppDimensions.md,
                         headingRowHeight: AppDimensions.tableHeaderHeight,
                         dataRowHeight: AppDimensions.tableRowHeight,
-                        headingRowColor:
-                            WidgetStateProperty.all(AppColors.surfaceVariant),
+                        headingRowColor: WidgetStateProperty.all(
+                            AppColors.surfaceVariant),
                         columns: const [
-                          DataColumn2(label: Text('Nama'), size: ColumnSize.L),
-                          DataColumn2(label: Text('Email'), size: ColumnSize.L),
-                          DataColumn2(label: Text('Telepon'), size: ColumnSize.M),
+                          DataColumn2(
+                              label: Text('Nama'), size: ColumnSize.L),
+                          DataColumn2(
+                              label: Text('Email / Telp'),
+                              size: ColumnSize.L),
                           DataColumn2(
                               label: Text('Batch Aktif'),
                               size: ColumnSize.S,
@@ -223,30 +329,54 @@ class _StudentViewState extends State<_StudentView> {
                           DataColumn2(
                               label: Text('Status'),
                               size: ColumnSize.S,
-                              fixedWidth: 100),
+                              fixedWidth: 110),
                         ],
                         rows: students
                             .map((s) => DataRow2(
                                   onTap: () =>
                                       context.go('/students/${s.id}'),
                                   cells: [
-                                    DataCell(_StudentNameCell(student: s)),
-                                    DataCell(Text(s.email,
-                                        style: const TextStyle(
-                                            color: AppColors.textSecondary, fontSize: 13))),
-                                    DataCell(Text(s.phone.isEmpty ? '-' : s.phone,
-                                        style: const TextStyle(
-                                            color: AppColors.textSecondary, fontSize: 13))),
+                                    DataCell(
+                                        _StudentNameCell(student: s)),
+                                    DataCell(
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            s.email,
+                                            style: const TextStyle(
+                                                color:
+                                                    AppColors.textSecondary,
+                                                fontSize: 12),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(
+                                            s.phone.isEmpty ? '-' : s.phone,
+                                            style: const TextStyle(
+                                                color: AppColors.textHint,
+                                                fontSize: 11),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                     DataCell(Text('${s.activeBatchCount}',
                                         style: const TextStyle(
-                                            color: AppColors.textSecondary, fontSize: 13))),
-                                    DataCell(Text('${s.completedCourseCount}',
+                                            color: AppColors.textSecondary,
+                                            fontSize: 13))),
+                                    DataCell(Text(
+                                        '${s.completedCourseCount}',
                                         style: const TextStyle(
-                                            color: AppColors.textSecondary, fontSize: 13))),
-                                    DataCell(Text(DateFormatUtil.toDisplay(s.joinedAt),
+                                            color: AppColors.textSecondary,
+                                            fontSize: 13))),
+                                    DataCell(Text(
+                                        DateFormatUtil.toDisplay(s.joinedAt),
                                         style: const TextStyle(
-                                            color: AppColors.textSecondary, fontSize: 13))),
-                                    DataCell(_StatusBadge(isActive: s.isActive)),
+                                            color: AppColors.textSecondary,
+                                            fontSize: 13))),
+                                    DataCell(_StatusBadge(status: s.status)),
                                   ],
                                 ))
                             .toList(),
@@ -263,6 +393,8 @@ class _StudentViewState extends State<_StudentView> {
     );
   }
 }
+
+// ── Student Name Cell ─────────────────────────────────────────────────────────
 
 class _StudentNameCell extends StatefulWidget {
   final StudentEntity student;
@@ -307,8 +439,10 @@ class _StudentNameCellState extends State<_StudentNameCell> {
               widget.student.name,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: _hovered ? AppColors.primaryLight : AppColors.primary,
-                decoration: _hovered ? TextDecoration.underline : null,
+                color:
+                    _hovered ? AppColors.primaryLight : AppColors.primary,
+                decoration:
+                    _hovered ? TextDecoration.underline : null,
                 decorationColor: AppColors.primaryLight,
               ),
               overflow: TextOverflow.ellipsis,
@@ -320,138 +454,29 @@ class _StudentNameCellState extends State<_StudentNameCell> {
   }
 }
 
-// ── Create Student Dialog ─────────────────────────────────────────────────────
-
-typedef CreateStudentCallback = Future<bool> Function({
-  required String name,
-  required String email,
-  String? phone,
-});
-
-class _CreateStudentDialog extends StatefulWidget {
-  final CreateStudentCallback onCreate;
-  const _CreateStudentDialog({required this.onCreate});
-
-  @override
-  State<_CreateStudentDialog> createState() => _CreateStudentDialogState();
-}
-
-class _CreateStudentDialogState extends State<_CreateStudentDialog> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
-  bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    _emailCtrl.dispose();
-    _phoneCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
-
-    final success = await widget.onCreate(
-      name: _nameCtrl.text.trim(),
-      email: _emailCtrl.text.trim(),
-      phone: _phoneCtrl.text.trim(),
-    );
-
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    if (success) {
-      Navigator.of(context).pop();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gagal menambah siswa. Coba lagi.'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Tambah Siswa'),
-      content: SizedBox(
-        width: 420,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _nameCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Nama Lengkap *',
-                  hintText: 'Masukkan nama siswa',
-                ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Nama wajib diisi' : null,
-                textInputAction: TextInputAction.next,
-              ),
-              const SizedBox(height: AppDimensions.md),
-              TextFormField(
-                controller: _emailCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Email *',
-                  hintText: 'siswa@email.com',
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Email wajib diisi';
-                  if (!v.contains('@')) return 'Format email tidak valid';
-                  return null;
-                },
-                textInputAction: TextInputAction.next,
-              ),
-              const SizedBox(height: AppDimensions.md),
-              TextFormField(
-                controller: _phoneCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Nomor Telepon',
-                  hintText: '08xxxxxxxxxx',
-                ),
-                keyboardType: TextInputType.phone,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _submit(),
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Batal'),
-        ),
-        FilledButton(
-          onPressed: _isLoading ? null : _submit,
-          child: _isLoading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                )
-              : const Text('Simpan'),
-        ),
-      ],
-    );
-  }
-}
-
 // ── Status Badge ──────────────────────────────────────────────────────────────
 
 class _StatusBadge extends StatelessWidget {
-  final bool isActive;
-  const _StatusBadge({required this.isActive});
+  final String status;
+  const _StatusBadge({required this.status});
+
+  Color get _bg => switch (status) {
+        'aktif' => AppColors.successSurface,
+        'lulus' => AppColors.infoSurface,
+        _ => AppColors.surfaceVariant,
+      };
+
+  Color get _fg => switch (status) {
+        'aktif' => AppColors.success,
+        'lulus' => AppColors.info,
+        _ => AppColors.textSecondary,
+      };
+
+  String get _label => switch (status) {
+        'aktif' => 'Aktif',
+        'lulus' => 'Lulus',
+        _ => 'Tidak Aktif',
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -459,15 +484,15 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(
           horizontal: AppDimensions.sm, vertical: AppDimensions.xs),
       decoration: BoxDecoration(
-        color: isActive ? AppColors.successSurface : AppColors.surfaceVariant,
+        color: _bg,
         borderRadius: BorderRadius.circular(AppDimensions.radiusCircle),
       ),
       child: Text(
-        isActive ? 'Aktif' : 'Nonaktif',
+        _label,
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: isActive ? AppColors.success : AppColors.textSecondary,
+          color: _fg,
         ),
       ),
     );

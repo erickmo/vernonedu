@@ -70,9 +70,13 @@ type partnerGroupRecord struct {
 type mouRecord struct {
 	ID             uuid.UUID `db:"id"`
 	PartnerID      uuid.UUID `db:"partner_id"`
+	PartnerName    string    `db:"partner_name"`
 	DocumentNumber string    `db:"document_number"`
+	Title          string    `db:"title"`
 	StartDate      string    `db:"start_date"`
 	EndDate        string    `db:"end_date"`
+	Status         string    `db:"status"`
+	DocumentURL    string    `db:"document_url"`
 	Notes          string    `db:"notes"`
 	CreatedAt      time.Time `db:"created_at"`
 	UpdatedAt      time.Time `db:"updated_at"`
@@ -153,15 +157,59 @@ func (r *PartnerRepository) SaveGroup(ctx context.Context, g *partner.PartnerGro
 
 func (r *PartnerRepository) SaveMOU(ctx context.Context, m *partner.MOU) error {
 	query := `
-		INSERT INTO mous (id, partner_id, document_number, start_date, end_date, notes, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO mous (id, partner_id, document_number, title, start_date, end_date, status, document_url, notes, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 	`
 	_, err := r.db.ExecContext(ctx, query,
-		m.ID, m.PartnerID, m.DocumentNumber, m.StartDate, m.EndDate, m.Notes,
-		m.CreatedAt, m.UpdatedAt,
+		m.ID, m.PartnerID, m.DocumentNumber, m.Title, m.StartDate, m.EndDate,
+		m.Status, m.DocumentURL, m.Notes, m.CreatedAt, m.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to save MOU: %w", err)
+	}
+	return nil
+}
+
+func (r *PartnerRepository) UpdateMOU(ctx context.Context, m *partner.MOU) error {
+	query := `
+		UPDATE mous SET document_number=$1, title=$2, start_date=$3, end_date=$4, status=$5,
+		document_url=$6, notes=$7, updated_at=$8
+		WHERE id=$9
+	`
+	_, err := r.db.ExecContext(ctx, query,
+		m.DocumentNumber, m.Title, m.StartDate, m.EndDate, m.Status,
+		m.DocumentURL, m.Notes, time.Now(), m.ID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update MOU: %w", err)
+	}
+	return nil
+}
+
+func (r *PartnerRepository) DeleteMOU(ctx context.Context, id uuid.UUID) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM mous WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete MOU: %w", err)
+	}
+	return nil
+}
+
+func (r *PartnerRepository) UpdateGroup(ctx context.Context, g *partner.PartnerGroup) error {
+	query := `
+		UPDATE partner_groups SET name=$1, description=$2, updated_at=$3
+		WHERE id=$4
+	`
+	_, err := r.db.ExecContext(ctx, query, g.Name, g.Description, time.Now(), g.ID)
+	if err != nil {
+		return fmt.Errorf("failed to update partner group: %w", err)
+	}
+	return nil
+}
+
+func (r *PartnerRepository) DeleteGroup(ctx context.Context, id uuid.UUID) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM partner_groups WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete partner group: %w", err)
 	}
 	return nil
 }
@@ -268,7 +316,9 @@ func (r *PartnerRepository) ListGroups(ctx context.Context) ([]*partner.PartnerG
 func (r *PartnerRepository) ListMOUs(ctx context.Context, partnerID uuid.UUID) ([]*partner.MOU, error) {
 	var recs []mouRecord
 	query := `
-		SELECT id, partner_id, document_number, start_date::text, end_date::text, notes, created_at, updated_at
+		SELECT id, partner_id, '' AS partner_name, document_number, COALESCE(title, '') AS title,
+		       start_date::text, end_date::text, COALESCE(status, 'active') AS status,
+		       COALESCE(document_url, '') AS document_url, notes, created_at, updated_at
 		FROM mous WHERE partner_id = $1 ORDER BY start_date DESC
 	`
 	if err := r.db.SelectContext(ctx, &recs, query, partnerID); err != nil {
@@ -276,18 +326,66 @@ func (r *PartnerRepository) ListMOUs(ctx context.Context, partnerID uuid.UUID) (
 	}
 	mous := make([]*partner.MOU, len(recs))
 	for i, rec := range recs {
-		mous[i] = &partner.MOU{
-			ID:             rec.ID,
-			PartnerID:      rec.PartnerID,
-			DocumentNumber: rec.DocumentNumber,
-			StartDate:      rec.StartDate,
-			EndDate:        rec.EndDate,
-			Notes:          rec.Notes,
-			CreatedAt:      rec.CreatedAt,
-			UpdatedAt:      rec.UpdatedAt,
-		}
+		mous[i] = mouRecordToDomain(rec)
 	}
 	return mous, nil
+}
+
+func (r *PartnerRepository) GetMOUByID(ctx context.Context, id uuid.UUID) (*partner.MOU, error) {
+	var rec mouRecord
+	query := `
+		SELECT id, partner_id, '' AS partner_name, document_number, COALESCE(title, '') AS title,
+		       start_date::text, end_date::text, COALESCE(status, 'active') AS status,
+		       COALESCE(document_url, '') AS document_url, notes, created_at, updated_at
+		FROM mous WHERE id = $1
+	`
+	if err := r.db.GetContext(ctx, &rec, query, id); err != nil {
+		return nil, fmt.Errorf("failed to get MOU: %w", err)
+	}
+	return mouRecordToDomain(rec), nil
+}
+
+func (r *PartnerRepository) ListExpiringMOUs(ctx context.Context, withinMonths int) ([]*partner.MOU, error) {
+	var recs []mouRecord
+	query := `
+		SELECT m.id, m.partner_id, COALESCE(p.name, '') AS partner_name,
+		       m.document_number, COALESCE(m.title, '') AS title,
+		       m.start_date::text, m.end_date::text,
+		       COALESCE(m.status, 'active') AS status,
+		       COALESCE(m.document_url, '') AS document_url,
+		       m.notes, m.created_at, m.updated_at
+		FROM mous m
+		JOIN partners p ON p.id = m.partner_id
+		WHERE m.end_date <= CURRENT_DATE + ($1 * INTERVAL '1 month')
+		  AND m.end_date >= CURRENT_DATE
+		  AND COALESCE(m.status, 'active') = 'active'
+		ORDER BY m.end_date ASC
+	`
+	if err := r.db.SelectContext(ctx, &recs, query, withinMonths); err != nil {
+		return nil, fmt.Errorf("failed to list expiring MOUs: %w", err)
+	}
+	mous := make([]*partner.MOU, len(recs))
+	for i, rec := range recs {
+		mous[i] = mouRecordToDomain(rec)
+	}
+	return mous, nil
+}
+
+func mouRecordToDomain(rec mouRecord) *partner.MOU {
+	return &partner.MOU{
+		ID:             rec.ID,
+		PartnerID:      rec.PartnerID,
+		PartnerName:    rec.PartnerName,
+		DocumentNumber: rec.DocumentNumber,
+		Title:          rec.Title,
+		StartDate:      rec.StartDate,
+		EndDate:        rec.EndDate,
+		Status:         rec.Status,
+		DocumentURL:    rec.DocumentURL,
+		Notes:          rec.Notes,
+		CreatedAt:      rec.CreatedAt,
+		UpdatedAt:      rec.UpdatedAt,
+	}
 }
 
 func (r *PartnerRepository) ListLogs(ctx context.Context, partnerID uuid.UUID) ([]*partner.PartnershipLog, error) {

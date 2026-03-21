@@ -3,6 +3,9 @@ package list_delegations
 import (
 	"context"
 
+	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
+
 	"github.com/vernonedu/entrepreneurship-api/internal/domain/delegation"
 )
 
@@ -11,6 +14,8 @@ type ListDelegationsQuery struct {
 	Limit          int
 	Status         string
 	DelegationType string
+	AssignedToID   string
+	RequestedByID  string
 }
 
 type DelegationModel struct {
@@ -18,13 +23,18 @@ type DelegationModel struct {
 	Title            string  `json:"title"`
 	Type             string  `json:"type"`
 	Description      string  `json:"description"`
+	RequestedByID    string  `json:"requested_by_id"`
+	RequestedByName  string  `json:"requested_by_name"`
+	AssignedToID     string  `json:"assigned_to_id,omitempty"`
 	AssignedToName   string  `json:"assigned_to_name"`
-	AssignedByName   string  `json:"assigned_by_name"`
+	AssignedToRole   string  `json:"assigned_to_role"`
+	DueDate          *string `json:"due_date,omitempty"`
 	Priority         string  `json:"priority"`
-	Deadline         *string `json:"deadline,omitempty"`
 	Status           string  `json:"status"`
-	LinkedEntityID   string  `json:"linked_entity_id"`
-	LinkedEntityType string  `json:"linked_entity_type"`
+	LinkedEntityType *string `json:"linked_entity_type,omitempty"`
+	LinkedEntityID   *string `json:"linked_entity_id,omitempty"`
+	Notes            *string `json:"notes,omitempty"`
+	CreatedAt        string  `json:"created_at"`
 }
 
 type DelegationStatsModel struct {
@@ -55,34 +65,45 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 	if !ok {
 		return nil, ErrInvalidQuery
 	}
-	delegations, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Status, q.DelegationType)
+
+	limit := q.Limit
+	if limit == 0 {
+		limit = 20
+	}
+
+	filter := delegation.ListFilter{
+		Type:   q.DelegationType,
+		Status: q.Status,
+		Offset: q.Offset,
+		Limit:  limit,
+	}
+	if q.AssignedToID != "" {
+		id, err := uuid.Parse(q.AssignedToID)
+		if err == nil {
+			filter.AssignedToID = &id
+		}
+	}
+	if q.RequestedByID != "" {
+		id, err := uuid.Parse(q.RequestedByID)
+		if err == nil {
+			filter.RequestedByID = &id
+		}
+	}
+
+	delegations, total, err := h.readRepo.List(ctx, filter)
 	if err != nil {
+		log.Error().Err(err).Msg("failed to list delegations")
 		return nil, err
 	}
 	stats, err := h.readRepo.Stats(ctx)
 	if err != nil {
+		log.Error().Err(err).Msg("failed to get delegation stats")
 		return nil, err
 	}
 
 	models := make([]*DelegationModel, len(delegations))
 	for i, d := range delegations {
-		dm := &DelegationModel{
-			ID:               d.ID.String(),
-			Title:            d.Title,
-			Type:             d.Type,
-			Description:      d.Description,
-			AssignedToName:   d.AssignedToName,
-			AssignedByName:   d.AssignedByName,
-			Priority:         d.Priority,
-			Status:           d.Status,
-			LinkedEntityID:   d.LinkedEntityID,
-			LinkedEntityType: d.LinkedEntityType,
-		}
-		if d.Deadline != nil {
-			dl := d.Deadline.Format("2006-01-02T15:04:05Z07:00")
-			dm.Deadline = &dl
-		}
-		models[i] = dm
+		models[i] = toDelegationModel(d)
 	}
 
 	return &ListDelegationResult{
@@ -95,6 +116,38 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		},
 		Total:  total,
 		Offset: q.Offset,
-		Limit:  q.Limit,
+		Limit:  limit,
 	}, nil
+}
+
+func toDelegationModel(d *delegation.Delegation) *DelegationModel {
+	m := &DelegationModel{
+		ID:              d.ID.String(),
+		Title:           d.Title,
+		Type:            string(d.Type),
+		Description:     d.Description,
+		RequestedByID:   d.RequestedByID.String(),
+		RequestedByName: d.RequestedByName,
+		AssignedToName:  d.AssignedToName,
+		AssignedToRole:  d.AssignedToRole,
+		Priority:        string(d.Priority),
+		Status:          string(d.Status),
+		Notes:           d.Notes,
+		CreatedAt:       d.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	}
+	if d.AssignedToID != nil {
+		m.AssignedToID = d.AssignedToID.String()
+	}
+	if d.DueDate != nil {
+		s := d.DueDate.Format("2006-01-02T15:04:05Z07:00")
+		m.DueDate = &s
+	}
+	if d.LinkedEntityType != nil {
+		m.LinkedEntityType = d.LinkedEntityType
+	}
+	if d.LinkedEntityID != nil {
+		s := d.LinkedEntityID.String()
+		m.LinkedEntityID = &s
+	}
+	return m
 }

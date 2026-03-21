@@ -106,6 +106,15 @@ final _navItems = <_NavItem>[
 
   // ── CRM & Partners ───────────────────────────────────────────────────────
   _NavItem(
+    label: AppStrings.navMarketing,
+    icon: Icons.campaign_outlined,
+    route: '/marketing',
+    hasAccess: (u) =>
+        u.hasRole(UserRole.director) ||
+        u.hasRole(UserRole.operationLeader) ||
+        u.hasRole(UserRole.marketing),
+  ),
+  _NavItem(
     label: AppStrings.navCrm,
     icon: Icons.support_agent_outlined,
     route: '/crm',

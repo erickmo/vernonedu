@@ -14,7 +14,8 @@ import (
 )
 
 type UpdateCourseBatchCommand struct {
-	CourseBatchID   uuid.UUID `validate:"required"`
+	CourseBatchID   uuid.UUID  `validate:"required"`
+	BranchID        *uuid.UUID
 	Name            string    `validate:"required,min=1"`
 	StartDate       time.Time `validate:"required"`
 	EndDate         time.Time `validate:"required"`
@@ -66,6 +67,9 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 	existingBatch.IsActive = updateCmd.IsActive
 	existingBatch.WebsiteVisible = updateCmd.WebsiteVisible
 	existingBatch.Price = updateCmd.Price
+	if updateCmd.BranchID != nil {
+		existingBatch.BranchID = updateCmd.BranchID
+	}
 	if updateCmd.PaymentMethod != "" && coursebatch.ValidPaymentMethods[updateCmd.PaymentMethod] {
 		existingBatch.PaymentMethod = updateCmd.PaymentMethod
 	}

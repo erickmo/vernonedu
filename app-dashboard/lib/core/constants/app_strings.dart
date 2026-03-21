@@ -51,6 +51,7 @@ class AppStrings {
   static const String navBusinessDev = 'Business Dev';
   static const String navNotifications = 'Notifikasi';
   static const String navApprovals = 'Persetujuan';
+  static const String navMarketing = 'Marketing';
 
   // Errors
   static const String errorGeneral = 'Terjadi kesalahan. Silakan coba lagi.';

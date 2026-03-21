@@ -292,14 +292,14 @@ class _HeroText extends StatelessWidget {
           runSpacing: AppDimensions.s16,
           children: [
             GradientButton(
-              label: 'Mulai Belajar Gratis',
+              label: 'Lihat Program',
               onTap: () => context.go(AppRouter.kursus),
               height: 56,
               horizontalPadding: 32,
               icon: Icons.school_rounded,
             ),
             OutlineButton(
-              label: 'Lihat Semua Kursus',
+              label: 'Daftar Sekarang',
               onTap: () => context.go(AppRouter.kursus),
               height: 56,
               horizontalPadding: 28,

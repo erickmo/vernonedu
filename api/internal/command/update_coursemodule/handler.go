@@ -26,6 +26,7 @@ type UpdateCourseModuleCommand struct {
 	PracticalActivities []string
 	AssessmentMethod    string
 	ToolsRequired       []string
+	Requirements        []string
 }
 
 // Handler menangani UpdateCourseModuleCommand.
@@ -54,7 +55,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 	}
 
 	if err := cm.Update(c.ModuleTitle, c.ContentDepth, c.AssessmentMethod, c.DurationHours, c.Sequence,
-		c.Topics, c.PracticalActivities, c.ToolsRequired); err != nil {
+		c.Topics, c.PracticalActivities, c.ToolsRequired, c.Requirements); err != nil {
 		log.Error().Err(err).Msg("failed to update course module entity")
 		return err
 	}

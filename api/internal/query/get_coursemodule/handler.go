@@ -31,6 +31,7 @@ type CourseModuleReadModel struct {
 	PracticalActivities []string `json:"practical_activities"`
 	AssessmentMethod    string   `json:"assessment_method"`
 	ToolsRequired       []string `json:"tools_required"`
+	Requirements        []string `json:"requirements"`
 	IsReference         bool     `json:"is_reference"`
 	RefModuleID         *string  `json:"ref_module_id"`
 	CreatedAt           int64    `json:"created_at"`
@@ -77,6 +78,7 @@ func toReadModel(cm *coursemodule.CourseModule) *CourseModuleReadModel {
 		PracticalActivities: cm.PracticalActivities,
 		AssessmentMethod:    cm.AssessmentMethod,
 		ToolsRequired:       cm.ToolsRequired,
+		Requirements:        cm.Requirements,
 		IsReference:         cm.IsReference,
 		CreatedAt:           cm.CreatedAt.Unix(),
 		UpdatedAt:           cm.UpdatedAt.Unix(),

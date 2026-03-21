@@ -36,6 +36,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		createCmd.Interest,
 		createCmd.Source,
 		createCmd.Notes,
+		createCmd.PicID,
 	)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create lead")

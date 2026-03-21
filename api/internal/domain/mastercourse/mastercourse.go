@@ -27,6 +27,7 @@ type MasterCourse struct {
 	CoreCompetencies []string  // daftar kompetensi utama yang diajarkan
 	Description      string
 	Status           string    // active | archived
+	SupportingAppUrl *string   // optional URL to supporting app (e.g. app-entrepreneur, app-blockcoding)
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 }
@@ -56,6 +57,13 @@ func NewMasterCourse(courseCode, courseName, field, description string, coreComp
 	}, nil
 }
 
+// SetSupportingApp menetapkan URL supporting app untuk master course ini.
+// Kirim nil untuk menghapus URL.
+func (mc *MasterCourse) SetSupportingApp(url *string) {
+	mc.SupportingAppUrl = url
+	mc.UpdatedAt = time.Now()
+}
+
 // Archive mengarsipkan master course ini.
 // Mengembalikan error jika sudah dalam status archived.
 func (mc *MasterCourse) Archive() error {
@@ -69,7 +77,7 @@ func (mc *MasterCourse) Archive() error {
 
 // Update memperbarui data master course.
 // Validasi nama dan field wajib dilakukan sebelum update disimpan.
-func (mc *MasterCourse) Update(courseName, field, description string, coreCompetencies []string) error {
+func (mc *MasterCourse) Update(courseName, field, description string, coreCompetencies []string, supportingAppUrl *string) error {
 	if courseName == "" {
 		return ErrInvalidName
 	}
@@ -80,6 +88,7 @@ func (mc *MasterCourse) Update(courseName, field, description string, coreCompet
 	mc.Field = field
 	mc.Description = description
 	mc.CoreCompetencies = coreCompetencies
+	mc.SupportingAppUrl = supportingAppUrl
 	mc.UpdatedAt = time.Now()
 	return nil
 }

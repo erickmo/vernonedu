@@ -24,6 +24,7 @@ type MasterCourseReadModel struct {
 	CoreCompetencies []string `json:"core_competencies"`
 	Description      string   `json:"description"`
 	Status           string   `json:"status"`
+	SupportingAppUrl *string  `json:"supporting_app_url"`
 	CreatedAt        int64    `json:"created_at"`
 	UpdatedAt        int64    `json:"updated_at"`
 }
@@ -64,6 +65,7 @@ func toReadModel(mc *mastercourse.MasterCourse) *MasterCourseReadModel {
 		CoreCompetencies: mc.CoreCompetencies,
 		Description:      mc.Description,
 		Status:           mc.Status,
+		SupportingAppUrl: mc.SupportingAppUrl,
 		CreatedAt:        mc.CreatedAt.Unix(),
 		UpdatedAt:        mc.UpdatedAt.Unix(),
 	}

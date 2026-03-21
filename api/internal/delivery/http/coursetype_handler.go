@@ -38,6 +38,10 @@ type CreateCourseTypeRequest struct {
 	CertificationType      string                             `json:"certification_type"`
 	ExtraDocs              []string                           `json:"extra_docs"`
 	ComponentFailureConfig *coursetype.ComponentFailureConfig `json:"component_failure_config"`
+	NormalPrice            int64                              `json:"normal_price"`
+	MinPrice               int64                              `json:"min_price"`
+	MinParticipants        int                                `json:"min_participants"`
+	MaxParticipants        int                                `json:"max_participants"`
 }
 
 // UpdateCourseTypeRequest adalah request body untuk memperbarui CourseType.
@@ -51,6 +55,10 @@ type UpdateCourseTypeRequest struct {
 	PriceMax               *int64                             `json:"price_max"`
 	PriceCurrency          string                             `json:"price_currency"`
 	PriceNotes             string                             `json:"price_notes"`
+	NormalPrice            int64                              `json:"normal_price"`
+	MinPrice               int64                              `json:"min_price"`
+	MinParticipants        int                                `json:"min_participants"`
+	MaxParticipants        int                                `json:"max_participants"`
 }
 
 // Create menangani POST /api/v1/curriculum/courses/{courseID}/types
@@ -77,6 +85,10 @@ func (h *CourseTypeHandler) Create(w http.ResponseWriter, r *http.Request) {
 		CertificationType:      req.CertificationType,
 		ExtraDocs:              req.ExtraDocs,
 		ComponentFailureConfig: req.ComponentFailureConfig,
+		NormalPrice:            req.NormalPrice,
+		MinPrice:               req.MinPrice,
+		MinParticipants:        req.MinParticipants,
+		MaxParticipants:        req.MaxParticipants,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute create course type command")
@@ -153,6 +165,10 @@ func (h *CourseTypeHandler) Update(w http.ResponseWriter, r *http.Request) {
 		PriceMax:               req.PriceMax,
 		PriceCurrency:          req.PriceCurrency,
 		PriceNotes:             req.PriceNotes,
+		NormalPrice:            req.NormalPrice,
+		MinPrice:               req.MinPrice,
+		MinParticipants:        req.MinParticipants,
+		MaxParticipants:        req.MaxParticipants,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute update course type command")

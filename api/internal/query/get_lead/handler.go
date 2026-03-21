@@ -10,16 +10,17 @@ import (
 )
 
 type LeadReadModel struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Phone     string    `json:"phone"`
-	Interest  string    `json:"interest"`
-	Source    string    `json:"source"`
-	Notes     string    `json:"notes"`
-	Status    string    `json:"status"`
-	CreatedAt int64     `json:"created_at"`
-	UpdatedAt int64     `json:"updated_at"`
+	ID        uuid.UUID  `json:"id"`
+	Name      string     `json:"name"`
+	Email     string     `json:"email"`
+	Phone     string     `json:"phone"`
+	Interest  string     `json:"interest"`
+	Source    string     `json:"source"`
+	Notes     string     `json:"notes"`
+	Status    string     `json:"status"`
+	PicID     *uuid.UUID `json:"pic_id"`
+	CreatedAt int64      `json:"created_at"`
+	UpdatedAt int64      `json:"updated_at"`
 }
 
 type Handler struct {
@@ -53,6 +54,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		Source:    l.Source,
 		Notes:     l.Notes,
 		Status:    l.Status,
+		PicID:     l.PicID,
 		CreatedAt: l.CreatedAt.Unix(),
 		UpdatedAt: l.UpdatedAt.Unix(),
 	}

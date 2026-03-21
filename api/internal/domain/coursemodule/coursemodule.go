@@ -34,6 +34,7 @@ type CourseModule struct {
 	PracticalActivities []string  // daftar aktivitas praktik
 	AssessmentMethod    string    // metode penilaian modul
 	ToolsRequired       []string  // daftar alat/software yang dibutuhkan
+	Requirements        []string  // prerequisite skills/knowledge required before taking this module
 	IsReference         bool      // true = modul ini merujuk ke master module pool
 	RefModuleID         *uuid.UUID // FK ke master module pool jika IsReference = true
 	CreatedAt           time.Time
@@ -41,7 +42,7 @@ type CourseModule struct {
 }
 
 // NewCourseModule membuat entitas CourseModule baru dengan validasi awal.
-func NewCourseModule(courseVersionID uuid.UUID, moduleCode, moduleTitle, contentDepth, assessmentMethod string, durationHours float64, sequence int, topics, practicalActivities, toolsRequired []string, isReference bool, refModuleID *uuid.UUID) (*CourseModule, error) {
+func NewCourseModule(courseVersionID uuid.UUID, moduleCode, moduleTitle, contentDepth, assessmentMethod string, durationHours float64, sequence int, topics, practicalActivities, toolsRequired []string, requirements []string, isReference bool, refModuleID *uuid.UUID) (*CourseModule, error) {
 	if moduleCode == "" {
 		return nil, ErrInvalidCode
 	}
@@ -60,6 +61,9 @@ func NewCourseModule(courseVersionID uuid.UUID, moduleCode, moduleTitle, content
 	if toolsRequired == nil {
 		toolsRequired = []string{}
 	}
+	if requirements == nil {
+		requirements = []string{}
+	}
 	return &CourseModule{
 		ID:                  uuid.New(),
 		CourseVersionID:     courseVersionID,
@@ -72,6 +76,7 @@ func NewCourseModule(courseVersionID uuid.UUID, moduleCode, moduleTitle, content
 		PracticalActivities: practicalActivities,
 		AssessmentMethod:    assessmentMethod,
 		ToolsRequired:       toolsRequired,
+		Requirements:        requirements,
 		IsReference:         isReference,
 		RefModuleID:         refModuleID,
 		CreatedAt:           time.Now(),
@@ -80,7 +85,7 @@ func NewCourseModule(courseVersionID uuid.UUID, moduleCode, moduleTitle, content
 }
 
 // Update memperbarui data modul kursus.
-func (cm *CourseModule) Update(moduleTitle, contentDepth, assessmentMethod string, durationHours float64, sequence int, topics, practicalActivities, toolsRequired []string) error {
+func (cm *CourseModule) Update(moduleTitle, contentDepth, assessmentMethod string, durationHours float64, sequence int, topics, practicalActivities, toolsRequired []string, requirements []string) error {
 	if moduleTitle == "" {
 		return ErrInvalidTitle
 	}
@@ -96,6 +101,9 @@ func (cm *CourseModule) Update(moduleTitle, contentDepth, assessmentMethod strin
 	if toolsRequired == nil {
 		toolsRequired = []string{}
 	}
+	if requirements == nil {
+		requirements = []string{}
+	}
 	cm.ModuleTitle = moduleTitle
 	cm.ContentDepth = contentDepth
 	cm.AssessmentMethod = assessmentMethod
@@ -104,6 +112,7 @@ func (cm *CourseModule) Update(moduleTitle, contentDepth, assessmentMethod strin
 	cm.Topics = topics
 	cm.PracticalActivities = practicalActivities
 	cm.ToolsRequired = toolsRequired
+	cm.Requirements = requirements
 	cm.UpdatedAt = time.Now()
 	return nil
 }

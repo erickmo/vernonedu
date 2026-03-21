@@ -15,8 +15,11 @@ type GetPartnerQuery struct {
 type MOUModel struct {
 	ID             string `json:"id"`
 	DocumentNumber string `json:"document_number"`
+	Title          string `json:"title"`
 	StartDate      string `json:"start_date"`
 	EndDate        string `json:"end_date"`
+	Status         string `json:"status"`
+	DocumentURL    string `json:"document_url"`
 	Notes          string `json:"notes"`
 }
 
@@ -85,8 +88,11 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		mouModels[i] = &MOUModel{
 			ID:             m.ID.String(),
 			DocumentNumber: m.DocumentNumber,
+			Title:          m.Title,
 			StartDate:      m.StartDate,
 			EndDate:        m.EndDate,
+			Status:         m.Status,
+			DocumentURL:    m.DocumentURL,
 			Notes:          m.Notes,
 		}
 	}

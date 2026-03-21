@@ -58,6 +58,7 @@ type masterCourseRecord struct {
 	CoreCompetencies []byte    `db:"core_competencies"` // JSONB discan sebagai []byte
 	Description      string    `db:"description"`
 	Status           string    `db:"status"`
+	SupportingAppUrl *string   `db:"supporting_app_url"`
 	CreatedAt        time.Time `db:"created_at"`
 	UpdatedAt        time.Time `db:"updated_at"`
 }
@@ -81,6 +82,7 @@ func (rec *masterCourseRecord) toDomain() (*mastercourse.MasterCourse, error) {
 		CoreCompetencies: coreCompetencies,
 		Description:      rec.Description,
 		Status:           rec.Status,
+		SupportingAppUrl: rec.SupportingAppUrl,
 		CreatedAt:        rec.CreatedAt,
 		UpdatedAt:        rec.UpdatedAt,
 	}, nil
@@ -93,12 +95,12 @@ func (r *MasterCourseRepository) Save(ctx context.Context, mc *mastercourse.Mast
 		return fmt.Errorf("failed to marshal core_competencies: %w", err)
 	}
 	query := `
-		INSERT INTO master_courses (id, course_code, course_name, field, core_competencies, description, status, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO master_courses (id, course_code, course_name, field, core_competencies, description, status, supporting_app_url, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	`
 	_, err = r.db.ExecContext(ctx, query,
 		mc.ID, mc.CourseCode, mc.CourseName, mc.Field,
-		competenciesJSON, mc.Description, mc.Status, mc.CreatedAt, mc.UpdatedAt,
+		competenciesJSON, mc.Description, mc.Status, mc.SupportingAppUrl, mc.CreatedAt, mc.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to save master course: %w", err)
@@ -114,11 +116,13 @@ func (r *MasterCourseRepository) Update(ctx context.Context, mc *mastercourse.Ma
 	}
 	query := `
 		UPDATE master_courses
-		SET course_name = $1, field = $2, core_competencies = $3, description = $4, status = $5, updated_at = $6
-		WHERE id = $7
+		SET course_name = $1, field = $2, core_competencies = $3, description = $4, status = $5,
+		    supporting_app_url = $6, updated_at = $7
+		WHERE id = $8
 	`
 	_, err = r.db.ExecContext(ctx, query,
-		mc.CourseName, mc.Field, competenciesJSON, mc.Description, mc.Status, mc.UpdatedAt, mc.ID,
+		mc.CourseName, mc.Field, competenciesJSON, mc.Description, mc.Status,
+		mc.SupportingAppUrl, mc.UpdatedAt, mc.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update master course: %w", err)
@@ -139,7 +143,7 @@ func (r *MasterCourseRepository) Delete(ctx context.Context, id uuid.UUID) error
 // GetByID mengambil satu MasterCourse berdasarkan ID.
 func (r *MasterCourseRepository) GetByID(ctx context.Context, id uuid.UUID) (*mastercourse.MasterCourse, error) {
 	var rec masterCourseRecord
-	query := `SELECT id, course_code, course_name, field, core_competencies, description, status, created_at, updated_at FROM master_courses WHERE id = $1`
+	query := `SELECT id, course_code, course_name, field, core_competencies, description, status, supporting_app_url, created_at, updated_at FROM master_courses WHERE id = $1`
 	if err := r.db.GetContext(ctx, &rec, query, id); err != nil {
 		return nil, fmt.Errorf("failed to get master course by id: %w", err)
 	}
@@ -149,7 +153,7 @@ func (r *MasterCourseRepository) GetByID(ctx context.Context, id uuid.UUID) (*ma
 // GetByCode mengambil satu MasterCourse berdasarkan course_code.
 func (r *MasterCourseRepository) GetByCode(ctx context.Context, code string) (*mastercourse.MasterCourse, error) {
 	var rec masterCourseRecord
-	query := `SELECT id, course_code, course_name, field, core_competencies, description, status, created_at, updated_at FROM master_courses WHERE course_code = $1`
+	query := `SELECT id, course_code, course_name, field, core_competencies, description, status, supporting_app_url, created_at, updated_at FROM master_courses WHERE course_code = $1`
 	if err := r.db.GetContext(ctx, &rec, query, code); err != nil {
 		return nil, fmt.Errorf("failed to get master course by code: %w", err)
 	}
@@ -190,7 +194,7 @@ func (r *MasterCourseRepository) List(ctx context.Context, offset, limit int, st
 	// Ambil data dengan pagination
 	listArgs := append(args, limit, offset)
 	selectQuery := fmt.Sprintf(
-		`SELECT id, course_code, course_name, field, core_competencies, description, status, created_at, updated_at
+		`SELECT id, course_code, course_name, field, core_competencies, description, status, supporting_app_url, created_at, updated_at
 		 FROM master_courses %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d`,
 		whereClause, argIdx, argIdx+1,
 	)

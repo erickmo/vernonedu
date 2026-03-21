@@ -48,6 +48,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 	existingLead.Source = updateCmd.Source
 	existingLead.Notes = updateCmd.Notes
 	existingLead.Status = updateCmd.Status
+	existingLead.PicID = updateCmd.PicID
 	existingLead.UpdatedAt = time.Now()
 
 	if err := h.leadWriteRepo.Update(ctx, existingLead); err != nil {

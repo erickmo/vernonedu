@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 
 	"github.com/vernonedu/entrepreneurship-api/internal/domain/delegation"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
@@ -25,44 +26,96 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 	if !ok {
 		return ErrInvalidCommand
 	}
-	now := time.Now()
-	d := &delegation.Delegation{
-		ID:               uuid.New(),
-		Title:            c.Title,
-		Type:             c.Type,
-		Description:      c.Description,
-		AssignedToName:   c.AssignedToName,
-		AssignedByName:   c.AssignedByName,
-		Priority:         c.Priority,
-		Status:           "pending",
-		LinkedEntityID:   c.LinkedEntityID,
-		LinkedEntityType: c.LinkedEntityType,
-		CreatedAt:        now,
-		UpdatedAt:        now,
+
+	requestedByID, err := uuid.Parse(c.RequestedByID)
+	if err != nil {
+		return ErrInvalidCommand
 	}
-	if d.Type == "" {
-		d.Type = "delegate_task"
-	}
-	if d.Priority == "" {
-		d.Priority = "medium"
-	}
+
+	var assignedToID *uuid.UUID
 	if c.AssignedToID != "" {
 		aid, err := uuid.Parse(c.AssignedToID)
 		if err == nil {
-			d.AssignedToID = &aid
+			assignedToID = &aid
 		}
 	}
-	if c.AssignedByID != "" {
-		bid, err := uuid.Parse(c.AssignedByID)
+
+	var dueDate *time.Time
+	if c.DueDate != "" {
+		dl, err := time.Parse(time.RFC3339, c.DueDate)
 		if err == nil {
-			d.AssignedByID = &bid
+			dueDate = &dl
 		}
 	}
-	if c.Deadline != "" {
-		dl, err := time.Parse(time.RFC3339, c.Deadline)
+
+	var linkedEntityType *string
+	if c.LinkedEntityType != "" {
+		t := c.LinkedEntityType
+		linkedEntityType = &t
+	}
+
+	var linkedEntityID *uuid.UUID
+	if c.LinkedEntityID != "" {
+		eid, err := uuid.Parse(c.LinkedEntityID)
 		if err == nil {
-			d.Deadline = &dl
+			linkedEntityID = &eid
 		}
 	}
-	return h.writeRepo.Save(ctx, d)
+
+	var notes *string
+	if c.Notes != "" {
+		n := c.Notes
+		notes = &n
+	}
+
+	delegationType := delegation.DelegationType(c.Type)
+	if delegationType == "" {
+		delegationType = delegation.TypeDelegateTask
+	}
+	priority := delegation.Priority(c.Priority)
+	if priority == "" {
+		priority = delegation.PriorityMedium
+	}
+
+	d, err := delegation.NewDelegation(
+		c.Title, c.Description,
+		delegationType,
+		requestedByID, c.RequestedByName,
+		assignedToID, c.AssignedToName, c.AssignedToRole,
+		priority,
+		dueDate,
+		linkedEntityType, linkedEntityID,
+		notes,
+	)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to create delegation domain object")
+		return err
+	}
+
+	if err := h.writeRepo.Save(ctx, d); err != nil {
+		log.Error().Err(err).Msg("failed to save delegation")
+		return err
+	}
+
+	var assignedToUUID uuid.UUID
+	if assignedToID != nil {
+		assignedToUUID = *assignedToID
+	}
+	event := &delegation.DelegationCreatedEvent{
+		DelegationID:    d.ID,
+		Title:           d.Title,
+		RequestedByID:   d.RequestedByID,
+		RequestedByName: d.RequestedByName,
+		AssignedToID:    assignedToUUID,
+		AssignedToName:  d.AssignedToName,
+		Priority:        string(d.Priority),
+		Timestamp:       time.Now().Unix(),
+	}
+
+	if err := h.eventBus.Publish(ctx, event); err != nil {
+		log.Error().Err(err).Msg("failed to publish DelegationCreated event")
+	}
+
+	log.Info().Str("delegation_id", d.ID.String()).Msg("delegation created successfully")
+	return nil
 }

@@ -7,6 +7,7 @@ import '../../domain/entities/student_detail_entity.dart';
 import '../../domain/entities/student_enrollment_history_entity.dart';
 import '../../domain/entities/student_note_entity.dart';
 import '../../domain/entities/recommended_course_entity.dart';
+import '../../domain/entities/student_crm_log_entity.dart';
 import '../../domain/repositories/student_detail_repository.dart';
 import '../datasources/student_detail_remote_datasource.dart';
 
@@ -88,13 +89,65 @@ class StudentDetailRepositoryImpl implements StudentDetailRepository {
     required String name,
     required String email,
     required String phone,
+    String? nik,
+    String? gender,
+    String? address,
+    String? birthDate,
+    String? departmentId,
+    required String status,
+    String? studentCode,
   }) async {
     if (!await networkInfo.isConnected) return const Left(NetworkFailure());
     try {
-      await remoteDataSource.updateStudent(id, name: name, email: email, phone: phone);
+      await remoteDataSource.updateStudent(
+        id,
+        name: name,
+        email: email,
+        phone: phone,
+        nik: nik,
+        gender: gender,
+        address: address,
+        birthDate: birthDate,
+        departmentId: departmentId,
+        status: status,
+        studentCode: studentCode,
+      );
       return const Right(null);
     } on DioException catch (e) {
       return Left(ServerFailure(e.message ?? 'Gagal mengupdate data siswa'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<StudentCrmLogEntity>>> getStudentCrmLogs(
+      String studentId) async {
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
+    try {
+      final result = await remoteDataSource.getStudentCrmLogs(studentId);
+      return Right(result.map((m) => m.toEntity()).toList());
+    } on DioException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Gagal memuat log CRM'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, StudentCrmLogEntity>> addStudentCrmLog(
+    String studentId, {
+    required String contactMethod,
+    required String response,
+    String? contactedBy,
+  }) async {
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
+    try {
+      final result = await remoteDataSource.addStudentCrmLog(
+        studentId,
+        contactMethod: contactMethod,
+        response: response,
+        contactedBy: contactedBy,
+      );
+      return Right(result.toEntity());
+    } on DioException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Gagal menambah log CRM'));
     }
   }
 }

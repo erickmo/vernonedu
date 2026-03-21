@@ -15,30 +15,23 @@ class HowItWorksSection extends StatelessWidget {
   static const _steps = [
     _Step(
       number: '01',
-      icon: Icons.app_registration_rounded,
-      title: 'Daftar Akun',
-      description: 'Buat akun gratis dalam 30 detik. Tidak perlu kartu kredit untuk memulai.',
+      icon: Icons.search_rounded,
+      title: 'Pilih Kursus',
+      description: 'Browse katalog 50+ kursus dan temukan program yang paling sesuai dengan tujuan karirmu.',
       color: AppColors.brandIndigo,
     ),
     _Step(
       number: '02',
-      icon: Icons.search_rounded,
-      title: 'Pilih Kursus',
-      description: 'Jelajahi 50+ kursus wirausaha dan temukan yang paling sesuai dengan tujuan bisnis Anda.',
-      color: AppColors.brandViolet,
-    ),
-    _Step(
-      number: '03',
-      icon: Icons.play_lesson_rounded,
-      title: 'Mulai Belajar',
-      description: 'Akses materi berkualitas kapan saja, ikuti tugas praktikal, dan diskusi dengan mentor.',
+      icon: Icons.credit_card_rounded,
+      title: 'Daftar & Bayar',
+      description: 'Pendaftaran mudah dengan 5 metode pembayaran fleksibel — cicilan, per-sesi, atau sekaligus.',
       color: AppColors.brandGreen,
     ),
     _Step(
-      number: '04',
+      number: '03',
       icon: Icons.emoji_events_rounded,
-      title: 'Raih Sertifikat',
-      description: 'Selesaikan kursus dan dapatkan sertifikat resmi yang diakui industri.',
+      title: 'Belajar & Raih Sertifikat',
+      description: 'Ikuti kursus bersama instruktur ahli, selesaikan modul, dan dapatkan sertifikat resmi diakui industri.',
       color: AppColors.brandGold,
     ),
   ];
@@ -57,9 +50,9 @@ class HowItWorksSection extends StatelessWidget {
             uniqueKey: 'how_header',
             child: const SectionHeader(
               badge: '🚀 Cara Memulai',
-              title: 'Mulai dalam 4 Langkah\nSederhana',
+              title: 'Mulai dalam 3 Langkah\nSederhana',
               subtitle:
-                  'Kami memudahkan proses belajar sehingga Anda bisa fokus pada yang penting — mengembangkan bisnis.',
+                  'Dari pilih kursus hingga raih sertifikat — prosesnya mudah dan terstruktur.',
             ),
           ),
 

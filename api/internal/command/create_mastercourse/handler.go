@@ -19,6 +19,7 @@ type CreateMasterCourseCommand struct {
 	Field            string   `validate:"required"`
 	CoreCompetencies []string
 	Description      string
+	SupportingAppUrl string
 }
 
 // Handler menangani CreateMasterCourseCommand.
@@ -43,6 +44,11 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create master course entity")
 		return err
+	}
+
+	if c.SupportingAppUrl != "" {
+		url := c.SupportingAppUrl
+		mc.SupportingAppUrl = &url
 	}
 
 	if err := h.writeRepo.Save(ctx, mc); err != nil {

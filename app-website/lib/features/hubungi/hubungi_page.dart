@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/services/public_api_service.dart';
 import '../../core/utils/responsive.dart';
 import '../../core/widgets/footer_widget.dart';
 import '../../core/widgets/gradient_button.dart';
@@ -31,9 +32,7 @@ class HubungiPage extends StatelessWidget {
               horizontal: padH,
               vertical: AppDimensions.s80,
             ),
-            child: isMobile
-                ? _MobileContent()
-                : _DesktopContent(),
+            child: isMobile ? _MobileContent() : _DesktopContent(),
           ),
 
           // Map / office info
@@ -64,10 +63,15 @@ class _HubungiHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: padH, vertical: AppDimensions.s80),
+      padding: EdgeInsets.symmetric(
+          horizontal: padH, vertical: AppDimensions.s80),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF3D2068), Color(0xFF5B3A9A), Color(0xFF7C68EE)],
+          colors: [
+            Color(0xFF3D2068),
+            Color(0xFF5B3A9A),
+            Color(0xFF7C68EE),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -110,7 +114,7 @@ class _MobileContent extends StatelessWidget {
   }
 }
 
-/// Form kontak.
+/// Form kontak — dengan API submission.
 class _ContactForm extends StatefulWidget {
   @override
   State<_ContactForm> createState() => _ContactFormState();
@@ -118,8 +122,31 @@ class _ContactForm extends StatefulWidget {
 
 class _ContactFormState extends State<_ContactForm> {
   final _formKey = GlobalKey<FormState>();
-  String _selectedTopic = 'Informasi Kursus';
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _messageController = TextEditingController();
+
+  String _selectedCategory = 'Individu';
   bool _submitted = false;
+  bool _submitting = false;
+
+  static const _categories = [
+    'Individu',
+    'Sekolah',
+    'Universitas',
+    'Korporat',
+    'Lainnya',
+  ];
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _messageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -163,6 +190,7 @@ class _ContactFormState extends State<_ContactForm> {
                     label: 'Nama Lengkap',
                     hint: 'Budi Santoso',
                     icon: Icons.person_outline_rounded,
+                    controller: _nameController,
                     validator: (v) =>
                         v == null || v.isEmpty ? 'Nama wajib diisi' : null,
                   ),
@@ -173,9 +201,12 @@ class _ContactFormState extends State<_ContactForm> {
                     label: 'Email',
                     hint: 'budi@email.com',
                     icon: Icons.email_outlined,
+                    controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     validator: (v) =>
-                        v == null || !v.contains('@') ? 'Email tidak valid' : null,
+                        v == null || !v.contains('@')
+                            ? 'Email tidak valid'
+                            : null,
                   ),
                 ),
               ],
@@ -188,16 +219,17 @@ class _ContactFormState extends State<_ContactForm> {
               label: 'Nomor WhatsApp',
               hint: '+62 812-0000-0000',
               icon: Icons.phone_outlined,
+              controller: _phoneController,
               keyboardType: TextInputType.phone,
             ),
 
             const SizedBox(height: AppDimensions.s20),
 
-            // Topic dropdown
+            // Category dropdown
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Topik', style: AppTextStyles.labelM),
+                Text('Kategori Pengirim', style: AppTextStyles.labelM),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -208,20 +240,21 @@ class _ContactFormState extends State<_ContactForm> {
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
-                      value: _selectedTopic,
+                      value: _selectedCategory,
                       isExpanded: true,
                       dropdownColor: AppColors.bgCard,
-                      style: AppTextStyles.bodyM.copyWith(color: AppColors.textPrimary),
-                      icon: const Icon(Icons.expand_more_rounded, color: AppColors.textMuted),
-                      items: const [
-                        'Informasi Kursus',
-                        'Pendaftaran & Pembayaran',
-                        'Kemitraan & Kolaborasi',
-                        'Sertifikasi',
-                        'Lainnya',
-                      ].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                      style: AppTextStyles.bodyM
+                          .copyWith(color: AppColors.textPrimary),
+                      icon: const Icon(Icons.expand_more_rounded,
+                          color: AppColors.textMuted),
+                      items: _categories
+                          .map((t) =>
+                              DropdownMenuItem(value: t, child: Text(t)))
+                          .toList(),
                       onChanged: (v) =>
-                          v != null ? setState(() => _selectedTopic = v) : null,
+                          v != null
+                              ? setState(() => _selectedCategory = v)
+                              : null,
                     ),
                   ),
                 ),
@@ -237,29 +270,37 @@ class _ContactFormState extends State<_ContactForm> {
                 Text('Pesan', style: AppTextStyles.labelM),
                 const SizedBox(height: 8),
                 TextFormField(
+                  controller: _messageController,
                   maxLines: 5,
-                  style: AppTextStyles.bodyM.copyWith(color: AppColors.textPrimary),
+                  style: AppTextStyles.bodyM
+                      .copyWith(color: AppColors.textPrimary),
                   decoration: InputDecoration(
-                    hintText: 'Ceritakan kebutuhan atau pertanyaan Anda...',
-                    hintStyle: AppTextStyles.bodyM.copyWith(color: AppColors.textMuted),
+                    hintText:
+                        'Ceritakan kebutuhan atau pertanyaan Anda...',
+                    hintStyle: AppTextStyles.bodyM
+                        .copyWith(color: AppColors.textMuted),
                     filled: true,
                     fillColor: AppColors.bgInput,
                     contentPadding: const EdgeInsets.all(16),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
+                      borderSide:
+                          const BorderSide(color: AppColors.border),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
+                      borderSide:
+                          const BorderSide(color: AppColors.border),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.brandIndigo, width: 2),
+                      borderSide: const BorderSide(
+                          color: AppColors.brandIndigo, width: 2),
                     ),
                   ),
-                  validator: (v) =>
-                      v == null || v.length < 10 ? 'Pesan minimal 10 karakter' : null,
+                  validator: (v) => v == null || v.length < 10
+                      ? 'Pesan minimal 10 karakter'
+                      : null,
                 ),
               ],
             ),
@@ -268,24 +309,55 @@ class _ContactFormState extends State<_ContactForm> {
 
             SizedBox(
               width: double.infinity,
-              child: GradientButton(
-                label: 'Kirim Pesan',
-                onTap: () {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    setState(() => _submitted = true);
-                  }
-                },
-                height: 56,
-                horizontalPadding: 32,
-                icon: Icons.send_rounded,
-              ),
+              child: _submitting
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.brandIndigo,
+                      ),
+                    )
+                  : GradientButton(
+                      label: 'Kirim Pesan',
+                      onTap: () async {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          setState(() => _submitting = true);
+                          final messenger = ScaffoldMessenger.of(context);
+                          final success =
+                              await PublicApiService.submitContact(
+                            name: _nameController.text,
+                            email: _emailController.text,
+                            phone: _phoneController.text,
+                            category: _selectedCategory,
+                            message: _messageController.text,
+                          );
+                          if (mounted) {
+                            setState(() {
+                              _submitting = false;
+                              if (success) _submitted = true;
+                            });
+                            if (!success) {
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text('Gagal mengirim pesan. Coba lagi.'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      },
+                      height: 56,
+                      horizontalPadding: 32,
+                      icon: Icons.send_rounded,
+                    ),
             ),
 
             const SizedBox(height: AppDimensions.s16),
 
             Text(
               'Dengan mengirim pesan ini, Anda menyetujui Kebijakan Privasi kami.',
-              style: AppTextStyles.bodyXS.copyWith(color: AppColors.textMuted),
+              style: AppTextStyles.bodyXS
+                  .copyWith(color: AppColors.textMuted),
               textAlign: TextAlign.center,
             ),
           ],
@@ -299,6 +371,7 @@ class _FormField extends StatelessWidget {
   final String label;
   final String hint;
   final IconData icon;
+  final TextEditingController? controller;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
 
@@ -306,6 +379,7 @@ class _FormField extends StatelessWidget {
     required this.label,
     required this.hint,
     required this.icon,
+    this.controller,
     this.keyboardType,
     this.validator,
   });
@@ -318,16 +392,20 @@ class _FormField extends StatelessWidget {
         Text(label, style: AppTextStyles.labelM),
         const SizedBox(height: 8),
         TextFormField(
+          controller: controller,
           keyboardType: keyboardType,
           validator: validator,
-          style: AppTextStyles.bodyM.copyWith(color: AppColors.textPrimary),
+          style:
+              AppTextStyles.bodyM.copyWith(color: AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: AppTextStyles.bodyM.copyWith(color: AppColors.textMuted),
+            hintStyle:
+                AppTextStyles.bodyM.copyWith(color: AppColors.textMuted),
             prefixIcon: Icon(icon, color: AppColors.textMuted, size: 20),
             filled: true,
             fillColor: AppColors.bgInput,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.border),
@@ -338,7 +416,8 @@ class _FormField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.brandIndigo, width: 2),
+              borderSide: const BorderSide(
+                  color: AppColors.brandIndigo, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -361,7 +440,8 @@ class _SuccessMessage extends StatelessWidget {
           colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
         ),
         borderRadius: BorderRadius.circular(AppDimensions.r24),
-        border: Border.all(color: AppColors.brandGreen.withValues(alpha: 0.4)),
+        border: Border.all(
+            color: AppColors.brandGreen.withValues(alpha: 0.4)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -380,11 +460,13 @@ class _SuccessMessage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.brandGreen, size: 20),
+              const Icon(Icons.chat_bubble_outline_rounded,
+                  color: AppColors.brandGreen, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Atau hubungi WhatsApp kami untuk respon lebih cepat',
-                style: AppTextStyles.bodyS.copyWith(color: AppColors.brandGreen),
+                style: AppTextStyles.bodyS
+                    .copyWith(color: AppColors.brandGreen),
               ),
             ],
           ),
@@ -460,11 +542,13 @@ class _ContactInfo extends StatelessWidget {
               _HourRow(day: 'Minggu & Libur Nasional', hours: 'Tutup'),
               const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.brandGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.brandGreen.withValues(alpha: 0.3)),
+                  border: Border.all(
+                      color: AppColors.brandGreen.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -480,7 +564,8 @@ class _ContactInfo extends StatelessWidget {
                     const SizedBox(width: 6),
                     Text(
                       'Online Sekarang',
-                      style: AppTextStyles.bodyXS.copyWith(color: AppColors.brandGreen),
+                      style: AppTextStyles.bodyXS
+                          .copyWith(color: AppColors.brandGreen),
                     ),
                   ],
                 ),
@@ -497,11 +582,23 @@ class _ContactInfo extends StatelessWidget {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: [
-            _SocialBtn(icon: Icons.camera_alt_outlined, label: 'Instagram', color: Color(0xFFE1306C)),
-            _SocialBtn(icon: Icons.play_circle_outline_rounded, label: 'YouTube', color: Color(0xFFFF0000)),
-            _SocialBtn(icon: Icons.work_outline_rounded, label: 'LinkedIn', color: Color(0xFF0077B5)),
-            _SocialBtn(icon: Icons.music_note_rounded, label: 'TikTok', color: Color(0xFF444444)),
+          children: const [
+            _SocialBtn(
+                icon: Icons.camera_alt_outlined,
+                label: 'Instagram',
+                color: Color(0xFFE1306C)),
+            _SocialBtn(
+                icon: Icons.play_circle_outline_rounded,
+                label: 'YouTube',
+                color: Color(0xFFFF0000)),
+            _SocialBtn(
+                icon: Icons.work_outline_rounded,
+                label: 'LinkedIn',
+                color: Color(0xFF0077B5)),
+            _SocialBtn(
+                icon: Icons.music_note_rounded,
+                label: 'TikTok',
+                color: Color(0xFF444444)),
           ],
         ),
       ],
@@ -541,10 +638,14 @@ class _ContactCardState extends State<_ContactCard> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(AppDimensions.s16),
         decoration: BoxDecoration(
-          color: _hovered ? widget.color.withValues(alpha: 0.08) : AppColors.bgCard,
+          color: _hovered
+              ? widget.color.withValues(alpha: 0.08)
+              : AppColors.bgCard,
           borderRadius: BorderRadius.circular(AppDimensions.r16),
           border: Border.all(
-            color: _hovered ? widget.color.withValues(alpha: 0.4) : AppColors.border,
+            color: _hovered
+                ? widget.color.withValues(alpha: 0.4)
+                : AppColors.border,
           ),
         ),
         child: Row(
@@ -564,16 +665,19 @@ class _ContactCardState extends State<_ContactCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.title, style: AppTextStyles.labelM),
-                  Text(widget.subtitle, style: AppTextStyles.bodyXS, maxLines: 1),
+                  Text(widget.subtitle,
+                      style: AppTextStyles.bodyXS, maxLines: 1),
                   const SizedBox(height: 2),
                   Text(
                     widget.value,
-                    style: AppTextStyles.bodyS.copyWith(color: widget.color),
+                    style:
+                        AppTextStyles.bodyS.copyWith(color: widget.color),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 14),
+            const Icon(Icons.arrow_forward_ios_rounded,
+                color: AppColors.textMuted, size: 14),
           ],
         ),
       ),
@@ -594,11 +698,15 @@ class _HourRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(day, style: AppTextStyles.bodyXS.copyWith(color: AppColors.textMuted)),
+          Text(day,
+              style: AppTextStyles.bodyXS
+                  .copyWith(color: AppColors.textMuted)),
           Text(
             hours,
             style: AppTextStyles.bodyXS.copyWith(
-              color: hours == 'Tutup' ? AppColors.error : AppColors.textPrimary,
+              color: hours == 'Tutup'
+                  ? AppColors.error
+                  : AppColors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -613,7 +721,8 @@ class _SocialBtn extends StatefulWidget {
   final String label;
   final Color color;
 
-  const _SocialBtn({required this.icon, required this.label, required this.color});
+  const _SocialBtn(
+      {required this.icon, required this.label, required this.color});
 
   @override
   State<_SocialBtn> createState() => _SocialBtnState();
@@ -632,22 +741,34 @@ class _SocialBtnState extends State<_SocialBtn> {
         onExit: (_) => setState(() => _hovered = false),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: _hovered ? widget.color.withValues(alpha: 0.12) : AppColors.bgCard,
+            color: _hovered
+                ? widget.color.withValues(alpha: 0.12)
+                : AppColors.bgCard,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: _hovered ? widget.color.withValues(alpha: 0.4) : AppColors.border,
+              color: _hovered
+                  ? widget.color.withValues(alpha: 0.4)
+                  : AppColors.border,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(widget.icon, color: _hovered ? widget.color : AppColors.textMuted, size: 18),
+              Icon(widget.icon,
+                  color:
+                      _hovered ? widget.color : AppColors.textMuted,
+                  size: 18),
               const SizedBox(width: 6),
-              Text(widget.label, style: AppTextStyles.labelS.copyWith(
-                color: _hovered ? widget.color : AppColors.textMuted,
-              )),
+              Text(
+                widget.label,
+                style: AppTextStyles.labelS.copyWith(
+                  color:
+                      _hovered ? widget.color : AppColors.textMuted,
+                ),
+              ),
             ],
           ),
         ),
@@ -666,31 +787,36 @@ class _OfficeSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: AppColors.bgSecondary.withValues(alpha: 0.3),
-      padding: EdgeInsets.symmetric(horizontal: padH, vertical: AppDimensions.s64),
+      padding: EdgeInsets.symmetric(
+          horizontal: padH, vertical: AppDimensions.s64),
       child: Column(
         children: [
-          Text('Kantor Kami', style: AppTextStyles.h2, textAlign: TextAlign.center),
+          Text('Kantor Kami',
+              style: AppTextStyles.h2, textAlign: TextAlign.center),
           const SizedBox(height: AppDimensions.s40),
-          Wrap(
+          const Wrap(
             spacing: AppDimensions.s24,
             runSpacing: AppDimensions.s24,
             alignment: WrapAlignment.center,
-            children: const [
+            children: [
               _OfficeCard(
                 city: 'Jakarta (HQ)',
-                address: 'Jl. Sudirman No. 123, Lantai 15\nJakarta Pusat, DKI Jakarta 10220',
+                address:
+                    'Jl. Sudirman No. 123, Lantai 15\nJakarta Pusat, DKI Jakarta 10220',
                 phone: '+62 21-0000-0000',
                 isHQ: true,
               ),
               _OfficeCard(
                 city: 'Surabaya',
-                address: 'Jl. Pemuda No. 45, Lantai 8\nSurabaya, Jawa Timur 60271',
+                address:
+                    'Jl. Pemuda No. 45, Lantai 8\nSurabaya, Jawa Timur 60271',
                 phone: '+62 31-0000-0000',
                 isHQ: false,
               ),
               _OfficeCard(
                 city: 'Bali',
-                address: 'Jl. Sunset Road No. 88\nKuta, Badung, Bali 80361',
+                address:
+                    'Jl. Sunset Road No. 88\nKuta, Badung, Bali 80361',
                 phone: '+62 361-0000-0000',
                 isHQ: false,
               ),
@@ -724,7 +850,9 @@ class _OfficeCard extends StatelessWidget {
         gradient: AppColors.cardGradient,
         borderRadius: BorderRadius.circular(AppDimensions.r16),
         border: Border.all(
-          color: isHQ ? AppColors.brandIndigo.withValues(alpha: 0.5) : AppColors.border,
+          color: isHQ
+              ? AppColors.brandIndigo.withValues(alpha: 0.5)
+              : AppColors.border,
           width: isHQ ? 1.5 : 1,
         ),
       ),
@@ -743,24 +871,27 @@ class _OfficeCard extends StatelessWidget {
               if (isHQ) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text('HQ',
-                      style: AppTextStyles.badge.copyWith(
-                          color: Colors.white, fontSize: 9)),
+                      style: AppTextStyles.badge
+                          .copyWith(color: Colors.white, fontSize: 9)),
                 ),
               ],
             ],
           ),
           const SizedBox(height: 12),
-          Text(address, style: AppTextStyles.bodyS.copyWith(height: 1.6)),
+          Text(address,
+              style: AppTextStyles.bodyS.copyWith(height: 1.6)),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.phone_outlined, color: AppColors.textMuted, size: 14),
+              const Icon(Icons.phone_outlined,
+                  color: AppColors.textMuted, size: 14),
               const SizedBox(width: 6),
               Text(phone, style: AppTextStyles.bodyXS),
             ],
@@ -771,31 +902,65 @@ class _OfficeCard extends StatelessWidget {
   }
 }
 
-class _FaqSection extends StatelessWidget {
+// ─── FAQ — API-powered with static fallback ───────────────────────────────────
+
+/// Data model FAQ lokal.
+class _FaqData {
+  final String q;
+  final String a;
+
+  const _FaqData({required this.q, required this.a});
+}
+
+class _FaqSection extends StatefulWidget {
   const _FaqSection();
 
-  static const _faqs = [
-    _Faq(
+  @override
+  State<_FaqSection> createState() => _FaqSectionState();
+}
+
+class _FaqSectionState extends State<_FaqSection> {
+  static const _staticFaqs = [
+    _FaqData(
       q: 'Bagaimana cara mendaftar kursus di VernonEdu?',
       a: 'Klik tombol "Mulai Belajar" di halaman utama, pilih kursus yang Anda inginkan, lalu lengkapi proses pembayaran. Akses kursus akan langsung tersedia setelah pembayaran dikonfirmasi.',
     ),
-    _Faq(
+    _FaqData(
       q: 'Apakah sertifikat VernonEdu diakui oleh perusahaan?',
       a: 'Ya, sertifikat VernonEdu diakui oleh 100+ perusahaan dan institusi mitra kami. Sertifikat dapat diverifikasi secara online menggunakan kode unik yang tertera.',
     ),
-    _Faq(
+    _FaqData(
       q: 'Bisakah saya mengakses kursus setelah pembelian?',
       a: 'Setelah membeli kursus, Anda mendapatkan akses seumur hidup ke semua materi, termasuk update konten di masa depan. Tidak ada batasan waktu akses.',
     ),
-    _Faq(
+    _FaqData(
       q: 'Apakah ada garansi uang kembali?',
       a: 'Ya, kami menawarkan garansi uang kembali 30 hari tanpa pertanyaan. Jika Anda tidak puas dengan kursus dalam 30 hari pertama, kami akan mengembalikan pembayaran penuh.',
     ),
-    _Faq(
+    _FaqData(
       q: 'Bagaimana sistem mentoring berjalan?',
       a: 'Setiap kursus premium dilengkapi dengan sesi mentoring group mingguan via Zoom. Untuk mentoring 1-on-1, dapat dijadwalkan melalui dashboard sesuai ketersediaan mentor.',
     ),
   ];
+
+  List<_FaqData> _faqs = _staticFaqs;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFaqs();
+  }
+
+  Future<void> _loadFaqs() async {
+    final apiFaqs = await PublicApiService.getFaq(category: 'umum');
+    if (mounted && apiFaqs.isNotEmpty) {
+      setState(() {
+        _faqs = apiFaqs
+            .map((f) => _FaqData(q: f.question, a: f.answer))
+            .toList();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -820,7 +985,7 @@ class _FaqSection extends StatelessWidget {
 }
 
 class _FaqItem extends StatefulWidget {
-  final _Faq faq;
+  final _FaqData faq;
   final int index;
 
   const _FaqItem({required this.faq, required this.index});
@@ -837,22 +1002,30 @@ class _FaqItemState extends State<_FaqItem> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
-        color: _expanded ? AppColors.brandIndigo.withValues(alpha: 0.05) : AppColors.bgCard,
+        color: _expanded
+            ? AppColors.brandIndigo.withValues(alpha: 0.05)
+            : AppColors.bgCard,
         borderRadius: BorderRadius.circular(AppDimensions.r16),
         border: Border.all(
-          color: _expanded ? AppColors.brandIndigo.withValues(alpha: 0.4) : AppColors.border,
+          color: _expanded
+              ? AppColors.brandIndigo.withValues(alpha: 0.4)
+              : AppColors.border,
         ),
       ),
       child: ExpansionTile(
         onExpansionChanged: (v) => setState(() => _expanded = v),
-        tilePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-        childrenPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+        tilePadding:
+            const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+        childrenPadding:
+            const EdgeInsets.fromLTRB(24, 0, 24, 20),
         collapsedIconColor: AppColors.textMuted,
         iconColor: AppColors.brandIndigo,
         title: Text(
           widget.faq.q,
           style: AppTextStyles.labelL.copyWith(
-            color: _expanded ? AppColors.textPrimary : AppColors.textSecondary,
+            color: _expanded
+                ? AppColors.textPrimary
+                : AppColors.textSecondary,
           ),
         ),
         children: [
@@ -864,11 +1037,4 @@ class _FaqItemState extends State<_FaqItem> {
         .fadeIn(duration: 400.ms)
         .slideY(begin: 0.1, end: 0);
   }
-}
-
-class _Faq {
-  final String q;
-  final String a;
-
-  const _Faq({required this.q, required this.a});
 }

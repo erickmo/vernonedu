@@ -11,15 +11,19 @@ import (
 var ErrBranchNotFound = errors.New("branch not found")
 
 type Branch struct {
-	ID          uuid.UUID
-	Name        string
-	City        string
-	Address     string
-	PartnerID   *uuid.UUID
-	PartnerName string
-	IsActive    bool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID           uuid.UUID
+	Name         string
+	City         string
+	Address      string
+	Region       string
+	ContactName  string
+	ContactPhone string
+	Status       string // "active" | "inactive"
+	PartnerID    *uuid.UUID
+	PartnerName  string
+	IsActive     bool
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type WriteRepository interface {

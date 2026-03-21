@@ -39,6 +39,7 @@ type CreateMasterCourseRequest struct {
 	Field            string   `json:"field" validate:"required"`
 	CoreCompetencies []string `json:"core_competencies"`
 	Description      string   `json:"description"`
+	SupportingAppUrl string   `json:"supporting_app_url"`
 }
 
 // UpdateMasterCourseRequest adalah request body untuk memperbarui MasterCourse.
@@ -47,6 +48,7 @@ type UpdateMasterCourseRequest struct {
 	Field            string   `json:"field" validate:"required"`
 	CoreCompetencies []string `json:"core_competencies"`
 	Description      string   `json:"description"`
+	SupportingAppUrl string   `json:"supporting_app_url"`
 }
 
 // Create menangani POST /api/v1/curriculum/courses
@@ -63,6 +65,7 @@ func (h *MasterCourseHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Field:            req.Field,
 		CoreCompetencies: req.CoreCompetencies,
 		Description:      req.Description,
+		SupportingAppUrl: req.SupportingAppUrl,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute create master course command")
@@ -140,6 +143,7 @@ func (h *MasterCourseHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Field:            req.Field,
 		CoreCompetencies: req.CoreCompetencies,
 		Description:      req.Description,
+		SupportingAppUrl: req.SupportingAppUrl,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute update master course command")

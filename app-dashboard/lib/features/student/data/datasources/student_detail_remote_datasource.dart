@@ -4,6 +4,7 @@ import '../models/student_detail_model.dart';
 import '../models/student_enrollment_history_model.dart';
 import '../models/student_note_model.dart';
 import '../models/recommended_course_model.dart';
+import '../models/student_crm_log_model.dart';
 
 abstract class StudentDetailRemoteDataSource {
   Future<StudentDetailModel> getStudentDetail(String id);
@@ -18,6 +19,20 @@ abstract class StudentDetailRemoteDataSource {
     required String name,
     required String email,
     required String phone,
+    String? nik,
+    String? gender,
+    String? address,
+    String? birthDate,
+    String? departmentId,
+    required String status,
+    String? studentCode,
+  });
+  Future<List<StudentCrmLogModel>> getStudentCrmLogs(String studentId);
+  Future<StudentCrmLogModel> addStudentCrmLog(
+    String studentId, {
+    required String contactMethod,
+    required String response,
+    String? contactedBy,
   });
 }
 
@@ -95,11 +110,70 @@ class StudentDetailRemoteDataSourceImpl
     required String name,
     required String email,
     required String phone,
+    String? nik,
+    String? gender,
+    String? address,
+    String? birthDate,
+    String? departmentId,
+    required String status,
+    String? studentCode,
   }) async {
-    await _dio.put('/students/$id', data: {
+    final body = <String, dynamic>{
       'name': name,
       'email': email,
       'phone': phone,
-    });
+      'status': status,
+    };
+    if (nik != null && nik.isNotEmpty) body['nik'] = nik;
+    if (gender != null && gender.isNotEmpty) body['gender'] = gender;
+    if (address != null && address.isNotEmpty) body['address'] = address;
+    if (birthDate != null && birthDate.isNotEmpty) body['birth_date'] = birthDate;
+    if (departmentId != null && departmentId.isNotEmpty) {
+      body['department_id'] = departmentId;
+    }
+    if (studentCode != null && studentCode.isNotEmpty) {
+      body['student_code'] = studentCode;
+    }
+    await _dio.put('/students/$id', data: body);
+  }
+
+  @override
+  Future<List<StudentCrmLogModel>> getStudentCrmLogs(String studentId) async {
+    final res = await _dio.get('/students/$studentId/crm-logs');
+    final raw = res.data is Map && res.data['data'] != null
+        ? res.data['data']
+        : res.data;
+    List list;
+    if (raw is List) {
+      list = raw;
+    } else if (raw is Map && raw['data'] != null) {
+      list = raw['data'] as List;
+    } else {
+      list = [];
+    }
+    return list
+        .map((j) => StudentCrmLogModel.fromJson(j as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<StudentCrmLogModel> addStudentCrmLog(
+    String studentId, {
+    required String contactMethod,
+    required String response,
+    String? contactedBy,
+  }) async {
+    final body = <String, dynamic>{
+      'contact_method': contactMethod,
+      'response': response,
+    };
+    if (contactedBy != null && contactedBy.isNotEmpty) {
+      body['contacted_by'] = contactedBy;
+    }
+    final res = await _dio.post('/students/$studentId/crm-logs', data: body);
+    final data = res.data is Map && res.data['data'] != null
+        ? res.data['data'] as Map<String, dynamic>
+        : res.data as Map<String, dynamic>;
+    return StudentCrmLogModel.fromJson(data);
   }
 }

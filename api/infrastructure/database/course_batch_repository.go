@@ -23,6 +23,7 @@ type courseBatchRecord struct {
 	ID              uuid.UUID  `db:"id"`
 	CourseID        uuid.UUID  `db:"course_id"`
 	MasterCourseID  *uuid.UUID `db:"master_course_id"`
+	BranchID        *uuid.UUID `db:"branch_id"`
 	Code            string     `db:"code"`
 	Name            string     `db:"name"`
 	StartDate       time.Time  `db:"start_date"`
@@ -43,6 +44,7 @@ type enrichedBatchRecord struct {
 	ID              uuid.UUID  `db:"id"`
 	CourseID        uuid.UUID  `db:"course_id"`
 	MasterCourseID  *uuid.UUID `db:"master_course_id"`
+	BranchID        *uuid.UUID `db:"branch_id"`
 	Code            string     `db:"code"`
 	Name            string     `db:"name"`
 	StartDate       time.Time  `db:"start_date"`
@@ -66,6 +68,7 @@ func (rec *courseBatchRecord) toDomain() *coursebatch.CourseBatch {
 		ID:              rec.ID,
 		CourseID:        rec.CourseID,
 		MasterCourseID:  rec.MasterCourseID,
+		BranchID:        rec.BranchID,
 		Code:            rec.Code,
 		Name:            rec.Name,
 		StartDate:       rec.StartDate,
@@ -85,13 +88,13 @@ func (rec *courseBatchRecord) toDomain() *coursebatch.CourseBatch {
 
 func (r *CourseBatchRepository) Save(ctx context.Context, cb *coursebatch.CourseBatch) error {
 	query := `
-		INSERT INTO course_batches (id, course_id, master_course_id, code, name, start_date, end_date, facilitator_id, min_participants, max_participants, website_visible, price, payment_method, is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+		INSERT INTO course_batches (id, course_id, master_course_id, branch_id, code, name, start_date, end_date, facilitator_id, min_participants, max_participants, website_visible, price, payment_method, is_active, status, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
 	`
 	_, err := r.db.ExecContext(ctx, query,
-		cb.ID, cb.CourseID, cb.MasterCourseID, cb.Code, cb.Name, cb.StartDate, cb.EndDate,
+		cb.ID, cb.CourseID, cb.MasterCourseID, cb.BranchID, cb.Code, cb.Name, cb.StartDate, cb.EndDate,
 		cb.FacilitatorID, cb.MinParticipants, cb.MaxParticipants, cb.WebsiteVisible, cb.Price, cb.PaymentMethod,
-		cb.IsActive, cb.CreatedAt, cb.UpdatedAt,
+		cb.IsActive, cb.Status, cb.CreatedAt, cb.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to save course batch: %w", err)
@@ -102,13 +105,13 @@ func (r *CourseBatchRepository) Save(ctx context.Context, cb *coursebatch.Course
 func (r *CourseBatchRepository) Update(ctx context.Context, cb *coursebatch.CourseBatch) error {
 	query := `
 		UPDATE course_batches
-		SET code = $1, name = $2, start_date = $3, end_date = $4, facilitator_id = $5, min_participants = $6, max_participants = $7, website_visible = $8, price = $9, payment_method = $10, is_active = $11, updated_at = $12
-		WHERE id = $13
+		SET code = $1, name = $2, start_date = $3, end_date = $4, facilitator_id = $5, min_participants = $6, max_participants = $7, website_visible = $8, price = $9, payment_method = $10, is_active = $11, branch_id = $12, status = $13, updated_at = $14
+		WHERE id = $15
 	`
 	_, err := r.db.ExecContext(ctx, query,
 		cb.Code, cb.Name, cb.StartDate, cb.EndDate, cb.FacilitatorID,
 		cb.MinParticipants, cb.MaxParticipants, cb.WebsiteVisible, cb.Price, cb.PaymentMethod,
-		cb.IsActive, cb.UpdatedAt, cb.ID,
+		cb.IsActive, cb.BranchID, cb.Status, cb.UpdatedAt, cb.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update course batch: %w", err)
@@ -127,7 +130,7 @@ func (r *CourseBatchRepository) Delete(ctx context.Context, id uuid.UUID) error 
 
 func (r *CourseBatchRepository) GetByID(ctx context.Context, id uuid.UUID) (*coursebatch.CourseBatch, error) {
 	var rec courseBatchRecord
-	query := `SELECT id, course_id, COALESCE(master_course_id, NULL) as master_course_id, COALESCE(code, '') as code, name, start_date, end_date, facilitator_id, COALESCE(min_participants, 0) as min_participants, max_participants, COALESCE(website_visible, true) as website_visible, COALESCE(price, 0) as price, COALESCE(payment_method, 'upfront') as payment_method, is_active, COALESCE(status, 'upcoming') as status, created_at, updated_at FROM course_batches WHERE id = $1`
+	query := `SELECT id, course_id, COALESCE(master_course_id, NULL) as master_course_id, branch_id, COALESCE(code, '') as code, name, start_date, end_date, facilitator_id, COALESCE(min_participants, 0) as min_participants, max_participants, COALESCE(website_visible, true) as website_visible, COALESCE(price, 0) as price, COALESCE(payment_method, 'upfront') as payment_method, is_active, COALESCE(status, 'active') as status, created_at, updated_at FROM course_batches WHERE id = $1`
 	if err := r.db.GetContext(ctx, &rec, query, id); err != nil {
 		return nil, fmt.Errorf("failed to get course batch: %w", err)
 	}
@@ -265,7 +268,7 @@ func (r *CourseBatchRepository) List(ctx context.Context, offset, limit int) ([]
 	}
 
 	var recs []courseBatchRecord
-	query := `SELECT id, course_id, COALESCE(master_course_id, NULL) as master_course_id, COALESCE(code, '') as code, name, start_date, end_date, facilitator_id, COALESCE(min_participants, 0) as min_participants, max_participants, COALESCE(website_visible, true) as website_visible, COALESCE(price, 0) as price, COALESCE(payment_method, 'upfront') as payment_method, is_active, COALESCE(status, 'upcoming') as status, created_at, updated_at FROM course_batches ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	query := `SELECT id, course_id, COALESCE(master_course_id, NULL) as master_course_id, branch_id, COALESCE(code, '') as code, name, start_date, end_date, facilitator_id, COALESCE(min_participants, 0) as min_participants, max_participants, COALESCE(website_visible, true) as website_visible, COALESCE(price, 0) as price, COALESCE(payment_method, 'upfront') as payment_method, is_active, COALESCE(status, 'active') as status, created_at, updated_at FROM course_batches ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 	if err := r.db.SelectContext(ctx, &recs, query, limit, offset); err != nil {
 		return nil, 0, fmt.Errorf("failed to list course batches: %w", err)
 	}
@@ -287,7 +290,7 @@ func (r *CourseBatchRepository) ListEnriched(ctx context.Context, offset, limit 
 	var recs []enrichedBatchRecord
 	query := `
 		SELECT
-			cb.id, cb.course_id, cb.master_course_id,
+			cb.id, cb.course_id, cb.master_course_id, cb.branch_id,
 			COALESCE(cb.code, '') as code,
 			cb.name, cb.start_date, cb.end_date,
 			cb.facilitator_id,
@@ -298,7 +301,7 @@ func (r *CourseBatchRepository) ListEnriched(ctx context.Context, offset, limit 
 			COALESCE(cb.price, 0) as price,
 			COALESCE(cb.payment_method, 'upfront') as payment_method,
 			cb.is_active,
-			COALESCE(cb.status, 'upcoming') as status,
+			COALESCE(cb.status, 'active') as status,
 			COUNT(e.id) as enrollment_count,
 			cb.created_at, cb.updated_at
 		FROM course_batches cb
@@ -319,6 +322,7 @@ func (r *CourseBatchRepository) ListEnriched(ctx context.Context, offset, limit 
 				ID:              rec.ID,
 				CourseID:        rec.CourseID,
 				MasterCourseID:  rec.MasterCourseID,
+				BranchID:        rec.BranchID,
 				Code:            rec.Code,
 				Name:            rec.Name,
 				StartDate:       rec.StartDate,

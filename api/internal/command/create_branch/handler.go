@@ -25,15 +25,23 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 	if !ok {
 		return ErrInvalidCommand
 	}
+	status := c.Status
+	if status == "" {
+		status = "active"
+	}
 	now := time.Now()
 	b := &branch.Branch{
-		ID:        uuid.New(),
-		Name:      c.Name,
-		City:      c.City,
-		Address:   c.Address,
-		IsActive:  c.IsActive,
-		CreatedAt: now,
-		UpdatedAt: now,
+		ID:           uuid.New(),
+		Name:         c.Name,
+		City:         c.City,
+		Address:      c.Address,
+		Region:       c.Region,
+		ContactName:  c.ContactName,
+		ContactPhone: c.ContactPhone,
+		Status:       status,
+		IsActive:     status == "active",
+		CreatedAt:    now,
+		UpdatedAt:    now,
 	}
 	if c.PartnerID != "" {
 		pid, err := uuid.Parse(c.PartnerID)

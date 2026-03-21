@@ -14,6 +14,9 @@ const (
 	PaymentMethodMonthly    = "monthly"
 	PaymentMethodBatchLump  = "batch_lump"
 	PaymentMethodPerSession = "per_session"
+
+	CourseBatchStatusPending = "pending_approval"
+	CourseBatchStatusActive  = "active"
 )
 
 var ValidPaymentMethods = map[string]bool{
@@ -35,6 +38,7 @@ type CourseBatch struct {
 	ID              uuid.UUID
 	CourseID        uuid.UUID
 	MasterCourseID  *uuid.UUID
+	BranchID        *uuid.UUID // optional branch this batch belongs to
 	Name            string
 	Code            string
 	MinParticipants int

@@ -11,6 +11,7 @@ import '../../domain/entities/student_detail_entity.dart';
 import '../../domain/entities/student_enrollment_history_entity.dart';
 import '../../domain/entities/student_note_entity.dart';
 import '../../domain/entities/recommended_course_entity.dart';
+import '../../domain/entities/student_crm_log_entity.dart';
 import '../../../talentpool/domain/entities/talentpool_entity.dart';
 import '../cubit/student_dashboard_cubit.dart';
 import '../cubit/student_dashboard_state.dart';
@@ -151,6 +152,12 @@ class _StudentDashboardView extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: AppDimensions.lg),
+          _CrmLogSection(
+            studentId: studentId,
+            crmLogs: state.crmLogs,
+            isAdding: state.isAddingCrmLog,
           ),
         ],
       ),
@@ -1438,6 +1445,310 @@ class _EditStudentDialogState extends State<_EditStudentDialog> {
               : const Text('Simpan'),
         ),
       ],
+    );
+  }
+}
+
+// ── CRM Log Section ───────────────────────────────────────────────────────────
+
+class _CrmLogSection extends StatefulWidget {
+  final String studentId;
+  final List<StudentCrmLogEntity> crmLogs;
+  final bool isAdding;
+
+  const _CrmLogSection({
+    required this.studentId,
+    required this.crmLogs,
+    required this.isAdding,
+  });
+
+  @override
+  State<_CrmLogSection> createState() => _CrmLogSectionState();
+}
+
+class _CrmLogSectionState extends State<_CrmLogSection> {
+  final _responseCtrl = TextEditingController();
+  String _contactMethod = 'phone';
+  bool _showInput = false;
+
+  @override
+  void dispose() {
+    _responseCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final response = _responseCtrl.text.trim();
+    if (response.isEmpty) return;
+
+    final success = await context.read<StudentDashboardCubit>().addCrmLog(
+          widget.studentId,
+          contactMethod: _contactMethod,
+          response: response,
+        );
+
+    if (success && mounted) {
+      _responseCtrl.clear();
+      setState(() => _showInput = false);
+    }
+  }
+
+  String _methodLabel(String method) => switch (method) {
+        'phone' => 'Telepon',
+        'whatsapp' => 'WhatsApp',
+        'email' => 'Email',
+        'visit' => 'Kunjungan',
+        'sms' => 'SMS',
+        _ => method,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.contact_phone_outlined,
+                  size: AppDimensions.iconMd, color: AppColors.primary),
+              const SizedBox(width: AppDimensions.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Log CRM',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                    ),
+                    Text(
+                      '${widget.crmLogs.length} catatan kontak',
+                      style: const TextStyle(
+                          color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => setState(() => _showInput = !_showInput),
+                icon: Icon(
+                  _showInput ? Icons.close : Icons.add,
+                  size: AppDimensions.iconMd,
+                  color: AppColors.primary,
+                ),
+                tooltip: _showInput ? 'Batal' : 'Tambah log CRM',
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.primarySurface,
+                  minimumSize: const Size(32, 32),
+                ),
+              ),
+            ],
+          ),
+          if (_showInput) ...[
+            const SizedBox(height: AppDimensions.md),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _contactMethod,
+                    decoration: const InputDecoration(
+                      labelText: 'Metode Kontak',
+                      isDense: true,
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                    items: ['phone', 'whatsapp', 'email', 'visit', 'sms']
+                        .map((m) => DropdownMenuItem(
+                              value: m,
+                              child: Text(_methodLabel(m)),
+                            ))
+                        .toList(),
+                    onChanged: widget.isAdding
+                        ? null
+                        : (v) =>
+                            setState(() => _contactMethod = v ?? 'phone'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppDimensions.sm),
+            TextField(
+              controller: _responseCtrl,
+              maxLines: 3,
+              enabled: !widget.isAdding,
+              decoration: const InputDecoration(
+                hintText: 'Catatan hasil kontak...',
+                hintStyle: TextStyle(fontSize: 13),
+              ),
+              style: const TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: AppDimensions.sm),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton(
+                onPressed: widget.isAdding ? null : _submit,
+                child: widget.isAdding
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('Simpan'),
+              ),
+            ),
+          ],
+          const SizedBox(height: AppDimensions.md),
+          if (widget.crmLogs.isEmpty && !_showInput)
+            _EmptyState(
+              icon: Icons.contact_phone_outlined,
+              message: 'Belum ada log CRM',
+            )
+          else if (widget.crmLogs.isNotEmpty)
+            // Table header
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceVariant,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
+                  // Header row
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.md, vertical: AppDimensions.sm),
+                    child: Row(
+                      children: const [
+                        SizedBox(
+                          width: 130,
+                          child: Text(
+                            'Tanggal',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 120,
+                          child: Text(
+                            'Contacted By',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 110,
+                          child: Text(
+                            'Metode',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            'Response',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1, color: AppColors.border),
+                  ...widget.crmLogs.map((log) => _CrmLogRow(log: log)),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CrmLogRow extends StatelessWidget {
+  final StudentCrmLogEntity log;
+  const _CrmLogRow({required this.log});
+
+  String get _methodLabel => switch (log.contactMethod) {
+        'phone' => 'Telepon',
+        'whatsapp' => 'WhatsApp',
+        'email' => 'Email',
+        'visit' => 'Kunjungan',
+        'sms' => 'SMS',
+        _ => log.contactMethod,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.md, vertical: AppDimensions.sm),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 130,
+            child: Text(
+              DateFormat('dd MMM yyyy', 'id_ID').format(log.date.toLocal()),
+              style: const TextStyle(
+                  color: AppColors.textSecondary, fontSize: 12),
+            ),
+          ),
+          SizedBox(
+            width: 120,
+            child: Text(
+              log.contactedBy.isEmpty ? '-' : log.contactedBy,
+              style: const TextStyle(
+                  color: AppColors.textSecondary, fontSize: 12),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          SizedBox(
+            width: 110,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.sm, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.infoSurface,
+                borderRadius:
+                    BorderRadius.circular(AppDimensions.radiusCircle),
+              ),
+              child: Text(
+                _methodLabel,
+                style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.info),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              log.response,
+              style: const TextStyle(
+                  color: AppColors.textPrimary, fontSize: 12, height: 1.4),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

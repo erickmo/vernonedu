@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -20,41 +21,50 @@ func NewDelegationRepository(db *sqlx.DB) *DelegationRepository {
 }
 
 type delegationRecord struct {
-	ID               uuid.UUID  `db:"id"`
-	Title            string     `db:"title"`
-	Type             string     `db:"type"`
-	Description      string     `db:"description"`
-	AssignedToID     *uuid.UUID `db:"assigned_to_id"`
-	AssignedToName   string     `db:"assigned_to_name"`
-	AssignedByID     *uuid.UUID `db:"assigned_by_id"`
-	AssignedByName   string     `db:"assigned_by_name"`
-	Priority         string     `db:"priority"`
-	Deadline         *time.Time `db:"deadline"`
-	Status           string     `db:"status"`
-	LinkedEntityID   string     `db:"linked_entity_id"`
-	LinkedEntityType string     `db:"linked_entity_type"`
-	CreatedAt        time.Time  `db:"created_at"`
-	UpdatedAt        time.Time  `db:"updated_at"`
+	ID               uuid.UUID      `db:"id"`
+	Title            string         `db:"title"`
+	Type             string         `db:"type"`
+	Description      string         `db:"description"`
+	RequestedByID    uuid.UUID      `db:"requested_by_id"`
+	RequestedByName  string         `db:"requested_by_name"`
+	AssignedToID     *uuid.UUID     `db:"assigned_to_id"`
+	AssignedToName   string         `db:"assigned_to_name"`
+	AssignedToRole   string         `db:"assigned_to_role"`
+	DueDate          *time.Time     `db:"due_date"`
+	Priority         string         `db:"priority"`
+	Status           string         `db:"status"`
+	LinkedEntityType sql.NullString `db:"linked_entity_type"`
+	LinkedEntityID   *uuid.UUID     `db:"linked_entity_id"`
+	Notes            sql.NullString `db:"notes"`
+	CreatedAt        time.Time      `db:"created_at"`
+	UpdatedAt        time.Time      `db:"updated_at"`
 }
 
 func (rec *delegationRecord) toDomain() *delegation.Delegation {
-	return &delegation.Delegation{
-		ID:               rec.ID,
-		Title:            rec.Title,
-		Type:             rec.Type,
-		Description:      rec.Description,
-		AssignedToID:     rec.AssignedToID,
-		AssignedToName:   rec.AssignedToName,
-		AssignedByID:     rec.AssignedByID,
-		AssignedByName:   rec.AssignedByName,
-		Priority:         rec.Priority,
-		Deadline:         rec.Deadline,
-		Status:           rec.Status,
-		LinkedEntityID:   rec.LinkedEntityID,
-		LinkedEntityType: rec.LinkedEntityType,
-		CreatedAt:        rec.CreatedAt,
-		UpdatedAt:        rec.UpdatedAt,
+	d := &delegation.Delegation{
+		ID:              rec.ID,
+		Title:           rec.Title,
+		Type:            delegation.DelegationType(rec.Type),
+		Description:     rec.Description,
+		RequestedByID:   rec.RequestedByID,
+		RequestedByName: rec.RequestedByName,
+		AssignedToID:    rec.AssignedToID,
+		AssignedToName:  rec.AssignedToName,
+		AssignedToRole:  rec.AssignedToRole,
+		DueDate:         rec.DueDate,
+		Priority:        delegation.Priority(rec.Priority),
+		Status:          delegation.Status(rec.Status),
+		LinkedEntityID:  rec.LinkedEntityID,
+		CreatedAt:       rec.CreatedAt,
+		UpdatedAt:       rec.UpdatedAt,
 	}
+	if rec.LinkedEntityType.Valid {
+		d.LinkedEntityType = &rec.LinkedEntityType.String
+	}
+	if rec.Notes.Valid {
+		d.Notes = &rec.Notes.String
+	}
+	return d
 }
 
 type delegationStatsRecord struct {
@@ -64,15 +74,46 @@ type delegationStatsRecord struct {
 	CompletedThisMonthCount int `db:"completed_this_month_count"`
 }
 
+// ---- WriteRepository ----
+
 func (r *DelegationRepository) Save(ctx context.Context, d *delegation.Delegation) error {
 	query := `
-		INSERT INTO delegations (id, title, type, description, assigned_to_id, assigned_to_name, assigned_by_id, assigned_by_name, priority, deadline, status, linked_entity_id, linked_entity_type, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		INSERT INTO delegations (
+			id, title, type, description,
+			requested_by_id, requested_by_name,
+			assigned_to_id, assigned_to_name, assigned_to_role,
+			due_date, priority, status,
+			linked_entity_type, linked_entity_id, notes,
+			created_at, updated_at
+		) VALUES (
+			$1, $2, $3, $4,
+			$5, $6,
+			$7, $8, $9,
+			$10, $11, $12,
+			$13, $14, $15,
+			$16, $17
+		)
 	`
+	var linkedEntityType interface{}
+	if d.LinkedEntityType != nil {
+		linkedEntityType = *d.LinkedEntityType
+	}
+	var linkedEntityID interface{}
+	if d.LinkedEntityID != nil {
+		linkedEntityID = *d.LinkedEntityID
+	}
+	var notes interface{}
+	if d.Notes != nil {
+		notes = *d.Notes
+	}
+
 	_, err := r.db.ExecContext(ctx, query,
-		d.ID, d.Title, d.Type, d.Description, d.AssignedToID, d.AssignedToName,
-		d.AssignedByID, d.AssignedByName, d.Priority, d.Deadline, d.Status,
-		d.LinkedEntityID, d.LinkedEntityType, d.CreatedAt, d.UpdatedAt,
+		d.ID, d.Title, string(d.Type), d.Description,
+		d.RequestedByID, d.RequestedByName,
+		d.AssignedToID, d.AssignedToName, d.AssignedToRole,
+		d.DueDate, string(d.Priority), string(d.Status),
+		linkedEntityType, linkedEntityID, notes,
+		d.CreatedAt, d.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to save delegation: %w", err)
@@ -82,14 +123,35 @@ func (r *DelegationRepository) Save(ctx context.Context, d *delegation.Delegatio
 
 func (r *DelegationRepository) Update(ctx context.Context, d *delegation.Delegation) error {
 	query := `
-		UPDATE delegations SET title=$1, type=$2, description=$3, assigned_to_id=$4, assigned_to_name=$5,
-		assigned_by_id=$6, assigned_by_name=$7, priority=$8, deadline=$9, status=$10,
-		linked_entity_id=$11, linked_entity_type=$12, updated_at=$13 WHERE id=$14
+		UPDATE delegations SET
+			title=$1, type=$2, description=$3,
+			requested_by_id=$4, requested_by_name=$5,
+			assigned_to_id=$6, assigned_to_name=$7, assigned_to_role=$8,
+			due_date=$9, priority=$10, status=$11,
+			linked_entity_type=$12, linked_entity_id=$13, notes=$14,
+			updated_at=$15
+		WHERE id=$16
 	`
+	var linkedEntityType interface{}
+	if d.LinkedEntityType != nil {
+		linkedEntityType = *d.LinkedEntityType
+	}
+	var linkedEntityID interface{}
+	if d.LinkedEntityID != nil {
+		linkedEntityID = *d.LinkedEntityID
+	}
+	var notes interface{}
+	if d.Notes != nil {
+		notes = *d.Notes
+	}
+
 	_, err := r.db.ExecContext(ctx, query,
-		d.Title, d.Type, d.Description, d.AssignedToID, d.AssignedToName,
-		d.AssignedByID, d.AssignedByName, d.Priority, d.Deadline, d.Status,
-		d.LinkedEntityID, d.LinkedEntityType, time.Now(), d.ID,
+		d.Title, string(d.Type), d.Description,
+		d.RequestedByID, d.RequestedByName,
+		d.AssignedToID, d.AssignedToName, d.AssignedToRole,
+		d.DueDate, string(d.Priority), string(d.Status),
+		linkedEntityType, linkedEntityID, notes,
+		time.Now(), d.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update delegation: %w", err)
@@ -97,19 +159,51 @@ func (r *DelegationRepository) Update(ctx context.Context, d *delegation.Delegat
 	return nil
 }
 
-func (r *DelegationRepository) List(ctx context.Context, offset, limit int, status, delegationType string) ([]*delegation.Delegation, int, error) {
+func (r *DelegationRepository) GetByID(ctx context.Context, id uuid.UUID) (*delegation.Delegation, error) {
+	var rec delegationRecord
+	query := `
+		SELECT id, title, type, description,
+		       requested_by_id, requested_by_name,
+		       assigned_to_id, assigned_to_name, assigned_to_role,
+		       due_date, priority, status,
+		       linked_entity_type, linked_entity_id, notes,
+		       created_at, updated_at
+		FROM delegations WHERE id=$1
+	`
+	if err := r.db.GetContext(ctx, &rec, query, id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, delegation.ErrDelegationNotFound
+		}
+		return nil, fmt.Errorf("failed to get delegation: %w", err)
+	}
+	return rec.toDomain(), nil
+}
+
+// ---- ReadRepository ----
+
+func (r *DelegationRepository) List(ctx context.Context, filter delegation.ListFilter) ([]*delegation.Delegation, int, error) {
 	conditions := []string{}
 	args := []interface{}{}
 	argIdx := 1
 
-	if status != "" {
+	if filter.Status != "" {
 		conditions = append(conditions, fmt.Sprintf("status = $%d", argIdx))
-		args = append(args, status)
+		args = append(args, filter.Status)
 		argIdx++
 	}
-	if delegationType != "" {
+	if filter.Type != "" {
 		conditions = append(conditions, fmt.Sprintf("type = $%d", argIdx))
-		args = append(args, delegationType)
+		args = append(args, filter.Type)
+		argIdx++
+	}
+	if filter.AssignedToID != nil {
+		conditions = append(conditions, fmt.Sprintf("assigned_to_id = $%d", argIdx))
+		args = append(args, *filter.AssignedToID)
+		argIdx++
+	}
+	if filter.RequestedByID != nil {
+		conditions = append(conditions, fmt.Sprintf("requested_by_id = $%d", argIdx))
+		args = append(args, *filter.RequestedByID)
 		argIdx++
 	}
 
@@ -129,9 +223,19 @@ func (r *DelegationRepository) List(ctx context.Context, offset, limit int, stat
 		return nil, 0, fmt.Errorf("failed to count delegations: %w", err)
 	}
 
-	listArgs := append(args, limit, offset)
+	limit := filter.Limit
+	if limit == 0 {
+		limit = 20
+	}
+	listArgs := append(args, limit, filter.Offset)
 	query := fmt.Sprintf(
-		`SELECT id, title, type, description, assigned_to_id, assigned_to_name, assigned_by_id, assigned_by_name, priority, deadline, status, linked_entity_id, linked_entity_type, created_at, updated_at FROM delegations%s ORDER BY created_at DESC LIMIT $%d OFFSET $%d`,
+		`SELECT id, title, type, description,
+		        requested_by_id, requested_by_name,
+		        assigned_to_id, assigned_to_name, assigned_to_role,
+		        due_date, priority, status,
+		        linked_entity_type, linked_entity_id, notes,
+		        created_at, updated_at
+		 FROM delegations%s ORDER BY created_at DESC LIMIT $%d OFFSET $%d`,
 		whereClause, argIdx, argIdx+1,
 	)
 

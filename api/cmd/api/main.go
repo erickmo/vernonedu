@@ -75,6 +75,10 @@ import (
 	upsertchartest "github.com/vernonedu/entrepreneurship-api/internal/command/upsert_character_test_config"
 	upsertinternship "github.com/vernonedu/entrepreneurship-api/internal/command/upsert_internship_config"
 	updatetalentpool "github.com/vernonedu/entrepreneurship-api/internal/command/update_talentpool_status"
+	// batch schedule commands
+	createbatchschedule "github.com/vernonedu/entrepreneurship-api/internal/command/create_batch_schedule"
+	// batch schedule queries
+	listbatchschedules "github.com/vernonedu/entrepreneurship-api/internal/query/list_batch_schedules"
 	// lead commands
 	addcrmlog "github.com/vernonedu/entrepreneurship-api/internal/command/add_crm_log"
 	convertleadtostudent "github.com/vernonedu/entrepreneurship-api/internal/command/convert_lead_to_student"
@@ -104,7 +108,25 @@ import (
 	"github.com/vernonedu/entrepreneurship-api/internal/eventhandler"
 	// accounting commands
 	createtransaction "github.com/vernonedu/entrepreneurship-api/internal/command/create_transaction"
+	cancelinvoice   "github.com/vernonedu/entrepreneurship-api/internal/command/cancel_invoice"
+	createinvoice   "github.com/vernonedu/entrepreneurship-api/internal/command/create_invoice"
+	markpaid        "github.com/vernonedu/entrepreneurship-api/internal/command/mark_invoice_paid"
+	sendinvoice     "github.com/vernonedu/entrepreneurship-api/internal/command/send_invoice"
 	updateinvoicestatus "github.com/vernonedu/entrepreneurship-api/internal/command/update_invoice_status"
+	// finance commands
+	createfinanceaccount    "github.com/vernonedu/entrepreneurship-api/internal/command/create_finance_account"
+	updatefinanceaccount    "github.com/vernonedu/entrepreneurship-api/internal/command/update_finance_account"
+	createfinancetransaction "github.com/vernonedu/entrepreneurship-api/internal/command/create_finance_transaction"
+	createjournalentry      "github.com/vernonedu/entrepreneurship-api/internal/command/create_journal_entry"
+	// payable commands
+	approvepayable  "github.com/vernonedu/entrepreneurship-api/internal/command/approve_payable"
+	cancelpayable   "github.com/vernonedu/entrepreneurship-api/internal/command/cancel_payable"
+	createpayable   "github.com/vernonedu/entrepreneurship-api/internal/command/create_payable"
+	markpayablepaid "github.com/vernonedu/entrepreneurship-api/internal/command/mark_payable_paid"
+	// payable queries
+	getpayable      "github.com/vernonedu/entrepreneurship-api/internal/query/get_payable"
+	getpayablestats "github.com/vernonedu/entrepreneurship-api/internal/query/get_payable_stats"
+	listpayables    "github.com/vernonedu/entrepreneurship-api/internal/query/list_payables"
 	// biz-dev commands
 	createpartner "github.com/vernonedu/entrepreneurship-api/internal/command/create_partner"
 	createmou "github.com/vernonedu/entrepreneurship-api/internal/command/create_mou"
@@ -117,7 +139,11 @@ import (
 	createbranch "github.com/vernonedu/entrepreneurship-api/internal/command/create_branch"
 	createokrobjective "github.com/vernonedu/entrepreneurship-api/internal/command/create_okr_objective"
 	createinvestmentplan "github.com/vernonedu/entrepreneurship-api/internal/command/create_investment_plan"
-	createdelegation "github.com/vernonedu/entrepreneurship-api/internal/command/create_delegation"
+	acceptdelegation   "github.com/vernonedu/entrepreneurship-api/internal/command/accept_delegation"
+	canceldelegation   "github.com/vernonedu/entrepreneurship-api/internal/command/cancel_delegation"
+	completedelegation "github.com/vernonedu/entrepreneurship-api/internal/command/complete_delegation"
+	createdelegation   "github.com/vernonedu/entrepreneurship-api/internal/command/create_delegation"
+	updatedelegation   "github.com/vernonedu/entrepreneurship-api/internal/command/update_delegation"
 	// queries
 	getbusiness "github.com/vernonedu/entrepreneurship-api/internal/query/get_business"
 	getcanvas "github.com/vernonedu/entrepreneurship-api/internal/query/get_canvas"
@@ -180,11 +206,25 @@ import (
 	listbuildings "github.com/vernonedu/entrepreneurship-api/internal/query/list_buildings"
 	listrooms "github.com/vernonedu/entrepreneurship-api/internal/query/list_rooms"
 	// accounting queries
+	getinvoice      "github.com/vernonedu/entrepreneurship-api/internal/query/get_invoice"
+	getinvoicestats "github.com/vernonedu/entrepreneurship-api/internal/query/get_invoice_stats"
 	getaccountingstats "github.com/vernonedu/entrepreneurship-api/internal/query/get_accounting_stats"
+	getbatchprofitability "github.com/vernonedu/entrepreneurship-api/internal/query/get_batch_profitability"
 	getbudgetvsactual "github.com/vernonedu/entrepreneurship-api/internal/query/get_budget_vs_actual"
+	getcashforecast "github.com/vernonedu/entrepreneurship-api/internal/query/get_cash_forecast"
+	getcostanalysis "github.com/vernonedu/entrepreneurship-api/internal/query/get_cost_analysis"
+	getfinancialalerts "github.com/vernonedu/entrepreneurship-api/internal/query/get_financial_alerts"
+	getfinancialratios "github.com/vernonedu/entrepreneurship-api/internal/query/get_financial_ratios"
+	getfinancialsuggestions "github.com/vernonedu/entrepreneurship-api/internal/query/get_financial_suggestions"
+	getrevenueanalysis "github.com/vernonedu/entrepreneurship-api/internal/query/get_revenue_analysis"
 	listcoa "github.com/vernonedu/entrepreneurship-api/internal/query/list_coa"
 	listinvoices "github.com/vernonedu/entrepreneurship-api/internal/query/list_invoices"
 	listtransactions "github.com/vernonedu/entrepreneurship-api/internal/query/list_transactions"
+	// finance queries
+	listfinanceaccounts    "github.com/vernonedu/entrepreneurship-api/internal/query/list_finance_accounts"
+	getfinanceaccount      "github.com/vernonedu/entrepreneurship-api/internal/query/get_finance_account"
+	listfinancetransactions "github.com/vernonedu/entrepreneurship-api/internal/query/list_finance_transactions"
+	listjournalentries     "github.com/vernonedu/entrepreneurship-api/internal/query/list_journal_entries"
 	// biz-dev queries
 	listpartners "github.com/vernonedu/entrepreneurship-api/internal/query/list_partners"
 	getpartner "github.com/vernonedu/entrepreneurship-api/internal/query/get_partner"
@@ -194,7 +234,8 @@ import (
 	listbranches "github.com/vernonedu/entrepreneurship-api/internal/query/list_branches"
 	listokr "github.com/vernonedu/entrepreneurship-api/internal/query/list_okr"
 	listinvestments "github.com/vernonedu/entrepreneurship-api/internal/query/list_investment_plans"
-	listdelegations "github.com/vernonedu/entrepreneurship-api/internal/query/list_delegations"
+	getdelegation   "github.com/vernonedu/entrepreneurship-api/internal/query/get_delegation"
+	listdelegations  "github.com/vernonedu/entrepreneurship-api/internal/query/list_delegations"
 	// settings commands
 	createholiday    "github.com/vernonedu/entrepreneurship-api/internal/command/create_holiday"
 	deleteholiday    "github.com/vernonedu/entrepreneurship-api/internal/command/delete_holiday"
@@ -205,6 +246,15 @@ import (
 	getcommissioncfg "github.com/vernonedu/entrepreneurship-api/internal/query/get_commission_config"
 	getfaclevels     "github.com/vernonedu/entrepreneurship-api/internal/query/get_facilitator_levels"
 	listholidays     "github.com/vernonedu/entrepreneurship-api/internal/query/list_holidays"
+	// finance report queries
+	getbalancesheet  "github.com/vernonedu/entrepreneurship-api/internal/query/get_balance_sheet"
+	getcashflow      "github.com/vernonedu/entrepreneurship-api/internal/query/get_cash_flow"
+	getgeneralledger "github.com/vernonedu/entrepreneurship-api/internal/query/get_general_ledger"
+	getprofitloss    "github.com/vernonedu/entrepreneurship-api/internal/query/get_profit_loss"
+	gettrialbalance  "github.com/vernonedu/entrepreneurship-api/internal/query/get_trial_balance"
+	// student app access commands
+	grantappaccess  "github.com/vernonedu/entrepreneurship-api/internal/command/grant_app_access"
+	revokeappaccess "github.com/vernonedu/entrepreneurship-api/internal/command/revoke_app_access"
 	// certificate commands
 	createcerttemplate "github.com/vernonedu/entrepreneurship-api/internal/command/create_certificate_template"
 	updatecerttemplate "github.com/vernonedu/entrepreneurship-api/internal/command/update_certificate_template"
@@ -235,6 +285,23 @@ import (
 	listcmsmedia        "github.com/vernonedu/entrepreneurship-api/internal/query/list_cms_media"
 	listcmspages        "github.com/vernonedu/entrepreneurship-api/internal/query/list_cms_pages"
 	listcmstestimonials "github.com/vernonedu/entrepreneurship-api/internal/query/list_cms_testimonials"
+	// marketing commands
+	createpost       "github.com/vernonedu/entrepreneurship-api/internal/command/create_post"
+	updatepost       "github.com/vernonedu/entrepreneurship-api/internal/command/update_post"
+	submitposturl    "github.com/vernonedu/entrepreneurship-api/internal/command/submit_post_url"
+	deletepost       "github.com/vernonedu/entrepreneurship-api/internal/command/delete_post"
+	createpr         "github.com/vernonedu/entrepreneurship-api/internal/command/create_pr"
+	updatepr         "github.com/vernonedu/entrepreneurship-api/internal/command/update_pr"
+	deletepr         "github.com/vernonedu/entrepreneurship-api/internal/command/delete_pr"
+	createrefpartner "github.com/vernonedu/entrepreneurship-api/internal/command/create_referral_partner"
+	updaterefpartner "github.com/vernonedu/entrepreneurship-api/internal/command/update_referral_partner"
+	// marketing queries
+	listposts           "github.com/vernonedu/entrepreneurship-api/internal/query/list_posts"
+	listclassdocs       "github.com/vernonedu/entrepreneurship-api/internal/query/list_class_docs"
+	listprq             "github.com/vernonedu/entrepreneurship-api/internal/query/list_pr"
+	listrefpartners     "github.com/vernonedu/entrepreneurship-api/internal/query/list_referral_partners"
+	listreferrals       "github.com/vernonedu/entrepreneurship-api/internal/query/list_referrals"
+	getmarketingstats   "github.com/vernonedu/entrepreneurship-api/internal/query/get_marketing_stats"
 	// handlers
 	httphandler "github.com/vernonedu/entrepreneurship-api/internal/delivery/http"
 )
@@ -367,6 +434,10 @@ func main() {
 			func(db *sqlx.DB) *database.RoomRepository {
 				return database.NewRoomRepository(db)
 			},
+			// Payable repository
+			func(db *sqlx.DB) *database.PayableRepository {
+				return database.NewPayableRepository(db)
+			},
 			// Accounting repositories
 			func(db *sqlx.DB) *database.AccountingTransactionRepository {
 				return database.NewAccountingTransactionRepository(db)
@@ -377,6 +448,20 @@ func main() {
 			func(db *sqlx.DB) *database.CoaRepository {
 				return database.NewCoaRepository(db)
 			},
+			func(db *sqlx.DB) *database.AccountingAnalysisRepository {
+				return database.NewAccountingAnalysisRepository(db)
+			},
+			// Finance repositories
+			func(db *sqlx.DB) *database.FinanceAccountRepository {
+				return database.NewFinanceAccountRepository(db)
+			},
+			func(db *sqlx.DB) *database.FinanceTransactionRepository {
+				return database.NewFinanceTransactionRepository(db)
+			},
+			func(db *sqlx.DB) *database.FinanceJournalRepository {
+				return database.NewFinanceJournalRepository(db)
+			},
+			newFinanceHTTPHandler,
 			// Approval repository
 			func(db *sqlx.DB) *database.ApprovalRepository {
 				return database.NewApprovalRepository(db)
@@ -393,6 +478,14 @@ func main() {
 			func(db *sqlx.DB) *database.CmsRepository {
 				return database.NewCmsRepository(db)
 			},
+			// BatchSchedule repository
+			func(db *sqlx.DB) *database.BatchScheduleRepository {
+				return database.NewBatchScheduleRepository(db)
+			},
+			// Marketing repository
+			func(db *sqlx.DB) *database.MarketingRepository {
+				return database.NewMarketingRepository(db)
+			},
 			// Settings repository
 			func(db *sqlx.DB) *database.SettingsRepository {
 				return database.NewSettingsRepository(db)
@@ -405,6 +498,14 @@ func main() {
 			},
 			func(r *database.SettingsRepository) *database.HolidayRepo {
 				return database.NewHolidayRepo(r)
+			},
+			// Report repository
+			func(db *sqlx.DB) *database.ReportRepository {
+				return database.NewReportRepository(db)
+			},
+			// Student App Access repository
+			func(db *sqlx.DB) *database.StudentAppAccessRepository {
+				return database.NewStudentAppAccessRepository(db)
 			},
 
 			// HTTP handlers
@@ -435,6 +536,8 @@ func main() {
 			// Notification HTTP handler
 			newNotificationHTTPHandler,
 
+			// Payable HTTP handler
+			newPayableHTTPHandler,
 			// Accounting HTTP handler
 			newAccountingHTTPHandler,
 
@@ -453,6 +556,10 @@ func main() {
 			newCmsHTTPHandler,
 			// Public HTTP handler
 			newPublicHTTPHandler,
+			// Marketing HTTP handler
+			newMarketingHTTPHandler,
+			// Finance Report HTTP handler
+			newFinanceReportHTTPHandler,
 
 			// Router
 			newRouter,
@@ -563,6 +670,10 @@ func newLocationHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryB
 	return httphandler.NewLocationHandler(cmdBus, qryBus)
 }
 
+func newPayableHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.PayableHandler {
+	return httphandler.NewPayableHandler(cmdBus, qryBus)
+}
+
 func newAccountingHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.AccountingHandler {
 	return httphandler.NewAccountingHandler(cmdBus, qryBus)
 }
@@ -611,6 +722,18 @@ func newPublicHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus
 	return httphandler.NewPublicHandler(cmdBus, qryBus)
 }
 
+func newMarketingHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.MarketingHandler {
+	return httphandler.NewMarketingHandler(cmdBus, qryBus)
+}
+
+func newFinanceReportHTTPHandler(qryBus querybus.QueryBus) *httphandler.FinanceReportHandler {
+	return httphandler.NewFinanceReportHandler(qryBus)
+}
+
+func newFinanceHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.FinanceHandler {
+	return httphandler.NewFinanceHandler(cmdBus, qryBus)
+}
+
 func newRouter(
 	userHandler *httphandler.UserHandler,
 	businessHandler *httphandler.BusinessHandler,
@@ -636,6 +759,7 @@ func newRouter(
 	okrHandler *httphandler.OkrHandler,
 	investmentHandler *httphandler.InvestmentHandler,
 	delegationHandler *httphandler.DelegationHTTPHandler,
+	payableHandler *httphandler.PayableHandler,
 	accountingHandler *httphandler.AccountingHandler,
 	approvalHandler *httphandler.ApprovalHandler,
 	notificationHandler *httphandler.NotificationHandler,
@@ -643,6 +767,9 @@ func newRouter(
 	certHandler *httphandler.CertificateHandler,
 	cmsHandler *httphandler.CmsHandler,
 	publicHandler *httphandler.PublicHandler,
+	financeReportHandler *httphandler.FinanceReportHandler,
+	financeHandler *httphandler.FinanceHandler,
+	marketingHandler *httphandler.MarketingHandler,
 	jwtUtil *jwtutil.JWTUtil,
 ) *chi.Mux {
 	r := chi.NewRouter()
@@ -692,6 +819,8 @@ func newRouter(
 		httphandler.RegisterNotificationRoutes(notificationHandler, r)
 		// Location routes
 		httphandler.RegisterLocationRoutes(locationHandler, r)
+		// Payable routes
+		httphandler.RegisterPayableRoutes(payableHandler, r)
 		// Accounting routes
 		httphandler.RegisterAccountingRoutes(accountingHandler, r)
 		// BizDev routes
@@ -706,6 +835,12 @@ func newRouter(
 		httphandler.RegisterCertificateRoutes(certHandler, r)
 		// CMS routes
 		httphandler.RegisterCmsRoutes(cmsHandler, r)
+		// Finance Report routes
+		httphandler.RegisterFinanceReportRoutes(financeReportHandler, r)
+		// Finance routes (CoA, Transactions, Journal)
+		httphandler.RegisterFinanceRoutes(financeHandler, r)
+		// Marketing routes
+		httphandler.RegisterMarketingRoutes(marketingHandler, r)
 	})
 
 	// Certificate public routes (no auth)
@@ -740,6 +875,8 @@ type registerParams struct {
 	InternshipConfigRepo  *database.InternshipConfigRepository
 	CharTestConfigRepo    *database.CharacterTestConfigRepository
 	TalentPoolRepo        *database.TalentPoolRepository
+	// BatchSchedule repository
+	BatchScheduleRepo *database.BatchScheduleRepository
 	// BizDev repositories
 	PartnerRepo    *database.PartnerRepository
 	BranchRepo     *database.BranchRepository
@@ -751,10 +888,17 @@ type registerParams struct {
 	// Location repositories
 	BuildingRepo *database.BuildingRepository
 	RoomRepo     *database.RoomRepository
+	// Payable repository
+	PayableRepo *database.PayableRepository
 	// Accounting repositories
 	AccountingTransactionRepo *database.AccountingTransactionRepository
 	AccountingInvoiceRepo     *database.AccountingInvoiceRepository
 	CoaRepo                   *database.CoaRepository
+	AccountingAnalysisRepo    *database.AccountingAnalysisRepository
+	// Finance repositories
+	FinanceAccountRepo     *database.FinanceAccountRepository
+	FinanceTransactionRepo *database.FinanceTransactionRepository
+	FinanceJournalRepo     *database.FinanceJournalRepository
 	// Approval repository
 	ApprovalRepo     *database.ApprovalRepository
 	NotificationRepo *database.NotificationRepository
@@ -762,10 +906,14 @@ type registerParams struct {
 	CertRepo         *database.CertificateRepository
 	// CMS repository
 	CmsRepo          *database.CmsRepository
+	// Marketing repository
+	MarketingRepo    *database.MarketingRepository
 	// Settings repositories
 	CommissionRepo  *database.CommissionRepo
 	FacilitatorRepo *database.FacilitatorRepo
 	HolidayRepo     *database.HolidayRepo
+	ReportRepo      *database.ReportRepository
+	AppAccessRepo   *database.StudentAppAccessRepository
 	EventBus eventbus.EventBus
 }
 
@@ -984,7 +1132,7 @@ func registerHandlers(p registerParams) error {
 		return err
 	}
 	if err := p.CmdBus.Register(&createcoursebatch.CreateCourseBatchCommand{},
-		createcoursebatch.NewHandler(p.CourseBatchRepo, p.EventBus)); err != nil {
+		createcoursebatch.NewHandler(p.CourseBatchRepo, p.EventBus, p.ApprovalRepo)); err != nil {
 		return err
 	}
 	if err := p.CmdBus.Register(&updatecoursebatch.UpdateCourseBatchCommand{},
@@ -1005,6 +1153,16 @@ func registerHandlers(p registerParams) error {
 	}
 	listCourseBatchH := listcoursebatch.NewHandler(p.CourseBatchRepo)
 	if err := p.QryBus.Register(&listcoursebatch.ListCourseBatchQuery{}, adaptQueryHandler(listCourseBatchH.Handle)); err != nil {
+		return err
+	}
+
+	// BatchSchedule
+	if err := p.CmdBus.Register(&createbatchschedule.CreateBatchScheduleCommand{},
+		createbatchschedule.NewHandler(p.BatchScheduleRepo, p.BatchScheduleRepo)); err != nil {
+		return err
+	}
+	listBatchSchedulesH := listbatchschedules.NewHandler(p.BatchScheduleRepo)
+	if err := p.QryBus.Register(&listbatchschedules.ListBatchSchedulesQuery{}, adaptQueryHandler(listBatchSchedulesH.Handle)); err != nil {
 		return err
 	}
 
@@ -1379,8 +1537,28 @@ func registerHandlers(p registerParams) error {
 		createdelegation.NewHandler(p.DelegationRepo, p.EventBus)); err != nil {
 		return err
 	}
+	if err := p.CmdBus.Register(&acceptdelegation.AcceptDelegationCommand{},
+		acceptdelegation.NewHandler(p.DelegationRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&completedelegation.CompleteDelegationCommand{},
+		completedelegation.NewHandler(p.DelegationRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&canceldelegation.CancelDelegationCommand{},
+		canceldelegation.NewHandler(p.DelegationRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatedelegation.UpdateDelegationCommand{},
+		updatedelegation.NewHandler(p.DelegationRepo, p.EventBus)); err != nil {
+		return err
+	}
 	listDelegationsH := listdelegations.NewHandler(p.DelegationRepo)
 	if err := p.QryBus.Register(&listdelegations.ListDelegationsQuery{}, adaptQueryHandler(listDelegationsH.Handle)); err != nil {
+		return err
+	}
+	getDelegationH := getdelegation.NewHandler(p.DelegationRepo)
+	if err := p.QryBus.Register(&getdelegation.GetDelegationQuery{}, adaptQueryHandler(getDelegationH.Handle)); err != nil {
 		return err
 	}
 
@@ -1393,6 +1571,22 @@ func registerHandlers(p registerParams) error {
 	}
 	if err := p.CmdBus.Register(&updateinvoicestatus.UpdateInvoiceStatusCommand{},
 		updateinvoicestatus.NewHandler(p.AccountingInvoiceRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createinvoice.CreateInvoiceCommand{},
+		createinvoice.NewHandler(p.AccountingInvoiceRepo, p.AccountingTransactionRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&markpaid.MarkInvoicePaidCommand{},
+		markpaid.NewHandler(p.AccountingInvoiceRepo, p.AccountingInvoiceRepo, p.AccountingTransactionRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&cancelinvoice.CancelInvoiceCommand{},
+		cancelinvoice.NewHandler(p.AccountingInvoiceRepo, p.AccountingInvoiceRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&sendinvoice.SendInvoiceCommand{},
+		sendinvoice.NewHandler(p.AccountingInvoiceRepo, p.AccountingInvoiceRepo, p.EventBus)); err != nil {
 		return err
 	}
 
@@ -1408,12 +1602,87 @@ func registerHandlers(p registerParams) error {
 	if err := p.QryBus.Register(&listinvoices.ListInvoicesQuery{}, adaptQueryHandler(listInvoicesH.Handle)); err != nil {
 		return err
 	}
+	getInvoiceH := getinvoice.NewHandler(p.AccountingInvoiceRepo)
+	if err := p.QryBus.Register(&getinvoice.GetInvoiceQuery{}, adaptQueryHandler(getInvoiceH.Handle)); err != nil {
+		return err
+	}
+	getInvoiceStatsH := getinvoicestats.NewHandler(p.AccountingInvoiceRepo)
+	if err := p.QryBus.Register(&getinvoicestats.GetInvoiceStatsQuery{}, adaptQueryHandler(getInvoiceStatsH.Handle)); err != nil {
+		return err
+	}
 	listCoaH := listcoa.NewHandler(p.CoaRepo)
 	if err := p.QryBus.Register(&listcoa.ListCoaQuery{}, adaptQueryHandler(listCoaH.Handle)); err != nil {
 		return err
 	}
 	getBudgetH := getbudgetvsactual.NewHandler(p.AccountingTransactionRepo)
 	if err := p.QryBus.Register(&getbudgetvsactual.GetBudgetVsActualQuery{}, adaptQueryHandler(getBudgetH.Handle)); err != nil {
+		return err
+	}
+
+	// Financial Analysis queries
+	getRatiosH := getfinancialratios.NewHandler(p.AccountingAnalysisRepo)
+	if err := p.QryBus.Register(&getfinancialratios.GetFinancialRatiosQuery{}, adaptQueryHandler(getRatiosH.Handle)); err != nil {
+		return err
+	}
+	getRevenueH := getrevenueanalysis.NewHandler(p.AccountingAnalysisRepo)
+	if err := p.QryBus.Register(&getrevenueanalysis.GetRevenueAnalysisQuery{}, adaptQueryHandler(getRevenueH.Handle)); err != nil {
+		return err
+	}
+	getCostH := getcostanalysis.NewHandler(p.AccountingAnalysisRepo)
+	if err := p.QryBus.Register(&getcostanalysis.GetCostAnalysisQuery{}, adaptQueryHandler(getCostH.Handle)); err != nil {
+		return err
+	}
+	getBatchProfitH := getbatchprofitability.NewHandler(p.AccountingAnalysisRepo)
+	if err := p.QryBus.Register(&getbatchprofitability.GetBatchProfitabilityQuery{}, adaptQueryHandler(getBatchProfitH.Handle)); err != nil {
+		return err
+	}
+	getCashForecastH := getcashforecast.NewHandler(p.AccountingAnalysisRepo)
+	if err := p.QryBus.Register(&getcashforecast.GetCashForecastQuery{}, adaptQueryHandler(getCashForecastH.Handle)); err != nil {
+		return err
+	}
+	getAlertsH := getfinancialalerts.NewHandler(p.AccountingAnalysisRepo)
+	if err := p.QryBus.Register(&getfinancialalerts.GetFinancialAlertsQuery{}, adaptQueryHandler(getAlertsH.Handle)); err != nil {
+		return err
+	}
+	getSuggestionsH := getfinancialsuggestions.NewHandler(p.AccountingAnalysisRepo)
+	if err := p.QryBus.Register(&getfinancialsuggestions.GetFinancialSuggestionsQuery{}, adaptQueryHandler(getSuggestionsH.Handle)); err != nil {
+		return err
+	}
+
+	// ===== FINANCE =====
+
+	// Finance Account
+	if err := p.CmdBus.Register(&createfinanceaccount.CreateFinanceAccountCommand{},
+		createfinanceaccount.NewHandler(p.FinanceAccountRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatefinanceaccount.UpdateFinanceAccountCommand{},
+		updatefinanceaccount.NewHandler(p.FinanceAccountRepo, p.FinanceAccountRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createfinancetransaction.CreateFinanceTransactionCommand{},
+		createfinancetransaction.NewHandler(p.FinanceTransactionRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createjournalentry.CreateJournalEntryCommand{},
+		createjournalentry.NewHandler(p.FinanceJournalRepo, p.EventBus)); err != nil {
+		return err
+	}
+
+	listFinanceAccountsH := listfinanceaccounts.NewHandler(p.FinanceAccountRepo)
+	if err := p.QryBus.Register(&listfinanceaccounts.ListFinanceAccountsQuery{}, adaptQueryHandler(listFinanceAccountsH.Handle)); err != nil {
+		return err
+	}
+	getFinanceAccountH := getfinanceaccount.NewHandler(p.FinanceAccountRepo)
+	if err := p.QryBus.Register(&getfinanceaccount.GetFinanceAccountQuery{}, adaptQueryHandler(getFinanceAccountH.Handle)); err != nil {
+		return err
+	}
+	listFinanceTxH := listfinancetransactions.NewHandler(p.FinanceTransactionRepo)
+	if err := p.QryBus.Register(&listfinancetransactions.ListFinanceTransactionsQuery{}, adaptQueryHandler(listFinanceTxH.Handle)); err != nil {
+		return err
+	}
+	listJournalH := listjournalentries.NewHandler(p.FinanceJournalRepo)
+	if err := p.QryBus.Register(&listjournalentries.ListJournalEntriesQuery{}, adaptQueryHandler(listJournalH.Handle)); err != nil {
 		return err
 	}
 
@@ -1479,6 +1748,17 @@ func registerHandlers(p registerParams) error {
 		return err
 	}
 	if err := p.EventBus.Subscribe(ctxBg, "ApprovalRejected", approvalNotifH.OnApprovalRejected); err != nil {
+		return err
+	}
+
+	// Subscribe invoice event handlers
+	invoiceEvtH := eventhandler.NewInvoiceEventHandler(
+		p.AccountingInvoiceRepo,
+		p.CourseBatchRepo,
+		p.AccountingTransactionRepo,
+		p.EnrollmentRepo,
+	)
+	if err := p.EventBus.Subscribe(ctxBg, "EnrollmentCreated", invoiceEvtH.OnEnrollmentCreated); err != nil {
 		return err
 	}
 
@@ -1623,6 +1903,29 @@ func registerHandlers(p registerParams) error {
 		return err
 	}
 
+
+	// ===== FINANCE REPORTS =====
+
+	getBalanceSheetH := getbalancesheet.NewHandler(p.ReportRepo)
+	if err := p.QryBus.Register(&getbalancesheet.GetBalanceSheetQuery{}, adaptQueryHandler(getBalanceSheetH.Handle)); err != nil {
+		return err
+	}
+	getProfitLossH := getprofitloss.NewHandler(p.ReportRepo)
+	if err := p.QryBus.Register(&getprofitloss.GetProfitLossQuery{}, adaptQueryHandler(getProfitLossH.Handle)); err != nil {
+		return err
+	}
+	getCashFlowH := getcashflow.NewHandler(p.ReportRepo)
+	if err := p.QryBus.Register(&getcashflow.GetCashFlowQuery{}, adaptQueryHandler(getCashFlowH.Handle)); err != nil {
+		return err
+	}
+	getGeneralLedgerH := getgeneralledger.NewHandler(p.ReportRepo)
+	if err := p.QryBus.Register(&getgeneralledger.GetGeneralLedgerQuery{}, adaptQueryHandler(getGeneralLedgerH.Handle)); err != nil {
+		return err
+	}
+	getTrialBalanceH := gettrialbalance.NewHandler(p.ReportRepo)
+	if err := p.QryBus.Register(&gettrialbalance.GetTrialBalanceQuery{}, adaptQueryHandler(getTrialBalanceH.Handle)); err != nil {
+		return err
+	}
 	// CMS Queries
 	listCmsPagesH := listcmspages.NewHandler(p.CmsRepo)
 	if err := p.QryBus.Register(&listcmspages.ListCmsPagesQuery{}, adaptQueryHandler(listCmsPagesH.Handle)); err != nil {
@@ -1651,6 +1954,153 @@ func registerHandlers(p registerParams) error {
 	listCmsMediaH := listcmsmedia.NewHandler(p.CmsRepo)
 	if err := p.QryBus.Register(&listcmsmedia.ListCmsMediaQuery{}, adaptQueryHandler(listCmsMediaH.Handle)); err != nil {
 		return err
+	}
+
+	// ===== PAYABLES =====
+
+	if err := p.CmdBus.Register(&createpayable.CreatePayableCommand{},
+		createpayable.NewHandler(p.PayableRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&approvepayable.ApprovePayableCommand{},
+		approvepayable.NewHandler(p.PayableRepo, p.PayableRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&cancelpayable.CancelPayableCommand{},
+		cancelpayable.NewHandler(p.PayableRepo, p.PayableRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&markpayablepaid.MarkPayablePaidCommand{},
+		markpayablepaid.NewHandler(p.PayableRepo, p.PayableRepo, p.AccountingTransactionRepo, p.EventBus)); err != nil {
+		return err
+	}
+
+	getPayableH := getpayable.NewHandler(p.PayableRepo)
+	if err := p.QryBus.Register(&getpayable.GetPayableQuery{}, adaptQueryHandler(getPayableH.Handle)); err != nil {
+		return err
+	}
+	listPayablesH := listpayables.NewHandler(p.PayableRepo)
+	if err := p.QryBus.Register(&listpayables.ListPayablesQuery{}, adaptQueryHandler(listPayablesH.Handle)); err != nil {
+		return err
+	}
+	getPayableStatsH := getpayablestats.NewHandler(p.PayableRepo)
+	if err := p.QryBus.Register(&getpayablestats.GetPayableStatsQuery{}, adaptQueryHandler(getPayableStatsH.Handle)); err != nil {
+		return err
+	}
+
+	// Subscribe payable event handlers
+	payableEvtH := eventhandler.NewPayableEventHandler(
+		p.PayableRepo,
+		p.CommissionRepo,
+		p.FacilitatorRepo,
+		p.AccountingTransactionRepo,
+	)
+	if err := p.EventBus.Subscribe(ctxBg, "AttendanceSubmitted", payableEvtH.OnAttendanceSubmitted); err != nil {
+		return err
+	}
+	if err := p.EventBus.Subscribe(ctxBg, "BatchCompleted", payableEvtH.OnBatchCompleted); err != nil {
+		return err
+	}
+	if err := p.EventBus.Subscribe(ctxBg, "EnrollmentCreated", payableEvtH.OnEnrollmentCreated); err != nil {
+		return err
+	}
+
+	// ===== MARKETING =====
+
+	if err := p.CmdBus.Register(&createpost.CreatePostCommand{},
+		createpost.NewHandler(p.MarketingRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatepost.UpdatePostCommand{},
+		updatepost.NewHandler(p.MarketingRepo, p.MarketingRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&submitposturl.SubmitPostUrlCommand{},
+		submitposturl.NewHandler(p.MarketingRepo, p.MarketingRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletepost.DeletePostCommand{},
+		deletepost.NewHandler(p.MarketingRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createpr.CreatePrCommand{},
+		createpr.NewHandler(p.MarketingRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatepr.UpdatePrCommand{},
+		updatepr.NewHandler(p.MarketingRepo, p.MarketingRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletepr.DeletePrCommand{},
+		deletepr.NewHandler(p.MarketingRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createrefpartner.CreateReferralPartnerCommand{},
+		createrefpartner.NewHandler(p.MarketingRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updaterefpartner.UpdateReferralPartnerCommand{},
+		updaterefpartner.NewHandler(p.MarketingRepo, p.MarketingRepo, p.EventBus)); err != nil {
+		return err
+	}
+
+	listPostsH := listposts.NewHandler(p.MarketingRepo)
+	if err := p.QryBus.Register(&listposts.ListPostsQuery{}, adaptQueryHandler(listPostsH.Handle)); err != nil {
+		return err
+	}
+	listClassDocsH := listclassdocs.NewHandler(p.MarketingRepo)
+	if err := p.QryBus.Register(&listclassdocs.ListClassDocsQuery{}, adaptQueryHandler(listClassDocsH.Handle)); err != nil {
+		return err
+	}
+	listPrH := listprq.NewHandler(p.MarketingRepo)
+	if err := p.QryBus.Register(&listprq.ListPrQuery{}, adaptQueryHandler(listPrH.Handle)); err != nil {
+		return err
+	}
+	listRefPartnersH := listrefpartners.NewHandler(p.MarketingRepo)
+	if err := p.QryBus.Register(&listrefpartners.ListReferralPartnersQuery{}, adaptQueryHandler(listRefPartnersH.Handle)); err != nil {
+		return err
+	}
+	listReferralsH := listreferrals.NewHandler(p.MarketingRepo)
+	if err := p.QryBus.Register(&listreferrals.ListReferralsQuery{}, adaptQueryHandler(listReferralsH.Handle)); err != nil {
+		return err
+	}
+	getMarketingStatsH := getmarketingstats.NewHandler(p.MarketingRepo)
+	if err := p.QryBus.Register(&getmarketingstats.GetMarketingStatsQuery{}, adaptQueryHandler(getMarketingStatsH.Handle)); err != nil {
+		return err
+	}
+
+	// Subscribe SessionCompleted event handler
+	sessionCompletedH := eventhandler.NewSessionCompletedHandler(p.MarketingRepo, p.HolidayRepo)
+	if err := p.EventBus.Subscribe(ctxBg, "SessionCompleted", sessionCompletedH.OnSessionCompleted); err != nil {
+		return err
+	}
+
+	// Student App Access
+	if err := p.CmdBus.Register(&grantappaccess.GrantAppAccessCommand{},
+		grantappaccess.NewHandler(p.AppAccessRepo, p.EventBus)); err != nil {
+		return err
+	}
+	revokeH := revokeappaccess.NewHandler(p.AppAccessRepo, p.EventBus)
+	if err := p.CmdBus.Register(&revokeappaccess.RevokeAppAccessCommand{}, revokeH); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&revokeappaccess.RevokeAllBatchAccessCommand{}, revokeH); err != nil {
+		return err
+	}
+
+	// Subscribe app access event handlers
+	appAccessH := eventhandler.NewAppAccessHandler(p.CmdBus)
+	if err := p.EventBus.Subscribe(ctxBg, "EnrollmentCreated", appAccessH.OnEnrollmentCreated); err != nil {
+		log.Warn().Err(err).Msg("failed to subscribe EnrollmentCreated for app access")
+	}
+	if err := p.EventBus.Subscribe(ctxBg, "CourseBatchCompleted", appAccessH.OnBatchCompleted); err != nil {
+		log.Warn().Err(err).Msg("failed to subscribe CourseBatchCompleted for app access")
+	}
+	if err := p.EventBus.Subscribe(ctxBg, "EnrollmentStatusUpdated", appAccessH.OnEnrollmentStatusUpdated); err != nil {
+		log.Warn().Err(err).Msg("failed to subscribe EnrollmentStatusUpdated for app access")
+	}
+	if err := p.EventBus.Subscribe(ctxBg, "InvoiceOverdue", appAccessH.OnInvoiceOverdue); err != nil {
+		log.Warn().Err(err).Msg("failed to subscribe InvoiceOverdue for app access")
 	}
 
 	return nil

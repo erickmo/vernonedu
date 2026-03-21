@@ -39,6 +39,7 @@ type CreateCourseModuleRequest struct {
 	PracticalActivities []string `json:"practical_activities"`
 	AssessmentMethod    string   `json:"assessment_method"`
 	ToolsRequired       []string `json:"tools_required"`
+	Requirements        []string `json:"requirements"`
 	IsReference         bool     `json:"is_reference"`
 	RefModuleID         *string  `json:"ref_module_id"`
 }
@@ -53,6 +54,7 @@ type UpdateCourseModuleRequest struct {
 	PracticalActivities []string `json:"practical_activities"`
 	AssessmentMethod    string   `json:"assessment_method"`
 	ToolsRequired       []string `json:"tools_required"`
+	Requirements        []string `json:"requirements"`
 }
 
 // Create menangani POST /api/v1/curriculum/versions/{versionID}/modules
@@ -81,6 +83,7 @@ func (h *CourseModuleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		PracticalActivities: req.PracticalActivities,
 		AssessmentMethod:    req.AssessmentMethod,
 		ToolsRequired:       req.ToolsRequired,
+		Requirements:        req.Requirements,
 		IsReference:         req.IsReference,
 	}
 	if req.RefModuleID != nil {
@@ -164,6 +167,7 @@ func (h *CourseModuleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		PracticalActivities: req.PracticalActivities,
 		AssessmentMethod:    req.AssessmentMethod,
 		ToolsRequired:       req.ToolsRequired,
+		Requirements:        req.Requirements,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute update course module command")
