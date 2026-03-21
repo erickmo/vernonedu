@@ -76,12 +76,44 @@ import (
 	upsertinternship "github.com/vernonedu/entrepreneurship-api/internal/command/upsert_internship_config"
 	updatetalentpool "github.com/vernonedu/entrepreneurship-api/internal/command/update_talentpool_status"
 	// lead commands
+	addcrmlog "github.com/vernonedu/entrepreneurship-api/internal/command/add_crm_log"
+	convertleadtostudent "github.com/vernonedu/entrepreneurship-api/internal/command/convert_lead_to_student"
 	createlead "github.com/vernonedu/entrepreneurship-api/internal/command/create_lead"
 	deletelead "github.com/vernonedu/entrepreneurship-api/internal/command/delete_lead"
 	updatelead "github.com/vernonedu/entrepreneurship-api/internal/command/update_lead"
+	// location commands
+	createbuilding "github.com/vernonedu/entrepreneurship-api/internal/command/create_building"
+	deletebuilding "github.com/vernonedu/entrepreneurship-api/internal/command/delete_building"
+	updatebuilding "github.com/vernonedu/entrepreneurship-api/internal/command/update_building"
+	createroom "github.com/vernonedu/entrepreneurship-api/internal/command/create_room"
+	deleteroom "github.com/vernonedu/entrepreneurship-api/internal/command/delete_room"
+	updateroom "github.com/vernonedu/entrepreneurship-api/internal/command/update_room"
+	// approval commands
+	createapproval "github.com/vernonedu/entrepreneurship-api/internal/command/create_approval"
+	approvestep "github.com/vernonedu/entrepreneurship-api/internal/command/approve_step"
+	rejectstep "github.com/vernonedu/entrepreneurship-api/internal/command/reject_step"
+	cancelapproval "github.com/vernonedu/entrepreneurship-api/internal/command/cancel_approval"
+	// notification commands
+	createnotification "github.com/vernonedu/entrepreneurship-api/internal/command/create_notification"
+	markallread "github.com/vernonedu/entrepreneurship-api/internal/command/mark_all_notifications_read"
+	markread "github.com/vernonedu/entrepreneurship-api/internal/command/mark_notification_read"
+	// notification queries
+	getunreadcount "github.com/vernonedu/entrepreneurship-api/internal/query/get_unread_count"
+	listnotifications "github.com/vernonedu/entrepreneurship-api/internal/query/list_notifications"
+	// event handlers
+	"github.com/vernonedu/entrepreneurship-api/internal/eventhandler"
+	// accounting commands
+	createtransaction "github.com/vernonedu/entrepreneurship-api/internal/command/create_transaction"
+	updateinvoicestatus "github.com/vernonedu/entrepreneurship-api/internal/command/update_invoice_status"
 	// biz-dev commands
 	createpartner "github.com/vernonedu/entrepreneurship-api/internal/command/create_partner"
 	createmou "github.com/vernonedu/entrepreneurship-api/internal/command/create_mou"
+	createpartnergroup "github.com/vernonedu/entrepreneurship-api/internal/command/create_partner_group"
+	updatepartnergroup "github.com/vernonedu/entrepreneurship-api/internal/command/update_partner_group"
+	updatepartner "github.com/vernonedu/entrepreneurship-api/internal/command/update_partner"
+	deletepartner "github.com/vernonedu/entrepreneurship-api/internal/command/delete_partner"
+	updatemou "github.com/vernonedu/entrepreneurship-api/internal/command/update_mou"
+	deletemou "github.com/vernonedu/entrepreneurship-api/internal/command/delete_mou"
 	createbranch "github.com/vernonedu/entrepreneurship-api/internal/command/create_branch"
 	createokrobjective "github.com/vernonedu/entrepreneurship-api/internal/command/create_okr_objective"
 	createinvestmentplan "github.com/vernonedu/entrepreneurship-api/internal/command/create_investment_plan"
@@ -134,16 +166,75 @@ import (
 	listcourseversion "github.com/vernonedu/entrepreneurship-api/internal/query/list_courseversion"
 	listmastercourse "github.com/vernonedu/entrepreneurship-api/internal/query/list_mastercourse"
 	listtalentpool "github.com/vernonedu/entrepreneurship-api/internal/query/list_talentpool"
+	// approval queries
+	getapproval "github.com/vernonedu/entrepreneurship-api/internal/query/get_approval"
+	listapprovals "github.com/vernonedu/entrepreneurship-api/internal/query/list_approvals"
 	// lead queries
 	getlead "github.com/vernonedu/entrepreneurship-api/internal/query/get_lead"
+	listcrmlogs "github.com/vernonedu/entrepreneurship-api/internal/query/list_crm_logs"
 	listlead "github.com/vernonedu/entrepreneurship-api/internal/query/list_lead"
+	// location queries
+	checkroomavailability "github.com/vernonedu/entrepreneurship-api/internal/query/check_room_availability"
+	getbuilding "github.com/vernonedu/entrepreneurship-api/internal/query/get_building"
+	getroom "github.com/vernonedu/entrepreneurship-api/internal/query/get_room"
+	listbuildings "github.com/vernonedu/entrepreneurship-api/internal/query/list_buildings"
+	listrooms "github.com/vernonedu/entrepreneurship-api/internal/query/list_rooms"
+	// accounting queries
+	getaccountingstats "github.com/vernonedu/entrepreneurship-api/internal/query/get_accounting_stats"
+	getbudgetvsactual "github.com/vernonedu/entrepreneurship-api/internal/query/get_budget_vs_actual"
+	listcoa "github.com/vernonedu/entrepreneurship-api/internal/query/list_coa"
+	listinvoices "github.com/vernonedu/entrepreneurship-api/internal/query/list_invoices"
+	listtransactions "github.com/vernonedu/entrepreneurship-api/internal/query/list_transactions"
 	// biz-dev queries
 	listpartners "github.com/vernonedu/entrepreneurship-api/internal/query/list_partners"
 	getpartner "github.com/vernonedu/entrepreneurship-api/internal/query/get_partner"
+	listpartnergroups "github.com/vernonedu/entrepreneurship-api/internal/query/list_partner_groups"
+	listmous "github.com/vernonedu/entrepreneurship-api/internal/query/list_mous"
+	listexpiringmous "github.com/vernonedu/entrepreneurship-api/internal/query/list_expiring_mous"
 	listbranches "github.com/vernonedu/entrepreneurship-api/internal/query/list_branches"
 	listokr "github.com/vernonedu/entrepreneurship-api/internal/query/list_okr"
 	listinvestments "github.com/vernonedu/entrepreneurship-api/internal/query/list_investment_plans"
 	listdelegations "github.com/vernonedu/entrepreneurship-api/internal/query/list_delegations"
+	// settings commands
+	createholiday    "github.com/vernonedu/entrepreneurship-api/internal/command/create_holiday"
+	deleteholiday    "github.com/vernonedu/entrepreneurship-api/internal/command/delete_holiday"
+	updatebranch     "github.com/vernonedu/entrepreneurship-api/internal/command/update_branch"
+	updatecommissioncfg "github.com/vernonedu/entrepreneurship-api/internal/command/update_commission_config"
+	upsertfaclevels  "github.com/vernonedu/entrepreneurship-api/internal/command/upsert_facilitator_levels"
+	// settings queries
+	getcommissioncfg "github.com/vernonedu/entrepreneurship-api/internal/query/get_commission_config"
+	getfaclevels     "github.com/vernonedu/entrepreneurship-api/internal/query/get_facilitator_levels"
+	listholidays     "github.com/vernonedu/entrepreneurship-api/internal/query/list_holidays"
+	// certificate commands
+	createcerttemplate "github.com/vernonedu/entrepreneurship-api/internal/command/create_certificate_template"
+	updatecerttemplate "github.com/vernonedu/entrepreneurship-api/internal/command/update_certificate_template"
+	issuecertificate   "github.com/vernonedu/entrepreneurship-api/internal/command/issue_certificate"
+	revokecertificate  "github.com/vernonedu/entrepreneurship-api/internal/command/revoke_certificate"
+	// certificate queries
+	listcertificates  "github.com/vernonedu/entrepreneurship-api/internal/query/list_certificates"
+	getcertificate    "github.com/vernonedu/entrepreneurship-api/internal/query/get_certificate"
+	verifycertificate "github.com/vernonedu/entrepreneurship-api/internal/query/verify_certificate"
+	// cms commands
+	createcmsarticle     "github.com/vernonedu/entrepreneurship-api/internal/command/create_cms_article"
+	createcmsfaq         "github.com/vernonedu/entrepreneurship-api/internal/command/create_cms_faq"
+	createcmstestimonial "github.com/vernonedu/entrepreneurship-api/internal/command/create_cms_testimonial"
+	deletecmsarticle     "github.com/vernonedu/entrepreneurship-api/internal/command/delete_cms_article"
+	deletecmsfaq         "github.com/vernonedu/entrepreneurship-api/internal/command/delete_cms_faq"
+	deletecmsmedia       "github.com/vernonedu/entrepreneurship-api/internal/command/delete_cms_media"
+	deletecmstestimonial "github.com/vernonedu/entrepreneurship-api/internal/command/delete_cms_testimonial"
+	updatecmsarticle     "github.com/vernonedu/entrepreneurship-api/internal/command/update_cms_article"
+	updatecmsfaq         "github.com/vernonedu/entrepreneurship-api/internal/command/update_cms_faq"
+	updatecmspage        "github.com/vernonedu/entrepreneurship-api/internal/command/update_cms_page"
+	updatecmstestimonial "github.com/vernonedu/entrepreneurship-api/internal/command/update_cms_testimonial"
+	uploadcmsmedia       "github.com/vernonedu/entrepreneurship-api/internal/command/upload_cms_media"
+	// cms queries
+	getcmsarticle       "github.com/vernonedu/entrepreneurship-api/internal/query/get_cms_article"
+	getcmspage          "github.com/vernonedu/entrepreneurship-api/internal/query/get_cms_page"
+	listcmsarticles     "github.com/vernonedu/entrepreneurship-api/internal/query/list_cms_articles"
+	listcmsfaq          "github.com/vernonedu/entrepreneurship-api/internal/query/list_cms_faq"
+	listcmsmedia        "github.com/vernonedu/entrepreneurship-api/internal/query/list_cms_media"
+	listcmspages        "github.com/vernonedu/entrepreneurship-api/internal/query/list_cms_pages"
+	listcmstestimonials "github.com/vernonedu/entrepreneurship-api/internal/query/list_cms_testimonials"
 	// handlers
 	httphandler "github.com/vernonedu/entrepreneurship-api/internal/delivery/http"
 )
@@ -269,6 +360,52 @@ func main() {
 			func(db *sqlx.DB) *database.LeadRepository {
 				return database.NewLeadRepository(db)
 			},
+			// Location repositories
+			func(db *sqlx.DB) *database.BuildingRepository {
+				return database.NewBuildingRepository(db)
+			},
+			func(db *sqlx.DB) *database.RoomRepository {
+				return database.NewRoomRepository(db)
+			},
+			// Accounting repositories
+			func(db *sqlx.DB) *database.AccountingTransactionRepository {
+				return database.NewAccountingTransactionRepository(db)
+			},
+			func(db *sqlx.DB) *database.AccountingInvoiceRepository {
+				return database.NewAccountingInvoiceRepository(db)
+			},
+			func(db *sqlx.DB) *database.CoaRepository {
+				return database.NewCoaRepository(db)
+			},
+			// Approval repository
+			func(db *sqlx.DB) *database.ApprovalRepository {
+				return database.NewApprovalRepository(db)
+			},
+			// Notification repository
+			func(db *sqlx.DB) *database.NotificationRepository {
+				return database.NewNotificationRepository(db)
+			},
+			// Certificate repository
+			func(db *sqlx.DB) *database.CertificateRepository {
+				return database.NewCertificateRepository(db)
+			},
+			// CMS repository
+			func(db *sqlx.DB) *database.CmsRepository {
+				return database.NewCmsRepository(db)
+			},
+			// Settings repository
+			func(db *sqlx.DB) *database.SettingsRepository {
+				return database.NewSettingsRepository(db)
+			},
+			func(r *database.SettingsRepository) *database.CommissionRepo {
+				return database.NewCommissionRepo(r)
+			},
+			func(r *database.SettingsRepository) *database.FacilitatorRepo {
+				return database.NewFacilitatorRepo(r)
+			},
+			func(r *database.SettingsRepository) *database.HolidayRepo {
+				return database.NewHolidayRepo(r)
+			},
 
 			// HTTP handlers
 			newUserHTTPHandler,
@@ -284,12 +421,22 @@ func main() {
 			newEnrollmentHTTPHandler,
 			// Lead HTTP handler
 			newLeadHTTPHandler,
+			// Location HTTP handler
+			newLocationHTTPHandler,
 			// BizDev HTTP handlers
 			newPartnerHTTPHandler,
 			newBranchHTTPHandler,
 			newOkrHTTPHandler,
 			newInvestmentHTTPHandler,
 			newDelegationHTTPHandler,
+
+			// Approval HTTP handler
+			newApprovalHTTPHandler,
+			// Notification HTTP handler
+			newNotificationHTTPHandler,
+
+			// Accounting HTTP handler
+			newAccountingHTTPHandler,
 
 			// Curriculum HTTP handlers
 			newMasterCourseHTTPHandler,
@@ -298,6 +445,14 @@ func main() {
 			newCourseModuleHTTPHandler,
 			newProgramKarirHTTPHandler,
 			newTalentPoolHTTPHandler,
+
+			// Certificate HTTP handler
+			newCertificateHTTPHandler,
+
+			// CMS HTTP handler
+			newCmsHTTPHandler,
+			// Public HTTP handler
+			newPublicHTTPHandler,
 
 			// Router
 			newRouter,
@@ -404,6 +559,22 @@ func newLeadHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) 
 	return httphandler.NewLeadHandler(cmdBus, qryBus)
 }
 
+func newLocationHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.LocationHandler {
+	return httphandler.NewLocationHandler(cmdBus, qryBus)
+}
+
+func newAccountingHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.AccountingHandler {
+	return httphandler.NewAccountingHandler(cmdBus, qryBus)
+}
+
+func newApprovalHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.ApprovalHandler {
+	return httphandler.NewApprovalHandler(cmdBus, qryBus)
+}
+
+func newNotificationHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.NotificationHandler {
+	return httphandler.NewNotificationHandler(cmdBus, qryBus)
+}
+
 func newPartnerHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.PartnerHandler {
 	return httphandler.NewPartnerHandler(cmdBus, qryBus)
 }
@@ -422,6 +593,22 @@ func newInvestmentHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.Quer
 
 func newDelegationHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.DelegationHTTPHandler {
 	return httphandler.NewDelegationHTTPHandler(cmdBus, qryBus)
+}
+
+func newSettingsHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.SettingsHandler {
+	return httphandler.NewSettingsHandler(cmdBus, qryBus)
+}
+
+func newCertificateHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.CertificateHandler {
+	return httphandler.NewCertificateHandler(cmdBus, qryBus)
+}
+
+func newCmsHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.CmsHandler {
+	return httphandler.NewCmsHandler(cmdBus, qryBus)
+}
+
+func newPublicHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.PublicHandler {
+	return httphandler.NewPublicHandler(cmdBus, qryBus)
 }
 
 func newRouter(
@@ -443,11 +630,19 @@ func newRouter(
 	programKarirHandler *httphandler.ProgramKarirHandler,
 	talentPoolHandler *httphandler.TalentPoolHandler,
 	leadHandler *httphandler.LeadHandler,
+	locationHandler *httphandler.LocationHandler,
 	partnerHandler *httphandler.PartnerHandler,
 	branchHandler *httphandler.BranchHandler,
 	okrHandler *httphandler.OkrHandler,
 	investmentHandler *httphandler.InvestmentHandler,
 	delegationHandler *httphandler.DelegationHTTPHandler,
+	accountingHandler *httphandler.AccountingHandler,
+	approvalHandler *httphandler.ApprovalHandler,
+	notificationHandler *httphandler.NotificationHandler,
+	settingsHandler *httphandler.SettingsHandler,
+	certHandler *httphandler.CertificateHandler,
+	cmsHandler *httphandler.CmsHandler,
+	publicHandler *httphandler.PublicHandler,
 	jwtUtil *jwtutil.JWTUtil,
 ) *chi.Mux {
 	r := chi.NewRouter()
@@ -491,13 +686,33 @@ func newRouter(
 		httphandler.RegisterTalentPoolRoutes(talentPoolHandler, r)
 		// Lead routes
 		httphandler.RegisterLeadRoutes(leadHandler, r)
+		// Approval routes
+		httphandler.RegisterApprovalRoutes(approvalHandler, r)
+		// Notification routes
+		httphandler.RegisterNotificationRoutes(notificationHandler, r)
+		// Location routes
+		httphandler.RegisterLocationRoutes(locationHandler, r)
+		// Accounting routes
+		httphandler.RegisterAccountingRoutes(accountingHandler, r)
 		// BizDev routes
 		httphandler.RegisterPartnerRoutes(partnerHandler, r)
 		httphandler.RegisterBranchRoutes(branchHandler, r)
 		httphandler.RegisterOkrRoutes(okrHandler, r)
 		httphandler.RegisterInvestmentRoutes(investmentHandler, r)
 		httphandler.RegisterDelegationRoutes(delegationHandler, r)
+		// Settings routes
+		httphandler.RegisterSettingsRoutes(settingsHandler, r)
+		// Certificate routes (protected)
+		httphandler.RegisterCertificateRoutes(certHandler, r)
+		// CMS routes
+		httphandler.RegisterCmsRoutes(cmsHandler, r)
 	})
+
+	// Certificate public routes (no auth)
+	httphandler.RegisterCertificatePublicRoutes(certHandler, r)
+
+	// Public routes (no auth — consumed by app-website)
+	httphandler.RegisterPublicRoutes(publicHandler, r)
 
 	return r
 }
@@ -533,6 +748,24 @@ type registerParams struct {
 	DelegationRepo *database.DelegationRepository
 	// Lead repository
 	LeadRepo *database.LeadRepository
+	// Location repositories
+	BuildingRepo *database.BuildingRepository
+	RoomRepo     *database.RoomRepository
+	// Accounting repositories
+	AccountingTransactionRepo *database.AccountingTransactionRepository
+	AccountingInvoiceRepo     *database.AccountingInvoiceRepository
+	CoaRepo                   *database.CoaRepository
+	// Approval repository
+	ApprovalRepo     *database.ApprovalRepository
+	NotificationRepo *database.NotificationRepository
+	// Certificate repository
+	CertRepo         *database.CertificateRepository
+	// CMS repository
+	CmsRepo          *database.CmsRepository
+	// Settings repositories
+	CommissionRepo  *database.CommissionRepo
+	FacilitatorRepo *database.FacilitatorRepo
+	HolidayRepo     *database.HolidayRepo
 	EventBus eventbus.EventBus
 }
 
@@ -969,6 +1202,56 @@ func registerHandlers(p registerParams) error {
 		return err
 	}
 
+	// ===== LOCATION =====
+
+	// Building
+	if err := p.CmdBus.Register(&createbuilding.CreateBuildingCommand{},
+		createbuilding.NewHandler(p.BuildingRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatebuilding.UpdateBuildingCommand{},
+		updatebuilding.NewHandler(p.BuildingRepo, p.BuildingRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletebuilding.DeleteBuildingCommand{},
+		deletebuilding.NewHandler(p.BuildingRepo, p.EventBus)); err != nil {
+		return err
+	}
+	getBuildingH := getbuilding.NewHandler(p.BuildingRepo)
+	if err := p.QryBus.Register(&getbuilding.GetBuildingQuery{}, adaptQueryHandler(getBuildingH.Handle)); err != nil {
+		return err
+	}
+	listBuildingsH := listbuildings.NewHandler(p.BuildingRepo)
+	if err := p.QryBus.Register(&listbuildings.ListBuildingsQuery{}, adaptQueryHandler(listBuildingsH.Handle)); err != nil {
+		return err
+	}
+
+	// Room
+	if err := p.CmdBus.Register(&createroom.CreateRoomCommand{},
+		createroom.NewHandler(p.RoomRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updateroom.UpdateRoomCommand{},
+		updateroom.NewHandler(p.RoomRepo, p.RoomRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deleteroom.DeleteRoomCommand{},
+		deleteroom.NewHandler(p.RoomRepo, p.EventBus)); err != nil {
+		return err
+	}
+	getRoomH := getroom.NewHandler(p.RoomRepo)
+	if err := p.QryBus.Register(&getroom.GetRoomQuery{}, adaptQueryHandler(getRoomH.Handle)); err != nil {
+		return err
+	}
+	listRoomsH := listrooms.NewHandler(p.RoomRepo)
+	if err := p.QryBus.Register(&listrooms.ListRoomsQuery{}, adaptQueryHandler(listRoomsH.Handle)); err != nil {
+		return err
+	}
+	checkAvailabilityH := checkroomavailability.NewHandler(p.RoomRepo)
+	if err := p.QryBus.Register(&checkroomavailability.CheckRoomAvailabilityQuery{}, adaptQueryHandler(checkAvailabilityH.Handle)); err != nil {
+		return err
+	}
+
 	// ===== LEAD =====
 
 	// Lead
@@ -992,6 +1275,18 @@ func registerHandlers(p registerParams) error {
 	if err := p.QryBus.Register(&listlead.ListLeadQuery{}, adaptQueryHandler(listLeadH.Handle)); err != nil {
 		return err
 	}
+	if err := p.CmdBus.Register(&addcrmlog.AddCrmLogCommand{},
+		addcrmlog.NewHandler(p.LeadRepo, p.LeadRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&convertleadtostudent.ConvertLeadToStudentCommand{},
+		convertleadtostudent.NewHandler(p.LeadRepo, p.LeadRepo, p.StudentRepo, p.EventBus)); err != nil {
+		return err
+	}
+	listCrmLogsH := listcrmlogs.NewHandler(p.LeadRepo)
+	if err := p.QryBus.Register(&listcrmlogs.ListCrmLogsQuery{}, adaptQueryHandler(listCrmLogsH.Handle)); err != nil {
+		return err
+	}
 
 	// ===== BIZ DEV =====
 
@@ -1000,8 +1295,32 @@ func registerHandlers(p registerParams) error {
 		createpartner.NewHandler(p.PartnerRepo, p.EventBus)); err != nil {
 		return err
 	}
+	if err := p.CmdBus.Register(&updatepartner.UpdatePartnerCommand{},
+		updatepartner.NewHandler(p.PartnerRepo, p.PartnerRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletepartner.DeletePartnerCommand{},
+		deletepartner.NewHandler(p.PartnerRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createpartnergroup.CreatePartnerGroupCommand{},
+		createpartnergroup.NewHandler(p.PartnerRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatepartnergroup.UpdatePartnerGroupCommand{},
+		updatepartnergroup.NewHandler(p.PartnerRepo, p.EventBus)); err != nil {
+		return err
+	}
 	if err := p.CmdBus.Register(&createmou.CreateMOUCommand{},
 		createmou.NewHandler(p.PartnerRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatemou.UpdateMOUCommand{},
+		updatemou.NewHandler(p.PartnerRepo, p.PartnerRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletemou.DeleteMOUCommand{},
+		deletemou.NewHandler(p.PartnerRepo, p.EventBus)); err != nil {
 		return err
 	}
 	listPartnersH := listpartners.NewHandler(p.PartnerRepo)
@@ -1010,6 +1329,18 @@ func registerHandlers(p registerParams) error {
 	}
 	getPartnerH := getpartner.NewHandler(p.PartnerRepo)
 	if err := p.QryBus.Register(&getpartner.GetPartnerQuery{}, adaptQueryHandler(getPartnerH.Handle)); err != nil {
+		return err
+	}
+	listPartnerGroupsH := listpartnergroups.NewHandler(p.PartnerRepo)
+	if err := p.QryBus.Register(&listpartnergroups.ListPartnerGroupsQuery{}, adaptQueryHandler(listPartnerGroupsH.Handle)); err != nil {
+		return err
+	}
+	listMOUsH := listmous.NewHandler(p.PartnerRepo)
+	if err := p.QryBus.Register(&listmous.ListMOUsQuery{}, adaptQueryHandler(listMOUsH.Handle)); err != nil {
+		return err
+	}
+	listExpiringMOUsH := listexpiringmous.NewHandler(p.PartnerRepo)
+	if err := p.QryBus.Register(&listexpiringmous.ListExpiringMOUsQuery{}, adaptQueryHandler(listExpiringMOUsH.Handle)); err != nil {
 		return err
 	}
 
@@ -1050,6 +1381,275 @@ func registerHandlers(p registerParams) error {
 	}
 	listDelegationsH := listdelegations.NewHandler(p.DelegationRepo)
 	if err := p.QryBus.Register(&listdelegations.ListDelegationsQuery{}, adaptQueryHandler(listDelegationsH.Handle)); err != nil {
+		return err
+	}
+
+	// ===== ACCOUNTING =====
+
+	// Transaction
+	if err := p.CmdBus.Register(&createtransaction.CreateTransactionCommand{},
+		createtransaction.NewHandler(p.AccountingTransactionRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updateinvoicestatus.UpdateInvoiceStatusCommand{},
+		updateinvoicestatus.NewHandler(p.AccountingInvoiceRepo, p.EventBus)); err != nil {
+		return err
+	}
+
+	getStatsH := getaccountingstats.NewHandler(p.AccountingTransactionRepo)
+	if err := p.QryBus.Register(&getaccountingstats.GetAccountingStatsQuery{}, adaptQueryHandler(getStatsH.Handle)); err != nil {
+		return err
+	}
+	listTransactionsH := listtransactions.NewHandler(p.AccountingTransactionRepo)
+	if err := p.QryBus.Register(&listtransactions.ListTransactionsQuery{}, adaptQueryHandler(listTransactionsH.Handle)); err != nil {
+		return err
+	}
+	listInvoicesH := listinvoices.NewHandler(p.AccountingInvoiceRepo)
+	if err := p.QryBus.Register(&listinvoices.ListInvoicesQuery{}, adaptQueryHandler(listInvoicesH.Handle)); err != nil {
+		return err
+	}
+	listCoaH := listcoa.NewHandler(p.CoaRepo)
+	if err := p.QryBus.Register(&listcoa.ListCoaQuery{}, adaptQueryHandler(listCoaH.Handle)); err != nil {
+		return err
+	}
+	getBudgetH := getbudgetvsactual.NewHandler(p.AccountingTransactionRepo)
+	if err := p.QryBus.Register(&getbudgetvsactual.GetBudgetVsActualQuery{}, adaptQueryHandler(getBudgetH.Handle)); err != nil {
+		return err
+	}
+
+	// ===== APPROVAL =====
+
+	if err := p.CmdBus.Register(&createapproval.CreateApprovalCommand{},
+		createapproval.NewHandler(p.ApprovalRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&approvestep.ApproveStepCommand{},
+		approvestep.NewHandler(p.ApprovalRepo, p.ApprovalRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&rejectstep.RejectStepCommand{},
+		rejectstep.NewHandler(p.ApprovalRepo, p.ApprovalRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&cancelapproval.CancelApprovalCommand{},
+		cancelapproval.NewHandler(p.ApprovalRepo, p.ApprovalRepo, p.EventBus)); err != nil {
+		return err
+	}
+
+	listApprovalsH := listapprovals.NewHandler(p.ApprovalRepo)
+	if err := p.QryBus.Register(&listapprovals.ListApprovalsQuery{}, adaptQueryHandler(listApprovalsH.Handle)); err != nil {
+		return err
+	}
+	getApprovalH := getapproval.NewHandler(p.ApprovalRepo)
+	if err := p.QryBus.Register(&getapproval.GetApprovalQuery{}, adaptQueryHandler(getApprovalH.Handle)); err != nil {
+		return err
+	}
+
+	// ===== NOTIFICATIONS =====
+
+	if err := p.CmdBus.Register(&createnotification.CreateNotificationCommand{},
+		createnotification.NewHandler(p.NotificationRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&markread.MarkNotificationReadCommand{},
+		markread.NewHandler(p.NotificationRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&markallread.MarkAllNotificationsReadCommand{},
+		markallread.NewHandler(p.NotificationRepo, p.EventBus)); err != nil {
+		return err
+	}
+
+	listNotificationsH := listnotifications.NewHandler(p.NotificationRepo)
+	if err := p.QryBus.Register(&listnotifications.ListNotificationsQuery{}, adaptQueryHandler(listNotificationsH.Handle)); err != nil {
+		return err
+	}
+	getUnreadCountH := getunreadcount.NewHandler(p.NotificationRepo)
+	if err := p.QryBus.Register(&getunreadcount.GetUnreadCountQuery{}, adaptQueryHandler(getUnreadCountH.Handle)); err != nil {
+		return err
+	}
+
+	// Subscribe approval notification event handlers
+	approvalNotifH := eventhandler.NewApprovalNotificationHandler(p.NotificationRepo)
+	ctxBg := context.Background()
+	if err := p.EventBus.Subscribe(ctxBg, "ApprovalCreated", approvalNotifH.OnApprovalCreated); err != nil {
+		return err
+	}
+	if err := p.EventBus.Subscribe(ctxBg, "ApprovalStepApproved", approvalNotifH.OnApprovalStepApproved); err != nil {
+		return err
+	}
+	if err := p.EventBus.Subscribe(ctxBg, "ApprovalRejected", approvalNotifH.OnApprovalRejected); err != nil {
+		return err
+	}
+
+	// Subscribe MOU expiry notification handler (no fixed recipient IDs at startup;
+	// pass empty slice — actual user resolution happens per-notification in production).
+	mouExpiryH := eventhandler.NewMouExpiryHandler(p.NotificationRepo, nil)
+	if err := p.EventBus.Subscribe(ctxBg, "MouExpiring", mouExpiryH.OnMouExpiring); err != nil {
+		return err
+	}
+
+	// ===== SETTINGS =====
+
+	// Commission config
+	if err := p.CmdBus.Register(&updatecommissioncfg.UpdateCommissionConfigCommand{},
+		updatecommissioncfg.NewHandler(p.CommissionRepo)); err != nil {
+		return err
+	}
+	getCommissionH := getcommissioncfg.NewHandler(p.CommissionRepo)
+	if err := p.QryBus.Register(&getcommissioncfg.GetCommissionConfigQuery{}, adaptQueryHandler(getCommissionH.Handle)); err != nil {
+		return err
+	}
+
+	// Facilitator levels
+	if err := p.CmdBus.Register(&upsertfaclevels.UpsertFacilitatorLevelsCommand{},
+		upsertfaclevels.NewHandler(p.FacilitatorRepo)); err != nil {
+		return err
+	}
+	getFacLevelsH := getfaclevels.NewHandler(p.FacilitatorRepo)
+	if err := p.QryBus.Register(&getfaclevels.GetFacilitatorLevelsQuery{}, adaptQueryHandler(getFacLevelsH.Handle)); err != nil {
+		return err
+	}
+
+	// Holidays
+	if err := p.CmdBus.Register(&createholiday.CreateHolidayCommand{},
+		createholiday.NewHandler(p.HolidayRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deleteholiday.DeleteHolidayCommand{},
+		deleteholiday.NewHandler(p.HolidayRepo)); err != nil {
+		return err
+	}
+	listHolidaysH := listholidays.NewHandler(p.HolidayRepo)
+	if err := p.QryBus.Register(&listholidays.ListHolidaysQuery{}, adaptQueryHandler(listHolidaysH.Handle)); err != nil {
+		return err
+	}
+
+	// Branch update (settings)
+	if err := p.CmdBus.Register(&updatebranch.UpdateBranchCommand{},
+		updatebranch.NewHandler(p.BranchRepo, p.BranchRepo)); err != nil {
+		return err
+	}
+
+	// ===== CERTIFICATE =====
+
+	if err := p.CmdBus.Register(&createcerttemplate.CreateCertificateTemplateCommand{},
+		createcerttemplate.NewHandler(p.CertRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatecerttemplate.UpdateCertificateTemplateCommand{},
+		updatecerttemplate.NewHandler(p.CertRepo, p.CertRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&issuecertificate.IssueCertificateCommand{},
+		issuecertificate.NewHandler(p.CertRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&revokecertificate.RevokeCertificateCommand{},
+		revokecertificate.NewHandler(p.CertRepo, p.CertRepo, p.EventBus)); err != nil {
+		return err
+	}
+
+	listCertsH := listcertificates.NewHandler(p.CertRepo)
+	if err := p.QryBus.Register(&listcertificates.ListCertificatesQuery{}, adaptQueryHandler(listCertsH.Handle)); err != nil {
+		return err
+	}
+	getCertH := getcertificate.NewHandler(p.CertRepo)
+	if err := p.QryBus.Register(&getcertificate.GetCertificateQuery{}, adaptQueryHandler(getCertH.Handle)); err != nil {
+		return err
+	}
+	verifyCertH := verifycertificate.NewHandler(p.CertRepo)
+	if err := p.QryBus.Register(&verifycertificate.VerifyCertificateQuery{}, adaptQueryHandler(verifyCertH.Handle)); err != nil {
+		return err
+	}
+
+	// ===== CMS =====
+
+	// CMS Page
+	if err := p.CmdBus.Register(&updatecmspage.UpdateCmsPageCommand{},
+		updatecmspage.NewHandler(p.CmsRepo)); err != nil {
+		return err
+	}
+
+	// CMS Article
+	if err := p.CmdBus.Register(&createcmsarticle.CreateCmsArticleCommand{},
+		createcmsarticle.NewHandler(p.CmsRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatecmsarticle.UpdateCmsArticleCommand{},
+		updatecmsarticle.NewHandler(p.CmsRepo, p.CmsRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletecmsarticle.DeleteCmsArticleCommand{},
+		deletecmsarticle.NewHandler(p.CmsRepo)); err != nil {
+		return err
+	}
+
+	// CMS Testimonial
+	if err := p.CmdBus.Register(&createcmstestimonial.CreateCmsTestimonialCommand{},
+		createcmstestimonial.NewHandler(p.CmsRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatecmstestimonial.UpdateCmsTestimonialCommand{},
+		updatecmstestimonial.NewHandler(p.CmsRepo, p.CmsRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletecmstestimonial.DeleteCmsTestimonialCommand{},
+		deletecmstestimonial.NewHandler(p.CmsRepo)); err != nil {
+		return err
+	}
+
+	// CMS FAQ
+	if err := p.CmdBus.Register(&createcmsfaq.CreateCmsFaqCommand{},
+		createcmsfaq.NewHandler(p.CmsRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatecmsfaq.UpdateCmsFaqCommand{},
+		updatecmsfaq.NewHandler(p.CmsRepo, p.CmsRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletecmsfaq.DeleteCmsFaqCommand{},
+		deletecmsfaq.NewHandler(p.CmsRepo)); err != nil {
+		return err
+	}
+
+	// CMS Media
+	if err := p.CmdBus.Register(&uploadcmsmedia.UploadCmsMediaCommand{},
+		uploadcmsmedia.NewHandler(p.CmsRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletecmsmedia.DeleteCmsMediaCommand{},
+		deletecmsmedia.NewHandler(p.CmsRepo)); err != nil {
+		return err
+	}
+
+	// CMS Queries
+	listCmsPagesH := listcmspages.NewHandler(p.CmsRepo)
+	if err := p.QryBus.Register(&listcmspages.ListCmsPagesQuery{}, adaptQueryHandler(listCmsPagesH.Handle)); err != nil {
+		return err
+	}
+	getCmsPageH := getcmspage.NewHandler(p.CmsRepo)
+	if err := p.QryBus.Register(&getcmspage.GetCmsPageQuery{}, adaptQueryHandler(getCmsPageH.Handle)); err != nil {
+		return err
+	}
+	listCmsArticlesH := listcmsarticles.NewHandler(p.CmsRepo)
+	if err := p.QryBus.Register(&listcmsarticles.ListCmsArticlesQuery{}, adaptQueryHandler(listCmsArticlesH.Handle)); err != nil {
+		return err
+	}
+	getCmsArticleH := getcmsarticle.NewHandler(p.CmsRepo)
+	if err := p.QryBus.Register(&getcmsarticle.GetCmsArticleQuery{}, adaptQueryHandler(getCmsArticleH.Handle)); err != nil {
+		return err
+	}
+	listCmsTestimonialsH := listcmstestimonials.NewHandler(p.CmsRepo)
+	if err := p.QryBus.Register(&listcmstestimonials.ListCmsTestimonialsQuery{}, adaptQueryHandler(listCmsTestimonialsH.Handle)); err != nil {
+		return err
+	}
+	listCmsFaqH := listcmsfaq.NewHandler(p.CmsRepo)
+	if err := p.QryBus.Register(&listcmsfaq.ListCmsFaqQuery{}, adaptQueryHandler(listCmsFaqH.Handle)); err != nil {
+		return err
+	}
+	listCmsMediaH := listcmsmedia.NewHandler(p.CmsRepo)
+	if err := p.QryBus.Register(&listcmsmedia.ListCmsMediaQuery{}, adaptQueryHandler(listCmsMediaH.Handle)); err != nil {
 		return err
 	}
 
