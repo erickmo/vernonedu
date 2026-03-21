@@ -1,1 +1,0 @@
- /Users/erickmo/Desktop/Project/vernonedu/app-blockcoding/build/33dbabedd2f31b17380a514023d07630/dart_build_result.json:  /Users/erickmo/Desktop/Project/vernonedu/app-blockcoding/.dart_tool/package_config.json /Users/erickmo/Desktop/Project/vernonedu/app-blockcoding/pubspec.yaml /usr/local/share/flutter/bin/cache/dart-sdk/version
