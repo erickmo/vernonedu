@@ -23,7 +23,7 @@ class DashboardPage extends StatelessWidget {
             children: [
               _PageHeader(user: user),
               const SizedBox(height: AppDimensions.lg),
-              _StatCards(role: user?.role),
+              _StatCards(roles: user?.roles),
               const SizedBox(height: AppDimensions.lg),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,7 +59,7 @@ class _PageHeader extends StatelessWidget {
         ),
         const SizedBox(height: AppDimensions.xs),
         Text(
-          '${user?.role.label ?? ''} · VernonEdu Management',
+          '${user?.rolesLabel ?? ''} · VernonEdu Management',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: AppColors.textSecondary,
           ),
@@ -70,8 +70,8 @@ class _PageHeader extends StatelessWidget {
 }
 
 class _StatCards extends StatelessWidget {
-  final UserRole? role;
-  const _StatCards({this.role});
+  final List<UserRole>? roles;
+  const _StatCards({this.roles});
 
   @override
   Widget build(BuildContext context) {

@@ -13,9 +13,9 @@ var (
 )
 
 type Claims struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
+	UserID string   `json:"user_id"`
+	Email  string   `json:"email"`
+	Roles  []string `json:"roles"`
 	jwt.RegisteredClaims
 }
 
@@ -32,11 +32,15 @@ func NewJWTUtil(secret string) *JWTUtil {
 	return &JWTUtil{secret: []byte(secret)}
 }
 
-func (j *JWTUtil) GenerateTokenPair(userID, email, role string) (*TokenPair, error) {
+func (j *JWTUtil) GenerateTokenPair(userID, email string, roles []string) (*TokenPair, error) {
+	if len(roles) == 0 {
+		roles = []string{"student"}
+	}
+
 	accessClaims := Claims{
 		UserID: userID,
 		Email:  email,
-		Role:   role,
+		Roles:  roles,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -51,7 +55,7 @@ func (j *JWTUtil) GenerateTokenPair(userID, email, role string) (*TokenPair, err
 	refreshClaims := Claims{
 		UserID: userID,
 		Email:  email,
-		Role:   role,
+		Roles:  roles,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

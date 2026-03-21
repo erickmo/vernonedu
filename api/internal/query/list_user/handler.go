@@ -18,7 +18,7 @@ type UserReadModel struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
-	Role      string    `json:"role"`
+	Roles     []string  `json:"roles"`
 	CreatedAt int64     `json:"created_at"`
 	UpdatedAt int64     `json:"updated_at"`
 }
@@ -58,7 +58,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 			ID:        u.ID,
 			Name:      u.Name,
 			Email:     u.Email,
-			Role:      u.Role,
+			Roles:     u.Roles,
 			CreatedAt: u.CreatedAt.Unix(),
 			UpdatedAt: u.UpdatedAt.Unix(),
 		}

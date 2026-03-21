@@ -4,7 +4,7 @@ class UserModel {
   final String id;
   final String name;
   final String email;
-  final String role;
+  final List<String> roles;
   final String? departmentId;
   final String? departmentName;
   final String? avatarUrl;
@@ -14,7 +14,7 @@ class UserModel {
     required this.id,
     required this.name,
     required this.email,
-    required this.role,
+    required this.roles,
     this.departmentId,
     this.departmentName,
     this.avatarUrl,
@@ -25,7 +25,13 @@ class UserModel {
         id: json['id'] as String,
         name: json['name'] as String,
         email: json['email'] as String,
-        role: json['role'] as String,
+        // API now returns roles: ["director", "education_leader"].
+        // Backward compat: also handles legacy role: "director" (single string).
+        roles: json['roles'] != null
+            ? (json['roles'] as List).map((e) => e as String).toList()
+            : json['role'] != null
+                ? [json['role'] as String]
+                : ['student'],
         departmentId: json['department_id'] as String?,
         departmentName: json['department_name'] as String?,
         avatarUrl: json['avatar_url'] as String?,
@@ -36,7 +42,7 @@ class UserModel {
         id: id,
         name: name,
         email: email,
-        role: UserRole.fromString(role),
+        roles: roles.map(UserRole.fromString).toList(),
         departmentId: departmentId,
         departmentName: departmentName,
         avatarUrl: avatarUrl,

@@ -90,7 +90,7 @@ type LoginUserInfo struct {
 	ID    uuid.UUID `json:"id"`
 	Name  string    `json:"name"`
 	Email string    `json:"email"`
-	Role  string    `json:"role"`
+	Roles []string  `json:"roles"`
 }
 
 type LoginResponse struct {
@@ -122,7 +122,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenPair, err := h.jwtUtil.GenerateTokenPair(u.ID.String(), u.Email, u.Role)
+	tokenPair, err := h.jwtUtil.GenerateTokenPair(u.ID.String(), u.Email, u.Roles)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to generate token pair")
 		writeError(w, http.StatusInternalServerError, "internal server error")
@@ -136,20 +136,20 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			ID:    u.ID,
 			Name:  u.Name,
 			Email: u.Email,
-			Role:  u.Role,
+			Roles: u.Roles,
 		},
 	})
 }
 
 type MeResponse struct {
-	ID           uuid.UUID `json:"id"`
-	Name         string    `json:"name"`
-	Email        string    `json:"email"`
-	Role         string    `json:"role"`
-	DepartmentID *string   `json:"department_id"`
-	DepartmentName *string `json:"department_name"`
-	AvatarURL    *string   `json:"avatar_url"`
-	IsActive     bool      `json:"is_active"`
+	ID             uuid.UUID `json:"id"`
+	Name           string    `json:"name"`
+	Email          string    `json:"email"`
+	Roles          []string  `json:"roles"`
+	DepartmentID   *string   `json:"department_id"`
+	DepartmentName *string   `json:"department_name"`
+	AvatarURL      *string   `json:"avatar_url"`
+	IsActive       bool      `json:"is_active"`
 }
 
 func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
@@ -177,7 +177,7 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 			ID:             u.ID,
 			Name:           u.Name,
 			Email:          u.Email,
-			Role:           u.Role,
+			Roles:          u.Roles,
 			DepartmentID:   nil,
 			DepartmentName: nil,
 			AvatarURL:      nil,

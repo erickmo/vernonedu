@@ -45,7 +45,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		return err
 	}
 
-	newUser, err := user.NewUser(registerCmd.Name, registerCmd.Email, string(hashBytes), "student")
+	newUser, err := user.NewUser(registerCmd.Name, registerCmd.Email, string(hashBytes), []string{user.RoleStudent})
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create user domain object")
 		return err

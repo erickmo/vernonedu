@@ -10,7 +10,8 @@ class _NavItem {
   final String label;
   final IconData icon;
   final String route;
-  final bool Function(UserRole) hasAccess;
+  // Receives a UserEntity so access checks can union across all assigned roles.
+  final bool Function(UserEntity) hasAccess;
 
   const _NavItem({
     required this.label,
@@ -34,49 +35,49 @@ final _navItems = <_NavItem>[
     label: 'Course',
     icon: Icons.menu_book_outlined,
     route: '/curriculum',
-    hasAccess: (r) => r.canManageCourse || r == UserRole.facilitator,
+    hasAccess: (u) => u.canManageCourse || u.hasRole(UserRole.facilitator),
   ),
   _NavItem(
     label: AppStrings.navCourseBatch,
     icon: Icons.class_outlined,
     route: '/course-batches',
-    hasAccess: (r) =>
-        r.canManageCourse ||
-        r == UserRole.facilitator ||
-        r.isOperationTeam,
+    hasAccess: (u) =>
+        u.canManageCourse ||
+        u.hasRole(UserRole.facilitator) ||
+        u.isOperationTeam,
   ),
   _NavItem(
     label: AppStrings.navEnrollment,
     icon: Icons.how_to_reg_outlined,
     route: '/enrollments',
-    hasAccess: (r) => r.canManageStudent || r.canManageCourse,
+    hasAccess: (u) => u.canManageStudent || u.canManageCourse,
   ),
   _NavItem(
     label: AppStrings.navStudent,
     icon: Icons.people_outline,
     route: '/students',
-    hasAccess: (r) => r.canManageStudent,
+    hasAccess: (u) => u.canManageStudent,
   ),
   _NavItem(
     label: 'TalentPool',
     icon: Icons.workspace_premium_outlined,
     route: '/talentpool',
-    hasAccess: (r) => r.canViewTalentPool,
+    hasAccess: (u) => u.canViewTalentPool,
   ),
   _NavItem(
     label: AppStrings.navCertificate,
     icon: Icons.card_membership_outlined,
     route: '/certificates',
-    hasAccess: (r) => r.canManageCourse || r == UserRole.customerService,
+    hasAccess: (u) => u.canManageCourse || u.hasRole(UserRole.customerService),
   ),
   _NavItem(
     label: AppStrings.navDepartment,
     icon: Icons.corporate_fare_outlined,
     route: '/departments',
-    hasAccess: (r) =>
-        r == UserRole.director ||
-        r == UserRole.educationLeader ||
-        r == UserRole.deptLeader,
+    hasAccess: (u) =>
+        u.hasRole(UserRole.director) ||
+        u.hasRole(UserRole.educationLeader) ||
+        u.hasRole(UserRole.deptLeader),
   ),
 
   // ── Operations ───────────────────────────────────────────────────────────
@@ -84,23 +85,23 @@ final _navItems = <_NavItem>[
     label: AppStrings.navLeads,
     icon: Icons.contacts_outlined,
     route: '/leads',
-    hasAccess: (r) =>
-        r == UserRole.director ||
-        r == UserRole.operationLeader ||
-        r == UserRole.customerService ||
-        r == UserRole.marketing,
+    hasAccess: (u) =>
+        u.hasRole(UserRole.director) ||
+        u.hasRole(UserRole.operationLeader) ||
+        u.hasRole(UserRole.customerService) ||
+        u.hasRole(UserRole.marketing),
   ),
   _NavItem(
     label: AppStrings.navLocations,
     icon: Icons.location_on_outlined,
     route: '/locations',
-    hasAccess: (r) => r.canManageLocation,
+    hasAccess: (u) => u.canManageLocation,
   ),
   _NavItem(
     label: AppStrings.navPayment,
     icon: Icons.receipt_long_outlined,
     route: '/payments',
-    hasAccess: (r) => r.canManageStudent || r.canViewAccounting,
+    hasAccess: (u) => u.canManageStudent || u.canViewAccounting,
   ),
 
   // ── CRM & Partners ───────────────────────────────────────────────────────
@@ -108,16 +109,16 @@ final _navItems = <_NavItem>[
     label: AppStrings.navCrm,
     icon: Icons.support_agent_outlined,
     route: '/crm',
-    hasAccess: (r) => r.canViewCrm,
+    hasAccess: (u) => u.canViewCrm,
   ),
   _NavItem(
     label: AppStrings.navPartners,
     icon: Icons.handshake_outlined,
     route: '/partners',
-    hasAccess: (r) =>
-        r == UserRole.director ||
-        r == UserRole.operationLeader ||
-        r == UserRole.educationLeader,
+    hasAccess: (u) =>
+        u.hasRole(UserRole.director) ||
+        u.hasRole(UserRole.operationLeader) ||
+        u.hasRole(UserRole.educationLeader),
   ),
 
   // ── Finance & HR ─────────────────────────────────────────────────────────
@@ -125,13 +126,13 @@ final _navItems = <_NavItem>[
     label: AppStrings.navAccounting,
     icon: Icons.account_balance_outlined,
     route: '/accounting',
-    hasAccess: (r) => r.canViewAccounting,
+    hasAccess: (u) => u.canViewAccounting,
   ),
   _NavItem(
     label: AppStrings.navHrm,
     icon: Icons.badge_outlined,
     route: '/hrm',
-    hasAccess: (r) => r.canViewHrm,
+    hasAccess: (u) => u.canViewHrm,
   ),
 
   // ── Director-level ───────────────────────────────────────────────────────
@@ -139,16 +140,16 @@ final _navItems = <_NavItem>[
     label: AppStrings.navProject,
     icon: Icons.task_alt_outlined,
     route: '/projects',
-    hasAccess: (r) =>
-        r == UserRole.director ||
-        r == UserRole.educationLeader ||
-        r == UserRole.operationLeader,
+    hasAccess: (u) =>
+        u.hasRole(UserRole.director) ||
+        u.hasRole(UserRole.educationLeader) ||
+        u.hasRole(UserRole.operationLeader),
   ),
   _NavItem(
     label: AppStrings.navBusinessDev,
     icon: Icons.trending_up_outlined,
     route: '/business-development',
-    hasAccess: (r) => r.canViewBusinessDev,
+    hasAccess: (u) => u.canViewBusinessDev,
   ),
 
   // ── Global ───────────────────────────────────────────────────────────────
@@ -156,19 +157,19 @@ final _navItems = <_NavItem>[
     label: AppStrings.navApprovals,
     icon: Icons.approval_outlined,
     route: '/approvals',
-    hasAccess: (r) => r.hasApprovals,
+    hasAccess: (u) => u.hasApprovals,
   ),
   _NavItem(
     label: AppStrings.navNotifications,
     icon: Icons.notifications_outlined,
     route: '/notifications',
-    hasAccess: (r) => r.canAccessAdmin,
+    hasAccess: (u) => u.canAccessAdmin,
   ),
   _NavItem(
     label: AppStrings.navSettings,
     icon: Icons.settings_outlined,
     route: '/settings',
-    hasAccess: (r) => r == UserRole.director,
+    hasAccess: (u) => u.hasRole(UserRole.director),
   ),
 ];
 
@@ -207,7 +208,7 @@ class SidebarWidget extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: AppDimensions.sm),
               children: _navItems
-                  .where((item) => item.hasAccess(user.role))
+                  .where((item) => item.hasAccess(user))
                   .map((item) => _NavTile(
                         item: item,
                         collapsed: collapsed,
@@ -381,7 +382,7 @@ class _SidebarUserInfo extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    user.role.label,
+                    user.rolesLabel,
                     style: const TextStyle(
                       color: AppColors.sidebarTextMuted,
                       fontSize: 11,

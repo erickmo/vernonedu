@@ -13,10 +13,10 @@ import (
 )
 
 type CreateUserCommand struct {
-	Name     string `validate:"required,min=1"`
-	Email    string `validate:"required,email"`
-	Password string `validate:"required,min=6"`
-	Role     string `validate:"required"`
+	Name     string   `validate:"required,min=1"`
+	Email    string   `validate:"required,email"`
+	Password string   `validate:"required,min=6"`
+	Roles    []string `validate:"required,min=1"`
 }
 
 type Handler struct {
@@ -43,7 +43,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		return err
 	}
 
-	newUser, err := user.NewUser(createCmd.Name, createCmd.Email, string(hashBytes), createCmd.Role)
+	newUser, err := user.NewUser(createCmd.Name, createCmd.Email, string(hashBytes), createCmd.Roles)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create user")
 		return err

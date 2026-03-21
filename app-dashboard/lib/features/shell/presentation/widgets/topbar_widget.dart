@@ -96,7 +96,7 @@ class TopbarWidget extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      user.role.label,
+                      user.rolesLabel,
                       style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.textSecondary,

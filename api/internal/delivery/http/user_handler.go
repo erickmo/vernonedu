@@ -32,10 +32,10 @@ func NewUserHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *Use
 }
 
 type CreateUserRequest struct {
-	Name     string `json:"name"     validate:"required,min=1"`
-	Email    string `json:"email"    validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6"`
-	Role     string `json:"role"     validate:"required"`
+	Name     string   `json:"name"     validate:"required,min=1"`
+	Email    string   `json:"email"    validate:"required,email"`
+	Password string   `json:"password" validate:"required,min=6"`
+	Roles    []string `json:"roles"    validate:"required,min=1"`
 }
 
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +49,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Name:     req.Name,
 		Email:    req.Email,
 		Password: req.Password,
-		Role:     req.Role,
+		Roles:    req.Roles,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute create user command")

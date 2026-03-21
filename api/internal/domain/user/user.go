@@ -14,22 +14,42 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 )
 
+// Valid role constants
+const (
+	RoleDirector         = "director"
+	RoleEducationLeader  = "education_leader"
+	RoleDeptLeader       = "dept_leader"
+	RoleCourseOwner      = "course_owner"
+	RoleFacilitator      = "facilitator"
+	RoleOperationLeader  = "operation_leader"
+	RoleOperationAdmin   = "operation_admin"
+	RoleCustomerService  = "customer_service"
+	RoleMarketing        = "marketing"
+	RoleAccountingLeader = "accounting_leader"
+	RoleAccountingStaff  = "accounting_staff"
+	RoleStudent          = "student"
+	RolePartner          = "partner"
+)
+
 type User struct {
 	ID           uuid.UUID
 	Name         string
 	Email        string
 	PasswordHash string
-	Role         string
+	Roles        []string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
 
-func NewUser(name, email, passwordHash, role string) (*User, error) {
+func NewUser(name, email, passwordHash string, roles []string) (*User, error) {
 	if name == "" {
 		return nil, ErrInvalidName
 	}
 	if email == "" {
 		return nil, ErrInvalidEmail
+	}
+	if len(roles) == 0 {
+		roles = []string{RoleStudent}
 	}
 
 	return &User{
@@ -37,10 +57,19 @@ func NewUser(name, email, passwordHash, role string) (*User, error) {
 		Name:         name,
 		Email:        email,
 		PasswordHash: passwordHash,
-		Role:         role,
+		Roles:        roles,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}, nil
+}
+
+func (u *User) HasRole(role string) bool {
+	for _, r := range u.Roles {
+		if r == role {
+			return true
+		}
+	}
+	return false
 }
 
 func (u *User) UpdateName(name string) error {

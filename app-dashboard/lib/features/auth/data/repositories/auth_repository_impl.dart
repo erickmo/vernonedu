@@ -34,7 +34,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final result = await remoteDataSource.login(email: email, password: password);
       await prefs.setString(AppConstants.accessTokenKey, result.accessToken);
       await prefs.setString(AppConstants.refreshTokenKey, result.refreshToken);
-      await prefs.setString(AppConstants.userRoleKey, result.user.role);
+      await prefs.setString(AppConstants.userRolesKey, result.user.roles.join(','));
       return Right(result.user.toEntity());
     } on DioException catch (e) {
       return Left(_handleDioError(e));
@@ -48,7 +48,7 @@ class AuthRepositoryImpl implements AuthRepository {
     await prefs.remove(AppConstants.accessTokenKey);
     await prefs.remove(AppConstants.refreshTokenKey);
     await prefs.remove(AppConstants.userDataKey);
-    await prefs.remove(AppConstants.userRoleKey);
+    await prefs.remove(AppConstants.userRolesKey);
     return const Right(null);
   }
 
