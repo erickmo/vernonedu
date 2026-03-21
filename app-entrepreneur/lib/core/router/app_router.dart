@@ -11,7 +11,11 @@ import '../../features/business_ideation/presentation/cubit/canvas_item_cubit.da
 import '../../features/business_ideation/presentation/pages/business_detail_page.dart';
 import '../../features/business_ideation/presentation/pages/business_ideation_page.dart';
 import '../../features/business_ideation/presentation/pages/worksheet_page.dart';
+import '../../features/course/presentation/pages/course_page.dart';
+import '../../features/students/presentation/pages/students_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../../features/block_coding/presentation/pages/block_coding_home_page.dart';
+import '../../features/block_coding/presentation/pages/block_editor_page.dart';
 import '../../features/dashboard/presentation/pages/shell_page.dart';
 import '../../features/launchpad/presentation/pages/launchpad_detail_page.dart';
 import '../../features/launchpad/presentation/pages/launchpad_page.dart';
@@ -130,7 +134,29 @@ class AppRouter {
             builder: (context, state) =>
                 const _PlaceholderContent(title: 'Finance & Reporting'),
           ),
+          GoRoute(
+            path: '/course',
+            builder: (context, state) => const CoursePage(),
+          ),
+          GoRoute(
+            path: '/students',
+            builder: (context, state) => const StudentsPage(),
+          ),
+          GoRoute(
+            path: '/block-coding',
+            builder: (context, state) => const BlockCodingHomePage(),
+          ),
         ],
+      ),
+      GoRoute(
+        path: '/block-coding/editor',
+        builder: (context, state) => const BlockEditorPage(),
+      ),
+      GoRoute(
+        path: '/block-coding/editor/:challengeId',
+        builder: (context, state) => BlockEditorPage(
+          challengeId: state.pathParameters['challengeId'],
+        ),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

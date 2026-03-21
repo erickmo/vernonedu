@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,8 +21,8 @@ class LoginFormSection extends StatefulWidget {
 
 class _LoginFormSectionState extends State<LoginFormSection> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'siswa@vernonedu.com');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _emailController = TextEditingController(text: 'mo@intinusa.id');
+  final _passwordController = TextEditingController(text: '123132');
   bool _obscurePassword = true;
 
   @override
@@ -36,7 +37,9 @@ class _LoginFormSectionState extends State<LoginFormSection> {
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          context.go('/dashboard');
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            context.go('/dashboard');
+          });
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

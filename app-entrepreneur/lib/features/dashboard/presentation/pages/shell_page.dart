@@ -30,6 +30,9 @@ class _ShellPageState extends State<ShellPage> {
     '/marketing': 6,
     '/hr': 7,
     '/finance': 8,
+    '/course': 9,
+    '/students': 10,
+    '/block-coding': 11,
   };
 
   static const _indexToRoute = [
@@ -42,6 +45,9 @@ class _ShellPageState extends State<ShellPage> {
     '/marketing',
     '/hr',
     '/finance',
+    '/course',
+    '/students',
+    '/block-coding',
   ];
 
   int get _selectedIndex {

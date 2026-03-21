@@ -42,6 +42,9 @@ class SidebarWidget extends StatelessWidget {
     SidebarItem(icon: Icons.campaign_rounded, label: 'Marketing'),
     SidebarItem(icon: Icons.people_rounded, label: 'HR Management'),
     SidebarItem(icon: Icons.account_balance_wallet_rounded, label: 'Finance'),
+    SidebarItem(icon: Icons.school_rounded, label: 'Course'),
+    SidebarItem(icon: Icons.badge_rounded, label: 'Students'),
+    SidebarItem(icon: Icons.widgets_rounded, label: 'Block Coding', badge: 'NEW'),
   ];
 
   @override
