@@ -13,16 +13,13 @@ api/bin/
 api/*.env
 api/vendor/
 
-# Flutter (app-entrepreneur/, app-dashboard/)
-app-entrepreneur/build/
-app-entrepreneur/.dart_tool/
-app-entrepreneur/.flutter-plugins
-app-entrepreneur/.flutter-plugins-dependencies
-app-entrepreneur/.packages
-app-dashboard/build/
-app-dashboard/.dart_tool/
-app-dashboard/.flutter-plugins
-app-dashboard/.flutter-plugins-dependencies
+# Flutter (all apps)
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/*.iml
 
 # Env files (all projects)
 **/.env
