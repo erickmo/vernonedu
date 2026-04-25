@@ -135,3 +135,4 @@ Admin requests revoke
 - [course](../course/course.md)
 - [enrollment](../enrollment/enrollment.md)
 - [student](../student/student.md)
+- [notification](../notification/notification.md)

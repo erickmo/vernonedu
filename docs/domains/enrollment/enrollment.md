@@ -74,3 +74,4 @@ Student browses course batches
 - [institution](../institution/institution.md)
 - [payment](../payment/payment.md)
 - [certificate](../certificate/certificate.md)
+- [notification](../notification/notification.md)

@@ -130,7 +130,7 @@ Credit can be applied at next enrollment to reduce payment amount.
 4. Gateway transactions confirmed via webhook — no manual step
 5. `paid_amount` = sum of all confirmed transaction amounts
 6. `overdue` check: run daily — any term with `due_date < today` and `status = unpaid`
-7. Student notified on each term due date (email/WhatsApp)
+7. Student notified on each term due date — triggers `payment.term.due` via Notification domain
 8. Refund type is chosen by admin per dropped enrollment — no automatic rule
 9. Credit balance applied before other payment methods at next enrollment
 10. Payment Terms sum must equal `total_amount`
@@ -140,3 +140,5 @@ Credit can be applied at next enrollment to reduce payment amount.
 
 - [enrollment](../enrollment/enrollment.md)
 - [student](../student/student.md)
+- [notification](../notification/notification.md)
+- [calendar](../calendar/calendar.md)

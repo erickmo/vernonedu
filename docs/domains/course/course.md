@@ -156,3 +156,4 @@ Defines which certificates this course can issue. One course can have multiple c
 - [certificate](../certificate/certificate.md)
 - [budget](../budget/budget.md)
 - [module](../module/module.md)
+- [calendar](../calendar/calendar.md)
