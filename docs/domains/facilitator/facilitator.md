@@ -91,3 +91,5 @@ Beyond the course-level approval flow, Dept Leader can directly assign an approv
 
 - [course](../course/course.md)
 - [department](../department/department.md)
+- [notification](../notification/notification.md)
+- [calendar](../calendar/calendar.md)
