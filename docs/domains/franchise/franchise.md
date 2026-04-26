@@ -9,15 +9,19 @@ VernonEdu operates a franchise model where external investors (franchisees) own 
 ### Franchisee
 | Field | Type | Notes |
 |---|---|---|
+| id | uuid | PK |
 | name | string | Owner / investor name or entity |
 | branch_name | string | Name of the franchise branch |
 | location | string | City / address |
 | contact | string | |
 | status | enum | active, inactive, terminated |
+| created_by | User | Admin who created the record |
+| created_at | datetime | |
 
 ### Franchise Agreement
 | Field | Type | Notes |
 |---|---|---|
+| id | uuid | PK |
 | franchisee | Franchisee | |
 | buy_in_fee | decimal | One-time fee paid at signing |
 | monthly_royalty | decimal | Fixed amount paid monthly to VernonEdu |
@@ -57,7 +61,8 @@ Tracks whether royalty has been paid each period.
 | monthly_royalty | decimal | Fixed amount from agreement |
 | revenue_royalty | decimal | gross_revenue × revenue_royalty_pct |
 | total_royalty | decimal | monthly_royalty + revenue_royalty |
-| status | enum | unpaid, paid |
+| status | enum | unpaid, overdue, paid — overdue: past the royalty due date; set by background job |
+| created_at | datetime | |
 | paid_at | datetime | Nullable |
 | recorded_by | User | Admin |
 
@@ -72,6 +77,11 @@ Tracks whether royalty has been paid each period.
 7. Total royalty per period = monthly_royalty + revenue_royalty
 8. Buy-in fee is one-time at agreement signing — non-refundable
 9. `revenue_royalty_pct` must be between 0–100
+10. Franchise gross branch revenue is calculated from Enrollment records where `enrollment.franchisee = this Franchisee`. The `franchisee` field on Enrollment is set at enrollment creation time for franchise branch enrollments.
+11. Admin must set the `franchisee` field on enrollments originating from a franchise branch. Future automation (e.g., branch-linked course batches) may set this automatically.
+
+## Background Jobs
+- **Royalty overdue check** (monthly, on the 15th): any `RoyaltyPaymentRecord` with `status = unpaid` and whose period end date is > 14 days ago → set `status = overdue`
 
 ## Revenue Reporting Requirement
 
