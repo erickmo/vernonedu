@@ -120,6 +120,9 @@ Apply same summary formula
 
 ## Related Domains
 
+> **Boundary note:** Budget domain tracks *planned vs actual spend* per batch/class (operational cost management). Profit Split domain tracks *BatchCostLineItem* for revenue calculation. These are separate concerns — Budget does not feed directly into Profit Split.
+
 - [course](../course/course.md)
 - [enrollment](../enrollment/enrollment.md)
 - [profit-split](../profit-split/profit-split.md)
+- [invoice](../invoice/invoice.md)
