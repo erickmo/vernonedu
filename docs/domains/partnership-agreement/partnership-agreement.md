@@ -33,7 +33,7 @@ Uploaded documents associated with an agreement (MOU, proposals, etc.).
 |---|---|---|
 | id | uuid | |
 | agreement | PartnershipAgreement | |
-| type | enum | `mou`, `proposal` |
+| type | enum | `mou`, `proposal`, `addendum`, `termination_letter`, `other` |
 | title | string | |
 | file_url | string | |
 | uploaded_by | User | |
@@ -56,7 +56,23 @@ Uploaded documents associated with an agreement (MOU, proposals, etc.).
 5. Agreement with `status = draft` cannot be referenced by B2B enrollment
 6. `end_date = null` = open-ended; never auto-expires
 7. Documents can be uploaded at any agreement status
-8. Bulk price resolution per enrollment: `batch_bulk_price` (if set on batch) → `agreement.bulk_price` → `course_batch.price`
+8. Bulk price resolution per B2B enrollment: `course_batch.batch_bulk_price` (if set on the batch) → `agreement.bulk_price` → `course_batch.price`
+9. Unique partial constraint: only one `PartnershipAgreement` per partner can have `status = active` at a time. Enforced at the database level.
+
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| `partnership_agreement.activated` | `{agreement_id, partner_id, start_date}` | — |
+| `partnership_agreement.expired` | `{agreement_id, partner_id}` | — |
+| `partnership_agreement.terminated` | `{agreement_id, partner_id, reason}` | — |
+| `partnership_agreement.meeting_scheduled` | `{agreement_id, partner_id, start_at, end_at}` | Calendar |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| — | — | — |
 
 ## Related Domains
 
