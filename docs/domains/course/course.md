@@ -18,12 +18,15 @@ Department
 ### Course
 | Field | Type | Notes |
 |---|---|---|
+| id | uuid | PK |
 | name | string | |
 | department | Department | Parent department |
 | course_creator | User (role: course_creator) | Owns and responsible for course content |
 | base_price | decimal | Standard/default price |
 | min_price | decimal | Floor price — batch price cannot go below this |
 | profit_split_override | JSON | Optional CEO override for this course's profit split |
+| created_by | User | |
+| created_at | datetime | |
 
 ### Course Format Config
 Each enabled format has its own config. A course can have multiple format configs.
@@ -48,15 +51,19 @@ Formats:
 ### Course Batch
 | Field | Type | Notes |
 |---|---|---|
+| id | uuid | PK |
 | course | Course | Parent course |
-| name / label | string | e.g., "Batch 3 - April 2026" |
+| label | string | e.g., "Batch 3 - April 2026" |
 | start_date | date | |
 | end_date | date | |
 | price | decimal | Must be within [min_price, base_price] |
+| batch_bulk_price | decimal | Nullable; B2B per-batch price override — takes priority over agreement.bulk_price |
 | status | enum | draft, open, ongoing, closed |
 | web_registration_open | boolean | If true, students can self-enroll via web; if false, admin-only enrollment |
 | registration_open_at | datetime | Nullable; when registration opens |
 | registration_close_at | datetime | Nullable; when registration closes |
+| created_by | User | |
+| created_at | datetime | |
 
 ### Class
 | Field | Type | Notes |
@@ -86,21 +93,8 @@ Default cost items defined at course level. Inherited by every new Course Batch.
 | cost_type | enum | fixed, percentage_of_revenue |
 
 ### Batch Cost Line Item
-Actual costs per batch. Copied from template on batch creation; each item can be overridden or removed.
 
-| Field | Type | Notes |
-|---|---|---|
-| id | uuid | |
-| course_batch | Course Batch | Parent batch |
-| template_ref | Course Cost Template | Nullable; set if inherited from template |
-| label | string | Overridable |
-| amount | decimal | Overridable |
-| cost_type | enum | fixed, percentage_of_revenue |
-| is_removed | boolean | Exclude from cost sum if true |
-| reference_type | enum | manual, facilitator_fee, partner_split, other |
-| reference_id | uuid | Nullable; links to auto-generated source |
-| created_by | User | |
-| created_at | datetime | |
+> **Batch Cost Line Item** is owned by the [Profit Split domain](../profit-split/profit-split.md). See that domain for the full entity definition. The entity is referenced here because it is attached to a Course Batch.
 
 ### Course Budget Template Item
 Default budget items for every batch created from this course. See [budget domain](../budget/budget.md) for full detail.
@@ -115,15 +109,8 @@ Default budget items for every batch created from this course. See [budget domai
 | overridable | boolean | If false, batch cannot change the amount |
 
 ### Certificate Config
-Defines which certificates this course can issue. One course can have multiple configs.
 
-| Field | Type | Notes |
-|---|---|---|
-| id | uuid | |
-| course | Course | Parent course |
-| type | enum | vernonedu_competence, vernonedu_participation, partner |
-| partner_name | string | Nullable; e.g., "BNSP", "CompTIA" |
-| issued_on | enum | completion, manual |
+> **Certificate Config** is owned by the [Certificate domain](../certificate/certificate.md). See that domain for the full entity definition.
 
 ## Business Rules
 
@@ -146,6 +133,8 @@ Defines which certificates this course can issue. One course can have multiple c
 14. Batch `price` must be within `[min_price, base_price]` — system enforces this on save
 15. Price below `min_price` is only achievable via voucher applied at enrollment
 16. Certificate configs define which certificates students receive on completion or manual issuance
+17. Unique constraint on `(course, format)` in CourseFormatConfig — each format can only be configured once per course
+18. Enrollment `format` field supports all four formats. `inhouse_training` and `inschool_program` are admin-managed enrollments — not available for student self-enrollment via web
 
 ## Cross-Domain Events
 
@@ -153,7 +142,10 @@ Defines which certificates this course can issue. One course can have multiple c
 | Event | Payload | Known Listeners |
 |-------|---------|-----------------|
 | `course.batch.created` | `{batch_id, course_id, schedule}` | Calendar |
+| `course.batch.closed` | `{batch_id, course_id}` | Profit Split |
 | `course.class.facilitator_assigned` | `{class_id, batch_id, facilitator_id}` | Calendar |
+| `course.class.rescheduled` | `{class_id, batch_id, new_date, new_start_time, new_end_time}` | Calendar |
+| `course.class.cancelled` | `{class_id, batch_id}` | Calendar |
 
 ### Listens (I react to these)
 | Event | Source | My action |
@@ -165,7 +157,7 @@ Defines which certificates this course can issue. One course can have multiple c
 - [department](../department/department.md)
 - [enrollment](../enrollment/enrollment.md)
 - [student](../student/student.md)
-- [facilitator](../facilitator/facilitator.md)
+- [team-member](../team-member/team-member.md)
 - [profit-split](../profit-split/profit-split.md)
 - [certificate](../certificate/certificate.md)
 - [budget](../budget/budget.md)
