@@ -25,8 +25,12 @@ Department
 ### Department
 | Field | Type | Notes |
 |---|---|---|
+| id | uuid | PK |
 | name | string | Department name |
 | leader | User (role: dept_leader) | One leader per department; same User can lead multiple departments |
+| is_active | boolean | Inactive departments hidden from course creation |
+| created_by | User | |
+| created_at | datetime | |
 
 ## Roles
 
@@ -56,5 +60,5 @@ Department
 ## Related Domains
 
 - [course](../course/course.md)
-- [facilitator](../facilitator/facilitator.md)
+- [team-member](../team-member/team-member.md)
 - [profit-split](../profit-split/profit-split.md)
