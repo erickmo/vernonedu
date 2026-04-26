@@ -32,6 +32,8 @@ Required before certificate download. Collected separately after registration.
 | province | string | |
 | postal_code | string | |
 | profile_complete | boolean | True when all required fields filled |
+| created_at | datetime | |
+| updated_at | datetime | Nullable; set on any profile field update |
 
 ## Registration
 
@@ -47,13 +49,15 @@ Extended profile collected later — prompted when student attempts to download 
 3. A student from a B2B partner can also independently enroll in B2C courses
 4. Extended profile (`profile_complete = true`) required before any certificate download
 5. Student can track all enrollments and certificates from their dashboard
+6. `student.profile_completed` fires when `profile_complete` transitions from `false` to `true`. Intended for CRM/analytics hooks — no current internal listeners.
+7. Student registration creates both a `Student` record and an `Auth` user account simultaneously. The Auth domain fires `auth.user.created` on account creation.
 
 ## Cross-Domain Events
 
 ### Triggers (I fire these)
 | Event | Payload | Known Listeners |
 |-------|---------|-----------------|
-| — | — | — |
+| `student.profile_completed` | `{student_id}` | — |
 
 ### Listens (I react to these)
 | Event | Source | My action |
