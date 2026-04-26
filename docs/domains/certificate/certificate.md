@@ -90,7 +90,9 @@ Student can view all their certificates:
 7. `issued_on: manual` → admin triggers issuance
 8. Download requires profile completion — enrollment/payment completion not sufficient alone
 9. `expires_at` = `issued_at` + `certificate_type.validity_months`; null if validity_months not set
-10. Expired certificates show as invalid on public validator — tracked for CRM but not auto-revoked
+10. Expired certificates (`expires_at < today`) show as invalid on the public validator. `expired` is a **derived state** computed at query time from `expires_at` — it is NOT a persisted status value on `StudentCertificate`. The `status` field only stores `pending`, `issued`, or `revoked`.
+12. Retroactive change of `completion_status` from `completed` to `dropped` does NOT auto-revoke issued certificates. A manual revoke via `CertificateActionRequest` is required.
+13. `certificate_number` is unique across all certificates. Format: `VE-{YYYY}-{NNNNN}` (5-digit sequence per year, zero-padded). Generated from a per-year sequence table with a unique DB index on `certificate_number`. Concurrent issuance is protected by sequence atomicity.
 11. System flags certificates expiring within 30 days for CRM follow-up (renewal opportunity)
 
 ## Revoke / Reissue Approval Flow
@@ -105,7 +107,7 @@ Both revoke and reissue are admin-initiated but require approval (governed by RB
 | action | enum | revoke, reissue |
 | reason | string | Required |
 | requested_by | User | Admin who initiated |
-| approved_by | User | Nullable; approver |
+| approved_by | User | Nullable; Must have role `academic_leader` or `ceo` (enforced by RBAC — see Auth domain) |
 | status | enum | pending, approved, rejected |
 | created_at | datetime | |
 | resolved_at | datetime | Nullable |
