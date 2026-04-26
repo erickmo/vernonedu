@@ -13,13 +13,13 @@ Internal-facing domain. Single source of truth for all scheduled events in Verno
 | id | uuid | |
 | title | string | |
 | description | string | Nullable |
-| event_type | enum | `class_session`, `staff_meeting`, `admin_deadline`, `facilitator_schedule`, `partner_meeting` |
+| event_type | enum | `class_session`, `staff_meeting`, `admin_deadline`, `payment_due`, `facilitator_schedule`, `partner_meeting` |
 | start_at | datetime | |
 | end_at | datetime | |
 | is_all_day | boolean | |
 | recurrence_rule | string | Nullable; iCal RRULE format (e.g. `FREQ=WEEKLY;BYDAY=MO`) |
 | location | string | Nullable; venue address or online meeting link |
-| source_domain | enum | Nullable; `course`, `enrollment`, `payment`, `facilitator`, `partner`, `manual` |
+| source_domain | enum | Nullable; `course`, `enrollment`, `payment`, `team_member`, `partner`, `manual` |
 | source_id | uuid | Nullable; FK to originating entity in source domain |
 | partnership_agreement | PartnershipAgreement | Nullable; set for `partner_meeting` events |
 | agenda | string | Nullable; meeting agenda for `partner_meeting` events |
@@ -49,6 +49,7 @@ Stores Google Calendar OAuth credentials per user. One record per user.
 | access_token | string | Encrypted at rest |
 | refresh_token | string | Encrypted at rest |
 | last_synced_at | datetime | Nullable |
+| token_expires_at | datetime | Nullable; Google OAuth access tokens expire in 1 hour — check before using access_token |
 
 ## Business Rules
 
@@ -67,7 +68,7 @@ Stores Google Calendar OAuth credentials per user. One record per user.
 | Trigger | event_type | source_domain | source_id |
 |---|---|---|---|
 | Course Batch created with Class schedule | `class_session` | `course` | `class.id` |
-| Admin sets payment term due_date | `admin_deadline` | `payment` | `payment_term.id` |
+| Admin sets payment term due_date | `payment_due` | `payment` | `payment_term.id` |
 | Partner meeting scheduled via PartnershipAgreement | `partner_meeting` | `partner` | `partnership_agreement.id` |
 
 ## Integration
@@ -86,14 +87,16 @@ Calendar fires a `class.reminder` notification event to the Notification domain 
 |-------|--------|-----------|
 | `course.batch.created` | Course | Auto-create `class_session` CalendarEvent for each class |
 | `course.class.facilitator_assigned` | Course | Add CalendarAttendee to existing `class_session` event |
-| `payment.term.due` | Payment | Auto-create `admin_deadline` CalendarEvent |
-| `facilitator.approved` | Facilitator | Add CalendarAttendee (facilitator) to `class_session` event |
+| `payment.term.due` | Payment | Auto-create `payment_due` CalendarEvent |
+| `facilitator.approved` | Team Member | Add CalendarAttendee (facilitator) to `class_session` event |
+| `course.class.rescheduled` | Course | Update existing `class_session` CalendarEvent (new date/time) |
+| `course.class.cancelled` | Course | Delete `class_session` CalendarEvent; remove all CalendarAttendee records for that event |
 
 ## Related Domains
 
 - [course](../course/course.md)
 - [payment](../payment/payment.md)
-- [facilitator](../facilitator/facilitator.md)
+- [team-member](../team-member/team-member.md)
 - [notification](../notification/notification.md)
 - [partner](../partner/partner.md)
 - [partnership-agreement](../partnership-agreement/partnership-agreement.md)
