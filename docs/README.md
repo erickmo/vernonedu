@@ -2,28 +2,28 @@
 
 ## Overview
 
-VernonEdu is an informal education institution offering courses, programs, seminars, and workshops. Operates both B2B (institutional partnerships) and B2C (direct students).
+VernonEdu is an informal education institution offering courses, programs, seminars, and workshops. Operates both B2B (partner partnerships) and B2C (direct students).
 
 ---
 
 ## Business Model
 
-### B2B — Institutional Partnerships
+### B2B — Partner Partnerships
 
 VernonEdu partners with schools and universities to deliver:
 
-- **Standard courses** — existing catalog offered to institution's students
+- **Standard courses** — existing catalog offered to partner's students
 - **Custom programs** — tailored curriculum designed per partner's needs
 - **Seminars & workshops** — one-time or recurring events
 
 **Payment structures:**
 | Model | Description |
 |---|---|
-| Per visit | Institution pays per session/visit |
+| Per visit | Partner pays per session/visit |
 | Per course | Fixed fee per course delivered |
 | Per student | Bulk rate × enrolled student count |
 
-Payment payer can be **institution** OR **individual students**, depending on negotiation.
+Payment payer can be **partner** OR **individual students**, depending on negotiation.
 
 ---
 
@@ -164,10 +164,10 @@ Course Creator cannot set custom amounts — only selects from predefined tiers.
 ## Key Entities
 
 ```
-Institution (school / university)
-  └── Partnership Agreement
+Partner (school / university)
+  └── PartnershipAgreement
         ├── Payment model (per-visit / per-course / per-student)
-        ├── Payer (institution | student)
+        ├── Payer (partner | student)
         └── Programs offered
 
 Course
@@ -176,7 +176,7 @@ Course
   └── Pricing (per format, per mode)
 
 Student
-  ├── Source: B2B (via institution) | B2C (direct)
+  ├── Source: B2B (via partner) | B2C (direct)
   ├── Enrollment → Course
   │     ├── Format: regular | private
   │     └── Mode: online | offline
@@ -187,7 +187,7 @@ Enrollment
   ├── Course
   ├── Format (regular | private)
   ├── Mode (online | offline)
-  ├── Payer (student | institution)
+  ├── Payer (student | partner)
   └── Payment status
 ```
 
@@ -197,7 +197,7 @@ Enrollment
 
 1. **Course format constraint** — enrollment must check if chosen format (regular/private) is enabled for that course
 2. **Course mode constraint** — enrollment must check if chosen mode (online/offline) is enabled for that course
-3. **B2B payer resolution** — payer determined by partnership agreement, not per-enrollment
+3. **B2B payer resolution** — payer determined by PartnershipAgreement, not per-enrollment
 4. **B2B bulk pricing** — price may differ from standard catalog; stored on the agreement level
 5. **B2C pricing** — price varies by: course × format × mode
 
@@ -207,11 +207,11 @@ Enrollment
 
 | Term | Meaning |
 |---|---|
-| Institution | School or university in B2B partnership |
-| Partnership | Agreement between VernonEdu and an institution |
+| Partner | School or university in B2B partnership |
+| PartnershipAgreement | Agreement between VernonEdu and a partner |
 | Regular class | Group format, standard pricing |
 | Private class | 1-on-1 format, premium pricing |
 | Online | Remote delivery |
 | Offline | In-person delivery |
-| Per-visit | Payment per session/visit by institution |
-| Payer | Who pays: institution or student |
+| Per-visit | Payment per session/visit by partner |
+| Payer | Who pays: partner or student |
