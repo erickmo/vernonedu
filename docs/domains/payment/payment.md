@@ -39,7 +39,7 @@ One or more transactions per term (e.g., student retries after failure).
 | payment_term | Payment Term | |
 | method | enum | gateway, bank_transfer |
 | amount | decimal | |
-| status | enum | pending, confirmed, failed |
+| status | enum | pending, confirmed, failed, cancelled |
 | gateway_ref | string | Nullable; gateway transaction ID |
 | proof_url | string | Nullable; bank transfer proof upload URL |
 | confirmed_by | User | Nullable; admin who confirmed bank transfer |
@@ -135,6 +135,17 @@ Credit can be applied at next enrollment to reduce payment amount.
 9. Credit balance applied before other payment methods at next enrollment
 10. Payment Terms sum must equal `total_amount`
 11. `total_amount` must equal enrollment `final_price`
+12. Gateway webhook processing must be idempotent — a duplicate webhook for an already-confirmed transaction is silently ignored (no double-confirmation)
+13. Gateway transactions that remain `pending` for more than 24 hours are automatically `cancelled`. Student can retry by creating a new transaction.
+14. If a webhook arrives for a transaction linked to a `dropped` enrollment, the webhook is rejected and the transaction is set to `cancelled`
+15. When both a voucher and student credit are available: voucher is applied first (reducing `price` → `final_price` on Enrollment). Student credit is then applied against the outstanding payment amount — it does not change `final_price` on Enrollment, only reduces what the student owes.
+16. Student credit applied to an installment plan reduces the first term's outstanding amount first, then subsequent terms in order, until the credit is exhausted.
+17. If a payment is converted to installment after credit was already applied, the credit remains applied to the first term(s) as originally allocated.
+
+## Background Jobs
+The following time-based transitions require a scheduled background job:
+- **Overdue check** (daily): any PaymentTerm with `due_date < today` and `status = unpaid` → set `status = overdue` → fire `payment.term.overdue` event
+- **Transaction timeout** (daily): any PaymentTransaction with `status = pending` and `created_at < 24 hours ago` → set `status = cancelled`
 
 ## Cross-Domain Events
 
