@@ -41,7 +41,7 @@ Formal billing document linked to an Enrollment and its Payment. Addressable to 
 
 1. `billed_to = partner` requires `partner` field set; `student` field null
 2. `billed_to = student` requires `student` field set; `partner` field null
-3. For B2B enrollments (`payer = institution`): `billed_to` defaults to `partner`
+3. For B2B enrollments (`payer = partner`): `billed_to` defaults to `partner`
 4. For B2C enrollments: `billed_to` defaults to `student`
 5. Admin can override `billed_to` — default is not enforced
 6. `total_amount` = sum of all InvoiceLineItem amounts (negative items = deductions)

@@ -164,6 +164,7 @@ Defines which certificates this course can issue. One course can have multiple c
 
 - [department](../department/department.md)
 - [enrollment](../enrollment/enrollment.md)
+- [student](../student/student.md)
 - [facilitator](../facilitator/facilitator.md)
 - [profit-split](../profit-split/profit-split.md)
 - [certificate](../certificate/certificate.md)

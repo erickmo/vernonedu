@@ -13,14 +13,17 @@ Internal-facing domain. Single source of truth for all scheduled events in Verno
 | id | uuid | |
 | title | string | |
 | description | string | Nullable |
-| event_type | enum | `class_session`, `staff_meeting`, `admin_deadline`, `facilitator_schedule` |
+| event_type | enum | `class_session`, `staff_meeting`, `admin_deadline`, `facilitator_schedule`, `partner_meeting` |
 | start_at | datetime | |
 | end_at | datetime | |
 | is_all_day | boolean | |
 | recurrence_rule | string | Nullable; iCal RRULE format (e.g. `FREQ=WEEKLY;BYDAY=MO`) |
 | location | string | Nullable; venue address or online meeting link |
-| source_domain | enum | Nullable; `course`, `enrollment`, `payment`, `facilitator`, `manual` |
+| source_domain | enum | Nullable; `course`, `enrollment`, `payment`, `facilitator`, `partner`, `manual` |
 | source_id | uuid | Nullable; FK to originating entity in source domain |
+| partnership_agreement | PartnershipAgreement | Nullable; set for `partner_meeting` events |
+| agenda | string | Nullable; meeting agenda for `partner_meeting` events |
+| meeting_notes | string | Nullable; post-meeting notes for `partner_meeting` events |
 | created_by | User | |
 | created_at | datetime | |
 
@@ -65,6 +68,7 @@ Stores Google Calendar OAuth credentials per user. One record per user.
 |---|---|---|---|
 | Course Batch created with Class schedule | `class_session` | `course` | `class.id` |
 | Admin sets payment term due_date | `admin_deadline` | `payment` | `payment_term.id` |
+| Partner meeting scheduled via PartnershipAgreement | `partner_meeting` | `partner` | `partnership_agreement.id` |
 
 ## Integration
 
@@ -91,3 +95,5 @@ Calendar fires a `class.reminder` notification event to the Notification domain 
 - [payment](../payment/payment.md)
 - [facilitator](../facilitator/facilitator.md)
 - [notification](../notification/notification.md)
+- [partner](../partner/partner.md)
+- [partnership-agreement](../partnership-agreement/partnership-agreement.md)

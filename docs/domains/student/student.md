@@ -2,7 +2,7 @@
 
 ## Overview
 
-Individuals who enroll in VernonEdu courses. Can come through B2B (via institution partnership) or B2C (direct registration via web). B2C students self-register with minimal fields; extended profile required before certificate download.
+Individuals who enroll in VernonEdu courses. Can come through B2B (via partner partnership) or B2C (direct registration via web). B2C students self-register with minimal fields; extended profile required before certificate download.
 
 ## Entities
 
@@ -15,7 +15,7 @@ Individuals who enroll in VernonEdu courses. Can come through B2B (via instituti
 | phone | string | Required at registration |
 | password | string | Hashed; required at registration |
 | source | enum | b2b, b2c |
-| institution | Institution | Nullable; set if student came via B2B partnership |
+| partner | Partner | Nullable; set if student came via B2B partnership |
 
 ### Student Profile (extended)
 Required before certificate download. Collected separately after registration.
@@ -42,9 +42,9 @@ Extended profile collected later — prompted when student attempts to download 
 
 ## Business Rules
 
-1. B2B students are associated with an institution — payment may be handled by institution
+1. B2B students are associated with a partner — payment may be handled by partner
 2. B2C students register via web and pay directly
-3. A student from a B2B institution can also independently enroll in B2C courses
+3. A student from a B2B partner can also independently enroll in B2C courses
 4. Extended profile (`profile_complete = true`) required before any certificate download
 5. Student can track all enrollments and certificates from their dashboard
 
@@ -63,6 +63,7 @@ Extended profile collected later — prompted when student attempts to download 
 ## Related Domains
 
 - [enrollment](../enrollment/enrollment.md)
-- [institution](../institution/institution.md)
+- [course](../course/course.md)
+- [partner](../partner/partner.md)
 - [certificate](../certificate/certificate.md)
 - [payment](../payment/payment.md)

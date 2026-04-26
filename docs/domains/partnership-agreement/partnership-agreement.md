@@ -17,7 +17,7 @@ Tracks formal agreements between VernonEdu and a Partner. One Partner can have m
 | start_date | date | |
 | end_date | date | Nullable; null = open-ended agreement |
 | payment_model | enum | Nullable; `per_visit`, `per_course`, `per_student` — B2B only |
-| payer | enum | Nullable; `institution`, `student` — B2B only |
+| payer | enum | Nullable; `partner`, `student` — B2B only |
 | bulk_price | decimal | Nullable; B2B bulk override price for all covered batches |
 | signed_at | date | Nullable |
 | terminated_at | date | Nullable |

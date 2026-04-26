@@ -81,13 +81,8 @@ Costs are dynamic line items. Two levels:
 2. **Batch Cost Line Item** — actual costs on a Course Batch; copied from template but can be overridden or removed per batch
 
 ### Course Cost Template (on Course)
-| Field | Type | Notes |
-|---|---|---|
-| id | uuid | |
-| course | Course | Template belongs to course |
-| label | string | e.g., "Bahan ajar", "Venue", "Admin fee" |
-| amount | decimal | Default amount |
-| cost_type | enum | fixed, percentage_of_revenue |
+
+Owned by the [Course domain](../course/course.md#course-cost-template). See that domain for full entity definition. Course Cost Template items are inherited by every new Course Batch as Batch Cost Line Items.
 
 ### Batch Cost Line Item (on Course Batch)
 | Field | Type | Notes |
@@ -126,7 +121,7 @@ Per batch, user can:
 | Source | How created |
 |---|---|
 | Facilitator fee | Auto-created on batch when facilitator proposal approved |
-| Partner/institution split | Auto-created from B2B partnership agreement |
+| Partner split | Auto-created from B2B partnership agreement |
 | Template inheritance | Auto-copied from course template on batch creation |
 | Everything else | Manually added per batch |
 

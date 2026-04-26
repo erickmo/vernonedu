@@ -141,7 +141,7 @@ Credit can be applied at next enrollment to reduce payment amount.
 ### Triggers (I fire these)
 | Event | Payload | Known Listeners |
 |-------|---------|-----------------|
-| `payment.confirmed` | `{payment_id, enrollment_id, amount}` | Notification, Invoice |
+| `payment.confirmed` | `{payment_id, enrollment_id, amount}` | Notification, Invoice, Profit-split |
 | `payment.term.due` | `{payment_term_id, enrollment_id, due_date, amount}` | Notification, Calendar |
 | `payment.term.overdue` | `{payment_term_id, enrollment_id, due_date}` | Notification |
 

@@ -14,8 +14,8 @@ Records a student's registration into a Course Batch. Captures format, delivery 
 | course_batch | Course Batch | Enrollment is at batch level |
 | format | enum | regular, private |
 | mode | enum | online, offline |
-| payer | enum | student, institution |
-| institution | Institution | Nullable; set for B2B enrollments |
+| payer | enum | student, partner |
+| partner | Partner | Nullable; set for B2B enrollments |
 | price | decimal | Resolved at enrollment time |
 | final_price | decimal | Actual amount charged after voucher; equals price if no voucher |
 | voucher | Voucher | Nullable; applied at enrollment time |
@@ -31,7 +31,7 @@ Records a student's registration into a Course Batch. Captures format, delivery 
 3. For B2B: `payer` determined by partnership agreement, not student choice
 4. For B2B with bulk pricing: price comes from partnership agreement, not standard catalog
 5. For B2C: price = course_batch.price (see Course Batch entity)
-6. `institution` field only set for B2B enrollments
+6. `partner` field only set for B2B enrollments
 7. B2C self-enrollment via web — student pays full payment (gateway or bank transfer)
 8. Installment (cicilan) is admin-only — not exposed to student during enrollment
 9. On enrollment creation, one Payment with one Payment Term is auto-created (full payment)
@@ -47,13 +47,13 @@ Records a student's registration into a Course Batch. Captures format, delivery 
 if B2B:
   price = partnership_agreement.bulk_price (if set)
   else = course_batch.price
-  payer = partnership_agreement.payer
+  payer = partnership_agreement.payer  # 'partner' or 'student'
 else (B2C):
   price = course_batch.price
   if voucher applied:
     final_price = apply_voucher(price, voucher)
     (final_price may go below course.min_price — voucher explicitly allows this)
-  payer = student
+  payer = 'student'
 ```
 
 ## B2C Web Enrollment Flow
@@ -85,7 +85,7 @@ Student browses course batches
 
 - [student](../student/student.md)
 - [course](../course/course.md)
-- [institution](../institution/institution.md)
+- [partner](../partner/partner.md)
 - [payment](../payment/payment.md)
 - [certificate](../certificate/certificate.md)
 - [notification](../notification/notification.md)

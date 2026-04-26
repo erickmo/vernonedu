@@ -171,7 +171,7 @@ Partner (school / university)
         └── Programs offered
 
 Course
-  ├── Format availability: regular | private | both
+  ├── Format availability: regular | private | inhouse_training | inschool_program
   ├── Mode availability: online | offline | both
   └── Pricing (per format, per mode)
 

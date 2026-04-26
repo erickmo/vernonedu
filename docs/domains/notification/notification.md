@@ -31,7 +31,7 @@ One record per delivery attempt per recipient per channel.
 | channel | enum | `email`, `in_app`, `push` |
 | variables | json | Template variables captured at send time (immutable after creation) |
 | status | enum | `pending`, `sent`, `failed`, `read` |
-| source_domain | enum | `payment`, `enrollment`, `facilitator`, `calendar`, `manual` |
+| source_domain | enum | `payment`, `enrollment`, `facilitator`, `calendar`, `partner`, `manual` |
 | source_id | uuid | Nullable; originating entity in source domain |
 | scheduled_at | datetime | Nullable; if set, delivery deferred until this time |
 | sent_at | datetime | Nullable |
