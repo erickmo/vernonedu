@@ -75,6 +75,18 @@ Both modes use the same Voucher entity. `assigned_to` determines eligibility:
 10. `percentage` discount_value must be 0–100
 11. Student dashboard shows all vouchers assigned to them (`assigned_to = this student`)
 
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| — | — | — |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| `enrollment.confirmed` | Enrollment | Mark voucher as used (consumed) |
+
 ## Related Domains
 
 - [enrollment](../enrollment/enrollment.md)

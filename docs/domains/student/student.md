@@ -48,6 +48,18 @@ Extended profile collected later — prompted when student attempts to download 
 4. Extended profile (`profile_complete = true`) required before any certificate download
 5. Student can track all enrollments and certificates from their dashboard
 
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| — | — | — |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| — | — | — |
+
 ## Related Domains
 
 - [enrollment](../enrollment/enrollment.md)

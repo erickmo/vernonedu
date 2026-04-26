@@ -106,6 +106,18 @@ Apply same summary formula
 
 ---
 
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| — | — | — |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| — | — | — |
+
 ## Related Domains
 
 - [course](../course/course.md)

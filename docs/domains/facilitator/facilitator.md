@@ -87,6 +87,19 @@ Beyond the course-level approval flow, Dept Leader can directly assign an approv
 8. Tier table is managed by VernonEdu Admin only
 9. Course Creator can only propose facilitators and assign tiers for courses where they are the assigned Course Creator
 
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| `facilitator.proposed` | `{facilitator_id, class_id, proposed_by}` | Notification |
+| `facilitator.approved` | `{facilitator_id, class_id, approved_by}` | Notification, Calendar |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| — | — | — |
+
 ## Related Domains
 
 - [course](../course/course.md)

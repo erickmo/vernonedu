@@ -15,7 +15,7 @@ Records a student's registration into a Course Batch. Captures format, delivery 
 | format | enum | regular, private |
 | mode | enum | online, offline |
 | payer | enum | student, institution |
-| partner | Partner | Nullable; set for B2B enrollments |
+| institution | Institution | Nullable; set for B2B enrollments |
 | price | decimal | Resolved at enrollment time |
 | final_price | decimal | Actual amount charged after voucher; equals price if no voucher |
 | voucher | Voucher | Nullable; applied at enrollment time |
@@ -31,7 +31,7 @@ Records a student's registration into a Course Batch. Captures format, delivery 
 3. For B2B: `payer` determined by partnership agreement, not student choice
 4. For B2B with bulk pricing: price comes from partnership agreement, not standard catalog
 5. For B2C: price = course_batch.price (see Course Batch entity)
-6. `partner` field only set for B2B enrollments
+6. `institution` field only set for B2B enrollments
 7. B2C self-enrollment via web — student pays full payment (gateway or bank transfer)
 8. Installment (cicilan) is admin-only — not exposed to student during enrollment
 9. On enrollment creation, one Payment with one Payment Term is auto-created (full payment)
@@ -67,12 +67,25 @@ Student browses course batches
   → Pays → Enrollment confirmed
 ```
 
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| `enrollment.confirmed` | `{enrollment_id, student_id, course_batch_id, source}` | Notification, Invoice |
+| `enrollment.completed` | `{enrollment_id, student_id, course_batch_id}` | Certificate |
+| `enrollment.dropped` | `{enrollment_id, student_id}` | — |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| — | — | — |
+
 ## Related Domains
 
 - [student](../student/student.md)
 - [course](../course/course.md)
-- [partner](../partner/partner.md)
-- [partnership-agreement](../partnership-agreement/partnership-agreement.md)
+- [institution](../institution/institution.md)
 - [payment](../payment/payment.md)
 - [certificate](../certificate/certificate.md)
 - [notification](../notification/notification.md)

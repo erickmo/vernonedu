@@ -84,6 +84,19 @@ Manages authentication and authorization for all VernonEdu users. Uses RBAC (Rol
 
 ---
 
+## Business Rules
+
+1. All routes and actions must be protected by RBAC role checks — no ad-hoc per-domain hardcoding
+2. Each role has a defined permission scope; access outside that scope is denied
+3. Approval chains (e.g., facilitator proposals, extra revenue, certificate actions) are multi-step and role-ordered
+4. CEO has full access and can override any configurable value (profit split, extra revenue approval)
+5. `franchisee` role is read-only — no operational access
+6. `student` can only access own records (own dashboard, own payments, own certificates)
+7. Certificate download requires profile completion by student
+8. Public certificate validator is accessible without login (no auth required)
+
+---
+
 ## TODO: Auth Refactor
 
 - [ ] Audit all domain docs — replace ad-hoc role mentions with reference to this auth domain
@@ -91,6 +104,21 @@ Manages authentication and authorization for all VernonEdu users. Uses RBAC (Rol
 - [ ] Define approval chains as configurable workflows (not hardcoded)
 - [ ] Add audit log for all approved/rejected actions (who, when, what)
 - [ ] Review franchisee portal access scope
+
+---
+
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| `auth.user.created` | `{user_id, email, role}` | Notification |
+| `auth.user.deactivated` | `{user_id}` | — |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| — | — | — |
 
 ---
 

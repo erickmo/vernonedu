@@ -130,6 +130,18 @@ Admin requests revoke
   → QR validator shows: invalid/revoked
 ```
 
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| `certificate.issued` | `{certificate_id, student_id, enrollment_id, certificate_number}` | Notification |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| `enrollment.completed` | Enrollment | Auto-issue certificates where `issued_on = completion` |
+
 ## Related Domains
 
 - [course](../course/course.md)

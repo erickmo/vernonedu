@@ -147,6 +147,19 @@ Defines which certificates this course can issue. One course can have multiple c
 15. Price below `min_price` is only achievable via voucher applied at enrollment
 16. Certificate configs define which certificates students receive on completion or manual issuance
 
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| `course.batch.created` | `{batch_id, course_id, schedule}` | Calendar |
+| `course.class.facilitator_assigned` | `{class_id, batch_id, facilitator_id}` | Calendar |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| — | — | — |
+
 ## Related Domains
 
 - [department](../department/department.md)

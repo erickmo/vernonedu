@@ -31,7 +31,7 @@ One record per delivery attempt per recipient per channel.
 | channel | enum | `email`, `in_app`, `push` |
 | variables | json | Template variables captured at send time (immutable after creation) |
 | status | enum | `pending`, `sent`, `failed`, `read` |
-| source_domain | enum | `payment`, `enrollment`, `facilitator`, `calendar`, `partner`, `manual` |
+| source_domain | enum | `payment`, `enrollment`, `facilitator`, `calendar`, `manual` |
 | source_id | uuid | Nullable; originating entity in source domain |
 | scheduled_at | datetime | Nullable; if set, delivery deferred until this time |
 | sent_at | datetime | Nullable |
@@ -93,6 +93,25 @@ Domain event fires (key + variables + recipient list)
 | `facilitator.approved` | Facilitator | Course Creator, Facilitator |
 | `class.reminder` | Calendar | Facilitator, Class Attendees |
 | `certificate.issued` | Certificate | Student |
+
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| — | — | — |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| `enrollment.confirmed` | Enrollment | Send `enrollment.confirmed` notification to Student |
+| `payment.confirmed` | Payment | Send `payment.confirmed` notification to Student |
+| `payment.term.due` | Payment | Send `payment.term.due` notification to Student, Admin |
+| `payment.term.overdue` | Payment | Send `payment.term.overdue` notification to Student, Admin |
+| `facilitator.proposed` | Facilitator | Send `facilitator.proposed` notification to Dept Leader |
+| `facilitator.approved` | Facilitator | Send `facilitator.approved` notification to Course Creator, Facilitator |
+| `class.reminder` | Calendar | Send `class.reminder` notification to Facilitator, Attendees |
+| `certificate.issued` | Certificate | Send `certificate.issued` notification to Student |
 
 ## Related Domains
 

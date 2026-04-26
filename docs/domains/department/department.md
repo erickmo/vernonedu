@@ -41,6 +41,18 @@ Department
 3. Dept Leader is the first approver in the facilitator approval chain
 4. Dept Leader share of profit is configured globally but can be overridden per course by CEO
 
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| — | — | — |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| — | — | — |
+
 ## Related Domains
 
 - [course](../course/course.md)

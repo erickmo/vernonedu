@@ -12,6 +12,8 @@ Defines how revenue from a course is distributed between VernonEdu, the Course C
 | Course Creator | Creator's share for owning and delivering the course |
 | Department Leader | Leadership share for the department |
 
+## Entities
+
 ## Configuration
 
 ### Global Settings (default)
@@ -149,6 +151,18 @@ else:
 8. Split calculated when batch status → `closed`; triggered on batch close event
 9. Period bonus aggregated across all closed batches within the period (monthly/quarterly — TBD)
 10. Negative net profit from a closed batch carries into next period bonus calculation
+
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| — | — | — |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| `payment.confirmed` | Payment | Trigger profit-split calculation for the linked enrollment |
 
 ## Related Domains
 

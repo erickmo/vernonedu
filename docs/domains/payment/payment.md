@@ -135,7 +135,20 @@ Credit can be applied at next enrollment to reduce payment amount.
 9. Credit balance applied before other payment methods at next enrollment
 10. Payment Terms sum must equal `total_amount`
 11. `total_amount` must equal enrollment `final_price`
-12. B2B payment terms (`payment_model`, `payer`, `bulk_price`) are resolved from the partner's active PartnershipAgreement.
+
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| `payment.confirmed` | `{payment_id, enrollment_id, amount}` | Notification, Invoice |
+| `payment.term.due` | `{payment_term_id, enrollment_id, due_date, amount}` | Notification, Calendar |
+| `payment.term.overdue` | `{payment_term_id, enrollment_id, due_date}` | Notification |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| `enrollment.confirmed` | Enrollment | Auto-create Payment + 1 PaymentTerm (full payment) |
 
 ## Related Domains
 
@@ -143,4 +156,3 @@ Credit can be applied at next enrollment to reduce payment amount.
 - [student](../student/student.md)
 - [notification](../notification/notification.md)
 - [calendar](../calendar/calendar.md)
-- [partnership-agreement](../partnership-agreement/partnership-agreement.md)
