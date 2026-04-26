@@ -1,3 +1,11 @@
 .worktrees/
 .obsidian/
 .superpowers/
+.env
+.claude/
+.wolf/
+
+frontend/node_modules/
+backend/tmp/
+*.log
+
