@@ -28,9 +28,23 @@ External entities that have or may have a formal relationship with VernonEdu. Re
 3. `status = inactive` — all agreements expired or terminated
 4. B2B enrollment references Partner (field renamed from `institution` → `partner`)
 5. All partner types can have PartnershipAgreements — `type` does not restrict features
+6. `type = franchise_candidate` — a potential franchisee being evaluated. If the relationship converts to a franchise, a `Franchisee` record is created in the Franchise domain. The Partner record remains for contact history.
+
+## Cross-Domain Events
+
+### Triggers (I fire these)
+| Event | Payload | Known Listeners |
+|-------|---------|-----------------|
+| `partner.status_changed` | `{partner_id, old_status, new_status}` | — |
+
+### Listens (I react to these)
+| Event | Source | My action |
+|-------|--------|-----------|
+| — | — | — |
 
 ## Related Domains
 
 - [partnership-agreement](../partnership-agreement/partnership-agreement.md)
 - [enrollment](../enrollment/enrollment.md)
 - [calendar](../calendar/calendar.md)
+- [franchise](../franchise/franchise.md)
