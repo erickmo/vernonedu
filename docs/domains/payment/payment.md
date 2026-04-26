@@ -135,6 +135,7 @@ Credit can be applied at next enrollment to reduce payment amount.
 9. Credit balance applied before other payment methods at next enrollment
 10. Payment Terms sum must equal `total_amount`
 11. `total_amount` must equal enrollment `final_price`
+12. B2B payment terms (`payment_model`, `payer`, `bulk_price`) are resolved from the partner's active PartnershipAgreement.
 
 ## Related Domains
 
@@ -142,3 +143,4 @@ Credit can be applied at next enrollment to reduce payment amount.
 - [student](../student/student.md)
 - [notification](../notification/notification.md)
 - [calendar](../calendar/calendar.md)
+- [partnership-agreement](../partnership-agreement/partnership-agreement.md)
