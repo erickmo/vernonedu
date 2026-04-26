@@ -143,24 +143,52 @@ else:
 5. Profit split calculated on net profit (not gross revenue)
 6. Negative net profit carries over to period bonus — not blocked
 7. Extra revenue added by Finance requires CEO approval before included in calculation
-8. Split calculated when batch status → `closed`; triggered on batch close event
-9. Period bonus aggregated across all closed batches within the period (monthly/quarterly — TBD)
+8. Split calculated when batch status → `closed`; triggered by `course.batch.closed` event from Course domain
+9. Period bonus aggregated monthly across all closed batches within the period — see Period Bonus entity
 10. Negative net profit from a closed batch carries into next period bonus calculation
+11. When a B2B enrollment is confirmed, a `partner_split` Batch Cost Line Item is auto-created for the relevant batch: `reference_type = partner_split`, `reference_id = PartnershipAgreement.id`. Amount calculated from the agreement's `payment_model` and `bulk_price`.
+
+## Period Bonus
+
+Aggregated profit share distributed to each party at the end of a period (monthly). Calculated across all batches that closed within the period.
+
+### Period Bonus Entity
+| Field | Type | Notes |
+|---|---|---|
+| id | uuid | |
+| period | string | Format: YYYY-MM (e.g., "2026-04") |
+| period_type | enum | `monthly` |
+| vernonedu_amount | decimal | VernonEdu's total share for the period |
+| course_creator_amount | decimal | Aggregated per course creator |
+| dept_leader_amount | decimal | Aggregated per dept leader |
+| batch_refs | uuid[] | List of batch IDs included in this period |
+| calculated_at | datetime | |
+| calculated_by | User | Admin who triggered calculation |
+| status | enum | `draft`, `finalized` |
+
+**Calculation:**
+```
+For each closed batch in the period:
+  net_profit = batch_revenue - batch_costs
+  (negative batches included — they reduce total)
+
+Period total per party = SUM(net_profit × party_pct) across all batches
+```
 
 ## Cross-Domain Events
 
 ### Triggers (I fire these)
 | Event | Payload | Known Listeners |
 |-------|---------|-----------------|
-| — | — | — |
+| `profit_split.calculated` | `{batch_id, course_id, period, split_amounts}` | — |
 
 ### Listens (I react to these)
 | Event | Source | My action |
 |-------|--------|-----------|
-| `payment.confirmed` | Payment | Trigger profit-split calculation for the linked enrollment |
+| `course.batch.closed` | Course | Trigger profit-split calculation for the closed batch |
 
 ## Related Domains
 
 - [course](../course/course.md)
 - [department](../department/department.md)
-- [facilitator](../facilitator/facilitator.md)
+- [team-member](../team-member/team-member.md)
