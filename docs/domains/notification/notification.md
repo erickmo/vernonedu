@@ -31,7 +31,7 @@ One record per delivery attempt per recipient per channel.
 | channel | enum | `email`, `in_app`, `push` |
 | variables | json | Template variables captured at send time (immutable after creation) |
 | status | enum | `pending`, `sent`, `failed`, `read` |
-| source_domain | enum | `payment`, `enrollment`, `facilitator`, `calendar`, `partner`, `manual` |
+| source_domain | enum | `payment`, `enrollment`, `team_member`, `calendar`, `partner`, `manual` |
 | source_id | uuid | Nullable; originating entity in source domain |
 | scheduled_at | datetime | Nullable; if set, delivery deferred until this time |
 | sent_at | datetime | Nullable |
@@ -89,8 +89,14 @@ Domain event fires (key + variables + recipient list)
 | `payment.term.due` | Payment | Student, Admin |
 | `payment.term.overdue` | Payment | Student, Admin |
 | `payment.confirmed` | Payment | Student |
-| `facilitator.proposed` | Facilitator | Dept Leader |
-| `facilitator.approved` | Facilitator | Course Creator, Facilitator |
+| `facilitator.proposed` | Team Member | Dept Leader |
+| `facilitator.approved` | Team Member | Course Creator, Facilitator |
+| `facilitator.rejected` | Team Member | Course Creator (who proposed), Facilitator |
+| `user.welcome` | Auth | New user (student or staff) |
+| `invoice.sent` | Invoice | Partner (B2B) or Student (B2C) |
+| `invoice.overdue` | Invoice | Partner (B2B) or Student (B2C), Admin |
+| `team_member.created` | Team Member | New team member, their Dept Leader |
+| `team_member.status_changed` | Team Member | Team member, their Dept Leader |
 | `class.reminder` | Calendar | Facilitator, Class Attendees |
 | `certificate.issued` | Certificate | Student |
 
@@ -108,8 +114,14 @@ Domain event fires (key + variables + recipient list)
 | `payment.confirmed` | Payment | Send `payment.confirmed` notification to Student |
 | `payment.term.due` | Payment | Send `payment.term.due` notification to Student, Admin |
 | `payment.term.overdue` | Payment | Send `payment.term.overdue` notification to Student, Admin |
-| `facilitator.proposed` | Facilitator | Send `facilitator.proposed` notification to Dept Leader |
-| `facilitator.approved` | Facilitator | Send `facilitator.approved` notification to Course Creator, Facilitator |
+| `auth.user.created` | Auth | Send `user.welcome` notification to new user |
+| `facilitator.proposed` | Team Member | Send `facilitator.proposed` notification to Dept Leader |
+| `facilitator.approved` | Team Member | Send `facilitator.approved` notification to Course Creator, Facilitator |
+| `facilitator.rejected` | Team Member | Send `facilitator.rejected` notification to Course Creator and Facilitator |
+| `invoice.sent` | Invoice | Send `invoice.sent` notification to billed party |
+| `invoice.overdue` | Invoice | Send `invoice.overdue` notification to billed party and Admin |
+| `team_member.created` | Team Member | Send `team_member.created` notification to new member and Dept Leader |
+| `team_member.status_changed` | Team Member | Send `team_member.status_changed` notification to member and Dept Leader |
 | `class.reminder` | Calendar | Send `class.reminder` notification to Facilitator, Attendees |
 | `certificate.issued` | Certificate | Send `certificate.issued` notification to Student |
 
@@ -117,6 +129,6 @@ Domain event fires (key + variables + recipient list)
 
 - [enrollment](../enrollment/enrollment.md)
 - [payment](../payment/payment.md)
-- [facilitator](../facilitator/facilitator.md)
+- [team-member](../team-member/team-member.md)
 - [calendar](../calendar/calendar.md)
 - [certificate](../certificate/certificate.md)
