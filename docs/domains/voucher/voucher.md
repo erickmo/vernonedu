@@ -32,6 +32,7 @@ Vouchers give specific students a discounted price on enrollment. Issued per use
 | original_price | decimal | Batch price before discount |
 | final_price | decimal | Price after voucher applied |
 | used_at | datetime | |
+| created_by | User | System actor; set to the authenticated user who triggered checkout |
 
 ## Discount Calculation
 
@@ -74,6 +75,7 @@ Both modes use the same Voucher entity. `assigned_to` determines eligibility:
 9. Only admin can create and assign vouchers
 10. `percentage` discount_value must be 0–100
 11. Student dashboard shows all vouchers assigned to them (`assigned_to = this student`)
+12. Unique constraint on `VoucherUsage(enrollment)` — only one voucher usage record per enrollment. Prevents race condition double-use.
 
 ## Cross-Domain Events
 
