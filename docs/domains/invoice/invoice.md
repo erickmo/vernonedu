@@ -39,6 +39,7 @@ Formal billing document linked to an Enrollment and its Payment. Addressable to 
 
 ## Business Rules
 
+0. Invoice auto-creation: For B2B enrollments (`payer = partner`), an invoice is auto-created with `status = draft` when `enrollment.confirmed` fires. For B2C enrollments, invoice creation is manual (admin drafts when needed). Auto-created invoices default `billed_to` = partner.
 1. `billed_to = partner` requires `partner` field set; `student` field null
 2. `billed_to = student` requires `student` field set; `partner` field null
 3. For B2B enrollments (`payer = partner`): `billed_to` defaults to `partner`
@@ -49,6 +50,11 @@ Formal billing document linked to an Enrollment and its Payment. Addressable to 
 8. `status = paid` auto-set when linked Payment `status = paid`
 9. `status = overdue` auto-set when `due_date < today` and `status != paid`
 10. One invoice per enrollment — admin reissues by cancelling and creating a new draft
+11. Unique partial constraint: only one non-cancelled Invoice per enrollment. `UNIQUE (enrollment_id) WHERE status != 'cancelled'`.
+
+## Background Jobs
+The following time-based transitions require a scheduled background job:
+- **Overdue check** (daily): any Invoice with `status = sent` and `due_date < today` → set `status = overdue` → fire `invoice.overdue` event
 
 ## Cross-Domain Events
 
@@ -61,6 +67,7 @@ Formal billing document linked to an Enrollment and its Payment. Addressable to 
 ### Listens (I react to these)
 | Event | Source | My action |
 |-------|--------|-----------|
+| `enrollment.confirmed` | Enrollment | Auto-create draft Invoice for B2B enrollments |
 | `payment.confirmed` | Payment | Auto-set `status = paid` on linked Invoice |
 
 ## Related Domains
