@@ -96,7 +96,7 @@ For each module in the course:
 ## Student Access
 
 Enrolled student can access all active modules of the course batch they enrolled in:
-- Access granted on enrollment confirmation (payment = paid or pending depending on policy — TBD)
+- Access granted when `enrollment.confirmed` fires, regardless of payment status. Students can access module content immediately after enrollment is confirmed.
 - Access based on version resolution above
 - Student sees: module title, description, assets (video/pdf/link/etc.)
 - Download restricted per `is_downloadable` flag per asset
@@ -130,7 +130,7 @@ Enrolled student can access all active modules of the course batch they enrolled
 ### Listens (I react to these)
 | Event | Source | My action |
 |-------|--------|-----------|
-| — | — | — |
+| `enrollment.confirmed` | Enrollment | Grant student access to all active modules of the enrolled Course Batch |
 
 ## Related Domains
 
