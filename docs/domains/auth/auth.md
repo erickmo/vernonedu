@@ -36,7 +36,10 @@ Manages authentication and authorization for all VernonEdu users. Uses RBAC (Rol
 | View public validator | Anyone (no login) |
 | Download certificate | Student (own, profile complete) |
 
-### Facilitator
+### Facilitator (via Team Member)
+
+> Facilitator domain is deprecated. All facilitator operations now managed through Team Member domain.
+
 | Action | Who |
 |---|---|
 | Propose facilitator | Course Creator (own courses only) |
@@ -65,9 +68,10 @@ Manages authentication and authorization for all VernonEdu users. Uses RBAC (Rol
 ### Budget
 | Action | Who |
 |---|---|
+| Define course budget template | Course Creator (own courses), Admin |
 | Add/edit batch budget items | Admin |
 | Record realization | Admin only |
-| View budget summary | Admin, Dept Leader |
+| View budget summary | Admin, Dept Leader, Course Creator (own courses) |
 
 ### Course
 | Action | Who |
@@ -81,6 +85,74 @@ Manages authentication and authorization for all VernonEdu users. Uses RBAC (Rol
 | Action | Who |
 |---|---|
 | Create/assign voucher | Admin, VernonEdu Admin |
+
+### Module
+| Action | Who |
+|---|---|
+| Create / edit module | Course Creator (own courses) |
+| Publish module version | Course Creator (own courses) |
+| Lock batch module version | Course Creator (own courses), Dept Leader |
+| Access module content | Student (enrolled batches only) |
+
+### Partner & Partnership Agreement
+| Action | Who |
+|---|---|
+| Create / edit Partner | Admin |
+| Create / edit PartnershipAgreement | Admin |
+| Activate agreement | Admin, CEO |
+| Terminate agreement | CEO |
+| Upload documents | Admin |
+| View partner details | Admin, Finance, CEO |
+
+### Franchise
+| Action | Who |
+|---|---|
+| Create / manage Franchisee | Admin |
+| Create / manage FranchiseAgreement | Admin, CEO |
+| Add BranchOtherRevenue | Admin |
+| Record royalty payment | Admin |
+| View own branch revenue report | Franchisee (read-only, own branch) |
+| View all franchise data | Admin, CEO, Finance |
+
+### Team Member
+| Action | Who |
+|---|---|
+| Create / edit TeamMember | vernonedu_admin, Admin |
+| Deactivate TeamMember | vernonedu_admin |
+| Create FacilitatorProfile | Admin, vernonedu_admin |
+| Manage FeeTier table | vernonedu_admin |
+
+### Calendar
+| Action | Who |
+|---|---|
+| Create manual event | Any internal staff |
+| Edit / delete manual event | Event creator, Admin |
+| View all events | Any internal staff |
+| Manage own CalendarSync (Google OAuth) | Self only |
+| Add attendee to event | Admin, Dept Leader |
+| Auto-generated events (read-only) | System only |
+
+### Notification
+| Action | Who |
+|---|---|
+| Manage notification templates | vernonedu_admin |
+| View delivery logs | Admin, vernonedu_admin |
+| Manage own preferences | Any authenticated user (self only) |
+| View others' preferences | Admin only |
+
+### Enrollment
+| Action | Who |
+|---|---|
+| Self-enroll via web (B2C) | Student |
+| Create enrollment for B2B | Admin |
+| Mark completion status | Admin |
+| Drop enrollment | Admin |
+| Convert payment to installment | Admin |
+
+### Certificate (extended)
+| Action | Who |
+|---|---|
+| Create / manage CertificateType | vernonedu_admin |
 
 ---
 
@@ -113,7 +185,7 @@ Manages authentication and authorization for all VernonEdu users. Uses RBAC (Rol
 | Event | Payload | Known Listeners |
 |-------|---------|-----------------|
 | `auth.user.created` | `{user_id, email, role}` | Notification |
-| `auth.user.deactivated` | `{user_id}` | — |
+| `auth.user.deactivated` | `{user_id}` | Team Member, Calendar, Notification |
 
 ### Listens (I react to these)
 | Event | Source | My action |
