@@ -61,3 +61,48 @@ type NotificationPreference struct {
 	CreatedAt   time.Time           `json:"created_at"`
 	UpdatedAt   time.Time           `json:"updated_at"`
 }
+
+type CalendarEventType string
+
+const (
+	CalendarTypeClassSession   CalendarEventType = "class_session"
+	CalendarTypePaymentDue     CalendarEventType = "payment_due"
+	CalendarTypePartnerMeeting CalendarEventType = "partner_meeting"
+	CalendarTypeManualInternal CalendarEventType = "manual_internal"
+	CalendarTypeManualPersonal CalendarEventType = "manual_personal"
+)
+
+type CalendarRsvpStatus string
+
+const (
+	RsvpPending   CalendarRsvpStatus = "pending"
+	RsvpAccepted  CalendarRsvpStatus = "accepted"
+	RsvpDeclined  CalendarRsvpStatus = "declined"
+	RsvpTentative CalendarRsvpStatus = "tentative"
+)
+
+type CalendarEvent struct {
+	ID              uuid.UUID         `json:"id"`
+	Title           string            `json:"title"`
+	Description     *string           `json:"description,omitempty"`
+	EventType       CalendarEventType `json:"event_type"`
+	StartAt         time.Time         `json:"start_at"`
+	EndAt           time.Time         `json:"end_at"`
+	Location        *string           `json:"location,omitempty"`
+	Rrule           *string           `json:"rrule,omitempty"`
+	SourceDomain    *string           `json:"source_domain,omitempty"`
+	SourceID        *uuid.UUID        `json:"source_id,omitempty"`
+	CreatedBy       *uuid.UUID        `json:"created_by,omitempty"`
+	ReminderFiredAt *time.Time        `json:"reminder_fired_at,omitempty"`
+	CreatedAt       time.Time         `json:"created_at"`
+	UpdatedAt       time.Time         `json:"updated_at"`
+}
+
+type CalendarAttendee struct {
+	ID         uuid.UUID          `json:"id"`
+	EventID    uuid.UUID          `json:"event_id"`
+	UserID     uuid.UUID          `json:"user_id"`
+	Role       string             `json:"role"`
+	RsvpStatus CalendarRsvpStatus `json:"rsvp_status"`
+	CreatedAt  time.Time          `json:"created_at"`
+}

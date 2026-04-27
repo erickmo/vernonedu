@@ -32,6 +32,16 @@ type Repository interface {
 
 	GetPreference(ctx context.Context, userID uuid.UUID, templateKey string, channel NotificationChannel) (*NotificationPreference, error)
 	UpsertPreference(ctx context.Context, pref *NotificationPreference) error
+
+	// Calendar
+	CreateCalendarEvent(ctx context.Context, e *CalendarEvent) error
+	GetCalendarEvent(ctx context.Context, id uuid.UUID) (*CalendarEvent, error)
+	UpdateCalendarEvent(ctx context.Context, e *CalendarEvent) error
+	DeleteCalendarEvent(ctx context.Context, id uuid.UUID) error
+	ListCalendarEventsByUser(ctx context.Context, userID uuid.UUID) ([]*CalendarEvent, error)
+	AddCalendarAttendee(ctx context.Context, a *CalendarAttendee) error
+	RemoveCalendarAttendee(ctx context.Context, eventID, userID uuid.UUID) error
+	ListCalendarAttendeesByEvent(ctx context.Context, eventID uuid.UUID) ([]*CalendarAttendee, error)
 }
 
 type repository struct {

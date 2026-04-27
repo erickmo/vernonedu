@@ -27,6 +27,7 @@ var (
 	ErrConflict     = New("CONFLICT", "resource already exists", http.StatusConflict)
 	ErrValidation   = New("VALIDATION_ERROR", "validation failed", http.StatusUnprocessableEntity)
 	ErrInternal     = New("INTERNAL_ERROR", "internal server error", http.StatusInternalServerError)
+	ErrAutoCreatedReadOnly = New("AUTO_CREATED_READ_ONLY", "auto-created resources cannot be modified via manual API", http.StatusForbidden)
 )
 
 type errResponse struct {
