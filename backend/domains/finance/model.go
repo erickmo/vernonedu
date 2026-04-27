@@ -109,6 +109,9 @@ type Invoice struct {
 	TotalAmount    decimal.Decimal `json:"total_amount"`
 	Notes          *string       `json:"notes,omitempty"`
 	CreatedBy      uuid.UUID     `json:"created_by"`
+	PaymentProvider *string      `json:"payment_provider,omitempty"`
+	ProviderRef    *string       `json:"provider_ref,omitempty"`
+	PaidAt         *time.Time    `json:"paid_at,omitempty"`
 	CreatedAt      time.Time     `json:"created_at"`
 	UpdatedAt      time.Time     `json:"updated_at"`
 }

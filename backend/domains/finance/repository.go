@@ -31,7 +31,10 @@ type Repository interface {
 
 	CreateInvoice(ctx context.Context, inv *Invoice) error
 	GetInvoiceByID(ctx context.Context, id uuid.UUID) (*Invoice, error)
+	GetInvoiceByProviderRef(ctx context.Context, providerRef string) (*Invoice, error)
 	UpdateInvoiceStatus(ctx context.Context, id uuid.UUID, status InvoiceStatus) error
+	SetInvoiceProviderRef(ctx context.Context, id uuid.UUID, provider, providerRef string) error
+	MarkInvoicePaid(ctx context.Context, id uuid.UUID, paidAt time.Time) (bool, error)
 	ListOverdueInvoices(ctx context.Context, before time.Time) ([]*Invoice, error)
 
 	CreateInvoiceLineItem(ctx context.Context, item *InvoiceLineItem) error
@@ -263,7 +266,8 @@ func (r *repository) CreateInvoice(ctx context.Context, inv *Invoice) error {
 
 func (r *repository) GetInvoiceByID(ctx context.Context, id uuid.UUID) (*Invoice, error) {
 	query := `SELECT id, invoice_number, enrollment_id, payment_id, billed_to, partner_id, student_id,
-	                 status, issued_date, due_date, subtotal, discount_amount, total_amount, notes, created_by, created_at, updated_at
+	                 status, issued_date, due_date, subtotal, discount_amount, total_amount, notes,
+	                 created_by, payment_provider, provider_ref, paid_at, created_at, updated_at
 	          FROM finance.invoices WHERE id = $1`
 
 	inv := &Invoice{}
@@ -271,7 +275,8 @@ func (r *repository) GetInvoiceByID(ctx context.Context, id uuid.UUID) (*Invoice
 		&inv.ID, &inv.InvoiceNumber, &inv.EnrollmentID, &inv.PaymentID, &inv.BilledTo,
 		&inv.PartnerID, &inv.StudentID, &inv.Status, &inv.IssuedDate, &inv.DueDate,
 		&inv.Subtotal, &inv.DiscountAmount, &inv.TotalAmount, &inv.Notes,
-		&inv.CreatedBy, &inv.CreatedAt, &inv.UpdatedAt,
+		&inv.CreatedBy, &inv.PaymentProvider, &inv.ProviderRef, &inv.PaidAt,
+		&inv.CreatedAt, &inv.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -280,6 +285,52 @@ func (r *repository) GetInvoiceByID(ctx context.Context, id uuid.UUID) (*Invoice
 		return nil, fmt.Errorf("finance.GetInvoiceByID: %w", err)
 	}
 	return inv, nil
+}
+
+func (r *repository) GetInvoiceByProviderRef(ctx context.Context, providerRef string) (*Invoice, error) {
+	query := `SELECT id, invoice_number, enrollment_id, payment_id, billed_to, partner_id, student_id,
+	                 status, issued_date, due_date, subtotal, discount_amount, total_amount, notes,
+	                 created_by, payment_provider, provider_ref, paid_at, created_at, updated_at
+	          FROM finance.invoices WHERE provider_ref = $1`
+
+	inv := &Invoice{}
+	err := r.pool.QueryRow(ctx, query, providerRef).Scan(
+		&inv.ID, &inv.InvoiceNumber, &inv.EnrollmentID, &inv.PaymentID, &inv.BilledTo,
+		&inv.PartnerID, &inv.StudentID, &inv.Status, &inv.IssuedDate, &inv.DueDate,
+		&inv.Subtotal, &inv.DiscountAmount, &inv.TotalAmount, &inv.Notes,
+		&inv.CreatedBy, &inv.PaymentProvider, &inv.ProviderRef, &inv.PaidAt,
+		&inv.CreatedAt, &inv.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("finance.GetInvoiceByProviderRef: %w", err)
+	}
+	return inv, nil
+}
+
+func (r *repository) SetInvoiceProviderRef(ctx context.Context, id uuid.UUID, provider, providerRef string) error {
+	query := `UPDATE finance.invoices SET payment_provider=$1, provider_ref=$2 WHERE id=$3`
+	ct, err := r.pool.Exec(ctx, query, provider, providerRef, id)
+	if err != nil {
+		return fmt.Errorf("finance.SetInvoiceProviderRef: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
+}
+
+// MarkInvoicePaid sets status=paid + paid_at when not already paid.
+// Returns false (idempotent no-op) when invoice was already paid.
+func (r *repository) MarkInvoicePaid(ctx context.Context, id uuid.UUID, paidAt time.Time) (bool, error) {
+	query := `UPDATE finance.invoices SET status='paid', paid_at=$1 WHERE id=$2 AND status<>'paid'`
+	ct, err := r.pool.Exec(ctx, query, paidAt, id)
+	if err != nil {
+		return false, fmt.Errorf("finance.MarkInvoicePaid: %w", err)
+	}
+	return ct.RowsAffected() == 1, nil
 }
 
 func (r *repository) UpdateInvoiceStatus(ctx context.Context, id uuid.UUID, status InvoiceStatus) error {
@@ -296,7 +347,8 @@ func (r *repository) UpdateInvoiceStatus(ctx context.Context, id uuid.UUID, stat
 
 func (r *repository) ListOverdueInvoices(ctx context.Context, before time.Time) ([]*Invoice, error) {
 	query := `SELECT id, invoice_number, enrollment_id, payment_id, billed_to, partner_id, student_id,
-	                 status, issued_date, due_date, subtotal, discount_amount, total_amount, notes, created_by, created_at, updated_at
+	                 status, issued_date, due_date, subtotal, discount_amount, total_amount, notes,
+	                 created_by, payment_provider, provider_ref, paid_at, created_at, updated_at
 	          FROM finance.invoices WHERE status='sent' AND due_date < $1`
 
 	rows, err := r.pool.Query(ctx, query, before)
@@ -312,7 +364,8 @@ func (r *repository) ListOverdueInvoices(ctx context.Context, before time.Time) 
 			&inv.ID, &inv.InvoiceNumber, &inv.EnrollmentID, &inv.PaymentID, &inv.BilledTo,
 			&inv.PartnerID, &inv.StudentID, &inv.Status, &inv.IssuedDate, &inv.DueDate,
 			&inv.Subtotal, &inv.DiscountAmount, &inv.TotalAmount, &inv.Notes,
-			&inv.CreatedBy, &inv.CreatedAt, &inv.UpdatedAt,
+			&inv.CreatedBy, &inv.PaymentProvider, &inv.ProviderRef, &inv.PaidAt,
+			&inv.CreatedAt, &inv.UpdatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("finance.ListOverdueInvoices scan: %w", err)
 		}

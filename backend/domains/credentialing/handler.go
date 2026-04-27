@@ -2,12 +2,20 @@ package credentialing
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	mw "github.com/vernonedu/vernonedu2/backend/internal/middleware"
+)
+
+const (
+	contentTypePDF       = "application/pdf"
+	contentDispositionFmt = `attachment; filename="%s.pdf"`
 )
 
 // Handler holds credentialing HTTP handlers.
@@ -106,4 +114,48 @@ func (h *Handler) ApproveActionRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// VerifyByHash is a public endpoint resolving a certificate by its PDF hash.
+func (h *Handler) VerifyByHash(w http.ResponseWriter, r *http.Request) {
+	hash := chi.URLParam(r, "hash")
+	if hash == "" {
+		apperrors.Render(w, apperrors.Validationf("hash required"))
+		return
+	}
+	res, err := h.svc.VerifyByHash(r.Context(), hash)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(res)
+}
+
+// DownloadCertificate streams the PDF blob for a given certificate ID.
+// Auth-required: caller has been authenticated by the surrounding chi.Group.
+func (h *Handler) DownloadCertificate(w http.ResponseWriter, r *http.Request) {
+	certID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid certificate id"))
+		return
+	}
+	cert, err := h.svc.GetCertificateForDownload(r.Context(), certID)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	f, err := os.Open(*cert.PDFPath)
+	if err != nil {
+		apperrors.Render(w, apperrors.NotFoundf("certificate file missing"))
+		return
+	}
+	defer f.Close()
+
+	w.Header().Set("Content-Type", contentTypePDF)
+	w.Header().Set("Content-Disposition", fmt.Sprintf(contentDispositionFmt, cert.CertificateNumber))
+	if _, err := io.Copy(w, f); err != nil {
+		// header already sent; best effort
+		return
+	}
 }
