@@ -54,13 +54,15 @@ func (r *repository) CreateEnrollment(ctx context.Context, e *Enrollment) error 
 	query := `
 		INSERT INTO enrollment.enrollments
 		  (id, student_id, course_batch_id, format, mode, payer, partner_id, franchisee_id,
-		   price, final_price, voucher_id, credit_applied, payment_status, completion_status, source)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+		   price, final_price, voucher_id, credit_applied, student_credit_id,
+		   payment_status, completion_status, source)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
 		RETURNING created_at, updated_at`
 
 	err := r.pool.QueryRow(ctx, query,
 		e.ID, e.StudentID, e.CourseBatchID, e.Format, e.Mode, e.Payer, e.PartnerID, e.FranchiseeID,
-		e.Price, e.FinalPrice, e.VoucherID, e.CreditApplied, e.PaymentStatus, e.CompletionStatus, e.Source,
+		e.Price, e.FinalPrice, e.VoucherID, e.CreditApplied, e.StudentCreditID,
+		e.PaymentStatus, e.CompletionStatus, e.Source,
 	).Scan(&e.CreatedAt, &e.UpdatedAt)
 	if err != nil {
 		return fmt.Errorf("enrollment.CreateEnrollment: %w", err)

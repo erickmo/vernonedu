@@ -18,19 +18,22 @@ type Service struct {
 	log          *zap.Logger
 	catalog      CatalogReader
 	partnerships PartnershipsReader
+	finance      FinanceReader
 }
 
 // NewService constructs enrollment Service.
 //
 // catalog is required for the Enroll workflow (batch lookup + format
-// validation). partnerships may be nil — the service treats a nil reader
-// as "no active agreement available" and falls back to B2C pricing.
+// validation). partnerships and finance may be nil — the service treats
+// a nil partnerships reader as "no active agreement available" (falls back
+// to B2C pricing) and a nil finance reader as "no credit application".
 func NewService(
 	repo Repository,
 	bus events.Bus,
 	log *zap.Logger,
 	catalog CatalogReader,
 	partnerships PartnershipsReader,
+	finance FinanceReader,
 ) *Service {
 	return &Service{
 		repo:         repo,
@@ -38,6 +41,7 @@ func NewService(
 		log:          log,
 		catalog:      catalog,
 		partnerships: partnerships,
+		finance:      finance,
 	}
 }
 
@@ -51,6 +55,9 @@ type EnrollInput struct {
 	FranchiseeID  *uuid.UUID
 	VoucherCode   string
 	Source        string
+	// StudentCreditID, when set, requests application of a finance-domain
+	// student credit balance against the resolved final price.
+	StudentCreditID *uuid.UUID
 }
 
 // Enroll creates an enrollment using cross-domain reads for batch + format
@@ -81,6 +88,8 @@ func (s *Service) Enroll(ctx context.Context, in EnrollInput) (*Enrollment, erro
 		return nil, err
 	}
 
+	creditApplied, creditID := s.resolveCredit(ctx, in, resolved.FinalPrice)
+
 	e := &Enrollment{
 		ID:               uuid.New(),
 		StudentID:        in.StudentID,
@@ -92,7 +101,8 @@ func (s *Service) Enroll(ctx context.Context, in EnrollInput) (*Enrollment, erro
 		FranchiseeID:     in.FranchiseeID,
 		Price:            resolved.Price,
 		FinalPrice:       resolved.FinalPrice,
-		CreditApplied:    decimal.Zero,
+		CreditApplied:    creditApplied,
+		StudentCreditID:  creditID,
 		PaymentStatus:    PaymentPending,
 		CompletionStatus: CompletionOngoing,
 		Source:           in.Source,
@@ -103,6 +113,12 @@ func (s *Service) Enroll(ctx context.Context, in EnrollInput) (*Enrollment, erro
 
 	if err := s.repo.CreateEnrollment(ctx, e); err != nil {
 		return nil, err
+	}
+
+	if creditID != nil && s.finance != nil {
+		if err := s.finance.DebitStudentCredit(ctx, *creditID, creditApplied, e.ID); err != nil {
+			s.log.Warn("debit student credit failed", zap.Error(err))
+		}
 	}
 
 	if voucher != nil {
@@ -220,6 +236,35 @@ func (s *Service) resolvePricing(
 	}
 
 	return ResolvePrice(priceIn), voucher, payer, nil
+}
+
+// resolveCredit looks up the requested student credit (if any) and returns
+// the amount to apply (capped at finalPrice) plus the credit ID. Returns
+// zero/nil when credit cannot or should not be applied.
+func (s *Service) resolveCredit(
+	ctx context.Context,
+	in EnrollInput,
+	finalPrice decimal.Decimal,
+) (decimal.Decimal, *uuid.UUID) {
+	if in.StudentCreditID == nil || s.finance == nil {
+		return decimal.Zero, nil
+	}
+	credit, err := s.finance.GetStudentCredit(ctx, *in.StudentCreditID)
+	if err != nil || credit == nil {
+		return decimal.Zero, nil
+	}
+	if !credit.IsActive || credit.StudentID != in.StudentID {
+		return decimal.Zero, nil
+	}
+	toApply := credit.Balance
+	if toApply.GreaterThan(finalPrice) {
+		toApply = finalPrice
+	}
+	if !toApply.IsPositive() {
+		return decimal.Zero, nil
+	}
+	id := credit.ID
+	return toApply, &id
 }
 
 // CompleteEnrollment marks enrollment as completed.

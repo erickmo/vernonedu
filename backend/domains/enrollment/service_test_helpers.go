@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	"go.uber.org/zap"
@@ -332,4 +333,65 @@ func (r *fakePartnershipsReader) GetActiveAgreement(_ context.Context, partnerID
 	}
 	cp := *a
 	return &cp, nil
+}
+
+// --- fakeFinanceReader --------------------------------------------------
+
+type debitRecord struct {
+	CreditID     uuid.UUID
+	Amount       decimal.Decimal
+	EnrollmentID uuid.UUID
+}
+
+type fakeFinanceReader struct {
+	mu      sync.Mutex
+	credits map[uuid.UUID]*StudentCredit
+	debits  []debitRecord
+}
+
+var _ FinanceReader = (*fakeFinanceReader)(nil)
+
+func newFakeFinanceReader() *fakeFinanceReader {
+	return &fakeFinanceReader{credits: map[uuid.UUID]*StudentCredit{}}
+}
+
+func (r *fakeFinanceReader) SeedCredit(c *StudentCredit) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	cp := *c
+	r.credits[c.ID] = &cp
+}
+
+func (r *fakeFinanceReader) GetStudentCredit(_ context.Context, id uuid.UUID) (*StudentCredit, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	c, ok := r.credits[id]
+	if !ok {
+		return nil, apperrors.ErrNotFound
+	}
+	cp := *c
+	return &cp, nil
+}
+
+func (r *fakeFinanceReader) DebitStudentCredit(_ context.Context, id uuid.UUID, amount decimal.Decimal, enrollID uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	c, ok := r.credits[id]
+	if !ok {
+		return apperrors.ErrNotFound
+	}
+	if amount.GreaterThan(c.Balance) {
+		return apperrors.Validationf("insufficient credit balance")
+	}
+	c.Balance = c.Balance.Sub(amount)
+	r.debits = append(r.debits, debitRecord{CreditID: id, Amount: amount, EnrollmentID: enrollID})
+	return nil
+}
+
+func (r *fakeFinanceReader) Debits() []debitRecord {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := make([]debitRecord, len(r.debits))
+	copy(out, r.debits)
+	return out
 }

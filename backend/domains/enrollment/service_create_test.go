@@ -25,7 +25,7 @@ func createSvc(t *testing.T) (
 	cat := newFakeCatalogReader()
 	part := newFakePartnershipsReader()
 	bus := newFakeBus()
-	s := NewService(r, bus, testLogger(), cat, part)
+	s := NewService(r, bus, testLogger(), cat, part, nil)
 	return s, r, cat, part, bus
 }
 

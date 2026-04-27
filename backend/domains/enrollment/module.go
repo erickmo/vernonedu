@@ -13,6 +13,7 @@ var Module = fx.Options(
 	fx.Provide(NewRepository),
 	fx.Provide(provideCatalogReader),
 	fx.Provide(provideAgreementReader),
+	fx.Provide(provideFinanceReader),
 	fx.Provide(NewService),
 	fx.Provide(NewHandler),
 	fx.Invoke(RegisterRoutes),
@@ -27,6 +28,11 @@ func provideCatalogReader() CatalogReader { return nil }
 // provideAgreementReader returns a nil PartnershipsReader placeholder.
 // The service treats nil as "no active agreement" and falls back to B2C.
 func provideAgreementReader() PartnershipsReader { return nil }
+
+// provideFinanceReader returns a nil FinanceReader placeholder. Cross-domain
+// wiring to the finance service is deferred; until then, credit application
+// is skipped silently when StudentCreditID is supplied.
+func provideFinanceReader() FinanceReader { return nil }
 
 // RegisterRoutes mounts enrollment HTTP routes.
 func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {

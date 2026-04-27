@@ -70,3 +70,19 @@ type CatalogReader interface {
 type PartnershipsReader interface {
 	GetActiveAgreement(ctx context.Context, partnerID uuid.UUID) (*Agreement, error)
 }
+
+// StudentCredit is the projection of a finance-domain student credit balance
+// the enrollment service needs when applying credit at enrollment time.
+type StudentCredit struct {
+	ID        uuid.UUID
+	StudentID uuid.UUID
+	Balance   decimal.Decimal
+	IsActive  bool
+}
+
+// FinanceReader exposes read+debit operations on student credits.
+// May be nil — when absent the service skips credit application entirely.
+type FinanceReader interface {
+	GetStudentCredit(ctx context.Context, creditID uuid.UUID) (*StudentCredit, error)
+	DebitStudentCredit(ctx context.Context, creditID uuid.UUID, amount decimal.Decimal, refEnrollmentID uuid.UUID) error
+}
