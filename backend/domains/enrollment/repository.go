@@ -35,7 +35,9 @@ type Repository interface {
 	// (mark completed / drop) which must not coerce payment state.
 	UpdateEnrollmentCompletion(ctx context.Context, id uuid.UUID, compStatus CompletionStatus) error
 	ListEnrollmentsByStudent(ctx context.Context, studentID uuid.UUID) ([]*Enrollment, error)
+	ListEnrollmentsByUserID(ctx context.Context, userID uuid.UUID) ([]*Enrollment, error)
 	ListEnrollmentsByBatch(ctx context.Context, batchID uuid.UUID) ([]*Enrollment, error)
+	ListVouchersAssignedToUser(ctx context.Context, userID uuid.UUID) ([]*Voucher, error)
 	CountEnrollmentsByBatchAndFormat(ctx context.Context, batchID uuid.UUID, format EnrollmentFormat) (int, error)
 
 	GetVoucherByCode(ctx context.Context, code string) (*Voucher, error)
@@ -175,6 +177,72 @@ func (r *repository) ListEnrollmentsByStudent(ctx context.Context, studentID uui
 		enrollments = append(enrollments, e)
 	}
 	return enrollments, rows.Err()
+}
+
+func (r *repository) ListEnrollmentsByUserID(ctx context.Context, userID uuid.UUID) ([]*Enrollment, error) {
+	const query = `
+		SELECT e.id, e.student_id, e.course_batch_id, e.format, e.mode, e.payer,
+		       e.partner_id, e.franchisee_id, e.price, e.final_price, e.voucher_id,
+		       e.credit_applied, e.student_credit_id, e.payment_status,
+		       e.completion_status, e.source, e.created_at, e.updated_at
+		FROM enrollment.enrollments e
+		JOIN identity.students s ON s.id = e.student_id
+		WHERE s.user_id = $1
+		ORDER BY e.created_at DESC`
+
+	rows, err := r.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("enrollment.ListEnrollmentsByUserID: %w", err)
+	}
+	defer rows.Close()
+
+	var enrollments []*Enrollment
+	for rows.Next() {
+		e := &Enrollment{}
+		if err := rows.Scan(
+			&e.ID, &e.StudentID, &e.CourseBatchID, &e.Format, &e.Mode, &e.Payer,
+			&e.PartnerID, &e.FranchiseeID, &e.Price, &e.FinalPrice, &e.VoucherID,
+			&e.CreditApplied, &e.StudentCreditID, &e.PaymentStatus, &e.CompletionStatus,
+			&e.Source, &e.CreatedAt, &e.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("enrollment.ListEnrollmentsByUserID scan: %w", err)
+		}
+		enrollments = append(enrollments, e)
+	}
+	return enrollments, rows.Err()
+}
+
+func (r *repository) ListVouchersAssignedToUser(ctx context.Context, userID uuid.UUID) ([]*Voucher, error) {
+	const query = `
+		SELECT v.id, v.code, v.discount_type, v.discount_value, v.assigned_to,
+		       v.course_id, v.course_batch_id, v.valid_from, v.valid_until,
+		       v.max_uses, v.used_count, v.is_active, v.created_by,
+		       v.created_at, v.updated_at
+		FROM enrollment.vouchers v
+		JOIN identity.students s ON s.id = v.assigned_to
+		WHERE s.user_id = $1
+		ORDER BY v.created_at DESC`
+
+	rows, err := r.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("enrollment.ListVouchersAssignedToUser: %w", err)
+	}
+	defer rows.Close()
+
+	var vouchers []*Voucher
+	for rows.Next() {
+		v := &Voucher{}
+		if err := rows.Scan(
+			&v.ID, &v.Code, &v.DiscountType, &v.DiscountValue, &v.AssignedTo,
+			&v.CourseID, &v.CourseBatchID, &v.ValidFrom, &v.ValidUntil,
+			&v.MaxUses, &v.UsedCount, &v.IsActive, &v.CreatedBy,
+			&v.CreatedAt, &v.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("enrollment.ListVouchersAssignedToUser scan: %w", err)
+		}
+		vouchers = append(vouchers, v)
+	}
+	return vouchers, rows.Err()
 }
 
 func (r *repository) ListEnrollmentsByBatch(ctx context.Context, batchID uuid.UUID) ([]*Enrollment, error) {

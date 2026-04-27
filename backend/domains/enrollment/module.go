@@ -38,13 +38,26 @@ func provideFinanceReader() FinanceReader { return nil }
 func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {
 	jwtMW := mw.JWT(cfg.JWT.Secret)
 
+	// Authenticated (any role).
 	r.Group(func(r chi.Router) {
 		r.Use(jwtMW)
 
 		r.Post("/api/v1/enrollments", h.CreateEnrollment)
+		r.Get("/api/v1/enrollments/me", h.ListMyEnrollments)
 		r.Get("/api/v1/enrollments/{id}", h.GetEnrollment)
-		r.Post("/api/v1/enrollments/{id}/drop", h.DropEnrollment)
-		r.Post("/api/v1/enrollments/{id}/complete", h.CompleteEnrollment)
+		r.Get("/api/v1/vouchers/me", h.ListMyVouchers)
+		r.Post("/api/v1/vouchers/redeem", h.RedeemVoucher)
+	})
+
+	// Admin only.
+	r.Group(func(r chi.Router) {
+		r.Use(jwtMW, mw.RequireRoles("admin", "vernonedu_admin"))
+
+		r.Patch("/api/v1/enrollments/{id}/complete", h.CompleteEnrollment)
+		r.Patch("/api/v1/enrollments/{id}/drop", h.DropEnrollment)
 		r.Get("/api/v1/students/{studentID}/enrollments", h.ListEnrollmentsByStudent)
+		r.Post("/api/v1/vouchers", h.CreateVoucher)
+		r.Patch("/api/v1/vouchers/{id}/assign", h.AssignVoucher)
+		r.Patch("/api/v1/vouchers/{id}/deactivate", h.DeactivateVoucher)
 	})
 }

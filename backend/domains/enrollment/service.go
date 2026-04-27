@@ -426,3 +426,20 @@ func (s *Service) GetEnrollment(ctx context.Context, id uuid.UUID) (*Enrollment,
 func (s *Service) ListByStudent(ctx context.Context, studentID uuid.UUID) ([]*Enrollment, error) {
 	return s.repo.ListEnrollmentsByStudent(ctx, studentID)
 }
+
+// ListMyEnrollments returns all enrollments for the student linked to the
+// given user_id (joins identity.students.user_id).
+func (s *Service) ListMyEnrollments(ctx context.Context, userID uuid.UUID) ([]*Enrollment, error) {
+	return s.repo.ListEnrollmentsByUserID(ctx, userID)
+}
+
+// ListVouchersAssignedToUser returns vouchers assigned to the student linked
+// to the given user_id.
+func (s *Service) ListVouchersAssignedToUser(ctx context.Context, userID uuid.UUID) ([]*Voucher, error) {
+	return s.repo.ListVouchersAssignedToUser(ctx, userID)
+}
+
+// GetVoucherByCode returns the voucher matching a code.
+func (s *Service) GetVoucherByCode(ctx context.Context, code string) (*Voucher, error) {
+	return s.repo.GetVoucherByCode(ctx, code)
+}

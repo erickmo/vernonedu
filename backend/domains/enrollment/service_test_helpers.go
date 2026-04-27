@@ -20,6 +20,8 @@ type fakeEnrollmentRepo struct {
 	vouchers       map[uuid.UUID]*Voucher
 	vouchersByCode map[string]*Voucher
 	usagesByEnroll map[uuid.UUID]*VoucherUsage
+	// studentUser maps student_id -> user_id, simulating identity.students.user_id.
+	studentUser map[uuid.UUID]uuid.UUID
 }
 
 var _ Repository = (*fakeEnrollmentRepo)(nil)
@@ -31,7 +33,15 @@ func newFakeEnrollmentRepo() *fakeEnrollmentRepo {
 		vouchers:       map[uuid.UUID]*Voucher{},
 		vouchersByCode: map[string]*Voucher{},
 		usagesByEnroll: map[uuid.UUID]*VoucherUsage{},
+		studentUser:    map[uuid.UUID]uuid.UUID{},
 	}
+}
+
+// SeedStudentUser links a student_id to a user_id (mimics identity.students.user_id).
+func (r *fakeEnrollmentRepo) SeedStudentUser(studentID, userID uuid.UUID) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.studentUser[studentID] = userID
 }
 
 func sbKey(s, b uuid.UUID) string { return s.String() + "|" + b.String() }
@@ -139,6 +149,35 @@ func (r *fakeEnrollmentRepo) ListEnrollmentsByStudent(ctx context.Context, stude
 	for _, e := range r.enrollments {
 		if e.StudentID == studentID {
 			cp := *e
+			out = append(out, &cp)
+		}
+	}
+	return out, nil
+}
+
+func (r *fakeEnrollmentRepo) ListEnrollmentsByUserID(ctx context.Context, userID uuid.UUID) ([]*Enrollment, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	var out []*Enrollment
+	for _, e := range r.enrollments {
+		if uid, ok := r.studentUser[e.StudentID]; ok && uid == userID {
+			cp := *e
+			out = append(out, &cp)
+		}
+	}
+	return out, nil
+}
+
+func (r *fakeEnrollmentRepo) ListVouchersAssignedToUser(ctx context.Context, userID uuid.UUID) ([]*Voucher, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	var out []*Voucher
+	for _, v := range r.vouchers {
+		if v.AssignedTo == nil {
+			continue
+		}
+		if uid, ok := r.studentUser[*v.AssignedTo]; ok && uid == userID {
+			cp := *v
 			out = append(out, &cp)
 		}
 	}
