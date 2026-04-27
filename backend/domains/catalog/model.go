@@ -58,6 +58,8 @@ type Course struct {
 	CourseCreatorID      uuid.UUID        `json:"course_creator_id"`
 	BasePrice            decimal.Decimal  `json:"base_price"`
 	MinPrice             decimal.Decimal  `json:"min_price"`
+	Description          *string          `json:"description,omitempty"`
+	IsActive             bool             `json:"is_active"`
 	ProfitSplitOverride  *map[string]any  `json:"profit_split_override,omitempty"`
 	CreatedBy            uuid.UUID        `json:"created_by"`
 	CreatedAt            time.Time        `json:"created_at"`

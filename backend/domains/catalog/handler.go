@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	mw "github.com/vernonedu/vernonedu2/backend/internal/middleware"
 )
@@ -20,6 +21,15 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
+type createCourseRequest struct {
+	Name            string          `json:"name"`
+	DepartmentID    uuid.UUID       `json:"department_id"`
+	CourseCreatorID uuid.UUID       `json:"course_creator_id"`
+	BasePrice       decimal.Decimal `json:"base_price"`
+	MinPrice        decimal.Decimal `json:"min_price"`
+	Description     *string         `json:"description,omitempty"`
+}
+
 func (h *Handler) CreateCourse(w http.ResponseWriter, r *http.Request) {
 	uc := mw.GetUserContext(r.Context())
 	if uc == nil {
@@ -27,14 +37,22 @@ func (h *Handler) CreateCourse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var course Course
-	if err := json.NewDecoder(r.Body).Decode(&course); err != nil {
+	var req createCourseRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		apperrors.Render(w, apperrors.Validationf("invalid request body"))
 		return
 	}
-	course.CreatedBy = uc.ID
 
-	if err := h.svc.CreateCourse(r.Context(), &course); err != nil {
+	course, err := h.svc.CreateCourse(r.Context(), CreateCourseInput{
+		Name:            req.Name,
+		DepartmentID:    req.DepartmentID,
+		CourseCreatorID: req.CourseCreatorID,
+		BasePrice:       req.BasePrice,
+		MinPrice:        req.MinPrice,
+		Description:     req.Description,
+		CreatedBy:       uc.ID,
+	})
+	if err != nil {
 		apperrors.Render(w, err)
 		return
 	}

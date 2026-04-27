@@ -5,8 +5,14 @@ SELECT * FROM catalog.courses WHERE id = $1;
 SELECT * FROM catalog.courses WHERE department_id = $1 ORDER BY name;
 
 -- name: CreateCourse :one
-INSERT INTO catalog.courses (id, name, department_id, course_creator_id, base_price, min_price, created_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO catalog.courses (id, name, department_id, course_creator_id, base_price, min_price, description, is_active, created_by)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING *;
+
+-- name: UpdateCourse :one
+UPDATE catalog.courses
+SET name = $2, base_price = $3, min_price = $4, description = $5, is_active = $6
+WHERE id = $1
 RETURNING *;
 
 -- name: GetBatchByID :one

@@ -2,8 +2,10 @@ package catalog
 
 import (
 	"context"
+	"strings"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	"go.uber.org/zap"
@@ -21,10 +23,77 @@ func NewService(repo Repository, bus events.Bus, log *zap.Logger) *Service {
 	return &Service{repo: repo, bus: bus, log: log}
 }
 
-// CreateCourse creates a new course.
-func (s *Service) CreateCourse(ctx context.Context, c *Course) error {
-	c.ID = uuid.New()
-	return s.repo.CreateCourse(ctx, c)
+// CreateCourseInput is the structured input for creating a course.
+type CreateCourseInput struct {
+	Name            string
+	DepartmentID    uuid.UUID
+	CourseCreatorID uuid.UUID
+	BasePrice       decimal.Decimal
+	MinPrice        decimal.Decimal
+	Description     *string
+	CreatedBy       uuid.UUID
+}
+
+// UpdateCourseInput is the structured input for updating a course. Nil fields
+// leave the existing value untouched.
+type UpdateCourseInput struct {
+	ID          uuid.UUID
+	Name        *string
+	BasePrice   *decimal.Decimal
+	MinPrice    *decimal.Decimal
+	Description *string
+}
+
+// CreateCourse creates a new course with price-validation.
+func (s *Service) CreateCourse(ctx context.Context, in CreateCourseInput) (*Course, error) {
+	if strings.TrimSpace(in.Name) == "" {
+		return nil, apperrors.Validationf("name is required")
+	}
+	if in.MinPrice.GreaterThan(in.BasePrice) {
+		return nil, apperrors.Validationf("min_price cannot exceed base_price")
+	}
+	c := &Course{
+		ID:              uuid.New(),
+		Name:            in.Name,
+		DepartmentID:    in.DepartmentID,
+		CourseCreatorID: in.CourseCreatorID,
+		BasePrice:       in.BasePrice,
+		MinPrice:        in.MinPrice,
+		Description:     in.Description,
+		IsActive:        true,
+		CreatedBy:       in.CreatedBy,
+	}
+	if err := s.repo.CreateCourse(ctx, c); err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
+// UpdateCourse applies a partial update to an existing course.
+func (s *Service) UpdateCourse(ctx context.Context, in UpdateCourseInput) (*Course, error) {
+	existing, err := s.repo.GetCourseByID(ctx, in.ID)
+	if err != nil {
+		return nil, err
+	}
+	if in.Name != nil {
+		existing.Name = *in.Name
+	}
+	if in.Description != nil {
+		existing.Description = in.Description
+	}
+	if in.BasePrice != nil {
+		existing.BasePrice = *in.BasePrice
+	}
+	if in.MinPrice != nil {
+		existing.MinPrice = *in.MinPrice
+	}
+	if existing.MinPrice.GreaterThan(existing.BasePrice) {
+		return nil, apperrors.Validationf("min_price cannot exceed base_price")
+	}
+	if err := s.repo.UpdateCourse(ctx, existing); err != nil {
+		return nil, err
+	}
+	return existing, nil
 }
 
 // GetCourse fetches course by ID.

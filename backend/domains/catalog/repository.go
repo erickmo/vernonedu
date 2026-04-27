@@ -15,6 +15,7 @@ import (
 type Repository interface {
 	CreateCourse(ctx context.Context, c *Course) error
 	GetCourseByID(ctx context.Context, id uuid.UUID) (*Course, error)
+	UpdateCourse(ctx context.Context, c *Course) error
 	ListCoursesByDepartment(ctx context.Context, deptID uuid.UUID) ([]*Course, error)
 
 	CreateBatch(ctx context.Context, b *CourseBatch) error
@@ -45,12 +46,12 @@ func NewRepository(pool *pgxpool.Pool) Repository {
 
 func (r *repository) CreateCourse(ctx context.Context, c *Course) error {
 	query := `
-		INSERT INTO catalog.courses (id, name, department_id, course_creator_id, base_price, min_price, created_by)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO catalog.courses (id, name, department_id, course_creator_id, base_price, min_price, description, is_active, created_by)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING created_at, updated_at`
 
 	err := r.pool.QueryRow(ctx, query,
-		c.ID, c.Name, c.DepartmentID, c.CourseCreatorID, c.BasePrice, c.MinPrice, c.CreatedBy,
+		c.ID, c.Name, c.DepartmentID, c.CourseCreatorID, c.BasePrice, c.MinPrice, c.Description, c.IsActive, c.CreatedBy,
 	).Scan(&c.CreatedAt, &c.UpdatedAt)
 	if err != nil {
 		return fmt.Errorf("catalog.CreateCourse: %w", err)
@@ -59,13 +60,13 @@ func (r *repository) CreateCourse(ctx context.Context, c *Course) error {
 }
 
 func (r *repository) GetCourseByID(ctx context.Context, id uuid.UUID) (*Course, error) {
-	query := `SELECT id, name, department_id, course_creator_id, base_price, min_price, created_by, created_at, updated_at
+	query := `SELECT id, name, department_id, course_creator_id, base_price, min_price, description, is_active, created_by, created_at, updated_at
 	          FROM catalog.courses WHERE id = $1`
 
 	c := &Course{}
 	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&c.ID, &c.Name, &c.DepartmentID, &c.CourseCreatorID,
-		&c.BasePrice, &c.MinPrice, &c.CreatedBy, &c.CreatedAt, &c.UpdatedAt,
+		&c.BasePrice, &c.MinPrice, &c.Description, &c.IsActive, &c.CreatedBy, &c.CreatedAt, &c.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -76,8 +77,27 @@ func (r *repository) GetCourseByID(ctx context.Context, id uuid.UUID) (*Course, 
 	return c, nil
 }
 
+func (r *repository) UpdateCourse(ctx context.Context, c *Course) error {
+	query := `
+		UPDATE catalog.courses
+		SET name=$1, base_price=$2, min_price=$3, description=$4, is_active=$5
+		WHERE id=$6
+		RETURNING updated_at`
+
+	err := r.pool.QueryRow(ctx, query,
+		c.Name, c.BasePrice, c.MinPrice, c.Description, c.IsActive, c.ID,
+	).Scan(&c.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return apperrors.ErrNotFound
+		}
+		return fmt.Errorf("catalog.UpdateCourse: %w", err)
+	}
+	return nil
+}
+
 func (r *repository) ListCoursesByDepartment(ctx context.Context, deptID uuid.UUID) ([]*Course, error) {
-	query := `SELECT id, name, department_id, course_creator_id, base_price, min_price, created_by, created_at, updated_at
+	query := `SELECT id, name, department_id, course_creator_id, base_price, min_price, description, is_active, created_by, created_at, updated_at
 	          FROM catalog.courses WHERE department_id = $1 ORDER BY name`
 
 	rows, err := r.pool.Query(ctx, query, deptID)
@@ -90,7 +110,7 @@ func (r *repository) ListCoursesByDepartment(ctx context.Context, deptID uuid.UU
 	for rows.Next() {
 		c := &Course{}
 		if err := rows.Scan(&c.ID, &c.Name, &c.DepartmentID, &c.CourseCreatorID,
-			&c.BasePrice, &c.MinPrice, &c.CreatedBy, &c.CreatedAt, &c.UpdatedAt); err != nil {
+			&c.BasePrice, &c.MinPrice, &c.Description, &c.IsActive, &c.CreatedBy, &c.CreatedAt, &c.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("catalog.ListCoursesByDepartment scan: %w", err)
 		}
 		courses = append(courses, c)

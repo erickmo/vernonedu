@@ -23,6 +23,8 @@ CREATE TABLE catalog.courses (
   course_creator_id     UUID           NOT NULL REFERENCES identity.users(id) ON DELETE RESTRICT,
   base_price            NUMERIC(12,2)  NOT NULL DEFAULT 0.00,
   min_price             NUMERIC(12,2)  NOT NULL DEFAULT 0.00,
+  description           TEXT           NULL,
+  is_active             BOOLEAN        NOT NULL DEFAULT TRUE,
   profit_split_override JSONB          NULL,
   created_by            UUID           NOT NULL REFERENCES identity.users(id) ON DELETE RESTRICT,
   created_at            TIMESTAMPTZ    NOT NULL DEFAULT now(),
