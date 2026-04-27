@@ -11,6 +11,7 @@ import (
 type BatchCreatedPayload struct {
 	BatchID  uuid.UUID `json:"batch_id"`
 	CourseID uuid.UUID `json:"course_id"`
+	ActorID  uuid.UUID `json:"actor_id"`
 }
 
 // BatchClosedPayload is published when a batch is closed.

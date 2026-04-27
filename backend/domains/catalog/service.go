@@ -79,7 +79,7 @@ func (s *Service) CreateBatch(ctx context.Context, b *CourseBatch) error {
 
 	_ = s.bus.Publish(ctx, events.Event{
 		Type:    events.BatchCreated,
-		Payload: BatchCreatedPayload{BatchID: b.ID, CourseID: b.CourseID},
+		Payload: BatchCreatedPayload{BatchID: b.ID, CourseID: b.CourseID, ActorID: b.CreatedBy},
 	})
 	return nil
 }
