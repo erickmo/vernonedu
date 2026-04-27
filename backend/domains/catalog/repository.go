@@ -50,6 +50,10 @@ type Repository interface {
 	DisableFormat(ctx context.Context, configID uuid.UUID) error
 	ListFormatConfigsByCourse(ctx context.Context, courseID uuid.UUID) ([]*CourseFormatConfig, error)
 	GetFormatConfig(ctx context.Context, id uuid.UUID) (*CourseFormatConfig, error)
+
+	// CountEnrollmentsByBatch returns the number of confirmed (paid) enrollments
+	// for a batch. Cross-schema query into enrollment.enrollments.
+	CountEnrollmentsByBatch(ctx context.Context, batchID uuid.UUID) (int, error)
 }
 
 type repository struct {
@@ -528,6 +532,18 @@ func (r *repository) ListBatchCostLineItems(ctx context.Context, batchID uuid.UU
 		out = append(out, li)
 	}
 	return out, rows.Err()
+}
+
+// CountEnrollmentsByBatch counts confirmed enrollments (payment_status='paid')
+// for a given batch. Cross-schema read into enrollment.enrollments.
+func (r *repository) CountEnrollmentsByBatch(ctx context.Context, batchID uuid.UUID) (int, error) {
+	const query = `SELECT COUNT(*)::int FROM enrollment.enrollments
+	               WHERE course_batch_id = $1 AND payment_status = 'paid'`
+	var n int
+	if err := r.pool.QueryRow(ctx, query, batchID).Scan(&n); err != nil {
+		return 0, fmt.Errorf("catalog.CountEnrollmentsByBatch: %w", err)
+	}
+	return n, nil
 }
 
 func (r *repository) GetModuleVersionByID(ctx context.Context, id uuid.UUID) (*ModuleVersion, error) {

@@ -23,6 +23,7 @@ type fakeCatalogRepo struct {
 	formatConfigs      map[uuid.UUID]*CourseFormatConfig
 	costTemplates      map[uuid.UUID]*CourseCostTemplate
 	batchCostLineItems map[uuid.UUID]*BatchCostLineItem
+	enrollmentCounts   map[uuid.UUID]int
 }
 
 var _ Repository = (*fakeCatalogRepo)(nil)
@@ -37,7 +38,22 @@ func newFakeCatalogRepo() *fakeCatalogRepo {
 		formatConfigs:      map[uuid.UUID]*CourseFormatConfig{},
 		costTemplates:      map[uuid.UUID]*CourseCostTemplate{},
 		batchCostLineItems: map[uuid.UUID]*BatchCostLineItem{},
+		enrollmentCounts:   map[uuid.UUID]int{},
 	}
+}
+
+// SeedEnrollmentCount sets the confirmed enrollment count for a batch.
+func (r *fakeCatalogRepo) SeedEnrollmentCount(batchID uuid.UUID, n int) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.enrollmentCounts[batchID] = n
+}
+
+// CountEnrollmentsByBatch returns the seeded count (zero if unseeded).
+func (r *fakeCatalogRepo) CountEnrollmentsByBatch(ctx context.Context, batchID uuid.UUID) (int, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.enrollmentCounts[batchID], nil
 }
 
 // SeedCostTemplate inserts a cost template directly for tests.

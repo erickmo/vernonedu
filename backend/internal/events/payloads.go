@@ -123,8 +123,15 @@ type ClassPayload struct {
 
 // BatchCreatedPayload triggers creation of one class_session calendar event per Class.
 type BatchCreatedPayload struct {
-	BatchID uuid.UUID
-	Classes []ClassPayload
+	BatchID  uuid.UUID
+	CourseID uuid.UUID
+	Classes  []ClassPayload
+}
+
+// BatchClosedPayload is published when a course batch transitions to closed.
+type BatchClosedPayload struct {
+	BatchID  uuid.UUID
+	CourseID uuid.UUID
 }
 
 // ClassFacilitatorAssignedPayload triggers attendee add on the class_session event.

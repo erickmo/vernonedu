@@ -107,7 +107,10 @@ func (s *Service) ListCoursesByDepartment(ctx context.Context, deptID uuid.UUID)
 	return s.repo.ListCoursesByDepartment(ctx, deptID)
 }
 
-// OpenBatch transitions batch from draft to open.
+// OpenBatch transitions batch from draft to open. Requires:
+//   - batch currently in draft status
+//   - parent course has at least one enabled CourseFormatConfig
+//   - batch.price within [course.min_price, course.base_price]
 func (s *Service) OpenBatch(ctx context.Context, batchID uuid.UUID) error {
 	batch, err := s.repo.GetBatchByID(ctx, batchID)
 	if err != nil {
@@ -116,7 +119,61 @@ func (s *Service) OpenBatch(ctx context.Context, batchID uuid.UUID) error {
 	if batch.Status != BatchDraft {
 		return apperrors.Validationf("batch must be in draft status to open")
 	}
+	formats, err := s.repo.ListFormatConfigsByCourse(ctx, batch.CourseID)
+	if err != nil {
+		return err
+	}
+	hasEnabled := false
+	for _, f := range formats {
+		if f.IsEnabled {
+			hasEnabled = true
+			break
+		}
+	}
+	if !hasEnabled {
+		return apperrors.Validationf("course has no enabled format configuration")
+	}
+	course, err := s.repo.GetCourseByID(ctx, batch.CourseID)
+	if err != nil {
+		return err
+	}
+	if batch.Price.LessThan(course.MinPrice) {
+		return apperrors.Validationf("batch price below course min_price")
+	}
+	if batch.Price.GreaterThan(course.BasePrice) {
+		return apperrors.Validationf("batch price above course base_price")
+	}
 	return s.repo.UpdateBatchStatus(ctx, batchID, BatchOpen)
+}
+
+// MoveToOngoing transitions batch from open to ongoing. Enforces that the
+// number of confirmed enrollments meets the min_students threshold of every
+// enabled CourseFormatConfig on the parent course.
+func (s *Service) MoveToOngoing(ctx context.Context, batchID uuid.UUID) error {
+	batch, err := s.repo.GetBatchByID(ctx, batchID)
+	if err != nil {
+		return err
+	}
+	if batch.Status != BatchOpen {
+		return apperrors.Validationf("batch must be in open status to move to ongoing")
+	}
+	formats, err := s.repo.ListFormatConfigsByCourse(ctx, batch.CourseID)
+	if err != nil {
+		return err
+	}
+	enrolled, err := s.repo.CountEnrollmentsByBatch(ctx, batchID)
+	if err != nil {
+		return err
+	}
+	for _, f := range formats {
+		if !f.IsEnabled {
+			continue
+		}
+		if f.MinStudents != nil && enrolled < *f.MinStudents {
+			return apperrors.Validationf("enrolled student count below min_students for an enabled format")
+		}
+	}
+	return s.repo.UpdateBatchStatus(ctx, batchID, BatchOngoing)
 }
 
 // CloseBatch transitions batch to closed and publishes BatchClosed event.
@@ -134,7 +191,7 @@ func (s *Service) CloseBatch(ctx context.Context, batchID uuid.UUID) error {
 
 	_ = s.bus.Publish(ctx, events.Event{
 		Type:    events.BatchClosed,
-		Payload: BatchClosedPayload{BatchID: batchID, CourseID: batch.CourseID},
+		Payload: events.BatchClosedPayload{BatchID: batchID, CourseID: batch.CourseID},
 	})
 	return nil
 }
@@ -173,8 +230,12 @@ func (s *Service) CreateBatch(ctx context.Context, in CreateBatchInput) (*Course
 	}
 
 	_ = s.bus.Publish(ctx, events.Event{
-		Type:    events.BatchCreated,
-		Payload: BatchCreatedPayload{BatchID: b.ID, CourseID: b.CourseID},
+		Type: events.BatchCreated,
+		Payload: events.BatchCreatedPayload{
+			BatchID:  b.ID,
+			CourseID: b.CourseID,
+			Classes:  []events.ClassPayload{},
+		},
 	})
 	return b, nil
 }
