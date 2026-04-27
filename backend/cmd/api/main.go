@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/vernonedu/vernonedu2/backend/domains/calendar"
 	"github.com/vernonedu/vernonedu2/backend/domains/catalog"
 	"github.com/vernonedu/vernonedu2/backend/domains/credentialing"
 	"github.com/vernonedu/vernonedu2/backend/domains/enrollment"
@@ -45,6 +46,7 @@ func main() {
 		team_member.Module,
 		profit_split.Module,
 		voucher.Module,
+		calendar.Module,
 
 		fx.NopLogger,
 	)

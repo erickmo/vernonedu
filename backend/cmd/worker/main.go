@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/vernonedu/vernonedu2/backend/domains/calendar"
 	"github.com/vernonedu/vernonedu2/backend/domains/credentialing"
 	"github.com/vernonedu/vernonedu2/backend/domains/finance"
 	"github.com/vernonedu/vernonedu2/backend/domains/franchise"
@@ -17,9 +18,11 @@ import (
 )
 
 const (
-	overdueCheckInterval  = 1 * time.Hour
-	notificationBatchSize = 50
-	notificationInterval  = 30 * time.Second
+	overdueCheckInterval    = 1 * time.Hour
+	notificationBatchSize   = 50
+	notificationInterval    = 30 * time.Second
+	reminderScanInterval    = 5 * time.Minute
+	reminderLookaheadWindow = 1 * time.Hour
 )
 
 func runWorkers(
@@ -27,6 +30,7 @@ func runWorkers(
 	financeSvc *finance.Service,
 	franchiseSvc *franchise.Service,
 	platformSvc *platform.Service,
+	calendarSvc *calendar.Service,
 	log *zap.Logger,
 ) {
 	lc.Append(fx.Hook{
@@ -95,6 +99,24 @@ func runWorkers(
 				}
 			}()
 
+			// Class session reminder scanner (fires class.reminder 1h before session)
+			go func() {
+				ticker := time.NewTicker(reminderScanInterval)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-ticker.C:
+						from := time.Now()
+						to := from.Add(reminderLookaheadWindow)
+						if err := calendarSvc.SendUpcomingReminders(context.Background(), from, to); err != nil {
+							log.Error("class reminder scan failed", zap.Error(err))
+						}
+					case <-ctx.Done():
+						return
+					}
+				}
+			}()
+
 			log.Info("workers started")
 			return nil
 		},
@@ -122,6 +144,10 @@ func main() {
 		// Franchise for royalty overdue worker
 		fx.Provide(franchise.NewRepository),
 		fx.Provide(franchise.NewService),
+
+		// Calendar for class reminder worker
+		fx.Provide(calendar.NewRepository),
+		fx.Provide(calendar.NewService),
 
 		// Credentialing async cert issuer
 		worker.Module,
