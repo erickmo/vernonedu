@@ -30,6 +30,59 @@ type RegisterInput struct {
 	Phone    string
 	Role     UserRole
 	Source   StudentSource
+	Partner  *uuid.UUID
+}
+
+// RegisterOutput is returned by RegisterStudent.
+type RegisterOutput struct {
+	User    User
+	Student Student
+}
+
+// RegisterStudent creates a user (role=student) and the linked student profile.
+// It is the dedicated entry point for student self-registration; the legacy
+// Register method is kept temporarily for backward compatibility.
+func (s *Service) RegisterStudent(ctx context.Context, in RegisterInput) (*RegisterOutput, error) {
+	existing, err := s.repo.GetUserByEmail(ctx, in.Email)
+	if err == nil && existing != nil {
+		return nil, apperrors.Validationf("email already registered")
+	}
+
+	hash, err := HashPassword(in.Password)
+	if err != nil {
+		return nil, apperrors.Validationf(err.Error())
+	}
+
+	user := &User{
+		ID:           uuid.New(),
+		Email:        in.Email,
+		PasswordHash: hash,
+		Role:         RoleStudent,
+		IsActive:     true,
+	}
+	if err := s.repo.CreateUser(ctx, user); err != nil {
+		return nil, err
+	}
+
+	student := &Student{
+		ID:        uuid.New(),
+		UserID:    user.ID,
+		Name:      in.Name,
+		Email:     in.Email,
+		Phone:     in.Phone,
+		Source:    in.Source,
+		PartnerID: in.Partner,
+	}
+	if err := s.repo.CreateStudent(ctx, student); err != nil {
+		return nil, err
+	}
+
+	_ = s.bus.Publish(ctx, events.Event{
+		Type:    events.UserCreated,
+		Payload: UserCreatedPayload{UserID: user.ID, Email: user.Email, Role: string(user.Role)},
+	})
+
+	return &RegisterOutput{User: *user, Student: *student}, nil
 }
 
 // Register creates a user record and, if role==student, a student record.
