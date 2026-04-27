@@ -47,6 +47,18 @@ func (r *fakeEnrollmentRepo) SeedVoucher(v *Voucher) {
 	}
 }
 
+// SeedVoucherAssigned inserts a voucher with assigned_to set.
+func (r *fakeEnrollmentRepo) SeedVoucherAssigned(v *Voucher, studentID uuid.UUID) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	cp := *v
+	cp.AssignedTo = &studentID
+	r.vouchers[v.ID] = &cp
+	if v.Code != "" {
+		r.vouchersByCode[v.Code] = &cp
+	}
+}
+
 // SeedEnrollment inserts an enrollment for tests.
 func (r *fakeEnrollmentRepo) SeedEnrollment(e *Enrollment) {
 	r.mu.Lock()
@@ -181,6 +193,45 @@ func (r *fakeEnrollmentRepo) CreateVoucher(ctx context.Context, v *Voucher) erro
 	cp := *v
 	r.vouchers[v.ID] = &cp
 	r.vouchersByCode[v.Code] = &cp
+	return nil
+}
+
+func (r *fakeEnrollmentRepo) GetVoucherByID(ctx context.Context, id uuid.UUID) (*Voucher, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	v, ok := r.vouchers[id]
+	if !ok {
+		return nil, apperrors.ErrNotFound
+	}
+	cp := *v
+	return &cp, nil
+}
+
+func (r *fakeEnrollmentRepo) AssignVoucher(ctx context.Context, id, studentID uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	v, ok := r.vouchers[id]
+	if !ok {
+		return apperrors.ErrNotFound
+	}
+	if v.AssignedTo != nil {
+		return apperrors.Conflictf("voucher already assigned")
+	}
+	sid := studentID
+	v.AssignedTo = &sid
+	v.UpdatedAt = time.Now()
+	return nil
+}
+
+func (r *fakeEnrollmentRepo) DeactivateVoucher(ctx context.Context, id uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	v, ok := r.vouchers[id]
+	if !ok {
+		return apperrors.ErrNotFound
+	}
+	v.IsActive = false
+	v.UpdatedAt = time.Now()
 	return nil
 }
 

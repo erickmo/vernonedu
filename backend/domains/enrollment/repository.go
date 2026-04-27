@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
@@ -38,7 +39,10 @@ type Repository interface {
 	CountEnrollmentsByBatchAndFormat(ctx context.Context, batchID uuid.UUID, format EnrollmentFormat) (int, error)
 
 	GetVoucherByCode(ctx context.Context, code string) (*Voucher, error)
+	GetVoucherByID(ctx context.Context, id uuid.UUID) (*Voucher, error)
 	CreateVoucher(ctx context.Context, v *Voucher) error
+	AssignVoucher(ctx context.Context, id, studentID uuid.UUID) error
+	DeactivateVoucher(ctx context.Context, id uuid.UUID) error
 
 	// ConsumeVoucher atomically locks, validates, increments used_count,
 	// and inserts voucher_usages within a single transaction.
@@ -233,6 +237,9 @@ func (r *repository) GetVoucherByCode(ctx context.Context, code string) (*Vouche
 	return v, nil
 }
 
+// pgUniqueViolation is the SQLSTATE code for unique constraint violations.
+const pgUniqueViolation = "23505"
+
 func (r *repository) CreateVoucher(ctx context.Context, v *Voucher) error {
 	query := `
 		INSERT INTO enrollment.vouchers
@@ -246,7 +253,58 @@ func (r *repository) CreateVoucher(ctx context.Context, v *Voucher) error {
 		v.ValidFrom, v.ValidUntil, v.MaxUses, v.IsActive, v.CreatedBy,
 	).Scan(&v.CreatedAt, &v.UpdatedAt)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolation {
+			return apperrors.Conflictf("voucher code already exists")
+		}
 		return fmt.Errorf("enrollment.CreateVoucher: %w", err)
+	}
+	return nil
+}
+
+func (r *repository) GetVoucherByID(ctx context.Context, id uuid.UUID) (*Voucher, error) {
+	query := `
+		SELECT id, code, discount_type, discount_value, assigned_to, course_id, course_batch_id,
+		       valid_from, valid_until, max_uses, used_count, is_active, created_by, created_at, updated_at
+		FROM enrollment.vouchers WHERE id = $1`
+
+	v := &Voucher{}
+	err := r.pool.QueryRow(ctx, query, id).Scan(
+		&v.ID, &v.Code, &v.DiscountType, &v.DiscountValue, &v.AssignedTo, &v.CourseID,
+		&v.CourseBatchID, &v.ValidFrom, &v.ValidUntil, &v.MaxUses, &v.UsedCount,
+		&v.IsActive, &v.CreatedBy, &v.CreatedAt, &v.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("enrollment.GetVoucherByID: %w", err)
+	}
+	return v, nil
+}
+
+func (r *repository) AssignVoucher(ctx context.Context, id, studentID uuid.UUID) error {
+	const query = `UPDATE enrollment.vouchers
+		SET assigned_to=$2, updated_at=now()
+		WHERE id=$1 AND assigned_to IS NULL`
+	ct, err := r.pool.Exec(ctx, query, id, studentID)
+	if err != nil {
+		return fmt.Errorf("enrollment.AssignVoucher: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.Conflictf("voucher not found or already assigned")
+	}
+	return nil
+}
+
+func (r *repository) DeactivateVoucher(ctx context.Context, id uuid.UUID) error {
+	const query = `UPDATE enrollment.vouchers SET is_active=false, updated_at=now() WHERE id=$1`
+	ct, err := r.pool.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("enrollment.DeactivateVoucher: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
 	}
 	return nil
 }

@@ -350,6 +350,73 @@ func (s *Service) ConsumeVoucher(
 	})
 }
 
+// CreateVoucherInput carries voucher creation parameters.
+type CreateVoucherInput struct {
+	Code          string
+	DiscountType  DiscountType
+	DiscountValue decimal.Decimal
+	AssignedTo    *uuid.UUID
+	CourseID      *uuid.UUID
+	CourseBatchID *uuid.UUID
+	ValidFrom     time.Time
+	ValidUntil    *time.Time
+	MaxUses       *int
+	CreatedBy     uuid.UUID
+}
+
+// CreateVoucher validates input and persists a new voucher with sane defaults
+// (is_active=true, used_count=0).
+func (s *Service) CreateVoucher(ctx context.Context, in CreateVoucherInput) (*Voucher, error) {
+	if in.Code == "" {
+		return nil, apperrors.Validationf("voucher code required")
+	}
+	if in.DiscountType == DiscountPercentage {
+		if in.DiscountValue.LessThan(decimal.Zero) || in.DiscountValue.GreaterThan(decimal.NewFromInt(100)) {
+			return nil, apperrors.Validationf("percentage discount must be in [0,100]")
+		}
+	}
+	if in.ValidUntil != nil && in.ValidUntil.Before(in.ValidFrom) {
+		return nil, apperrors.Validationf("valid_until before valid_from")
+	}
+	v := &Voucher{
+		ID:            uuid.New(),
+		Code:          in.Code,
+		DiscountType:  in.DiscountType,
+		DiscountValue: in.DiscountValue,
+		AssignedTo:    in.AssignedTo,
+		CourseID:      in.CourseID,
+		CourseBatchID: in.CourseBatchID,
+		ValidFrom:     in.ValidFrom,
+		ValidUntil:    in.ValidUntil,
+		MaxUses:       in.MaxUses,
+		UsedCount:     0,
+		IsActive:      true,
+		CreatedBy:     in.CreatedBy,
+	}
+	if err := s.repo.CreateVoucher(ctx, v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+// AssignVoucher links a voucher to a student. Assignment is one-time;
+// subsequent attempts are rejected.
+func (s *Service) AssignVoucher(ctx context.Context, voucherID, studentID uuid.UUID) error {
+	v, err := s.repo.GetVoucherByID(ctx, voucherID)
+	if err != nil {
+		return err
+	}
+	if v.AssignedTo != nil {
+		return apperrors.Validationf("voucher already assigned")
+	}
+	return s.repo.AssignVoucher(ctx, voucherID, studentID)
+}
+
+// DeactivateVoucher disables a voucher (is_active=false).
+func (s *Service) DeactivateVoucher(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeactivateVoucher(ctx, id)
+}
+
 // GetEnrollment fetches enrollment by ID.
 func (s *Service) GetEnrollment(ctx context.Context, id uuid.UUID) (*Enrollment, error) {
 	return s.repo.GetEnrollmentByID(ctx, id)
