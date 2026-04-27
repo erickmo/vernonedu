@@ -6,6 +6,7 @@ import (
 
 	"github.com/vernonedu/vernonedu2/backend/domains/credentialing"
 	"github.com/vernonedu/vernonedu2/backend/domains/finance"
+	"github.com/vernonedu/vernonedu2/backend/domains/franchise"
 	"github.com/vernonedu/vernonedu2/backend/domains/platform"
 	"github.com/vernonedu/vernonedu2/backend/internal/db"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
@@ -24,6 +25,7 @@ const (
 func runWorkers(
 	lc fx.Lifecycle,
 	financeSvc *finance.Service,
+	franchiseSvc *franchise.Service,
 	platformSvc *platform.Service,
 	log *zap.Logger,
 ) {
@@ -54,6 +56,22 @@ func runWorkers(
 					case <-ticker.C:
 						if err := financeSvc.MarkOverdueInvoices(context.Background()); err != nil {
 							log.Error("overdue invoices check failed", zap.Error(err))
+						}
+					case <-ctx.Done():
+						return
+					}
+				}
+			}()
+
+			// Franchise royalty overdue checker (conceptually runs monthly on the 15th)
+			go func() {
+				ticker := time.NewTicker(overdueCheckInterval)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-ticker.C:
+						if err := franchiseSvc.MarkOverdueRoyalties(context.Background()); err != nil {
+							log.Error("franchise royalty overdue check failed", zap.Error(err))
 						}
 					case <-ctx.Done():
 						return
@@ -100,6 +118,10 @@ func main() {
 		fx.Provide(finance.NewService),
 		fx.Provide(platform.NewRepository),
 		fx.Provide(platform.NewService),
+
+		// Franchise for royalty overdue worker
+		fx.Provide(franchise.NewRepository),
+		fx.Provide(franchise.NewService),
 
 		// Credentialing async cert issuer
 		worker.Module,

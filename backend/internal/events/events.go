@@ -36,4 +36,6 @@ const (
 	CertificateIssued EventType = "certificate.issued"
 
 	PartnershipMeetingScheduled EventType = "partnership_agreement.meeting_scheduled"
+
+	ProfitSplitCalculated EventType = "profit_split.calculated"
 )

@@ -5,9 +5,13 @@ import (
 	"github.com/vernonedu/vernonedu2/backend/domains/credentialing"
 	"github.com/vernonedu/vernonedu2/backend/domains/enrollment"
 	"github.com/vernonedu/vernonedu2/backend/domains/finance"
+	"github.com/vernonedu/vernonedu2/backend/domains/franchise"
 	"github.com/vernonedu/vernonedu2/backend/domains/identity"
 	"github.com/vernonedu/vernonedu2/backend/domains/partnerships"
 	"github.com/vernonedu/vernonedu2/backend/domains/platform"
+	profit_split "github.com/vernonedu/vernonedu2/backend/domains/profit_split"
+	team_member "github.com/vernonedu/vernonedu2/backend/domains/team_member"
+	"github.com/vernonedu/vernonedu2/backend/domains/voucher"
 	"github.com/vernonedu/vernonedu2/backend/internal/db"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	"github.com/vernonedu/vernonedu2/backend/internal/server"
@@ -34,9 +38,13 @@ func main() {
 		catalog.Module,
 		enrollment.Module,
 		finance.Module,
+		franchise.Module,
 		credentialing.Module,
 		partnerships.Module,
 		platform.Module,
+		team_member.Module,
+		profit_split.Module,
+		voucher.Module,
 
 		fx.NopLogger,
 	)
