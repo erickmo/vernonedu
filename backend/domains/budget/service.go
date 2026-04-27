@@ -96,6 +96,7 @@ func (s *Service) CreateRealization(ctx context.Context, r *BudgetRealization) e
 	}
 	r.ID = uuid.New()
 	r.CreatedAt = time.Now()
+	r.UpdatedAt = r.CreatedAt
 	if r.SpentAt.IsZero() {
 		r.SpentAt = time.Now()
 	}
