@@ -21,7 +21,7 @@ func newSvc(t *testing.T) (*platform.Service, platform.Repository) {
 	pool := testdb.New(t)
 	testdb.Truncate(t, pool, templatesTable)
 	repo := platform.NewRepository(pool)
-	svc := platform.NewService(repo, nil, zap.NewNop())
+	svc := platform.NewService(repo, nil, zap.NewNop(), nil)
 	return svc, repo
 }
 

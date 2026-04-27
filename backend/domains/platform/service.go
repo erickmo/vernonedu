@@ -18,9 +18,10 @@ type HasDeviceTokenFunc func(ctx context.Context, userID uuid.UUID) (bool, error
 
 // Service holds platform notification logic.
 type Service struct {
-	repo Repository
-	bus  events.Bus
-	log  *zap.Logger
+	repo    Repository
+	bus     events.Bus
+	log     *zap.Logger
+	senders Senders
 
 	// HasDeviceTokenFn is used to gate Push-channel deliveries.
 	// Defaults to a stub returning (false, nil) until identity wiring is added.
@@ -28,11 +29,12 @@ type Service struct {
 }
 
 // NewService constructs platform Service.
-func NewService(repo Repository, bus events.Bus, log *zap.Logger) *Service {
+func NewService(repo Repository, bus events.Bus, log *zap.Logger, senders Senders) *Service {
 	return &Service{
-		repo: repo,
-		bus:  bus,
-		log:  log,
+		repo:    repo,
+		bus:     bus,
+		log:     log,
+		senders: senders,
 		HasDeviceTokenFn: func(context.Context, uuid.UUID) (bool, error) {
 			return false, nil
 		},
@@ -174,6 +176,16 @@ func (s *Service) ListMyNotifications(ctx context.Context, recipientID uuid.UUID
 }
 
 // ProcessPending dispatches pending notifications (called by worker).
+//
+// For each ready notification (status=pending and scheduled_at NULL or due):
+//  1. Load the template (by ID) and render subject + body against variables.
+//  2. Look up the channel-specific Sender and invoke Send.
+//  3. On success, mark the notification sent.
+//  4. On failure, increment retry_count; once it reaches MaxNotificationRetries
+//     the notification transitions to status=failed.
+//
+// Per-notification errors are logged and do not abort the batch — the worker
+// keeps draining until the batch is exhausted.
 func (s *Service) ProcessPending(ctx context.Context, batchSize int) error {
 	pending, err := s.repo.ListPendingNotifications(ctx, batchSize)
 	if err != nil {
@@ -181,9 +193,78 @@ func (s *Service) ProcessPending(ctx context.Context, batchSize int) error {
 	}
 
 	for _, n := range pending {
-		if err := s.repo.UpdateNotificationStatus(ctx, n.ID, NotifSent); err != nil {
-			s.log.Error("failed to mark notification sent", zap.String("id", n.ID.String()), zap.Error(err))
-		}
+		s.dispatchOne(ctx, n)
 	}
 	return nil
+}
+
+// dispatchOne handles delivery for a single notification including
+// per-step error handling. Kept under the 40-line limit.
+func (s *Service) dispatchOne(ctx context.Context, n *Notification) {
+	payload, err := s.buildPayload(ctx, n)
+	if err != nil {
+		s.recordFailure(ctx, n.ID, err)
+		return
+	}
+
+	sender, ok := s.senders[n.Channel]
+	if !ok || sender == nil {
+		s.recordFailure(ctx, n.ID, errors.New("no sender for channel "+string(n.Channel)))
+		return
+	}
+
+	if err := sender.Send(ctx, payload); err != nil {
+		s.recordFailure(ctx, n.ID, err)
+		return
+	}
+
+	if err := s.repo.MarkNotificationSent(ctx, n.ID); err != nil {
+		s.log.Error("failed to mark notification sent",
+			zap.String("id", n.ID.String()),
+			zap.Error(err),
+		)
+	}
+}
+
+// buildPayload renders the template and assembles a SenderPayload.
+func (s *Service) buildPayload(ctx context.Context, n *Notification) (SenderPayload, error) {
+	tmpl, err := s.repo.GetTemplateByID(ctx, n.TemplateID)
+	if err != nil {
+		return SenderPayload{}, err
+	}
+
+	body, err := Render(tmpl.Body, n.Variables)
+	if err != nil {
+		return SenderPayload{}, err
+	}
+
+	var subject string
+	if tmpl.Subject != nil {
+		subject, err = Render(*tmpl.Subject, n.Variables)
+		if err != nil {
+			return SenderPayload{}, err
+		}
+	}
+
+	return SenderPayload{
+		NotificationID: n.ID,
+		RecipientID:    n.RecipientID,
+		Channel:        n.Channel,
+		Subject:        subject,
+		Body:           body,
+	}, nil
+}
+
+// recordFailure logs and persists a delivery failure.
+func (s *Service) recordFailure(ctx context.Context, id uuid.UUID, cause error) {
+	s.log.Warn("notification delivery failed",
+		zap.String("id", id.String()),
+		zap.Error(cause),
+	)
+	if err := s.repo.RecordNotificationFailure(ctx, id, cause.Error()); err != nil {
+		s.log.Error("failed to record notification failure",
+			zap.String("id", id.String()),
+			zap.Error(err),
+		)
+	}
 }

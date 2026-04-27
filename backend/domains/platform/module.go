@@ -11,6 +11,10 @@ import (
 // Module wires platform domain via FX.
 var Module = fx.Options(
 	fx.Provide(NewRepository),
+	fx.Provide(NewEmailSender),
+	fx.Provide(NewInAppSender),
+	fx.Provide(NewPushSender),
+	fx.Provide(NewSenders),
 	fx.Provide(NewService),
 	fx.Provide(NewHandler),
 	fx.Invoke(RegisterRoutes),

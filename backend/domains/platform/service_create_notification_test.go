@@ -29,7 +29,7 @@ func newSendSvc(t *testing.T, hasDeviceToken func(context.Context, uuid.UUID) (b
 	// CASCADE truncate users to clean up notifications/preferences/templates referencing them.
 	testdb.Truncate(t, pool, usersTable, templatesTable, notificationsTable, preferencesTable)
 	repo := platform.NewRepository(pool)
-	svc := platform.NewService(repo, nil, zap.NewNop())
+	svc := platform.NewService(repo, nil, zap.NewNop(), nil)
 	if hasDeviceToken != nil {
 		svc.HasDeviceTokenFn = hasDeviceToken
 	}

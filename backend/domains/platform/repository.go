@@ -24,6 +24,8 @@ type Repository interface {
 	CreateNotification(ctx context.Context, n *Notification) error
 	GetNotificationByID(ctx context.Context, id uuid.UUID) (*Notification, error)
 	UpdateNotificationStatus(ctx context.Context, id uuid.UUID, status NotificationStatus) error
+	MarkNotificationSent(ctx context.Context, id uuid.UUID) error
+	RecordNotificationFailure(ctx context.Context, id uuid.UUID, errMsg string) error
 	ListPendingNotifications(ctx context.Context, limit int) ([]*Notification, error)
 	ListNotificationsByRecipient(ctx context.Context, recipientID uuid.UUID, limit, offset int) ([]*Notification, error)
 	MarkNotificationRead(ctx context.Context, id uuid.UUID) error
@@ -148,6 +150,37 @@ func (r *repository) UpdateNotificationStatus(ctx context.Context, id uuid.UUID,
 	ct, err := r.pool.Exec(ctx, query, status, id)
 	if err != nil {
 		return fmt.Errorf("platform.UpdateNotificationStatus: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) MarkNotificationSent(ctx context.Context, id uuid.UUID) error {
+	query := `UPDATE platform.notifications
+	          SET status='sent', sent_at=now(), error_message=NULL, updated_at=now()
+	          WHERE id=$1`
+	ct, err := r.pool.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("platform.MarkNotificationSent: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) RecordNotificationFailure(ctx context.Context, id uuid.UUID, errMsg string) error {
+	query := `UPDATE platform.notifications
+	          SET retry_count = retry_count + 1,
+	              status = CASE WHEN retry_count + 1 >= $2 THEN 'failed' ELSE status END,
+	              error_message = $3,
+	              updated_at = now()
+	          WHERE id = $1`
+	ct, err := r.pool.Exec(ctx, query, id, MaxNotificationRetries, errMsg)
+	if err != nil {
+		return fmt.Errorf("platform.RecordNotificationFailure: %w", err)
 	}
 	if ct.RowsAffected() == 0 {
 		return apperrors.ErrNotFound

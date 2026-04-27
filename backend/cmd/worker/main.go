@@ -97,6 +97,10 @@ func main() {
 		fx.Provide(finance.NewRepository),
 		fx.Provide(finance.NewService),
 		fx.Provide(platform.NewRepository),
+		fx.Provide(platform.NewEmailSender),
+		fx.Provide(platform.NewInAppSender),
+		fx.Provide(platform.NewPushSender),
+		fx.Provide(platform.NewSenders),
 		fx.Provide(platform.NewService),
 
 		fx.Invoke(runWorkers),
