@@ -53,6 +53,12 @@ type Repository interface {
 
 	CreateModuleVersion(ctx context.Context, mv *ModuleVersion) error
 	GetModuleVersionByID(ctx context.Context, id uuid.UUID) (*ModuleVersion, error)
+	// PublishModuleVersionAtomic marks the target version 'published' and
+	// archives any other currently 'published' version for the same module
+	// in a single transaction. The DB partial unique index
+	// uq_module_one_published guarantees at-most-one published row per
+	// module even under concurrent calls.
+	PublishModuleVersionAtomic(ctx context.Context, versionID, publishedBy uuid.UUID) error
 
 	AddFormatConfig(ctx context.Context, cfg *CourseFormatConfig) error
 	DisableFormat(ctx context.Context, configID uuid.UUID) error
@@ -287,6 +293,10 @@ func (r *repository) CreateModule(ctx context.Context, m *CourseModule) error {
 	err := r.pool.QueryRow(ctx, query, m.ID, m.CourseID, m.Title, m.Order, m.IsActive, m.CreatedBy).
 		Scan(&m.CreatedAt, &m.UpdatedAt)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolation {
+			return apperrors.ErrConflict
+		}
 		return fmt.Errorf("catalog.CreateModule: %w", err)
 	}
 	return nil
@@ -624,4 +634,49 @@ func (r *repository) GetModuleVersionByID(ctx context.Context, id uuid.UUID) (*M
 		return nil, fmt.Errorf("catalog.GetModuleVersionByID: %w", err)
 	}
 	return mv, nil
+}
+
+// PublishModuleVersionAtomic archives the previously-published version (if
+// any) and marks the target version 'published' inside a single transaction.
+// Order matters: archive first, then publish, so the partial unique index
+// uq_module_one_published is never violated mid-transaction.
+func (r *repository) PublishModuleVersionAtomic(ctx context.Context, versionID, publishedBy uuid.UUID) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("catalog.PublishModuleVersionAtomic begin: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	var moduleID uuid.UUID
+	if err := tx.QueryRow(ctx,
+		`SELECT module_id FROM catalog.module_versions WHERE id=$1`, versionID,
+	).Scan(&moduleID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return apperrors.ErrNotFound
+		}
+		return fmt.Errorf("catalog.PublishModuleVersionAtomic lookup: %w", err)
+	}
+
+	if _, err := tx.Exec(ctx,
+		`UPDATE catalog.module_versions
+		 SET status='archived'
+		 WHERE module_id=$1 AND status='published' AND id <> $2`,
+		moduleID, versionID,
+	); err != nil {
+		return fmt.Errorf("catalog.PublishModuleVersionAtomic archive: %w", err)
+	}
+
+	if _, err := tx.Exec(ctx,
+		`UPDATE catalog.module_versions
+		 SET status='published', published_at=now(), published_by=$1
+		 WHERE id=$2`,
+		publishedBy, versionID,
+	); err != nil {
+		return fmt.Errorf("catalog.PublishModuleVersionAtomic set: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("catalog.PublishModuleVersionAtomic commit: %w", err)
+	}
+	return nil
 }

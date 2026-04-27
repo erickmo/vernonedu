@@ -407,6 +407,14 @@ func (r *fakeCatalogRepo) ListClassesByBatch(ctx context.Context, batchID uuid.U
 func (r *fakeCatalogRepo) CreateModule(ctx context.Context, m *CourseModule) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	for _, existing := range r.modules {
+		if existing.CourseID == m.CourseID && existing.Order == m.Order {
+			return apperrors.ErrConflict
+		}
+	}
+	now := time.Now()
+	m.CreatedAt = now
+	m.UpdatedAt = now
 	r.modules[m.ID] = m
 	return nil
 }
@@ -446,6 +454,67 @@ func (r *fakeCatalogRepo) GetModuleVersionByID(ctx context.Context, id uuid.UUID
 		return mv, nil
 	}
 	return nil, apperrors.ErrNotFound
+}
+
+// PublishModuleVersionAtomic mirrors the SQL transaction: archive any
+// currently-published version of the same module, then mark the target
+// 'published'. The mutex provides the atomicity that the real DB gives via
+// the partial unique index uq_module_one_published.
+func (r *fakeCatalogRepo) PublishModuleVersionAtomic(ctx context.Context, versionID, publishedBy uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	target, ok := r.moduleVersions[versionID]
+	if !ok {
+		return apperrors.ErrNotFound
+	}
+	now := time.Now()
+	for _, mv := range r.moduleVersions {
+		if mv.ID == versionID {
+			continue
+		}
+		if mv.ModuleID == target.ModuleID && mv.Status == ModulePublished {
+			mv.Status = ModuleArchived
+			mv.UpdatedAt = now
+		}
+	}
+	target.Status = ModulePublished
+	target.PublishedAt = &now
+	pb := publishedBy
+	target.PublishedBy = &pb
+	target.UpdatedAt = now
+	return nil
+}
+
+// SeedModule inserts a fully-formed module for tests (no constraint checks).
+func (r *fakeCatalogRepo) SeedModule(m *CourseModule) *CourseModule {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if m.ID == uuid.Nil {
+		m.ID = uuid.New()
+	}
+	now := time.Now()
+	if m.CreatedAt.IsZero() {
+		m.CreatedAt = now
+	}
+	m.UpdatedAt = now
+	r.modules[m.ID] = m
+	return m
+}
+
+// SeedModuleVersion inserts a fully-formed module version for tests.
+func (r *fakeCatalogRepo) SeedModuleVersion(mv *ModuleVersion) *ModuleVersion {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if mv.ID == uuid.Nil {
+		mv.ID = uuid.New()
+	}
+	now := time.Now()
+	if mv.CreatedAt.IsZero() {
+		mv.CreatedAt = now
+	}
+	mv.UpdatedAt = now
+	r.moduleVersions[mv.ID] = mv
+	return mv
 }
 
 // fakeBus is an in-memory events.Bus that records published events.

@@ -450,11 +450,32 @@ func (s *Service) ListClassesByBatch(ctx context.Context, batchID uuid.UUID) ([]
 	return s.repo.ListClassesByBatch(ctx, batchID)
 }
 
-// CreateModule creates a module for a course.
-func (s *Service) CreateModule(ctx context.Context, m *CourseModule) error {
-	m.ID = uuid.New()
-	m.IsActive = true
-	return s.repo.CreateModule(ctx, m)
+// CreateModuleInput is the structured input for adding a module to a course.
+type CreateModuleInput struct {
+	CourseID  uuid.UUID
+	Title     string
+	Order     int
+	CreatedBy uuid.UUID
+}
+
+// CreateModule creates a module for a course. Returns ErrConflict when a
+// module with the same (course_id, order) already exists.
+func (s *Service) CreateModule(ctx context.Context, in CreateModuleInput) (*CourseModule, error) {
+	if strings.TrimSpace(in.Title) == "" {
+		return nil, apperrors.Validationf("title is required")
+	}
+	m := &CourseModule{
+		ID:        uuid.New(),
+		CourseID:  in.CourseID,
+		Title:     in.Title,
+		Order:     in.Order,
+		IsActive:  true,
+		CreatedBy: in.CreatedBy,
+	}
+	if err := s.repo.CreateModule(ctx, m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // ListModulesByCourse returns ordered modules for a course.
@@ -504,9 +525,17 @@ func (s *Service) ListFormatConfigs(ctx context.Context, courseID uuid.UUID) ([]
 	return s.repo.ListFormatConfigsByCourse(ctx, courseID)
 }
 
-// CreateModuleVersion creates a new version of a module.
+// CreateModuleVersion creates a new draft version of a module.
 func (s *Service) CreateModuleVersion(ctx context.Context, mv *ModuleVersion) error {
 	mv.ID = uuid.New()
 	mv.Status = ModuleDraft
 	return s.repo.CreateModuleVersion(ctx, mv)
+}
+
+// PublishModuleVersion marks the target ModuleVersion as 'published' and
+// atomically archives any other currently-published version of the same
+// module. The DB partial unique index uq_module_one_published guarantees
+// at-most-one published row per module even under concurrent publishes.
+func (s *Service) PublishModuleVersion(ctx context.Context, versionID, publishedBy uuid.UUID) error {
+	return s.repo.PublishModuleVersionAtomic(ctx, versionID, publishedBy)
 }
