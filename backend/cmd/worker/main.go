@@ -17,6 +17,7 @@ const (
 	overdueCheckInterval  = 1 * time.Hour
 	notificationBatchSize = 50
 	notificationInterval  = 30 * time.Second
+	reminderScanInterval  = 1 * time.Minute
 )
 
 func runWorkers(
@@ -68,6 +69,22 @@ func runWorkers(
 					case <-ticker.C:
 						if err := platformSvc.ProcessPending(context.Background(), notificationBatchSize); err != nil {
 							log.Error("notification processing failed", zap.Error(err))
+						}
+					case <-ctx.Done():
+						return
+					}
+				}
+			}()
+
+			// Class reminder scanner
+			go func() {
+				ticker := time.NewTicker(reminderScanInterval)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-ticker.C:
+						if err := platformSvc.ScanClassReminders(context.Background()); err != nil {
+							log.Error("class reminder scan failed", zap.Error(err))
 						}
 					case <-ctx.Done():
 						return

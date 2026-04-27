@@ -47,6 +47,12 @@ type Repository interface {
 	AddCalendarAttendee(ctx context.Context, a *CalendarAttendee) error
 	RemoveCalendarAttendee(ctx context.Context, eventID, userID uuid.UUID) error
 	ListCalendarAttendeesByEvent(ctx context.Context, eventID uuid.UUID) ([]*CalendarAttendee, error)
+
+	// Reminder scanner
+	ListEventsNeedingReminder(ctx context.Context) ([]*CalendarEvent, error)
+	// MarkReminderFired sets reminder_fired_at=now() iff still NULL.
+	// Returns true when this caller actually set the timestamp (rowsAffected==1).
+	MarkReminderFired(ctx context.Context, eventID uuid.UUID) (bool, error)
 }
 
 type repository struct {

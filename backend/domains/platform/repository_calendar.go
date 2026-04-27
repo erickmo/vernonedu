@@ -218,6 +218,55 @@ func (r *repository) RemoveCalendarAttendee(ctx context.Context, eventID, userID
 	return nil
 }
 
+// ListEventsNeedingReminder returns class_session events whose start_at falls
+// within the [now()+60min, now()+65min] window and that have not yet had a
+// reminder fired. The 5-minute window matches the worker tick cadence (1/min)
+// to ensure no event is missed even if a tick is briefly delayed.
+func (r *repository) ListEventsNeedingReminder(ctx context.Context) ([]*CalendarEvent, error) {
+	query := `SELECT id, title, description, event_type, start_at, end_at, location, rrule,
+	                 source_domain, source_id, batch_id, created_by, reminder_fired_at, created_at, updated_at
+	          FROM platform.calendar_events
+	          WHERE event_type='class_session'
+	            AND reminder_fired_at IS NULL
+	            AND start_at BETWEEN now() + interval '60 minutes' AND now() + interval '65 minutes'
+	          ORDER BY start_at`
+
+	rows, err := r.pool.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("platform.ListEventsNeedingReminder: %w", err)
+	}
+	defer rows.Close()
+
+	var events []*CalendarEvent
+	for rows.Next() {
+		e := &CalendarEvent{}
+		if err := rows.Scan(
+			&e.ID, &e.Title, &e.Description, &e.EventType, &e.StartAt, &e.EndAt,
+			&e.Location, &e.Rrule, &e.SourceDomain, &e.SourceID, &e.BatchID, &e.CreatedBy,
+			&e.ReminderFiredAt, &e.CreatedAt, &e.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("platform.ListEventsNeedingReminder scan: %w", err)
+		}
+		events = append(events, e)
+	}
+	return events, rows.Err()
+}
+
+// MarkReminderFired performs an idempotent update guarded by reminder_fired_at IS NULL.
+// Only the first concurrent caller sees rowsAffected==1.
+func (r *repository) MarkReminderFired(ctx context.Context, eventID uuid.UUID) (bool, error) {
+	ct, err := r.pool.Exec(ctx,
+		`UPDATE platform.calendar_events
+		   SET reminder_fired_at = now()
+		 WHERE id = $1 AND reminder_fired_at IS NULL`,
+		eventID,
+	)
+	if err != nil {
+		return false, fmt.Errorf("platform.MarkReminderFired: %w", err)
+	}
+	return ct.RowsAffected() == 1, nil
+}
+
 func (r *repository) ListCalendarAttendeesByEvent(ctx context.Context, eventID uuid.UUID) ([]*CalendarAttendee, error) {
 	query := `SELECT id, event_id, user_id, role, rsvp_status, created_at
 	          FROM platform.calendar_attendees WHERE event_id=$1 ORDER BY created_at`
