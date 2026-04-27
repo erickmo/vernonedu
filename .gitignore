@@ -6,6 +6,7 @@
 .wolf/
 
 frontend/node_modules/
+frontend/dist/
 backend/tmp/
 *.log
 

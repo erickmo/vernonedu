@@ -87,6 +87,7 @@ type Params struct {
 var Module = fx.Options(
 	fx.Provide(NewRouter),
 	fx.Provide(NewHTTPServer),
+	fx.Invoke(func(*http.Server) {}),
 )
 
 // NewZapLogger constructs a zap.Logger from config.

@@ -1,7 +1,7 @@
 BACKEND_DIR  := backend
 FRONTEND_DIR := frontend
 MIGRATIONS   := $(BACKEND_DIR)/migrations
-DB_URL       := postgres://vernonedu:vernonedu_secret@localhost:5432/vernonedu?sslmode=disable
+DB_URL       := postgres://vernonedu:vernonedu_secret@localhost:5433/vernonedu?sslmode=disable
 
 .PHONY: all docker-up docker-down migrate-up migrate-down \
         api worker fe-install fe-dev lint test clean
@@ -43,6 +43,9 @@ worker:
 
 test:
 	cd $(BACKEND_DIR) && go test -race -cover ./...
+
+test-integration:
+	cd $(BACKEND_DIR) && go test -tags=integration -count=1 -race ./...
 
 lint:
 	cd $(BACKEND_DIR) && golangci-lint run ./...
