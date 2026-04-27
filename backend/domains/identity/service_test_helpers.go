@@ -28,6 +28,7 @@ type fakeRepo struct {
 	departments         map[uuid.UUID]*Department
 	proposals           map[uuid.UUID]*FacilitatorProposal
 	facilitatorProfiles map[uuid.UUID]*FacilitatorProfile
+	feeTiers            map[uuid.UUID]*FeeTier
 }
 
 var _ Repository = (*fakeRepo)(nil)
@@ -43,6 +44,7 @@ func newFakeRepo() *fakeRepo {
 		departments:         map[uuid.UUID]*Department{},
 		proposals:           map[uuid.UUID]*FacilitatorProposal{},
 		facilitatorProfiles: map[uuid.UUID]*FacilitatorProfile{},
+		feeTiers:            map[uuid.UUID]*FeeTier{},
 	}
 }
 
@@ -356,6 +358,66 @@ func (r *fakeRepo) GetFacilitatorProfileByTeamMemberID(ctx context.Context, team
 	defer r.mu.Unlock()
 	if p, ok := r.facilitatorProfiles[teamMemberID]; ok {
 		return p, nil
+	}
+	return nil, apperrors.ErrNotFound
+}
+
+// SeedFeeTier inserts a fee tier with the given name and active flag.
+func (r *fakeRepo) SeedFeeTier(name string, isActive bool) *FeeTier {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now()
+	ft := &FeeTier{
+		ID:        uuid.New(),
+		Name:      name,
+		CreatedBy: uuid.New(),
+		IsActive:  isActive,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+	r.feeTiers[ft.ID] = ft
+	return ft
+}
+
+func (r *fakeRepo) CreateFeeTier(ctx context.Context, ft *FeeTier) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now()
+	ft.CreatedAt = now
+	ft.UpdatedAt = now
+	r.feeTiers[ft.ID] = ft
+	return nil
+}
+
+func (r *fakeRepo) ListFeeTiers(ctx context.Context, includeInactive bool) ([]*FeeTier, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := make([]*FeeTier, 0, len(r.feeTiers))
+	for _, ft := range r.feeTiers {
+		if !includeInactive && !ft.IsActive {
+			continue
+		}
+		out = append(out, ft)
+	}
+	return out, nil
+}
+
+func (r *fakeRepo) DeactivateFeeTier(ctx context.Context, id uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	ft, ok := r.feeTiers[id]
+	if !ok {
+		return apperrors.ErrNotFound
+	}
+	ft.IsActive = false
+	return nil
+}
+
+func (r *fakeRepo) GetFeeTierByID(ctx context.Context, id uuid.UUID) (*FeeTier, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if ft, ok := r.feeTiers[id]; ok {
+		return ft, nil
 	}
 	return nil, apperrors.ErrNotFound
 }

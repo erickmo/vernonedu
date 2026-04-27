@@ -41,6 +41,11 @@ type Repository interface {
 	UpdateFacilitatorProposal(ctx context.Context, p *FacilitatorProposal) error
 
 	GetFacilitatorProfileByTeamMemberID(ctx context.Context, teamMemberID uuid.UUID) (*FacilitatorProfile, error)
+
+	CreateFeeTier(ctx context.Context, ft *FeeTier) error
+	ListFeeTiers(ctx context.Context, includeInactive bool) ([]*FeeTier, error)
+	DeactivateFeeTier(ctx context.Context, id uuid.UUID) error
+	GetFeeTierByID(ctx context.Context, id uuid.UUID) (*FeeTier, error)
 }
 
 type repository struct {
@@ -424,6 +429,77 @@ func (r *repository) UpdateFacilitatorProposal(ctx context.Context, p *Facilitat
 	}
 	p.UpdatedAt = now
 	return nil
+}
+
+func (r *repository) CreateFeeTier(ctx context.Context, ft *FeeTier) error {
+	query := `
+		INSERT INTO identity.fee_tiers (id, name, amount_per_class, amount_per_course, created_by, is_active)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING created_at, updated_at`
+
+	err := r.pool.QueryRow(ctx, query,
+		ft.ID, ft.Name, ft.AmountPerClass, ft.AmountPerCourse, ft.CreatedBy, ft.IsActive,
+	).Scan(&ft.CreatedAt, &ft.UpdatedAt)
+	if err != nil {
+		return fmt.Errorf("identity.CreateFeeTier: %w", err)
+	}
+	return nil
+}
+
+func (r *repository) ListFeeTiers(ctx context.Context, includeInactive bool) ([]*FeeTier, error) {
+	query := `SELECT id, name, amount_per_class, amount_per_course, created_by, is_active, created_at, updated_at
+	          FROM identity.fee_tiers
+	          WHERE ($1 OR is_active = true)
+	          ORDER BY created_at`
+
+	rows, err := r.pool.Query(ctx, query, includeInactive)
+	if err != nil {
+		return nil, fmt.Errorf("identity.ListFeeTiers: %w", err)
+	}
+	defer rows.Close()
+
+	var tiers []*FeeTier
+	for rows.Next() {
+		ft := &FeeTier{}
+		if err := rows.Scan(
+			&ft.ID, &ft.Name, &ft.AmountPerClass, &ft.AmountPerCourse,
+			&ft.CreatedBy, &ft.IsActive, &ft.CreatedAt, &ft.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("identity.ListFeeTiers scan: %w", err)
+		}
+		tiers = append(tiers, ft)
+	}
+	return tiers, rows.Err()
+}
+
+func (r *repository) DeactivateFeeTier(ctx context.Context, id uuid.UUID) error {
+	query := `UPDATE identity.fee_tiers SET is_active = false WHERE id = $1`
+	ct, err := r.pool.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("identity.DeactivateFeeTier: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) GetFeeTierByID(ctx context.Context, id uuid.UUID) (*FeeTier, error) {
+	query := `SELECT id, name, amount_per_class, amount_per_course, created_by, is_active, created_at, updated_at
+	          FROM identity.fee_tiers WHERE id = $1`
+
+	ft := &FeeTier{}
+	err := r.pool.QueryRow(ctx, query, id).Scan(
+		&ft.ID, &ft.Name, &ft.AmountPerClass, &ft.AmountPerCourse,
+		&ft.CreatedBy, &ft.IsActive, &ft.CreatedAt, &ft.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("identity.GetFeeTierByID: %w", err)
+	}
+	return ft, nil
 }
 
 func (r *repository) GetFacilitatorProfileByTeamMemberID(ctx context.Context, teamMemberID uuid.UUID) (*FacilitatorProfile, error) {

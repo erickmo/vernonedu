@@ -8,8 +8,9 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/vernonedu/vernonedu2/backend/internal/events"
+	"github.com/shopspring/decimal"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
+	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	"go.uber.org/zap"
 )
 
@@ -562,4 +563,44 @@ func (s *Service) RejectProposalAcademicLeader(ctx context.Context, proposalID, 
 		},
 	})
 	return nil
+}
+
+// CreateFeeTierInput is the data needed to create a fee tier.
+// Role authorization (vernonedu_admin) is validated at the handler layer.
+type CreateFeeTierInput struct {
+	Name            string
+	AmountPerClass  *decimal.Decimal
+	AmountPerCourse *decimal.Decimal
+	CreatedBy       uuid.UUID
+}
+
+// CreateFeeTier creates a new active fee tier.
+func (s *Service) CreateFeeTier(ctx context.Context, in CreateFeeTierInput) (*FeeTier, error) {
+	ft := &FeeTier{
+		ID:              uuid.New(),
+		Name:            in.Name,
+		AmountPerClass:  in.AmountPerClass,
+		AmountPerCourse: in.AmountPerCourse,
+		CreatedBy:       in.CreatedBy,
+		IsActive:        true,
+	}
+	if err := s.repo.CreateFeeTier(ctx, ft); err != nil {
+		return nil, err
+	}
+	return ft, nil
+}
+
+// ListFeeTiers returns fee tiers; if includeInactive is false only active rows.
+func (s *Service) ListFeeTiers(ctx context.Context, includeInactive bool) ([]*FeeTier, error) {
+	return s.repo.ListFeeTiers(ctx, includeInactive)
+}
+
+// DeactivateFeeTier marks a fee tier inactive (soft delete).
+func (s *Service) DeactivateFeeTier(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeactivateFeeTier(ctx, id)
+}
+
+// GetFeeTier retrieves a fee tier by ID.
+func (s *Service) GetFeeTier(ctx context.Context, id uuid.UUID) (*FeeTier, error) {
+	return s.repo.GetFeeTierByID(ctx, id)
 }
