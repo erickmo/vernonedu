@@ -26,6 +26,12 @@ type fakeCatalogRepo struct {
 	enrollmentCounts      map[uuid.UUID]int
 	approvedFacilitators  map[uuid.UUID]bool
 	batchModuleConfigs    map[string]*BatchModuleConfig
+	studentModuleAccess   map[string]*StudentModuleAccess
+}
+
+// smaKey builds the composite key for studentModuleAccess.
+func smaKey(studentID, moduleID uuid.UUID) string {
+	return studentID.String() + "|" + moduleID.String()
 }
 
 // bmcKey builds the composite key for batchModuleConfigs.
@@ -48,7 +54,55 @@ func newFakeCatalogRepo() *fakeCatalogRepo {
 		enrollmentCounts:     map[uuid.UUID]int{},
 		approvedFacilitators: map[uuid.UUID]bool{},
 		batchModuleConfigs:   map[string]*BatchModuleConfig{},
+		studentModuleAccess:  map[string]*StudentModuleAccess{},
 	}
+}
+
+// GrantModuleAccess inserts a module-access row idempotently (no-op on dup).
+func (r *fakeCatalogRepo) GrantModuleAccess(ctx context.Context, studentID, moduleID uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	key := smaKey(studentID, moduleID)
+	if _, ok := r.studentModuleAccess[key]; ok {
+		return nil
+	}
+	r.studentModuleAccess[key] = &StudentModuleAccess{
+		ID:        uuid.New(),
+		StudentID: studentID,
+		ModuleID:  moduleID,
+		GrantedAt: time.Now(),
+	}
+	return nil
+}
+
+// ListActiveModulesByBatch resolves batch.course_id then filters active modules.
+func (r *fakeCatalogRepo) ListActiveModulesByBatch(ctx context.Context, batchID uuid.UUID) ([]*CourseModule, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	b, ok := r.batches[batchID]
+	if !ok {
+		return []*CourseModule{}, nil
+	}
+	out := make([]*CourseModule, 0)
+	for _, m := range r.modules {
+		if m.CourseID == b.CourseID && m.IsActive {
+			out = append(out, m)
+		}
+	}
+	return out, nil
+}
+
+// ListModuleAccessForStudent returns all access rows for a student.
+func (r *fakeCatalogRepo) ListModuleAccessForStudent(ctx context.Context, studentID uuid.UUID) ([]*StudentModuleAccess, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := make([]*StudentModuleAccess, 0)
+	for _, a := range r.studentModuleAccess {
+		if a.StudentID == studentID {
+			out = append(out, a)
+		}
+	}
+	return out, nil
 }
 
 // SeedBatchModuleConfig inserts a fully-formed BMC for tests.

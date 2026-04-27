@@ -228,3 +228,12 @@ type BatchModuleConfig struct {
 	CreatedAt       time.Time     `json:"created_at"`
 	UpdatedAt       time.Time     `json:"updated_at"`
 }
+
+// StudentModuleAccess records lifetime access of a student to a module,
+// granted on enrollment.confirmed.
+type StudentModuleAccess struct {
+	ID        uuid.UUID `json:"id"`
+	StudentID uuid.UUID `json:"student_id"`
+	ModuleID  uuid.UUID `json:"module_id"`
+	GrantedAt time.Time `json:"granted_at"`
+}

@@ -14,6 +14,7 @@ import (
 type EnrollmentConfirmedPayload struct {
 	EnrollmentID uuid.UUID
 	StudentID    uuid.UUID
+	BatchID      uuid.UUID
 	CourseTitle  string
 }
 

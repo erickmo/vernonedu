@@ -12,7 +12,12 @@ import (
 
 // RegisterSubscriptions subscribes catalog to relevant cross-domain events.
 func RegisterSubscriptions(bus events.Bus, svc *Service) {
-	bus.Subscribe(events.EnrollmentCompleted, func(_ context.Context, _ events.Event) error {
-		return nil
+	bus.Subscribe(events.EnrollmentConfirmed, func(ctx context.Context, evt events.Event) error {
+		p, ok := evt.Payload.(events.EnrollmentConfirmedPayload)
+		if !ok {
+			// Silent skip on type mismatch — keeps the bus crash-free.
+			return nil
+		}
+		return svc.GrantModulesForEnrollment(ctx, p.StudentID, p.BatchID)
 	})
 }

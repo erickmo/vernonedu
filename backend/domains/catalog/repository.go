@@ -79,6 +79,15 @@ type Repository interface {
 	// CountEnrollmentsByBatch returns the number of confirmed (paid) enrollments
 	// for a batch. Cross-schema query into enrollment.enrollments.
 	CountEnrollmentsByBatch(ctx context.Context, batchID uuid.UUID) (int, error)
+
+	// GrantModuleAccess inserts a lifetime access row for (studentID, moduleID).
+	// Idempotent: ON CONFLICT DO NOTHING via the (student_id, module_id) UNIQUE.
+	GrantModuleAccess(ctx context.Context, studentID, moduleID uuid.UUID) error
+	// ListActiveModulesByBatch resolves the batch's course and returns all
+	// active modules registered under that course.
+	ListActiveModulesByBatch(ctx context.Context, batchID uuid.UUID) ([]*CourseModule, error)
+	// ListModuleAccessForStudent returns all module access rows for a student.
+	ListModuleAccessForStudent(ctx context.Context, studentID uuid.UUID) ([]*StudentModuleAccess, error)
 }
 
 type repository struct {
@@ -750,4 +759,63 @@ func (r *repository) UpsertBatchModuleConfig(ctx context.Context, cfg *BatchModu
 		return fmt.Errorf("catalog.UpsertBatchModuleConfig: %w", err)
 	}
 	return nil
+}
+
+// GrantModuleAccess inserts a lifetime row idempotently.
+func (r *repository) GrantModuleAccess(ctx context.Context, studentID, moduleID uuid.UUID) error {
+	query := `
+		INSERT INTO catalog.student_module_access (student_id, module_id)
+		VALUES ($1, $2)
+		ON CONFLICT (student_id, module_id) DO NOTHING`
+	if _, err := r.pool.Exec(ctx, query, studentID, moduleID); err != nil {
+		return fmt.Errorf("catalog.GrantModuleAccess: %w", err)
+	}
+	return nil
+}
+
+// ListActiveModulesByBatch returns active modules under the batch's course.
+func (r *repository) ListActiveModulesByBatch(ctx context.Context, batchID uuid.UUID) ([]*CourseModule, error) {
+	query := `
+		SELECT m.id, m.course_id, m.title, m."order", m.is_active, m.created_by, m.created_at, m.updated_at
+		FROM catalog.modules m
+		JOIN catalog.course_batches b ON b.course_id = m.course_id
+		WHERE b.id = $1 AND m.is_active = true
+		ORDER BY m."order"`
+	rows, err := r.pool.Query(ctx, query, batchID)
+	if err != nil {
+		return nil, fmt.Errorf("catalog.ListActiveModulesByBatch: %w", err)
+	}
+	defer rows.Close()
+	out := make([]*CourseModule, 0)
+	for rows.Next() {
+		m := &CourseModule{}
+		if err := rows.Scan(&m.ID, &m.CourseID, &m.Title, &m.Order, &m.IsActive, &m.CreatedBy, &m.CreatedAt, &m.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("catalog.ListActiveModulesByBatch scan: %w", err)
+		}
+		out = append(out, m)
+	}
+	return out, nil
+}
+
+// ListModuleAccessForStudent returns all module access rows for a student.
+func (r *repository) ListModuleAccessForStudent(ctx context.Context, studentID uuid.UUID) ([]*StudentModuleAccess, error) {
+	query := `
+		SELECT id, student_id, module_id, granted_at
+		FROM catalog.student_module_access
+		WHERE student_id = $1
+		ORDER BY granted_at`
+	rows, err := r.pool.Query(ctx, query, studentID)
+	if err != nil {
+		return nil, fmt.Errorf("catalog.ListModuleAccessForStudent: %w", err)
+	}
+	defer rows.Close()
+	out := make([]*StudentModuleAccess, 0)
+	for rows.Next() {
+		a := &StudentModuleAccess{}
+		if err := rows.Scan(&a.ID, &a.StudentID, &a.ModuleID, &a.GrantedAt); err != nil {
+			return nil, fmt.Errorf("catalog.ListModuleAccessForStudent scan: %w", err)
+		}
+		out = append(out, a)
+	}
+	return out, nil
 }

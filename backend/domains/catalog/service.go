@@ -595,3 +595,19 @@ func (s *Service) LockBatchToVersion(ctx context.Context, batchID, moduleID, ver
 func (s *Service) PublishModuleVersion(ctx context.Context, versionID, publishedBy uuid.UUID) error {
 	return s.repo.PublishModuleVersionAtomic(ctx, versionID, publishedBy)
 }
+
+// GrantModulesForEnrollment grants lifetime access to every active module of
+// the batch's course for the given student. Idempotent — duplicate grants are
+// silently absorbed by the repository.
+func (s *Service) GrantModulesForEnrollment(ctx context.Context, studentID, batchID uuid.UUID) error {
+	modules, err := s.repo.ListActiveModulesByBatch(ctx, batchID)
+	if err != nil {
+		return err
+	}
+	for _, m := range modules {
+		if err := s.repo.GrantModuleAccess(ctx, studentID, m.ID); err != nil {
+			s.log.Warn("grant module access", zap.Error(err))
+		}
+	}
+	return nil
+}
