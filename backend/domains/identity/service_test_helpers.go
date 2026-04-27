@@ -305,14 +305,46 @@ func (r *fakeRepo) GetDepartmentByID(ctx context.Context, id uuid.UUID) (*Depart
 	return nil, apperrors.ErrNotFound
 }
 
-func (r *fakeRepo) ListDepartments(ctx context.Context) ([]*Department, error) {
+func (r *fakeRepo) ListActiveDepartments(ctx context.Context) ([]*Department, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	out := make([]*Department, 0, len(r.departments))
 	for _, d := range r.departments {
+		if !d.IsActive {
+			continue
+		}
 		out = append(out, d)
 	}
 	return out, nil
+}
+
+func (r *fakeRepo) DeactivateDepartment(ctx context.Context, id uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	d, ok := r.departments[id]
+	if !ok {
+		return apperrors.ErrNotFound
+	}
+	d.IsActive = false
+	return nil
+}
+
+// SeedDepartment inserts a department with the given name and active flag.
+func (r *fakeRepo) SeedDepartment(name string, isActive bool) *Department {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now()
+	d := &Department{
+		ID:        uuid.New(),
+		Name:      name,
+		LeaderID:  uuid.New(),
+		IsActive:  isActive,
+		CreatedBy: uuid.New(),
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+	r.departments[d.ID] = d
+	return d
 }
 
 func (r *fakeRepo) CreateFacilitatorProposal(ctx context.Context, p *FacilitatorProposal) error {

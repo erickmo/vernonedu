@@ -35,7 +35,8 @@ type Repository interface {
 
 	CreateDepartment(ctx context.Context, dept *Department) error
 	GetDepartmentByID(ctx context.Context, id uuid.UUID) (*Department, error)
-	ListDepartments(ctx context.Context) ([]*Department, error)
+	ListActiveDepartments(ctx context.Context) ([]*Department, error)
+	DeactivateDepartment(ctx context.Context, id uuid.UUID) error
 
 	CreateFacilitatorProposal(ctx context.Context, p *FacilitatorProposal) error
 	GetFacilitatorProposalByID(ctx context.Context, id uuid.UUID) (*FacilitatorProposal, error)
@@ -364,13 +365,13 @@ func (r *repository) GetDepartmentByID(ctx context.Context, id uuid.UUID) (*Depa
 	return d, nil
 }
 
-func (r *repository) ListDepartments(ctx context.Context) ([]*Department, error) {
+func (r *repository) ListActiveDepartments(ctx context.Context) ([]*Department, error) {
 	query := `SELECT id, name, leader_id, is_active, created_by, created_at, updated_at
 	          FROM identity.departments WHERE is_active=true ORDER BY name`
 
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("identity.ListDepartments: %w", err)
+		return nil, fmt.Errorf("identity.ListActiveDepartments: %w", err)
 	}
 	defer rows.Close()
 
@@ -378,11 +379,23 @@ func (r *repository) ListDepartments(ctx context.Context) ([]*Department, error)
 	for rows.Next() {
 		d := &Department{}
 		if err := rows.Scan(&d.ID, &d.Name, &d.LeaderID, &d.IsActive, &d.CreatedBy, &d.CreatedAt, &d.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("identity.ListDepartments scan: %w", err)
+			return nil, fmt.Errorf("identity.ListActiveDepartments scan: %w", err)
 		}
 		depts = append(depts, d)
 	}
 	return depts, rows.Err()
+}
+
+func (r *repository) DeactivateDepartment(ctx context.Context, id uuid.UUID) error {
+	query := `UPDATE identity.departments SET is_active=false WHERE id=$1`
+	tag, err := r.pool.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("identity.DeactivateDepartment: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
 }
 
 func (r *repository) CreateFacilitatorProposal(ctx context.Context, p *FacilitatorProposal) error {

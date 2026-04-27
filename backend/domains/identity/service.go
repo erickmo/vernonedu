@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -382,15 +383,44 @@ func (s *Service) GetTeamMemberByUserID(ctx context.Context, userID uuid.UUID) (
 	return s.repo.GetTeamMemberByUserID(ctx, userID)
 }
 
-// CreateDepartment creates a department.
-func (s *Service) CreateDepartment(ctx context.Context, dept *Department) error {
-	dept.ID = uuid.New()
-	return s.repo.CreateDepartment(ctx, dept)
+// CreateDepartmentInput captures the fields required to create a department.
+type CreateDepartmentInput struct {
+	Name      string
+	LeaderID  uuid.UUID
+	CreatedBy uuid.UUID
 }
 
-// ListDepartments returns active departments.
+// CreateDepartment creates a department after validating required fields.
+func (s *Service) CreateDepartment(ctx context.Context, in CreateDepartmentInput) (*Department, error) {
+	if strings.TrimSpace(in.Name) == "" {
+		return nil, apperrors.Validationf("name is required")
+	}
+	dept := &Department{
+		ID:        uuid.New(),
+		Name:      strings.TrimSpace(in.Name),
+		LeaderID:  in.LeaderID,
+		IsActive:  true,
+		CreatedBy: in.CreatedBy,
+	}
+	if err := s.repo.CreateDepartment(ctx, dept); err != nil {
+		return nil, err
+	}
+	return dept, nil
+}
+
+// DeactivateDepartment marks a department inactive without affecting linked rows.
+func (s *Service) DeactivateDepartment(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeactivateDepartment(ctx, id)
+}
+
+// ListActiveDepartments returns only departments with is_active=true.
+func (s *Service) ListActiveDepartments(ctx context.Context) ([]*Department, error) {
+	return s.repo.ListActiveDepartments(ctx)
+}
+
+// ListDepartments returns active departments (kept for backward compatibility).
 func (s *Service) ListDepartments(ctx context.Context) ([]*Department, error) {
-	return s.repo.ListDepartments(ctx)
+	return s.repo.ListActiveDepartments(ctx)
 }
 
 // Approval flow stage labels emitted on facilitator.rejected events.
