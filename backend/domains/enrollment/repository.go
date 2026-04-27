@@ -29,6 +29,10 @@ type Repository interface {
 	GetEnrollmentByID(ctx context.Context, id uuid.UUID) (*Enrollment, error)
 	GetEnrollmentByStudentAndBatch(ctx context.Context, studentID, batchID uuid.UUID) (*Enrollment, error)
 	UpdateEnrollmentStatus(ctx context.Context, id uuid.UUID, payStatus PaymentStatus, compStatus CompletionStatus) error
+	// UpdateEnrollmentCompletion updates only the completion_status column,
+	// leaving payment_status untouched. Used by lifecycle transitions
+	// (mark completed / drop) which must not coerce payment state.
+	UpdateEnrollmentCompletion(ctx context.Context, id uuid.UUID, compStatus CompletionStatus) error
 	ListEnrollmentsByStudent(ctx context.Context, studentID uuid.UUID) ([]*Enrollment, error)
 	ListEnrollmentsByBatch(ctx context.Context, batchID uuid.UUID) ([]*Enrollment, error)
 	CountEnrollmentsByBatchAndFormat(ctx context.Context, batchID uuid.UUID, format EnrollmentFormat) (int, error)
@@ -121,6 +125,18 @@ func (r *repository) UpdateEnrollmentStatus(ctx context.Context, id uuid.UUID, p
 	ct, err := r.pool.Exec(ctx, query, payStatus, compStatus, id)
 	if err != nil {
 		return fmt.Errorf("enrollment.UpdateEnrollmentStatus: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) UpdateEnrollmentCompletion(ctx context.Context, id uuid.UUID, compStatus CompletionStatus) error {
+	const query = `UPDATE enrollment.enrollments SET completion_status=$1, updated_at=now() WHERE id=$2`
+	ct, err := r.pool.Exec(ctx, query, compStatus, id)
+	if err != nil {
+		return fmt.Errorf("enrollment.UpdateEnrollmentCompletion: %w", err)
 	}
 	if ct.RowsAffected() == 0 {
 		return apperrors.ErrNotFound

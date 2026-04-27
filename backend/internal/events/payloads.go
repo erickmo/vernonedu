@@ -18,6 +18,19 @@ type EnrollmentConfirmedPayload struct {
 	CourseTitle  string
 }
 
+// EnrollmentCompletedPayload is published when an enrollment transitions to
+// completed. Consumed by credentialing for certificate issuance and by
+// notifications.
+type EnrollmentCompletedPayload struct {
+	EnrollmentID uuid.UUID
+	StudentID    uuid.UUID
+	BatchID      uuid.UUID
+}
+
+// EnrollmentDroppedPayload is published when an enrollment is dropped (or
+// admin-overridden after completion). Same shape as Completed for now.
+type EnrollmentDroppedPayload EnrollmentCompletedPayload
+
 type PaymentConfirmedPayload struct {
 	PaymentID uuid.UUID
 	StudentID uuid.UUID

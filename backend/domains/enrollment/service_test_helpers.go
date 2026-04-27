@@ -108,6 +108,18 @@ func (r *fakeEnrollmentRepo) UpdateEnrollmentStatus(ctx context.Context, id uuid
 	return nil
 }
 
+func (r *fakeEnrollmentRepo) UpdateEnrollmentCompletion(ctx context.Context, id uuid.UUID, compStatus CompletionStatus) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	e, ok := r.enrollments[id]
+	if !ok {
+		return apperrors.ErrNotFound
+	}
+	e.CompletionStatus = compStatus
+	e.UpdatedAt = time.Now()
+	return nil
+}
+
 func (r *fakeEnrollmentRepo) ListEnrollmentsByStudent(ctx context.Context, studentID uuid.UUID) ([]*Enrollment, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()

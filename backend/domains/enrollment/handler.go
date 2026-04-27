@@ -115,7 +115,7 @@ func (h *Handler) DropEnrollment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.svc.DropEnrollment(r.Context(), id); err != nil {
+	if err := h.svc.Drop(r.Context(), id); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
@@ -130,7 +130,7 @@ func (h *Handler) CompleteEnrollment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.svc.CompleteEnrollment(r.Context(), id); err != nil {
+	if err := h.svc.MarkCompleted(r.Context(), id); err != nil {
 		apperrors.Render(w, err)
 		return
 	}

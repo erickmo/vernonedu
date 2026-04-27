@@ -267,36 +267,69 @@ func (s *Service) resolveCredit(
 	return toApply, &id
 }
 
-// CompleteEnrollment marks enrollment as completed.
-func (s *Service) CompleteEnrollment(ctx context.Context, enrollmentID uuid.UUID) error {
-	if err := s.repo.UpdateEnrollmentStatus(ctx, enrollmentID, PaymentPaid, CompletionCompleted); err != nil {
+// MarkCompleted transitions an enrollment from ongoing to completed.
+//
+// Transition matrix:
+//   - ongoing   -> completed: allowed, fires enrollment.completed
+//   - completed -> completed: idempotent no-op (no event re-fired)
+//   - dropped   -> completed: rejected (validation error)
+//
+// Payment status is intentionally left untouched — completion is an academic
+// status independent of payment.
+func (s *Service) MarkCompleted(ctx context.Context, enrollmentID uuid.UUID) error {
+	e, err := s.repo.GetEnrollmentByID(ctx, enrollmentID)
+	if err != nil {
 		return err
 	}
-
+	if e.CompletionStatus == CompletionCompleted {
+		return nil
+	}
+	if e.CompletionStatus == CompletionDropped {
+		return apperrors.Validationf("cannot complete a dropped enrollment")
+	}
+	if err := s.repo.UpdateEnrollmentCompletion(ctx, enrollmentID, CompletionCompleted); err != nil {
+		return err
+	}
 	_ = s.bus.Publish(ctx, events.Event{
-		Type:    events.EnrollmentCompleted,
-		Payload: EnrollmentCompletedPayload{EnrollmentID: enrollmentID},
+		Type: events.EnrollmentCompleted,
+		Payload: events.EnrollmentCompletedPayload{
+			EnrollmentID: enrollmentID,
+			StudentID:    e.StudentID,
+			BatchID:      e.CourseBatchID,
+		},
 	})
 	return nil
 }
 
-// DropEnrollment marks enrollment as dropped.
-func (s *Service) DropEnrollment(ctx context.Context, enrollmentID uuid.UUID) error {
+// Drop transitions an enrollment to dropped.
+//
+// Transition matrix:
+//   - ongoing   -> dropped: allowed, fires enrollment.dropped
+//   - completed -> dropped: allowed (admin override per certificate spec
+//     rule 12), fires enrollment.dropped, logged as warning
+//   - dropped   -> dropped: idempotent no-op (no event re-fired)
+func (s *Service) Drop(ctx context.Context, enrollmentID uuid.UUID) error {
 	e, err := s.repo.GetEnrollmentByID(ctx, enrollmentID)
 	if err != nil {
 		return err
 	}
 	if e.CompletionStatus == CompletionDropped {
-		return apperrors.Validationf("enrollment already dropped")
+		return nil
 	}
-
-	if err := s.repo.UpdateEnrollmentStatus(ctx, enrollmentID, e.PaymentStatus, CompletionDropped); err != nil {
+	if e.CompletionStatus == CompletionCompleted {
+		s.log.Warn("dropping already-completed enrollment (admin override)",
+			zap.String("enrollment_id", enrollmentID.String()))
+	}
+	if err := s.repo.UpdateEnrollmentCompletion(ctx, enrollmentID, CompletionDropped); err != nil {
 		return err
 	}
-
 	_ = s.bus.Publish(ctx, events.Event{
-		Type:    events.EnrollmentDropped,
-		Payload: EnrollmentDroppedPayload{EnrollmentID: enrollmentID},
+		Type: events.EnrollmentDropped,
+		Payload: events.EnrollmentDroppedPayload{
+			EnrollmentID: enrollmentID,
+			StudentID:    e.StudentID,
+			BatchID:      e.CourseBatchID,
+		},
 	})
 	return nil
 }
