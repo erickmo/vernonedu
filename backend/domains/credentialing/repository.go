@@ -7,9 +7,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 )
+
+// pgUniqueViolation is the SQLSTATE code for unique constraint violations.
+const pgUniqueViolation = "23505"
 
 // Repository defines credentialing data access.
 type Repository interface {
@@ -18,6 +22,7 @@ type Repository interface {
 	ListActiveCertificateTypes(ctx context.Context) ([]*CertificateType, error)
 
 	CreateCertificateConfig(ctx context.Context, cc *CertificateConfig) error
+	GetCertificateConfigByID(ctx context.Context, id uuid.UUID) (*CertificateConfig, error)
 	GetCertificateConfigByCourse(ctx context.Context, courseID uuid.UUID) ([]*CertificateConfig, error)
 
 	CreateCertificate(ctx context.Context, c *Certificate) error
@@ -108,6 +113,23 @@ func (r *repository) CreateCertificateConfig(ctx context.Context, cc *Certificat
 	return nil
 }
 
+func (r *repository) GetCertificateConfigByID(ctx context.Context, id uuid.UUID) (*CertificateConfig, error) {
+	query := `SELECT id, course_id, certificate_type_id, issued_on, created_at, updated_at
+	          FROM credentialing.certificate_configs WHERE id = $1`
+
+	cc := &CertificateConfig{}
+	err := r.pool.QueryRow(ctx, query, id).Scan(
+		&cc.ID, &cc.CourseID, &cc.CertificateTypeID, &cc.IssuedOn, &cc.CreatedAt, &cc.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("credentialing.GetCertificateConfigByID: %w", err)
+	}
+	return cc, nil
+}
+
 func (r *repository) GetCertificateConfigByCourse(ctx context.Context, courseID uuid.UUID) ([]*CertificateConfig, error) {
 	query := `SELECT id, course_id, certificate_type_id, issued_on, created_at, updated_at
 	          FROM credentialing.certificate_configs WHERE course_id = $1`
@@ -132,14 +154,18 @@ func (r *repository) GetCertificateConfigByCourse(ctx context.Context, courseID 
 func (r *repository) CreateCertificate(ctx context.Context, c *Certificate) error {
 	query := `
 		INSERT INTO credentialing.student_certificates
-		  (id, enrollment_id, certificate_type_id, certificate_config_id, certificate_number, status, expires_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		  (id, enrollment_id, certificate_type_id, certificate_config_id, certificate_number, status, expires_at, qr_code_url)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING issued_at, created_at, updated_at`
 
 	err := r.pool.QueryRow(ctx, query,
-		c.ID, c.EnrollmentID, c.CertificateTypeID, c.CertificateConfigID, c.CertificateNumber, c.Status, c.ExpiresAt,
+		c.ID, c.EnrollmentID, c.CertificateTypeID, c.CertificateConfigID, c.CertificateNumber, c.Status, c.ExpiresAt, c.QRCodeURL,
 	).Scan(&c.IssuedAt, &c.CreatedAt, &c.UpdatedAt)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolation {
+			return apperrors.ErrConflict
+		}
 		return fmt.Errorf("credentialing.CreateCertificate: %w", err)
 	}
 	return nil

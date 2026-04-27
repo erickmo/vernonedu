@@ -121,9 +121,11 @@ type ClassReminderPayload struct {
 }
 
 type CertificateIssuedPayload struct {
-	CertificateID uuid.UUID
-	StudentID     uuid.UUID
-	CourseTitle   string
+	CertificateID     uuid.UUID
+	CertificateNumber string
+	StudentID         uuid.UUID
+	EnrollmentID      uuid.UUID
+	CourseTitle       string
 }
 
 // ClassPayload describes a single class within a batch for calendar fan-out.

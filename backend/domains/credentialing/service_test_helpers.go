@@ -77,6 +77,15 @@ func (r *fakeCredRepo) CreateCertificateConfig(ctx context.Context, cc *Certific
 	return nil
 }
 
+func (r *fakeCredRepo) GetCertificateConfigByID(ctx context.Context, id uuid.UUID) (*CertificateConfig, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if cc, ok := r.certConfigs[id]; ok {
+		return cc, nil
+	}
+	return nil, apperrors.ErrNotFound
+}
+
 func (r *fakeCredRepo) GetCertificateConfigByCourse(ctx context.Context, courseID uuid.UUID) ([]*CertificateConfig, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -92,6 +101,12 @@ func (r *fakeCredRepo) GetCertificateConfigByCourse(ctx context.Context, courseI
 func (r *fakeCredRepo) CreateCertificate(ctx context.Context, c *Certificate) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	// Mirror the DB-level uq_student_cert_enrollment_config constraint.
+	for _, existing := range r.certificates {
+		if existing.EnrollmentID == c.EnrollmentID && existing.CertificateConfigID == c.CertificateConfigID {
+			return apperrors.ErrConflict
+		}
+	}
 	r.certificates[c.ID] = c
 	r.certByNumber[c.CertificateNumber] = c
 	return nil

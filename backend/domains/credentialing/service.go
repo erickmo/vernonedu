@@ -22,33 +22,64 @@ func NewService(repo Repository, bus events.Bus, log *zap.Logger) *Service {
 	return &Service{repo: repo, bus: bus, log: log}
 }
 
-// IssueCertificate creates a certificate for a completed enrollment.
-func (s *Service) IssueCertificate(ctx context.Context, enrollmentID, certTypeID, certConfigID uuid.UUID) (*Certificate, error) {
-	certType, err := s.repo.GetCertificateTypeByID(ctx, certTypeID)
+// IssueCertificateInput captures the inputs needed to issue a certificate.
+// CertificateConfigID determines the certificate_type_id (and thus
+// validity_months) via the certificate_configs FK. StudentID and CourseTitle
+// are propagated to the canonical events.CertificateIssuedPayload for
+// downstream notification fan-out (caller resolves these).
+type IssueCertificateInput struct {
+	EnrollmentID        uuid.UUID
+	CertificateConfigID uuid.UUID
+	StudentID           uuid.UUID
+	CourseTitle         string
+}
+
+// verifyEndpointPrefix is the public verification URL prefix encoded into the
+// QR code of every issued certificate.
+const verifyEndpointPrefix = "/cert/verify/"
+
+// IssueCertificate issues a new certificate for a completed enrollment.
+//
+// It resolves the certificate type from the configured certificate_config,
+// allocates the next per-year certificate number, derives the expiry date
+// from validity_months (NULL → no expiry), and publishes the canonical
+// events.CertificateIssuedPayload.
+//
+// Repository duplicate-key violations on (enrollment_id, certificate_config_id)
+// are surfaced as apperrors.ErrConflict.
+func (s *Service) IssueCertificate(ctx context.Context, in IssueCertificateInput) (*Certificate, error) {
+	cfg, err := s.repo.GetCertificateConfigByID(ctx, in.CertificateConfigID)
+	if err != nil {
+		return nil, err
+	}
+	certType, err := s.repo.GetCertificateTypeByID(ctx, cfg.CertificateTypeID)
 	if err != nil {
 		return nil, err
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
+	number, err := s.repo.NextCertificateNumber(ctx, now.Year())
+	if err != nil {
+		return nil, err
+	}
+
 	var expiresAt *time.Time
 	if certType.ValidityMonths != nil {
 		exp := now.AddDate(0, *certType.ValidityMonths, 0)
 		expiresAt = &exp
 	}
 
-	number, err := s.repo.NextCertificateNumber(ctx, now.Year())
-	if err != nil {
-		return nil, err
-	}
-
+	qrURL := verifyEndpointPrefix + number
 	cert := &Certificate{
 		ID:                  uuid.New(),
-		EnrollmentID:        enrollmentID,
-		CertificateTypeID:   certTypeID,
-		CertificateConfigID: certConfigID,
+		EnrollmentID:        in.EnrollmentID,
+		CertificateTypeID:   certType.ID,
+		CertificateConfigID: cfg.ID,
 		CertificateNumber:   number,
+		IssuedAt:            now,
 		Status:              CertIssued,
 		ExpiresAt:           expiresAt,
+		QRCodeURL:           &qrURL,
 	}
 
 	if err := s.repo.CreateCertificate(ctx, cert); err != nil {
@@ -56,8 +87,14 @@ func (s *Service) IssueCertificate(ctx context.Context, enrollmentID, certTypeID
 	}
 
 	_ = s.bus.Publish(ctx, events.Event{
-		Type:    events.CertificateIssued,
-		Payload: CertificateIssuedPayload{CertificateID: cert.ID, EnrollmentID: enrollmentID},
+		Type: events.CertificateIssued,
+		Payload: events.CertificateIssuedPayload{
+			CertificateID:     cert.ID,
+			CertificateNumber: cert.CertificateNumber,
+			StudentID:         in.StudentID,
+			EnrollmentID:      in.EnrollmentID,
+			CourseTitle:       in.CourseTitle,
+		},
 	})
 
 	return cert, nil
