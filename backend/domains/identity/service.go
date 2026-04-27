@@ -8,7 +8,6 @@ import (
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // Service exposes identity domain business logic.
@@ -40,7 +39,7 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*User, error)
 		return nil, apperrors.Conflictf("email already registered")
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(in.Password), bcrypt.DefaultCost)
+	hash, err := HashPassword(in.Password)
 	if err != nil {
 		return nil, fmt.Errorf("identity.Register hash: %w", err)
 	}
@@ -48,7 +47,7 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*User, error)
 	user := &User{
 		ID:           uuid.New(),
 		Email:        in.Email,
-		PasswordHash: string(hash),
+		PasswordHash: hash,
 		Role:         in.Role,
 		IsActive:     true,
 	}
@@ -90,7 +89,7 @@ func (s *Service) Login(ctx context.Context, email, password string) (*User, err
 		return nil, apperrors.Validationf("account is deactivated")
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+	if !VerifyPassword(user.PasswordHash, password) {
 		return nil, apperrors.ErrUnauthorized
 	}
 
