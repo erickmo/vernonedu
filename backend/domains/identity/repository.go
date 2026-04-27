@@ -30,6 +30,7 @@ type Repository interface {
 
 	CreateTeamMember(ctx context.Context, tm *TeamMember) error
 	GetTeamMemberByID(ctx context.Context, id uuid.UUID) (*TeamMember, error)
+	GetTeamMemberByUserID(ctx context.Context, userID uuid.UUID) (*TeamMember, error)
 	UpdateTeamMemberStatus(ctx context.Context, id uuid.UUID, status EmploymentStatus) error
 
 	CreateDepartment(ctx context.Context, dept *Department) error
@@ -296,6 +297,25 @@ func (r *repository) GetTeamMemberByID(ctx context.Context, id uuid.UUID) (*Team
 			return nil, apperrors.ErrNotFound
 		}
 		return nil, fmt.Errorf("identity.GetTeamMemberByID: %w", err)
+	}
+	return tm, nil
+}
+
+func (r *repository) GetTeamMemberByUserID(ctx context.Context, userID uuid.UUID) (*TeamMember, error) {
+	query := `SELECT id, user_id, full_name, phone, department_id, role, employment_status, joined_at, is_facilitator, created_at, updated_at
+	          FROM identity.team_members WHERE user_id = $1`
+
+	tm := &TeamMember{}
+	err := r.pool.QueryRow(ctx, query, userID).Scan(
+		&tm.ID, &tm.UserID, &tm.FullName, &tm.Phone, &tm.DepartmentID,
+		&tm.Role, &tm.EmploymentStatus, &tm.JoinedAt, &tm.IsFacilitator,
+		&tm.CreatedAt, &tm.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("identity.GetTeamMemberByUserID: %w", err)
 	}
 	return tm, nil
 }

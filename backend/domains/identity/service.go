@@ -377,6 +377,11 @@ func (s *Service) GetTeamMember(ctx context.Context, id uuid.UUID) (*TeamMember,
 	return s.repo.GetTeamMemberByID(ctx, id)
 }
 
+// GetTeamMemberByUserID fetches a team member by their user ID.
+func (s *Service) GetTeamMemberByUserID(ctx context.Context, userID uuid.UUID) (*TeamMember, error) {
+	return s.repo.GetTeamMemberByUserID(ctx, userID)
+}
+
 // CreateDepartment creates a department.
 func (s *Service) CreateDepartment(ctx context.Context, dept *Department) error {
 	dept.ID = uuid.New()

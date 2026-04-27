@@ -267,6 +267,17 @@ func (r *fakeRepo) GetTeamMemberByID(ctx context.Context, id uuid.UUID) (*TeamMe
 	return nil, apperrors.ErrNotFound
 }
 
+func (r *fakeRepo) GetTeamMemberByUserID(ctx context.Context, userID uuid.UUID) (*TeamMember, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, tm := range r.teamMembers {
+		if tm.UserID == userID {
+			return tm, nil
+		}
+	}
+	return nil, apperrors.ErrNotFound
+}
+
 func (r *fakeRepo) UpdateTeamMemberStatus(ctx context.Context, id uuid.UUID, status EmploymentStatus) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
