@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/vernonedu/vernonedu2/backend/domains/budget"
 	"github.com/vernonedu/vernonedu2/backend/domains/calendar"
 	"github.com/vernonedu/vernonedu2/backend/domains/catalog"
 	"github.com/vernonedu/vernonedu2/backend/domains/credentialing"
@@ -8,6 +9,7 @@ import (
 	"github.com/vernonedu/vernonedu2/backend/domains/finance"
 	"github.com/vernonedu/vernonedu2/backend/domains/franchise"
 	"github.com/vernonedu/vernonedu2/backend/domains/identity"
+	"github.com/vernonedu/vernonedu2/backend/domains/notification"
 	"github.com/vernonedu/vernonedu2/backend/domains/partnerships"
 	"github.com/vernonedu/vernonedu2/backend/domains/platform"
 	profit_split "github.com/vernonedu/vernonedu2/backend/domains/profit_split"
@@ -47,6 +49,8 @@ func main() {
 		profit_split.Module,
 		voucher.Module,
 		calendar.Module,
+		notification.Module,
+		budget.Module,
 
 		fx.NopLogger,
 	)
