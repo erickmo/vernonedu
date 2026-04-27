@@ -224,3 +224,37 @@ func (b *fakeBus) Fired(typ string) bool {
 }
 
 func testLogger() *zap.Logger { return zap.NewNop() }
+
+// fakeCatalogReader is an in-memory CatalogReader for credentialing tests.
+type fakeCatalogReader struct {
+	mu      sync.Mutex
+	batches map[uuid.UUID]fakeCatalogBatch
+}
+
+type fakeCatalogBatch struct {
+	CourseID uuid.UUID
+	Title    string
+}
+
+var _ CatalogReader = (*fakeCatalogReader)(nil)
+
+func newFakeCatalogReader() *fakeCatalogReader {
+	return &fakeCatalogReader{batches: map[uuid.UUID]fakeCatalogBatch{}}
+}
+
+// SeedBatch registers a batch -> course mapping with its course title.
+func (r *fakeCatalogReader) SeedBatch(batchID, courseID uuid.UUID, title string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.batches[batchID] = fakeCatalogBatch{CourseID: courseID, Title: title}
+}
+
+func (r *fakeCatalogReader) GetBatchCourse(_ context.Context, batchID uuid.UUID) (uuid.UUID, string, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	b, ok := r.batches[batchID]
+	if !ok {
+		return uuid.Nil, "", apperrors.ErrNotFound
+	}
+	return b.CourseID, b.Title, nil
+}

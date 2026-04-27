@@ -12,14 +12,19 @@ import (
 
 // Service holds credentialing business logic.
 type Service struct {
-	repo Repository
-	bus  events.Bus
-	log  *zap.Logger
+	repo    Repository
+	bus     events.Bus
+	log     *zap.Logger
+	catalog CatalogReader
 }
 
 // NewService constructs credentialing Service.
-func NewService(repo Repository, bus events.Bus, log *zap.Logger) *Service {
-	return &Service{repo: repo, bus: bus, log: log}
+//
+// catalog is used by the enrollment.completed listener to resolve the course
+// (id + title) from the batch id carried in the event payload. It may be nil —
+// in that case auto-issue on completion is skipped silently.
+func NewService(repo Repository, bus events.Bus, log *zap.Logger, catalog CatalogReader) *Service {
+	return &Service{repo: repo, bus: bus, log: log, catalog: catalog}
 }
 
 // IssueCertificateInput captures the inputs needed to issue a certificate.
