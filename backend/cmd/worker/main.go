@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/vernonedu/vernonedu2/backend/domains/credentialing"
 	"github.com/vernonedu/vernonedu2/backend/domains/finance"
 	"github.com/vernonedu/vernonedu2/backend/domains/platform"
 	"github.com/vernonedu/vernonedu2/backend/internal/db"
@@ -14,16 +15,19 @@ import (
 )
 
 const (
-	overdueCheckInterval  = 1 * time.Hour
-	notificationBatchSize = 50
-	notificationInterval  = 30 * time.Second
-	reminderScanInterval  = 1 * time.Minute
+	overdueCheckInterval      = 1 * time.Hour
+	notificationBatchSize     = 50
+	notificationInterval      = 30 * time.Second
+	reminderScanInterval      = 1 * time.Minute
+	expiringCertCheckInterval = 24 * time.Hour
+	expiringCertWindowDays    = 30
 )
 
 func runWorkers(
 	lc fx.Lifecycle,
 	financeSvc *finance.Service,
 	platformSvc *platform.Service,
+	credentialingSvc *credentialing.Service,
 	log *zap.Logger,
 ) {
 	lc.Append(fx.Hook{
@@ -92,6 +96,25 @@ func runWorkers(
 				}
 			}()
 
+			// Expiring-certificate flag scanner (daily)
+			go func() {
+				ticker := time.NewTicker(expiringCertCheckInterval)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-ticker.C:
+						certs, err := credentialingSvc.FlagExpiringCertificates(context.Background(), expiringCertWindowDays)
+						if err != nil {
+							log.Error("flag expiring certificates failed", zap.Error(err))
+							continue
+						}
+						log.Info("expiring certs flagged", zap.Int("count", len(certs)))
+					case <-ctx.Done():
+						return
+					}
+				}
+			}()
+
 			log.Info("workers started")
 			return nil
 		},
@@ -119,6 +142,12 @@ func main() {
 		fx.Provide(platform.NewPushSender),
 		fx.Provide(platform.NewSenders),
 		fx.Provide(platform.NewService),
+
+		// Credentialing for expiring-certificate worker
+		fx.Provide(credentialing.NewRepository),
+		fx.Provide(func() credentialing.CatalogReader { return nil }),
+		fx.Provide(func() credentialing.IdentityReader { return nil }),
+		fx.Provide(credentialing.NewService),
 
 		fx.Invoke(runWorkers),
 

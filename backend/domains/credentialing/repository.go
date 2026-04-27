@@ -32,6 +32,10 @@ type Repository interface {
 	UpdateCertificateStatus(ctx context.Context, id uuid.UUID, status CertStatus) error
 	ListCertificatesByEnrollment(ctx context.Context, enrollmentID uuid.UUID) ([]*Certificate, error)
 
+	// ListExpiringCertificates returns issued certificates whose expires_at
+	// falls within [today, today + days]. Used by the daily expiry-flag worker.
+	ListExpiringCertificates(ctx context.Context, days int) ([]*Certificate, error)
+
 	CreateActionRequest(ctx context.Context, req *CertificateActionRequest) error
 	GetActionRequestByID(ctx context.Context, id uuid.UUID) (*CertificateActionRequest, error)
 	UpdateActionRequestStatus(ctx context.Context, id uuid.UUID, status ActionStatus, approvedBy *uuid.UUID) error
@@ -255,6 +259,39 @@ func (r *repository) ListCertificatesByEnrollment(ctx context.Context, enrollmen
 			&c.CreatedAt, &c.UpdatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("credentialing.ListCertificatesByEnrollment scan: %w", err)
+		}
+		certs = append(certs, c)
+	}
+	return certs, rows.Err()
+}
+
+// ListExpiringCertificates returns issued certificates whose expires_at falls
+// within the window [current_date, current_date + days days].
+func (r *repository) ListExpiringCertificates(ctx context.Context, days int) ([]*Certificate, error) {
+	query := `SELECT id, enrollment_id, certificate_type_id, certificate_config_id, certificate_number,
+	                 issued_at, status, qr_code_url, expires_at, revoked_at, revoked_by, reissued_from, created_at, updated_at
+	          FROM credentialing.student_certificates
+	          WHERE status = 'issued'
+	            AND expires_at IS NOT NULL
+	            AND expires_at >= current_date
+	            AND expires_at <= current_date + ($1 || ' days')::interval
+	          ORDER BY expires_at`
+
+	rows, err := r.pool.Query(ctx, query, days)
+	if err != nil {
+		return nil, fmt.Errorf("credentialing.ListExpiringCertificates: %w", err)
+	}
+	defer rows.Close()
+
+	var certs []*Certificate
+	for rows.Next() {
+		c := &Certificate{}
+		if err := rows.Scan(
+			&c.ID, &c.EnrollmentID, &c.CertificateTypeID, &c.CertificateConfigID, &c.CertificateNumber,
+			&c.IssuedAt, &c.Status, &c.QRCodeURL, &c.ExpiresAt, &c.RevokedAt, &c.RevokedBy, &c.ReissuedFrom,
+			&c.CreatedAt, &c.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("credentialing.ListExpiringCertificates scan: %w", err)
 		}
 		certs = append(certs, c)
 	}

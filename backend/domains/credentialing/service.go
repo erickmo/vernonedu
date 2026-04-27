@@ -230,6 +230,18 @@ func (s *Service) Verify(ctx context.Context, number string) (*VerifyResult, err
 	}, nil
 }
 
+// FlagExpiringCertificates returns issued certificates whose expires_at falls
+// within the next `days` days from today. Intended to be invoked by the daily
+// expiry-flag worker; CRM/notification fan-out is wired separately.
+//
+// Non-positive `days` is treated as a no-op and returns an empty slice.
+func (s *Service) FlagExpiringCertificates(ctx context.Context, days int) ([]*Certificate, error) {
+	if days <= 0 {
+		return []*Certificate{}, nil
+	}
+	return s.repo.ListExpiringCertificates(ctx, days)
+}
+
 // ListCertificatesByEnrollment returns certificates for an enrollment.
 func (s *Service) ListCertificatesByEnrollment(ctx context.Context, enrollmentID uuid.UUID) ([]*Certificate, error) {
 	return s.repo.ListCertificatesByEnrollment(ctx, enrollmentID)
@@ -311,4 +323,3 @@ func (s *Service) RejectAction(ctx context.Context, requestID, reviewerID uuid.U
 	}
 	return s.repo.UpdateActionRequestStatus(ctx, requestID, ActionRejected, &reviewerID)
 }
-

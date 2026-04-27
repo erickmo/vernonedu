@@ -160,6 +160,27 @@ func (r *fakeCredRepo) ListCertificatesByEnrollment(ctx context.Context, enrollm
 	return out, nil
 }
 
+func (r *fakeCredRepo) ListExpiringCertificates(ctx context.Context, days int) ([]*Certificate, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now().UTC()
+	cutoff := now.AddDate(0, 0, days)
+	out := []*Certificate{}
+	for _, c := range r.certificates {
+		if c.Status != CertIssued {
+			continue
+		}
+		if c.ExpiresAt == nil {
+			continue
+		}
+		if c.ExpiresAt.Before(now) || c.ExpiresAt.After(cutoff) {
+			continue
+		}
+		out = append(out, c)
+	}
+	return out, nil
+}
+
 func (r *fakeCredRepo) CreateActionRequest(ctx context.Context, req *CertificateActionRequest) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
