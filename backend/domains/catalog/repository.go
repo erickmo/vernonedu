@@ -23,9 +23,17 @@ type Repository interface {
 	ListCoursesByDepartment(ctx context.Context, deptID uuid.UUID) ([]*Course, error)
 
 	CreateBatch(ctx context.Context, b *CourseBatch) error
+	CreateBatchWithCostsCopy(ctx context.Context, b *CourseBatch, createdBy uuid.UUID) error
 	GetBatchByID(ctx context.Context, id uuid.UUID) (*CourseBatch, error)
 	UpdateBatchStatus(ctx context.Context, id uuid.UUID, status BatchStatus) error
 	ListBatchesByCourse(ctx context.Context, courseID uuid.UUID) ([]*CourseBatch, error)
+
+	CreateCourseCostTemplate(ctx context.Context, t *CourseCostTemplate) error
+	ListCourseCostTemplates(ctx context.Context, courseID uuid.UUID) ([]*CourseCostTemplate, error)
+
+	CreateBatchCostLineItem(ctx context.Context, li *BatchCostLineItem) error
+	UpdateBatchCostLineItem(ctx context.Context, li *BatchCostLineItem) error
+	ListBatchCostLineItems(ctx context.Context, batchID uuid.UUID) ([]*BatchCostLineItem, error)
 
 	CreateClass(ctx context.Context, cl *Class) error
 	GetClassByID(ctx context.Context, id uuid.UUID) (*Class, error)
@@ -398,6 +406,128 @@ func (r *repository) GetFormatConfig(ctx context.Context, id uuid.UUID) (*Course
 		return nil, fmt.Errorf("catalog.GetFormatConfig: %w", err)
 	}
 	return cfg, nil
+}
+
+// CreateBatchWithCostsCopy inserts the batch row and copies course cost
+// templates into finance.batch_cost_line_items in a single transaction.
+func (r *repository) CreateBatchWithCostsCopy(ctx context.Context, b *CourseBatch, createdBy uuid.UUID) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("catalog.CreateBatchWithCostsCopy begin: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	insertBatch := `
+		INSERT INTO catalog.course_batches (id, course_id, label, start_date, end_date, price, status, web_registration_open, created_by)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		RETURNING created_at, updated_at`
+	if err := tx.QueryRow(ctx, insertBatch,
+		b.ID, b.CourseID, b.Label, b.StartDate, b.EndDate, b.Price, b.Status, b.WebRegistrationOpen, b.CreatedBy,
+	).Scan(&b.CreatedAt, &b.UpdatedAt); err != nil {
+		return fmt.Errorf("catalog.CreateBatchWithCostsCopy insert batch: %w", err)
+	}
+
+	copyCosts := `
+		INSERT INTO finance.batch_cost_line_items
+			(id, course_batch_id, template_ref_id, label, amount, cost_type, reference_type, created_by)
+		SELECT gen_random_uuid(), $1, t.id, t.label, t.amount, t.cost_type, 'manual', $3
+		FROM catalog.course_cost_templates t
+		WHERE t.course_id = $2`
+	if _, err := tx.Exec(ctx, copyCosts, b.ID, b.CourseID, createdBy); err != nil {
+		return fmt.Errorf("catalog.CreateBatchWithCostsCopy copy costs: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("catalog.CreateBatchWithCostsCopy commit: %w", err)
+	}
+	return nil
+}
+
+func (r *repository) CreateCourseCostTemplate(ctx context.Context, t *CourseCostTemplate) error {
+	query := `
+		INSERT INTO catalog.course_cost_templates (id, course_id, label, amount, cost_type)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING created_at, updated_at`
+	err := r.pool.QueryRow(ctx, query, t.ID, t.CourseID, t.Label, t.Amount, t.CostType).
+		Scan(&t.CreatedAt, &t.UpdatedAt)
+	if err != nil {
+		return fmt.Errorf("catalog.CreateCourseCostTemplate: %w", err)
+	}
+	return nil
+}
+
+func (r *repository) ListCourseCostTemplates(ctx context.Context, courseID uuid.UUID) ([]*CourseCostTemplate, error) {
+	query := `SELECT id, course_id, label, amount, cost_type, created_at, updated_at
+	          FROM catalog.course_cost_templates WHERE course_id=$1 ORDER BY created_at`
+	rows, err := r.pool.Query(ctx, query, courseID)
+	if err != nil {
+		return nil, fmt.Errorf("catalog.ListCourseCostTemplates: %w", err)
+	}
+	defer rows.Close()
+	var out []*CourseCostTemplate
+	for rows.Next() {
+		t := &CourseCostTemplate{}
+		if err := rows.Scan(&t.ID, &t.CourseID, &t.Label, &t.Amount, &t.CostType, &t.CreatedAt, &t.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("catalog.ListCourseCostTemplates scan: %w", err)
+		}
+		out = append(out, t)
+	}
+	return out, rows.Err()
+}
+
+func (r *repository) CreateBatchCostLineItem(ctx context.Context, li *BatchCostLineItem) error {
+	query := `
+		INSERT INTO finance.batch_cost_line_items
+			(id, course_batch_id, template_ref_id, label, amount, cost_type, is_removed, reference_type, reference_id, created_by)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		RETURNING created_at, updated_at`
+	err := r.pool.QueryRow(ctx, query,
+		li.ID, li.CourseBatchID, li.TemplateRefID, li.Label, li.Amount, li.CostType,
+		li.IsRemoved, li.ReferenceType, li.ReferenceID, li.CreatedBy,
+	).Scan(&li.CreatedAt, &li.UpdatedAt)
+	if err != nil {
+		return fmt.Errorf("catalog.CreateBatchCostLineItem: %w", err)
+	}
+	return nil
+}
+
+func (r *repository) UpdateBatchCostLineItem(ctx context.Context, li *BatchCostLineItem) error {
+	query := `
+		UPDATE finance.batch_cost_line_items
+		SET label=$1, amount=$2, cost_type=$3, is_removed=$4
+		WHERE id=$5
+		RETURNING updated_at`
+	err := r.pool.QueryRow(ctx, query, li.Label, li.Amount, li.CostType, li.IsRemoved, li.ID).
+		Scan(&li.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return apperrors.ErrNotFound
+		}
+		return fmt.Errorf("catalog.UpdateBatchCostLineItem: %w", err)
+	}
+	return nil
+}
+
+func (r *repository) ListBatchCostLineItems(ctx context.Context, batchID uuid.UUID) ([]*BatchCostLineItem, error) {
+	query := `SELECT id, course_batch_id, template_ref_id, label, amount, cost_type, is_removed,
+	                 reference_type, reference_id, created_by, created_at, updated_at
+	          FROM finance.batch_cost_line_items WHERE course_batch_id=$1 ORDER BY created_at`
+	rows, err := r.pool.Query(ctx, query, batchID)
+	if err != nil {
+		return nil, fmt.Errorf("catalog.ListBatchCostLineItems: %w", err)
+	}
+	defer rows.Close()
+	var out []*BatchCostLineItem
+	for rows.Next() {
+		li := &BatchCostLineItem{}
+		if err := rows.Scan(&li.ID, &li.CourseBatchID, &li.TemplateRefID, &li.Label, &li.Amount,
+			&li.CostType, &li.IsRemoved, &li.ReferenceType, &li.ReferenceID, &li.CreatedBy,
+			&li.CreatedAt, &li.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("catalog.ListBatchCostLineItems scan: %w", err)
+		}
+		out = append(out, li)
+	}
+	return out, rows.Err()
 }
 
 func (r *repository) GetModuleVersionByID(ctx context.Context, id uuid.UUID) (*ModuleVersion, error) {

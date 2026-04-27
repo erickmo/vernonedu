@@ -7,6 +7,46 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type CostType string
+
+const (
+	CostFixed               CostType = "fixed"
+	CostPercentageOfRevenue CostType = "percentage_of_revenue"
+)
+
+type CostRefType string
+
+const (
+	CostRefManual          CostRefType = "manual"
+	CostRefFacilitatorFee  CostRefType = "facilitator_fee"
+	CostRefPartnerCommission CostRefType = "partner_commission"
+)
+
+type CourseCostTemplate struct {
+	ID        uuid.UUID       `json:"id"`
+	CourseID  uuid.UUID       `json:"course_id"`
+	Label     string          `json:"label"`
+	Amount    decimal.Decimal `json:"amount"`
+	CostType  CostType        `json:"cost_type"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
+}
+
+type BatchCostLineItem struct {
+	ID            uuid.UUID       `json:"id"`
+	CourseBatchID uuid.UUID       `json:"course_batch_id"`
+	TemplateRefID *uuid.UUID      `json:"template_ref_id,omitempty"`
+	Label         string          `json:"label"`
+	Amount        decimal.Decimal `json:"amount"`
+	CostType      CostType        `json:"cost_type"`
+	IsRemoved     bool            `json:"is_removed"`
+	ReferenceType CostRefType     `json:"reference_type"`
+	ReferenceID   *uuid.UUID      `json:"reference_id,omitempty"`
+	CreatedBy     uuid.UUID       `json:"created_by"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
+}
+
 type CourseFormat string
 
 const (

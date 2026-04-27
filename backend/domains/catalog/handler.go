@@ -114,16 +114,25 @@ func (h *Handler) CreateBatch(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("invalid request body"))
 		return
 	}
-	batch.CreatedBy = uc.ID
 
-	if err := h.svc.CreateBatch(r.Context(), &batch); err != nil {
+	created, err := h.svc.CreateBatch(r.Context(), CreateBatchInput{
+		CourseID:            batch.CourseID,
+		Label:               batch.Label,
+		StartDate:           batch.StartDate,
+		EndDate:             batch.EndDate,
+		Price:               batch.Price,
+		BatchBulkPrice:      batch.BatchBulkPrice,
+		WebRegistrationOpen: batch.WebRegistrationOpen,
+		CreatedBy:           uc.ID,
+	})
+	if err != nil {
 		apperrors.Render(w, err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(batch)
+	_ = json.NewEncoder(w).Encode(created)
 }
 
 func (h *Handler) GetBatch(w http.ResponseWriter, r *http.Request) {

@@ -3,6 +3,7 @@ package catalog
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -138,19 +139,84 @@ func (s *Service) CloseBatch(ctx context.Context, batchID uuid.UUID) error {
 	return nil
 }
 
-// CreateBatch creates a new course batch.
-func (s *Service) CreateBatch(ctx context.Context, b *CourseBatch) error {
-	b.ID = uuid.New()
-	b.Status = BatchDraft
-	if err := s.repo.CreateBatch(ctx, b); err != nil {
-		return err
+// CreateBatchInput is the structured input for creating a course batch.
+// Cost templates registered on the parent course are copied into
+// finance.batch_cost_line_items as part of the same transaction.
+type CreateBatchInput struct {
+	CourseID            uuid.UUID
+	Label               string
+	StartDate           time.Time
+	EndDate             time.Time
+	Price               decimal.Decimal
+	BatchBulkPrice      *decimal.Decimal
+	WebRegistrationOpen bool
+	CreatedBy           uuid.UUID
+}
+
+// CreateBatch creates a new course batch and copies cost templates from the
+// parent course into batch cost line items.
+func (s *Service) CreateBatch(ctx context.Context, in CreateBatchInput) (*CourseBatch, error) {
+	b := &CourseBatch{
+		ID:                  uuid.New(),
+		CourseID:            in.CourseID,
+		Label:               in.Label,
+		StartDate:           in.StartDate,
+		EndDate:             in.EndDate,
+		Price:               in.Price,
+		BatchBulkPrice:      in.BatchBulkPrice,
+		Status:              BatchDraft,
+		WebRegistrationOpen: in.WebRegistrationOpen,
+		CreatedBy:           in.CreatedBy,
+	}
+	if err := s.repo.CreateBatchWithCostsCopy(ctx, b, in.CreatedBy); err != nil {
+		return nil, err
 	}
 
 	_ = s.bus.Publish(ctx, events.Event{
 		Type:    events.BatchCreated,
 		Payload: BatchCreatedPayload{BatchID: b.ID, CourseID: b.CourseID},
 	})
-	return nil
+	return b, nil
+}
+
+// CreateCourseCostTemplateInput is the input for adding a cost template to a course.
+type CreateCourseCostTemplateInput struct {
+	CourseID uuid.UUID
+	Label    string
+	Amount   decimal.Decimal
+	CostType CostType
+}
+
+// CreateCourseCostTemplate registers a default cost line on a course; this is
+// what gets copied to each new batch.
+func (s *Service) CreateCourseCostTemplate(ctx context.Context, in CreateCourseCostTemplateInput) (*CourseCostTemplate, error) {
+	if strings.TrimSpace(in.Label) == "" {
+		return nil, apperrors.Validationf("label is required")
+	}
+	if in.CostType == "" {
+		in.CostType = CostFixed
+	}
+	t := &CourseCostTemplate{
+		ID:       uuid.New(),
+		CourseID: in.CourseID,
+		Label:    in.Label,
+		Amount:   in.Amount,
+		CostType: in.CostType,
+	}
+	if err := s.repo.CreateCourseCostTemplate(ctx, t); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+// ListCourseCostTemplates returns all cost templates for a course.
+func (s *Service) ListCourseCostTemplates(ctx context.Context, courseID uuid.UUID) ([]*CourseCostTemplate, error) {
+	return s.repo.ListCourseCostTemplates(ctx, courseID)
+}
+
+// ListBatchCostLineItems returns all cost line items for a batch.
+func (s *Service) ListBatchCostLineItems(ctx context.Context, batchID uuid.UUID) ([]*BatchCostLineItem, error) {
+	return s.repo.ListBatchCostLineItems(ctx, batchID)
 }
 
 // GetBatch fetches batch by ID.

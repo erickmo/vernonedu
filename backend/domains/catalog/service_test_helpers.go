@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	"go.uber.org/zap"
@@ -13,13 +14,15 @@ import (
 
 // fakeCatalogRepo is an in-memory Repository for service tests.
 type fakeCatalogRepo struct {
-	mu             sync.Mutex
-	courses        map[uuid.UUID]*Course
-	batches        map[uuid.UUID]*CourseBatch
-	classes        map[uuid.UUID]*Class
-	modules        map[uuid.UUID]*CourseModule
-	moduleVersions map[uuid.UUID]*ModuleVersion
-	formatConfigs  map[uuid.UUID]*CourseFormatConfig
+	mu                 sync.Mutex
+	courses            map[uuid.UUID]*Course
+	batches            map[uuid.UUID]*CourseBatch
+	classes            map[uuid.UUID]*Class
+	modules            map[uuid.UUID]*CourseModule
+	moduleVersions     map[uuid.UUID]*ModuleVersion
+	formatConfigs      map[uuid.UUID]*CourseFormatConfig
+	costTemplates      map[uuid.UUID]*CourseCostTemplate
+	batchCostLineItems map[uuid.UUID]*BatchCostLineItem
 }
 
 var _ Repository = (*fakeCatalogRepo)(nil)
@@ -31,8 +34,112 @@ func newFakeCatalogRepo() *fakeCatalogRepo {
 		classes:        map[uuid.UUID]*Class{},
 		modules:        map[uuid.UUID]*CourseModule{},
 		moduleVersions: map[uuid.UUID]*ModuleVersion{},
-		formatConfigs:  map[uuid.UUID]*CourseFormatConfig{},
+		formatConfigs:      map[uuid.UUID]*CourseFormatConfig{},
+		costTemplates:      map[uuid.UUID]*CourseCostTemplate{},
+		batchCostLineItems: map[uuid.UUID]*BatchCostLineItem{},
 	}
+}
+
+// SeedCostTemplate inserts a cost template directly for tests.
+func (r *fakeCatalogRepo) SeedCostTemplate(courseID uuid.UUID, label string, amount decimal.Decimal) *CourseCostTemplate {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	t := &CourseCostTemplate{
+		ID:        uuid.New(),
+		CourseID:  courseID,
+		Label:     label,
+		Amount:    amount,
+		CostType:  CostFixed,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	r.costTemplates[t.ID] = t
+	return t
+}
+
+func (r *fakeCatalogRepo) CreateCourseCostTemplate(ctx context.Context, t *CourseCostTemplate) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now()
+	t.CreatedAt = now
+	t.UpdatedAt = now
+	r.costTemplates[t.ID] = t
+	return nil
+}
+
+func (r *fakeCatalogRepo) ListCourseCostTemplates(ctx context.Context, courseID uuid.UUID) ([]*CourseCostTemplate, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := make([]*CourseCostTemplate, 0)
+	for _, t := range r.costTemplates {
+		if t.CourseID == courseID {
+			out = append(out, t)
+		}
+	}
+	return out, nil
+}
+
+func (r *fakeCatalogRepo) CreateBatchWithCostsCopy(ctx context.Context, b *CourseBatch, createdBy uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now()
+	b.CreatedAt = now
+	b.UpdatedAt = now
+	r.batches[b.ID] = b
+	for _, t := range r.costTemplates {
+		if t.CourseID != b.CourseID {
+			continue
+		}
+		tplID := t.ID
+		li := &BatchCostLineItem{
+			ID:            uuid.New(),
+			CourseBatchID: b.ID,
+			TemplateRefID: &tplID,
+			Label:         t.Label,
+			Amount:        t.Amount,
+			CostType:      t.CostType,
+			IsRemoved:     false,
+			ReferenceType: CostRefManual,
+			CreatedBy:     createdBy,
+			CreatedAt:     now,
+			UpdatedAt:     now,
+		}
+		r.batchCostLineItems[li.ID] = li
+	}
+	return nil
+}
+
+func (r *fakeCatalogRepo) CreateBatchCostLineItem(ctx context.Context, li *BatchCostLineItem) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now()
+	li.CreatedAt = now
+	li.UpdatedAt = now
+	r.batchCostLineItems[li.ID] = li
+	return nil
+}
+
+func (r *fakeCatalogRepo) UpdateBatchCostLineItem(ctx context.Context, li *BatchCostLineItem) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if _, ok := r.batchCostLineItems[li.ID]; !ok {
+		return apperrors.ErrNotFound
+	}
+	li.UpdatedAt = time.Now()
+	r.batchCostLineItems[li.ID] = li
+	return nil
+}
+
+func (r *fakeCatalogRepo) ListBatchCostLineItems(ctx context.Context, batchID uuid.UUID) ([]*BatchCostLineItem, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := make([]*BatchCostLineItem, 0)
+	for _, li := range r.batchCostLineItems {
+		if li.CourseBatchID == batchID {
+			out = append(out, li)
+		}
+	}
+	return out, nil
 }
 
 func (r *fakeCatalogRepo) AddFormatConfig(ctx context.Context, cfg *CourseFormatConfig) error {
