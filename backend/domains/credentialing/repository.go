@@ -29,6 +29,8 @@ type Repository interface {
 	CreateActionRequest(ctx context.Context, req *CertificateActionRequest) error
 	GetActionRequestByID(ctx context.Context, id uuid.UUID) (*CertificateActionRequest, error)
 	UpdateActionRequestStatus(ctx context.Context, id uuid.UUID, status ActionStatus, approvedBy *uuid.UUID) error
+
+	NextCertificateNumber(ctx context.Context, year int) (string, error)
 }
 
 type repository struct {
@@ -253,6 +255,21 @@ func (r *repository) GetActionRequestByID(ctx context.Context, id uuid.UUID) (*C
 		return nil, fmt.Errorf("credentialing.GetActionRequestByID: %w", err)
 	}
 	return req, nil
+}
+
+// NextCertificateNumber atomically increments and returns the next per-year
+// certificate number, formatted as "VE-YYYY-NNNNN" with zero-padded sequence.
+func (r *repository) NextCertificateNumber(ctx context.Context, year int) (string, error) {
+	var v int
+	err := r.pool.QueryRow(ctx,
+		`INSERT INTO credentialing.certificate_number_sequences (year, last_value)
+		 VALUES ($1, 1)
+		 ON CONFLICT (year) DO UPDATE SET last_value = credentialing.certificate_number_sequences.last_value + 1
+		 RETURNING last_value`, year).Scan(&v)
+	if err != nil {
+		return "", fmt.Errorf("credentialing.NextCertificateNumber: %w", err)
+	}
+	return fmt.Sprintf("VE-%d-%05d", year, v), nil
 }
 
 func (r *repository) UpdateActionRequestStatus(ctx context.Context, id uuid.UUID, status ActionStatus, approvedBy *uuid.UUID) error {

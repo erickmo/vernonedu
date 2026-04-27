@@ -2,7 +2,6 @@ package credentialing
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,10 +29,16 @@ func (s *Service) IssueCertificate(ctx context.Context, enrollmentID, certTypeID
 		return nil, err
 	}
 
+	now := time.Now()
 	var expiresAt *time.Time
 	if certType.ValidityMonths != nil {
-		exp := time.Now().AddDate(0, *certType.ValidityMonths, 0)
+		exp := now.AddDate(0, *certType.ValidityMonths, 0)
 		expiresAt = &exp
+	}
+
+	number, err := s.repo.NextCertificateNumber(ctx, now.Year())
+	if err != nil {
+		return nil, err
 	}
 
 	cert := &Certificate{
@@ -41,7 +46,7 @@ func (s *Service) IssueCertificate(ctx context.Context, enrollmentID, certTypeID
 		EnrollmentID:        enrollmentID,
 		CertificateTypeID:   certTypeID,
 		CertificateConfigID: certConfigID,
-		CertificateNumber:   generateCertNumber(),
+		CertificateNumber:   number,
 		Status:              CertIssued,
 		ExpiresAt:           expiresAt,
 	}
@@ -128,6 +133,3 @@ func (s *Service) ApproveActionRequest(ctx context.Context, reqID uuid.UUID, app
 	return nil
 }
 
-func generateCertNumber() string {
-	return fmt.Sprintf("VE-%d-%s", time.Now().Year(), uuid.New().String()[:8])
-}
