@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	mw "github.com/vernonedu/vernonedu2/backend/internal/middleware"
 )
@@ -29,14 +28,14 @@ func (h *Handler) CreateEnrollment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		StudentID     string `json:"student_id"`
-		CourseBatchID string `json:"course_batch_id"`
-		Format        string `json:"format"`
-		Mode          string `json:"mode"`
-		Payer         string `json:"payer"`
-		Price         string `json:"price"`
-		VoucherCode   string `json:"voucher_code"`
-		Source        string `json:"source"`
+		StudentID     string  `json:"student_id"`
+		CourseBatchID string  `json:"course_batch_id"`
+		Format        string  `json:"format"`
+		Mode          string  `json:"mode"`
+		PartnerID     *string `json:"partner_id,omitempty"`
+		FranchiseeID  *string `json:"franchisee_id,omitempty"`
+		VoucherCode   string  `json:"voucher_code"`
+		Source        string  `json:"source"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		apperrors.Render(w, apperrors.Validationf("invalid request body"))
@@ -53,10 +52,23 @@ func (h *Handler) CreateEnrollment(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("invalid course_batch_id"))
 		return
 	}
-	price, err := decimal.NewFromString(req.Price)
-	if err != nil {
-		apperrors.Render(w, apperrors.Validationf("invalid price"))
-		return
+	var partnerID *uuid.UUID
+	if req.PartnerID != nil && *req.PartnerID != "" {
+		id, perr := uuid.Parse(*req.PartnerID)
+		if perr != nil {
+			apperrors.Render(w, apperrors.Validationf("invalid partner_id"))
+			return
+		}
+		partnerID = &id
+	}
+	var franchiseeID *uuid.UUID
+	if req.FranchiseeID != nil && *req.FranchiseeID != "" {
+		id, ferr := uuid.Parse(*req.FranchiseeID)
+		if ferr != nil {
+			apperrors.Render(w, apperrors.Validationf("invalid franchisee_id"))
+			return
+		}
+		franchiseeID = &id
 	}
 
 	enrollment, err := h.svc.Enroll(r.Context(), EnrollInput{
@@ -64,8 +76,8 @@ func (h *Handler) CreateEnrollment(w http.ResponseWriter, r *http.Request) {
 		CourseBatchID: batchID,
 		Format:        EnrollmentFormat(req.Format),
 		Mode:          EnrollmentMode(req.Mode),
-		Payer:         req.Payer,
-		Price:         price,
+		PartnerID:     partnerID,
+		FranchiseeID:  franchiseeID,
 		VoucherCode:   req.VoucherCode,
 		Source:        req.Source,
 	})

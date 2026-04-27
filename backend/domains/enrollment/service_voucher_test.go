@@ -29,7 +29,7 @@ func newVoucher() *Voucher {
 func newEnrollmentSvc(t *testing.T) (*Service, *fakeEnrollmentRepo) {
 	t.Helper()
 	r := newFakeEnrollmentRepo()
-	s := NewService(r, newFakeBus(), testLogger())
+	s := NewService(r, newFakeBus(), testLogger(), newFakeCatalogReader(), newFakePartnershipsReader())
 	return s, r
 }
 

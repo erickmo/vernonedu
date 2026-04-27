@@ -6,21 +6,39 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
+	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	"go.uber.org/zap"
 )
 
 // Service holds enrollment business logic.
 type Service struct {
-	repo Repository
-	bus  events.Bus
-	log  *zap.Logger
+	repo         Repository
+	bus          events.Bus
+	log          *zap.Logger
+	catalog      CatalogReader
+	partnerships PartnershipsReader
 }
 
 // NewService constructs enrollment Service.
-func NewService(repo Repository, bus events.Bus, log *zap.Logger) *Service {
-	return &Service{repo: repo, bus: bus, log: log}
+//
+// catalog is required for the Enroll workflow (batch lookup + format
+// validation). partnerships may be nil — the service treats a nil reader
+// as "no active agreement available" and falls back to B2C pricing.
+func NewService(
+	repo Repository,
+	bus events.Bus,
+	log *zap.Logger,
+	catalog CatalogReader,
+	partnerships PartnershipsReader,
+) *Service {
+	return &Service{
+		repo:         repo,
+		bus:          bus,
+		log:          log,
+		catalog:      catalog,
+		partnerships: partnerships,
+	}
 }
 
 // EnrollInput carries enrollment creation parameters.
@@ -29,42 +47,38 @@ type EnrollInput struct {
 	CourseBatchID uuid.UUID
 	Format        EnrollmentFormat
 	Mode          EnrollmentMode
-	Payer         string
 	PartnerID     *uuid.UUID
 	FranchiseeID  *uuid.UUID
-	Price         decimal.Decimal
 	VoucherCode   string
 	Source        string
 }
 
-// Enroll creates an enrollment, optionally applying a voucher.
+// Enroll creates an enrollment using cross-domain reads for batch + format
+// validation and pricing. Voucher is optional.
 func (s *Service) Enroll(ctx context.Context, in EnrollInput) (*Enrollment, error) {
-	// Check duplicate
+	if s.catalog == nil {
+		return nil, apperrors.Validationf("catalog reader not configured")
+	}
+
+	batch, err := s.catalog.GetBatch(ctx, in.CourseBatchID)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.validateBatchOpen(batch, in.Source); err != nil {
+		return nil, err
+	}
+	if err := s.validateFormat(ctx, in, batch); err != nil {
+		return nil, err
+	}
+
 	existing, err := s.repo.GetEnrollmentByStudentAndBatch(ctx, in.StudentID, in.CourseBatchID)
 	if err == nil && existing != nil {
 		return nil, apperrors.Conflictf("student already enrolled in this batch")
 	}
 
-	finalPrice := in.Price
-	var voucherID *uuid.UUID
-
-	if in.VoucherCode != "" {
-		voucher, err := s.repo.GetVoucherByCode(ctx, in.VoucherCode)
-		if err != nil {
-			return nil, apperrors.Validationf("voucher not found")
-		}
-		if !voucher.IsActive {
-			return nil, apperrors.Validationf("voucher is not active")
-		}
-		if voucher.ValidUntil != nil && time.Now().After(*voucher.ValidUntil) {
-			return nil, apperrors.Validationf("voucher has expired")
-		}
-		if voucher.MaxUses != nil && voucher.UsedCount >= *voucher.MaxUses {
-			return nil, apperrors.Validationf("voucher usage limit reached")
-		}
-
-		finalPrice = applyDiscount(in.Price, voucher)
-		voucherID = &voucher.ID
+	resolved, voucher, payer, err := s.resolvePricing(ctx, in, batch)
+	if err != nil {
+		return nil, err
 	}
 
 	e := &Enrollment{
@@ -73,39 +87,139 @@ func (s *Service) Enroll(ctx context.Context, in EnrollInput) (*Enrollment, erro
 		CourseBatchID:    in.CourseBatchID,
 		Format:           in.Format,
 		Mode:             in.Mode,
-		Payer:            in.Payer,
+		Payer:            string(payer),
 		PartnerID:        in.PartnerID,
 		FranchiseeID:     in.FranchiseeID,
-		Price:            in.Price,
-		FinalPrice:       finalPrice,
-		VoucherID:        voucherID,
+		Price:            resolved.Price,
+		FinalPrice:       resolved.FinalPrice,
 		CreditApplied:    decimal.Zero,
 		PaymentStatus:    PaymentPending,
 		CompletionStatus: CompletionOngoing,
 		Source:           in.Source,
+	}
+	if voucher != nil {
+		e.VoucherID = &voucher.ID
 	}
 
 	if err := s.repo.CreateEnrollment(ctx, e); err != nil {
 		return nil, err
 	}
 
-	if voucherID != nil {
-		_ = s.repo.ConsumeVoucher(ctx, ConsumeVoucherParams{
-			VoucherID:     *voucherID,
+	if voucher != nil {
+		if err := s.repo.ConsumeVoucher(ctx, ConsumeVoucherParams{
+			VoucherID:     voucher.ID,
 			EnrollmentID:  e.ID,
 			StudentID:     in.StudentID,
-			OriginalPrice: in.Price,
-			FinalPrice:    finalPrice,
+			OriginalPrice: resolved.Price,
+			FinalPrice:    resolved.FinalPrice,
 			CreatedBy:     in.StudentID,
-		})
+		}); err != nil {
+			s.log.Warn("voucher consume failed", zap.Error(err))
+		}
 	}
 
 	_ = s.bus.Publish(ctx, events.Event{
-		Type:    events.EnrollmentConfirmed,
-		Payload: EnrollmentConfirmedPayload{EnrollmentID: e.ID, StudentID: e.StudentID, BatchID: e.CourseBatchID},
+		Type: events.EnrollmentConfirmed,
+		Payload: events.EnrollmentConfirmedPayload{
+			EnrollmentID: e.ID,
+			StudentID:    e.StudentID,
+			BatchID:      e.CourseBatchID,
+			CourseTitle:  batch.CourseTitle,
+		},
 	})
 
 	return e, nil
+}
+
+// validateBatchOpen ensures the batch is in an enrollable state and that
+// the registration window/web flag permits the requested source.
+func (s *Service) validateBatchOpen(batch *CatalogBatch, source string) error {
+	if batch.Status != BatchStatusOpen && batch.Status != BatchStatusOngoing {
+		return apperrors.Validationf("batch not open for enrollment")
+	}
+	if source == SourceB2C && !batch.WebRegistrationOpen {
+		return apperrors.Validationf("web registration closed for this batch")
+	}
+	now := time.Now()
+	if batch.RegistrationOpenAt != nil && now.Before(*batch.RegistrationOpenAt) {
+		return apperrors.Validationf("registration not yet open")
+	}
+	if batch.RegistrationCloseAt != nil && now.After(*batch.RegistrationCloseAt) {
+		return apperrors.Validationf("registration closed")
+	}
+	return nil
+}
+
+// validateFormat enforces source/format compatibility, format toggle, and
+// per-format capacity limits.
+func (s *Service) validateFormat(ctx context.Context, in EnrollInput, batch *CatalogBatch) error {
+	if (in.Format == FormatInhouseTraining || in.Format == FormatInschoolProgram) && in.Source == SourceB2C {
+		return apperrors.Validationf("format not available for B2C")
+	}
+
+	cfg, err := s.catalog.GetFormatConfig(ctx, batch.CourseID, in.Format)
+	if err != nil {
+		return apperrors.Validationf("format not enabled")
+	}
+	if cfg == nil || !cfg.IsEnabled {
+		return apperrors.Validationf("format not enabled")
+	}
+	if cfg.MaxStudents != nil {
+		count, err := s.repo.CountEnrollmentsByBatchAndFormat(ctx, in.CourseBatchID, in.Format)
+		if err != nil {
+			return err
+		}
+		if count >= *cfg.MaxStudents {
+			return apperrors.Validationf("batch full for format")
+		}
+	}
+	return nil
+}
+
+// resolvePricing loads voucher (if requested) + active agreement (if partner)
+// and runs ResolvePrice. Returns resolved prices, optional voucher, and the
+// effective payer.
+func (s *Service) resolvePricing(
+	ctx context.Context,
+	in EnrollInput,
+	batch *CatalogBatch,
+) (ResolveOutput, *Voucher, Payer, error) {
+	priceIn := ResolveInput{
+		BatchPrice:     batch.Price,
+		BatchBulkPrice: batch.BatchBulkPrice,
+	}
+	payer := PayerStudent
+
+	if in.PartnerID != nil && s.partnerships != nil {
+		ag, err := s.partnerships.GetActiveAgreement(ctx, *in.PartnerID)
+		if err == nil && ag != nil && ag.IsActive {
+			priceIn.IsB2B = true
+			priceIn.Payer = ag.Payer
+			priceIn.AgreementBulkPrice = ag.BulkPrice
+			payer = ag.Payer
+		}
+	}
+
+	var voucher *Voucher
+	if in.VoucherCode != "" {
+		v, err := s.repo.GetVoucherByCode(ctx, in.VoucherCode)
+		if err != nil {
+			return ResolveOutput{}, nil, payer, apperrors.Validationf("voucher not found")
+		}
+		if !v.IsActive {
+			return ResolveOutput{}, nil, payer, apperrors.Validationf("voucher is not active")
+		}
+		if v.ValidUntil != nil && time.Now().After(*v.ValidUntil) {
+			return ResolveOutput{}, nil, payer, apperrors.Validationf("voucher has expired")
+		}
+		if v.MaxUses != nil && v.UsedCount >= *v.MaxUses {
+			return ResolveOutput{}, nil, payer, apperrors.Validationf("voucher usage limit reached")
+		}
+		priceIn.Voucher = v
+		voucher = v
+	}
+
+	return ResolvePrice(priceIn), voucher, payer, nil
 }
 
 // CompleteEnrollment marks enrollment as completed.
@@ -166,23 +280,4 @@ func (s *Service) GetEnrollment(ctx context.Context, id uuid.UUID) (*Enrollment,
 // ListByStudent returns all enrollments for a student.
 func (s *Service) ListByStudent(ctx context.Context, studentID uuid.UUID) ([]*Enrollment, error) {
 	return s.repo.ListEnrollmentsByStudent(ctx, studentID)
-}
-
-func applyDiscount(price decimal.Decimal, v *Voucher) decimal.Decimal {
-	switch v.DiscountType {
-	case DiscountFixed:
-		result := price.Sub(v.DiscountValue)
-		if result.IsNegative() {
-			return decimal.Zero
-		}
-		return result
-	case DiscountPercentage:
-		pct := v.DiscountValue.Div(decimal.NewFromInt(100))
-		discount := price.Mul(pct)
-		return price.Sub(discount)
-	case DiscountFinalPrice:
-		return v.DiscountValue
-	default:
-		return price
-	}
 }

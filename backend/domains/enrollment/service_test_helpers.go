@@ -120,6 +120,18 @@ func (r *fakeEnrollmentRepo) ListEnrollmentsByStudent(ctx context.Context, stude
 	return out, nil
 }
 
+func (r *fakeEnrollmentRepo) CountEnrollmentsByBatchAndFormat(ctx context.Context, batchID uuid.UUID, format EnrollmentFormat) (int, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	count := 0
+	for _, e := range r.enrollments {
+		if e.CourseBatchID == batchID && e.Format == format && e.CompletionStatus != CompletionDropped {
+			count++
+		}
+	}
+	return count, nil
+}
+
 func (r *fakeEnrollmentRepo) ListEnrollmentsByBatch(ctx context.Context, batchID uuid.UUID) ([]*Enrollment, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -229,3 +241,95 @@ func (b *fakeBus) Fired(typ events.EventType) bool {
 }
 
 func testLogger() *zap.Logger { return zap.NewNop() }
+
+// --- fakeCatalogReader --------------------------------------------------
+
+type fakeCatalogReader struct {
+	mu            sync.Mutex
+	batches       map[uuid.UUID]*CatalogBatch
+	formatConfigs map[string]*CatalogFormatConfig
+}
+
+var _ CatalogReader = (*fakeCatalogReader)(nil)
+
+func newFakeCatalogReader() *fakeCatalogReader {
+	return &fakeCatalogReader{
+		batches:       map[uuid.UUID]*CatalogBatch{},
+		formatConfigs: map[string]*CatalogFormatConfig{},
+	}
+}
+
+func formatCfgKey(courseID uuid.UUID, f EnrollmentFormat) string {
+	return courseID.String() + "|" + string(f)
+}
+
+func (r *fakeCatalogReader) SeedBatch(b *CatalogBatch) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	cp := *b
+	r.batches[b.ID] = &cp
+}
+
+func (r *fakeCatalogReader) SeedFormatConfig(courseID uuid.UUID, fc *CatalogFormatConfig) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	cp := *fc
+	r.formatConfigs[formatCfgKey(courseID, fc.Format)] = &cp
+}
+
+func (r *fakeCatalogReader) GetBatch(_ context.Context, id uuid.UUID) (*CatalogBatch, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	b, ok := r.batches[id]
+	if !ok {
+		return nil, apperrors.ErrNotFound
+	}
+	cp := *b
+	return &cp, nil
+}
+
+func (r *fakeCatalogReader) GetFormatConfig(_ context.Context, courseID uuid.UUID, f EnrollmentFormat) (*CatalogFormatConfig, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	cfg, ok := r.formatConfigs[formatCfgKey(courseID, f)]
+	if !ok {
+		return nil, apperrors.ErrNotFound
+	}
+	cp := *cfg
+	return &cp, nil
+}
+
+func (r *fakeCatalogReader) CountEnrollments(_ context.Context, _ uuid.UUID, _ EnrollmentFormat) (int, error) {
+	return 0, nil
+}
+
+// --- fakePartnershipsReader ---------------------------------------------
+
+type fakePartnershipsReader struct {
+	mu         sync.Mutex
+	agreements map[uuid.UUID]*Agreement
+}
+
+var _ PartnershipsReader = (*fakePartnershipsReader)(nil)
+
+func newFakePartnershipsReader() *fakePartnershipsReader {
+	return &fakePartnershipsReader{agreements: map[uuid.UUID]*Agreement{}}
+}
+
+func (r *fakePartnershipsReader) SeedAgreement(a *Agreement) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	cp := *a
+	r.agreements[a.PartnerID] = &cp
+}
+
+func (r *fakePartnershipsReader) GetActiveAgreement(_ context.Context, partnerID uuid.UUID) (*Agreement, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	a, ok := r.agreements[partnerID]
+	if !ok {
+		return nil, apperrors.ErrNotFound
+	}
+	cp := *a
+	return &cp, nil
+}

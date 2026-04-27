@@ -31,6 +31,7 @@ type Repository interface {
 	UpdateEnrollmentStatus(ctx context.Context, id uuid.UUID, payStatus PaymentStatus, compStatus CompletionStatus) error
 	ListEnrollmentsByStudent(ctx context.Context, studentID uuid.UUID) ([]*Enrollment, error)
 	ListEnrollmentsByBatch(ctx context.Context, batchID uuid.UUID) ([]*Enrollment, error)
+	CountEnrollmentsByBatchAndFormat(ctx context.Context, batchID uuid.UUID, format EnrollmentFormat) (int, error)
 
 	GetVoucherByCode(ctx context.Context, code string) (*Voucher, error)
 	CreateVoucher(ctx context.Context, v *Voucher) error
@@ -181,6 +182,16 @@ func (r *repository) ListEnrollmentsByBatch(ctx context.Context, batchID uuid.UU
 		enrollments = append(enrollments, e)
 	}
 	return enrollments, rows.Err()
+}
+
+func (r *repository) CountEnrollmentsByBatchAndFormat(ctx context.Context, batchID uuid.UUID, format EnrollmentFormat) (int, error) {
+	const query = `SELECT count(*) FROM enrollment.enrollments
+		WHERE course_batch_id = $1 AND format = $2 AND completion_status <> 'dropped'`
+	var count int
+	if err := r.pool.QueryRow(ctx, query, batchID, format).Scan(&count); err != nil {
+		return 0, fmt.Errorf("enrollment.CountEnrollmentsByBatchAndFormat: %w", err)
+	}
+	return count, nil
 }
 
 func (r *repository) GetVoucherByCode(ctx context.Context, code string) (*Voucher, error) {

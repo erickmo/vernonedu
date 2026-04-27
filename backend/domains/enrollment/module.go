@@ -11,11 +11,22 @@ import (
 // Module wires enrollment domain via FX.
 var Module = fx.Options(
 	fx.Provide(NewRepository),
+	fx.Provide(provideCatalogReader),
+	fx.Provide(provideAgreementReader),
 	fx.Provide(NewService),
 	fx.Provide(NewHandler),
 	fx.Invoke(RegisterRoutes),
 	fx.Invoke(RegisterSubscriptions),
 )
+
+// provideCatalogReader returns a nil CatalogReader placeholder. Cross-domain
+// wiring to the catalog service is deferred to a follow-up task; until then,
+// Enroll will fail validation if invoked.
+func provideCatalogReader() CatalogReader { return nil }
+
+// provideAgreementReader returns a nil PartnershipsReader placeholder.
+// The service treats nil as "no active agreement" and falls back to B2C.
+func provideAgreementReader() PartnershipsReader { return nil }
 
 // RegisterRoutes mounts enrollment HTTP routes.
 func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {

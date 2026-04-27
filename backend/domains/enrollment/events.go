@@ -7,13 +7,6 @@ import (
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 )
 
-// EnrollmentConfirmedPayload published on successful enrollment creation.
-type EnrollmentConfirmedPayload struct {
-	EnrollmentID uuid.UUID `json:"enrollment_id"`
-	StudentID    uuid.UUID `json:"student_id"`
-	BatchID      uuid.UUID `json:"batch_id"`
-}
-
 // EnrollmentCompletedPayload published when enrollment is completed.
 type EnrollmentCompletedPayload struct {
 	EnrollmentID uuid.UUID `json:"enrollment_id"`
