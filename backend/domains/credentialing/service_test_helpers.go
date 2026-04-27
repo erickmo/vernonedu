@@ -227,8 +227,9 @@ func testLogger() *zap.Logger { return zap.NewNop() }
 
 // fakeCatalogReader is an in-memory CatalogReader for credentialing tests.
 type fakeCatalogReader struct {
-	mu      sync.Mutex
-	batches map[uuid.UUID]fakeCatalogBatch
+	mu          sync.Mutex
+	batches     map[uuid.UUID]fakeCatalogBatch
+	certContext map[uuid.UUID]*CertContextInfo
 }
 
 type fakeCatalogBatch struct {
@@ -239,7 +240,28 @@ type fakeCatalogBatch struct {
 var _ CatalogReader = (*fakeCatalogReader)(nil)
 
 func newFakeCatalogReader() *fakeCatalogReader {
-	return &fakeCatalogReader{batches: map[uuid.UUID]fakeCatalogBatch{}}
+	return &fakeCatalogReader{
+		batches:     map[uuid.UUID]fakeCatalogBatch{},
+		certContext: map[uuid.UUID]*CertContextInfo{},
+	}
+}
+
+// SeedCertContext registers an enrollment -> cert-context mapping used by the
+// public verify endpoint.
+func (r *fakeCatalogReader) SeedCertContext(enrollmentID uuid.UUID, info *CertContextInfo) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.certContext[enrollmentID] = info
+}
+
+func (r *fakeCatalogReader) ResolveCertContext(_ context.Context, enrollmentID uuid.UUID) (*CertContextInfo, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	info, ok := r.certContext[enrollmentID]
+	if !ok {
+		return nil, apperrors.ErrNotFound
+	}
+	return info, nil
 }
 
 // SeedBatch registers a batch -> course mapping with its course title.

@@ -27,14 +27,14 @@ func (h *Handler) VerifyCertificate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cert, err := h.svc.VerifyCertificate(r.Context(), number)
+	result, err := h.svc.Verify(r.Context(), number)
 	if err != nil {
 		apperrors.Render(w, err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(cert)
+	_ = json.NewEncoder(w).Encode(result)
 }
 
 func (h *Handler) ListCertificates(w http.ResponseWriter, r *http.Request) {

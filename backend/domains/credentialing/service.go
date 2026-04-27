@@ -5,10 +5,33 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
+	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	"go.uber.org/zap"
 )
+
+// Public verify response status values. "expired" is a derived state computed
+// from expires_at vs now; it is never persisted on the certificate row.
+const (
+	VerifyStatusIssued  = "issued"
+	VerifyStatusExpired = "expired"
+	VerifyStatusRevoked = "revoked"
+)
+
+// VerifyResult is the public verification view of a certificate. It carries
+// authoritative display data (resolved across domains) and a derived status
+// suitable for public consumption.
+type VerifyResult struct {
+	CertificateNumber string
+	StudentName       string
+	CourseTitle       string
+	CertificateType   string
+	PartnerName       *string
+	IssuedAt          time.Time
+	ExpiresAt         *time.Time
+	Status            string
+	RevokedAt         *time.Time
+}
 
 // Service holds credentialing business logic.
 type Service struct {
@@ -105,19 +128,57 @@ func (s *Service) IssueCertificate(ctx context.Context, in IssueCertificateInput
 	return cert, nil
 }
 
-// VerifyCertificate verifies a certificate by number.
-func (s *Service) VerifyCertificate(ctx context.Context, number string) (*Certificate, error) {
+// Verify resolves the public verification view for a certificate number.
+//
+// It looks up the certificate, the cross-domain display context (student name,
+// course title, optional partner name), and the certificate type name; then
+// returns a VerifyResult with a derived status:
+//   - "revoked" when the row is revoked,
+//   - "expired" when the row is issued but expires_at has passed,
+//   - "issued" otherwise.
+//
+// The "expired" state is purely derived; the certificate row is not mutated.
+// Returns apperrors.ErrNotFound when the number is unknown.
+func (s *Service) Verify(ctx context.Context, number string) (*VerifyResult, error) {
 	cert, err := s.repo.GetCertificateByNumber(ctx, number)
 	if err != nil {
 		return nil, err
 	}
-	if cert.Status == CertRevoked {
-		return nil, apperrors.Validationf("certificate has been revoked")
+
+	if s.catalog == nil {
+		return nil, apperrors.Validationf("verification context unavailable")
 	}
-	if cert.ExpiresAt != nil && time.Now().After(*cert.ExpiresAt) {
-		return nil, apperrors.Validationf("certificate has expired")
+	info, err := s.catalog.ResolveCertContext(ctx, cert.EnrollmentID)
+	if err != nil {
+		return nil, err
 	}
-	return cert, nil
+
+	ct, err := s.repo.GetCertificateTypeByID(ctx, cert.CertificateTypeID)
+	if err != nil {
+		return nil, err
+	}
+
+	status := VerifyStatusIssued
+	switch cert.Status {
+	case CertRevoked:
+		status = VerifyStatusRevoked
+	case CertIssued:
+		if cert.ExpiresAt != nil && cert.ExpiresAt.Before(time.Now()) {
+			status = VerifyStatusExpired
+		}
+	}
+
+	return &VerifyResult{
+		CertificateNumber: cert.CertificateNumber,
+		StudentName:       info.StudentName,
+		CourseTitle:       info.CourseTitle,
+		CertificateType:   ct.Name,
+		PartnerName:       info.PartnerName,
+		IssuedAt:          cert.IssuedAt,
+		ExpiresAt:         cert.ExpiresAt,
+		Status:            status,
+		RevokedAt:         cert.RevokedAt,
+	}, nil
 }
 
 // ListCertificatesByEnrollment returns certificates for an enrollment.
