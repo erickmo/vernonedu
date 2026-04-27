@@ -28,3 +28,26 @@ type CertContextInfo struct {
 	CourseTitle string
 	PartnerName *string
 }
+
+// IdentityReader exposes read-only identity data that the credentialing
+// service needs to gate certificate downloads. The download endpoint must
+// confirm both ownership (caller is the certificate owner) and profile
+// completion (the student has filled all required profile fields) before
+// rendering a PDF.
+//
+// Production wiring connects this to the identity/student domain; tests use a
+// fake. May be nil — handler treats absence as "download disabled".
+type IdentityReader interface {
+	// GetStudentForCertDownload resolves the student bound to an enrollment,
+	// returning the user_id (for ownership check) and profile_complete flag
+	// (for the gate).
+	GetStudentForCertDownload(ctx context.Context, enrollmentID uuid.UUID) (*StudentDownloadInfo, error)
+}
+
+// StudentDownloadInfo carries the cross-domain identity data needed to
+// authorize a certificate download.
+type StudentDownloadInfo struct {
+	StudentID       uuid.UUID
+	UserID          uuid.UUID
+	ProfileComplete bool
+}

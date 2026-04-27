@@ -42,7 +42,7 @@ func seedCertConfig(t *testing.T, repo *fakeCredRepo, validityMonths *int) (conf
 func newIssueService() (*Service, *fakeCredRepo, *fakeBus) {
 	repo := newFakeCredRepo()
 	bus := newFakeBus()
-	svc := NewService(repo, bus, testLogger(), nil)
+	svc := NewService(repo, bus, testLogger(), nil, nil)
 	return svc, repo, bus
 }
 

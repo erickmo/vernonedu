@@ -2,6 +2,7 @@ package credentialing
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -35,10 +36,11 @@ type VerifyResult struct {
 
 // Service holds credentialing business logic.
 type Service struct {
-	repo    Repository
-	bus     events.Bus
-	log     *zap.Logger
-	catalog CatalogReader
+	repo     Repository
+	bus      events.Bus
+	log      *zap.Logger
+	catalog  CatalogReader
+	identity IdentityReader
 }
 
 // NewService constructs credentialing Service.
@@ -46,8 +48,55 @@ type Service struct {
 // catalog is used by the enrollment.completed listener to resolve the course
 // (id + title) from the batch id carried in the event payload. It may be nil —
 // in that case auto-issue on completion is skipped silently.
-func NewService(repo Repository, bus events.Bus, log *zap.Logger, catalog CatalogReader) *Service {
-	return &Service{repo: repo, bus: bus, log: log, catalog: catalog}
+//
+// identity is used by the download endpoint to verify ownership and gate on
+// profile completion. It may be nil — in that case downloads are disabled.
+func NewService(repo Repository, bus events.Bus, log *zap.Logger, catalog CatalogReader, identity IdentityReader) *Service {
+	return &Service{repo: repo, bus: bus, log: log, catalog: catalog, identity: identity}
+}
+
+// DownloadResult carries the rendered certificate PDF (or stub) along with the
+// suggested filename for HTTP delivery.
+type DownloadResult struct {
+	Filename string
+	Content  []byte
+}
+
+// DownloadCertificate returns the PDF bytes for a certificate, gated by
+// ownership and profile completion.
+//
+// The caller's user id (requestingUserID) must match the student.user_id
+// resolved via the identity reader, and student.profile_complete must be true.
+// Both gate failures surface as apperrors.ErrForbidden so the HTTP layer can
+// translate them uniformly. ErrNotFound from the repo or identity reader
+// propagates unchanged.
+//
+// The PDF body is currently a placeholder string — a real renderer will be
+// wired in a follow-up task; the gate semantics are the load-bearing piece.
+func (s *Service) DownloadCertificate(ctx context.Context, certID, requestingUserID uuid.UUID) (*DownloadResult, error) {
+	cert, err := s.repo.GetCertificateByID(ctx, certID)
+	if err != nil {
+		return nil, err
+	}
+	if s.identity == nil {
+		return nil, apperrors.ErrForbidden
+	}
+	info, err := s.identity.GetStudentForCertDownload(ctx, cert.EnrollmentID)
+	if err != nil {
+		return nil, err
+	}
+	if info.UserID != requestingUserID {
+		return nil, apperrors.ErrForbidden
+	}
+	if !info.ProfileComplete {
+		return nil, apperrors.ErrForbidden
+	}
+
+	pdf := []byte(fmt.Sprintf("CERT PDF STUB %s", cert.CertificateNumber))
+	return &DownloadResult{
+		Filename: cert.CertificateNumber + ".pdf",
+		Content:  pdf,
+	}, nil
 }
 
 // IssueCertificateInput captures the inputs needed to issue a certificate.

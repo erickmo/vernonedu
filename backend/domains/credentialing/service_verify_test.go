@@ -51,7 +51,7 @@ func seedVerifyFixture(t *testing.T, repo *fakeCredRepo, cat *fakeCatalogReader,
 func newVerifyService() (*Service, *fakeCredRepo, *fakeCatalogReader) {
 	repo := newFakeCredRepo()
 	cat := newFakeCatalogReader()
-	svc := NewService(repo, newFakeBus(), testLogger(), cat)
+	svc := NewService(repo, newFakeBus(), testLogger(), cat, nil)
 	return svc, repo, cat
 }
 

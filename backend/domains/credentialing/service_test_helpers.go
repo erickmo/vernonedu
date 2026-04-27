@@ -347,3 +347,36 @@ func (r *fakeCatalogReader) GetBatchCourse(_ context.Context, batchID uuid.UUID)
 	}
 	return b.CourseID, b.Title, nil
 }
+
+// fakeIdentityReader is an in-memory IdentityReader for credentialing tests.
+// It maps an enrollment id to the student/user info needed by the download
+// gate (ownership check + profile completion flag).
+type fakeIdentityReader struct {
+	mu       sync.Mutex
+	students map[uuid.UUID]*StudentDownloadInfo // keyed by enrollmentID
+}
+
+var _ IdentityReader = (*fakeIdentityReader)(nil)
+
+func newFakeIdentityReader() *fakeIdentityReader {
+	return &fakeIdentityReader{
+		students: map[uuid.UUID]*StudentDownloadInfo{},
+	}
+}
+
+// Seed registers an enrollment -> student/user/profile-complete mapping.
+func (r *fakeIdentityReader) Seed(enrollmentID uuid.UUID, info *StudentDownloadInfo) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.students[enrollmentID] = info
+}
+
+func (r *fakeIdentityReader) GetStudentForCertDownload(_ context.Context, enrollmentID uuid.UUID) (*StudentDownloadInfo, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	info, ok := r.students[enrollmentID]
+	if !ok {
+		return nil, apperrors.ErrNotFound
+	}
+	return info, nil
+}

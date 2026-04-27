@@ -12,6 +12,7 @@ import (
 var Module = fx.Options(
 	fx.Provide(NewRepository),
 	fx.Provide(provideCatalogReader),
+	fx.Provide(provideIdentityReader),
 	fx.Provide(NewService),
 	fx.Provide(NewHandler),
 	fx.Invoke(RegisterRoutes),
@@ -22,6 +23,11 @@ var Module = fx.Options(
 // wiring to the catalog service is deferred to a follow-up task; until then,
 // the enrollment.completed listener silently skips auto-issue.
 func provideCatalogReader() CatalogReader { return nil }
+
+// provideIdentityReader returns a nil IdentityReader placeholder. Cross-domain
+// wiring to the identity/student service is deferred to a follow-up task;
+// until then, certificate downloads are disabled (returns ErrForbidden).
+func provideIdentityReader() IdentityReader { return nil }
 
 // RegisterRoutes mounts credentialing HTTP routes.
 func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {

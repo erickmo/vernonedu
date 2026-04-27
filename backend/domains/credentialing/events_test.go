@@ -15,7 +15,7 @@ func newListenerService() (*Service, *fakeCredRepo, *fakeBus, *fakeCatalogReader
 	repo := newFakeCredRepo()
 	bus := newFakeBus()
 	cat := newFakeCatalogReader()
-	svc := NewService(repo, bus, testLogger(), cat)
+	svc := NewService(repo, bus, testLogger(), cat, nil)
 	return svc, repo, bus, cat
 }
 
