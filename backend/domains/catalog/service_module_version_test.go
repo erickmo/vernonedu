@@ -163,8 +163,26 @@ func TestPublishVersion_ConcurrentRespectsUnique(t *testing.T) {
 	}
 }
 
-// TestModuleVersion_DraftHidden is a placeholder for Task 9 (ResolveModuleVersion).
-// It documents the expectation that draft versions are not returned to learners.
+// TestModuleVersion_DraftHidden verifies that ResolveModuleVersion does not
+// surface draft-only modules to learners: when no published version exists,
+// the resolver returns ErrNotFound.
 func TestModuleVersion_DraftHidden(t *testing.T) {
-	t.Skip("TODO: enable when ResolveModuleVersion (Task 9) is implemented")
+	ctx := context.Background()
+	repo := newFakeCatalogRepo()
+	svc := NewService(repo, newFakeBus(), testLogger())
+
+	batchID := uuid.New()
+	moduleID := uuid.New()
+	creator := uuid.New()
+
+	repo.SeedModule(&CourseModule{ID: moduleID, CourseID: uuid.New(), Title: "M", Order: 1, IsActive: true, CreatedBy: creator})
+	repo.SeedModuleVersion(&ModuleVersion{
+		ModuleID: moduleID, VersionNumber: 1, Title: "v1",
+		Status: ModuleDraft, CreatedBy: creator,
+	})
+
+	got, err := svc.ResolveModuleVersion(ctx, batchID, moduleID)
+	if !errors.Is(err, apperrors.ErrNotFound) {
+		t.Fatalf("expected ErrNotFound when only drafts exist, got value=%v err=%v", got, err)
+	}
 }

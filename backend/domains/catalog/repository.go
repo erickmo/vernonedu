@@ -59,6 +59,17 @@ type Repository interface {
 	// uq_module_one_published guarantees at-most-one published row per
 	// module even under concurrent calls.
 	PublishModuleVersionAtomic(ctx context.Context, versionID, publishedBy uuid.UUID) error
+	// GetLatestPublishedVersion returns the highest version_number row for the
+	// given module whose status='published'. Returns ErrNotFound when no
+	// published version exists.
+	GetLatestPublishedVersion(ctx context.Context, moduleID uuid.UUID) (*ModuleVersion, error)
+
+	// GetBatchModuleConfig returns the BMC for a (batch, module) pair, or
+	// ErrNotFound when none is configured.
+	GetBatchModuleConfig(ctx context.Context, batchID, moduleID uuid.UUID) (*BatchModuleConfig, error)
+	// UpsertBatchModuleConfig inserts or updates the BMC keyed by
+	// (course_batch_id, module_id).
+	UpsertBatchModuleConfig(ctx context.Context, cfg *BatchModuleConfig) error
 
 	AddFormatConfig(ctx context.Context, cfg *CourseFormatConfig) error
 	DisableFormat(ctx context.Context, configID uuid.UUID) error
@@ -677,6 +688,66 @@ func (r *repository) PublishModuleVersionAtomic(ctx context.Context, versionID, 
 
 	if err := tx.Commit(ctx); err != nil {
 		return fmt.Errorf("catalog.PublishModuleVersionAtomic commit: %w", err)
+	}
+	return nil
+}
+
+func (r *repository) GetLatestPublishedVersion(ctx context.Context, moduleID uuid.UUID) (*ModuleVersion, error) {
+	query := `SELECT id, module_id, version_number, title, description, status, published_at, published_by, created_by, created_at, updated_at
+	          FROM catalog.module_versions
+	          WHERE module_id = $1 AND status = 'published'
+	          ORDER BY version_number DESC
+	          LIMIT 1`
+
+	mv := &ModuleVersion{}
+	err := r.pool.QueryRow(ctx, query, moduleID).Scan(
+		&mv.ID, &mv.ModuleID, &mv.VersionNumber, &mv.Title, &mv.Description,
+		&mv.Status, &mv.PublishedAt, &mv.PublishedBy, &mv.CreatedBy, &mv.CreatedAt, &mv.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("catalog.GetLatestPublishedVersion: %w", err)
+	}
+	return mv, nil
+}
+
+func (r *repository) GetBatchModuleConfig(ctx context.Context, batchID, moduleID uuid.UUID) (*BatchModuleConfig, error) {
+	query := `SELECT id, course_batch_id, module_id, version_policy, locked_version_id, set_by, created_at, updated_at
+	          FROM catalog.batch_module_configs
+	          WHERE course_batch_id = $1 AND module_id = $2`
+
+	cfg := &BatchModuleConfig{}
+	err := r.pool.QueryRow(ctx, query, batchID, moduleID).Scan(
+		&cfg.ID, &cfg.CourseBatchID, &cfg.ModuleID, &cfg.VersionPolicy,
+		&cfg.LockedVersionID, &cfg.SetBy, &cfg.CreatedAt, &cfg.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("catalog.GetBatchModuleConfig: %w", err)
+	}
+	return cfg, nil
+}
+
+func (r *repository) UpsertBatchModuleConfig(ctx context.Context, cfg *BatchModuleConfig) error {
+	query := `
+		INSERT INTO catalog.batch_module_configs
+			(id, course_batch_id, module_id, version_policy, locked_version_id, set_by)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (course_batch_id, module_id) DO UPDATE
+		SET version_policy = EXCLUDED.version_policy,
+		    locked_version_id = EXCLUDED.locked_version_id,
+		    set_by = EXCLUDED.set_by
+		RETURNING id, created_at, updated_at`
+
+	err := r.pool.QueryRow(ctx, query,
+		cfg.ID, cfg.CourseBatchID, cfg.ModuleID, cfg.VersionPolicy, cfg.LockedVersionID, cfg.SetBy,
+	).Scan(&cfg.ID, &cfg.CreatedAt, &cfg.UpdatedAt)
+	if err != nil {
+		return fmt.Errorf("catalog.UpsertBatchModuleConfig: %w", err)
 	}
 	return nil
 }

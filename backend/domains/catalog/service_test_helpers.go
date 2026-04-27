@@ -25,6 +25,12 @@ type fakeCatalogRepo struct {
 	batchCostLineItems    map[uuid.UUID]*BatchCostLineItem
 	enrollmentCounts      map[uuid.UUID]int
 	approvedFacilitators  map[uuid.UUID]bool
+	batchModuleConfigs    map[string]*BatchModuleConfig
+}
+
+// bmcKey builds the composite key for batchModuleConfigs.
+func bmcKey(batchID, moduleID uuid.UUID) string {
+	return batchID.String() + "|" + moduleID.String()
 }
 
 var _ Repository = (*fakeCatalogRepo)(nil)
@@ -41,7 +47,79 @@ func newFakeCatalogRepo() *fakeCatalogRepo {
 		batchCostLineItems:   map[uuid.UUID]*BatchCostLineItem{},
 		enrollmentCounts:     map[uuid.UUID]int{},
 		approvedFacilitators: map[uuid.UUID]bool{},
+		batchModuleConfigs:   map[string]*BatchModuleConfig{},
 	}
+}
+
+// SeedBatchModuleConfig inserts a fully-formed BMC for tests.
+func (r *fakeCatalogRepo) SeedBatchModuleConfig(batchID, moduleID uuid.UUID, policy VersionPolicy, lockedVersionID *uuid.UUID, setBy uuid.UUID) *BatchModuleConfig {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now()
+	cfg := &BatchModuleConfig{
+		ID:              uuid.New(),
+		CourseBatchID:   batchID,
+		ModuleID:        moduleID,
+		VersionPolicy:   policy,
+		LockedVersionID: lockedVersionID,
+		SetBy:           setBy,
+		CreatedAt:       now,
+		UpdatedAt:       now,
+	}
+	r.batchModuleConfigs[bmcKey(batchID, moduleID)] = cfg
+	return cfg
+}
+
+func (r *fakeCatalogRepo) GetBatchModuleConfig(ctx context.Context, batchID, moduleID uuid.UUID) (*BatchModuleConfig, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if cfg, ok := r.batchModuleConfigs[bmcKey(batchID, moduleID)]; ok {
+		return cfg, nil
+	}
+	return nil, apperrors.ErrNotFound
+}
+
+func (r *fakeCatalogRepo) UpsertBatchModuleConfig(ctx context.Context, cfg *BatchModuleConfig) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now()
+	key := bmcKey(cfg.CourseBatchID, cfg.ModuleID)
+	if existing, ok := r.batchModuleConfigs[key]; ok {
+		existing.VersionPolicy = cfg.VersionPolicy
+		existing.LockedVersionID = cfg.LockedVersionID
+		existing.SetBy = cfg.SetBy
+		existing.UpdatedAt = now
+		// Preserve original ID/CreatedAt; reflect back to caller.
+		cfg.ID = existing.ID
+		cfg.CreatedAt = existing.CreatedAt
+		cfg.UpdatedAt = now
+		return nil
+	}
+	if cfg.ID == uuid.Nil {
+		cfg.ID = uuid.New()
+	}
+	cfg.CreatedAt = now
+	cfg.UpdatedAt = now
+	r.batchModuleConfigs[key] = cfg
+	return nil
+}
+
+func (r *fakeCatalogRepo) GetLatestPublishedVersion(ctx context.Context, moduleID uuid.UUID) (*ModuleVersion, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	var best *ModuleVersion
+	for _, mv := range r.moduleVersions {
+		if mv.ModuleID != moduleID || mv.Status != ModulePublished {
+			continue
+		}
+		if best == nil || mv.VersionNumber > best.VersionNumber {
+			best = mv
+		}
+	}
+	if best == nil {
+		return nil, apperrors.ErrNotFound
+	}
+	return best, nil
 }
 
 // SeedApprovedFacilitator marks userID as having an approved FacilitatorProposal.

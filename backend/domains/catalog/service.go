@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -530,6 +531,61 @@ func (s *Service) CreateModuleVersion(ctx context.Context, mv *ModuleVersion) er
 	mv.ID = uuid.New()
 	mv.Status = ModuleDraft
 	return s.repo.CreateModuleVersion(ctx, mv)
+}
+
+// ResolveModuleVersion resolves the active ModuleVersion for a (batch, module)
+// pair by consulting the BatchModuleConfig. When no BMC exists or the policy
+// is auto_latest, the latest 'published' version is returned. When the policy
+// is locked, the pinned version is returned. ErrNotFound is surfaced when no
+// published version exists for an auto_latest resolution.
+func (s *Service) ResolveModuleVersion(ctx context.Context, batchID, moduleID uuid.UUID) (*ModuleVersion, error) {
+	cfg, err := s.repo.GetBatchModuleConfig(ctx, batchID, moduleID)
+	if errors.Is(err, apperrors.ErrNotFound) {
+		return s.repo.GetLatestPublishedVersion(ctx, moduleID)
+	}
+	if err != nil {
+		return nil, err
+	}
+	switch cfg.VersionPolicy {
+	case PolicyAutoLatest:
+		return s.repo.GetLatestPublishedVersion(ctx, moduleID)
+	case PolicyLocked:
+		if cfg.LockedVersionID == nil {
+			return nil, apperrors.Validationf("locked policy requires locked_version_id")
+		}
+		return s.repo.GetModuleVersionByID(ctx, *cfg.LockedVersionID)
+	default:
+		return nil, apperrors.Validationf("unknown version policy")
+	}
+}
+
+// LockBatchToVersion sets a batch's module to the locked policy pinned at
+// versionID. The target version must already be 'published' and must belong to
+// the same module.
+func (s *Service) LockBatchToVersion(ctx context.Context, batchID, moduleID, versionID, setBy uuid.UUID) (*BatchModuleConfig, error) {
+	v, err := s.repo.GetModuleVersionByID(ctx, versionID)
+	if err != nil {
+		return nil, err
+	}
+	if v.Status != ModulePublished {
+		return nil, apperrors.Validationf("locked_version must be published")
+	}
+	if v.ModuleID != moduleID {
+		return nil, apperrors.Validationf("version does not belong to module")
+	}
+	locked := versionID
+	cfg := &BatchModuleConfig{
+		ID:              uuid.New(),
+		CourseBatchID:   batchID,
+		ModuleID:        moduleID,
+		VersionPolicy:   PolicyLocked,
+		LockedVersionID: &locked,
+		SetBy:           setBy,
+	}
+	if err := s.repo.UpsertBatchModuleConfig(ctx, cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }
 
 // PublishModuleVersion marks the target ModuleVersion as 'published' and

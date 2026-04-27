@@ -208,13 +208,23 @@ type ModuleAsset struct {
 	UpdatedAt       time.Time `json:"updated_at"`
 }
 
+// VersionPolicy controls how a batch resolves the active ModuleVersion for a
+// module. PolicyAutoLatest tracks the latest published version; PolicyLocked
+// pins to a specific published version.
+type VersionPolicy string
+
+const (
+	PolicyAutoLatest VersionPolicy = "auto_latest"
+	PolicyLocked     VersionPolicy = "locked"
+)
+
 type BatchModuleConfig struct {
-	ID              uuid.UUID  `json:"id"`
-	CourseBatchID   uuid.UUID  `json:"course_batch_id"`
-	ModuleID        uuid.UUID  `json:"module_id"`
-	VersionPolicy   string     `json:"version_policy"`
-	LockedVersionID *uuid.UUID `json:"locked_version_id,omitempty"`
-	SetBy           uuid.UUID  `json:"set_by"`
-	CreatedAt       time.Time  `json:"created_at"`
-	UpdatedAt       time.Time  `json:"updated_at"`
+	ID              uuid.UUID     `json:"id"`
+	CourseBatchID   uuid.UUID     `json:"course_batch_id"`
+	ModuleID        uuid.UUID     `json:"module_id"`
+	VersionPolicy   VersionPolicy `json:"version_policy"`
+	LockedVersionID *uuid.UUID    `json:"locked_version_id,omitempty"`
+	SetBy           uuid.UUID     `json:"set_by"`
+	CreatedAt       time.Time     `json:"created_at"`
+	UpdatedAt       time.Time     `json:"updated_at"`
 }
