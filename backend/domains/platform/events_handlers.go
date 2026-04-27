@@ -180,26 +180,30 @@ func (s *Service) handleInvoiceOverdue(ctx context.Context, evt events.Event) er
 }
 
 func (s *Service) handleTeamMemberCreated(ctx context.Context, evt events.Event) error {
-	p, ok := evt.Payload.(events.TeamMemberEventPayload)
+	p, ok := evt.Payload.(events.TeamMemberCreatedPayload)
 	if !ok {
 		s.logBadPayload(evt.Type)
 		return nil
 	}
-	vars := map[string]any{"status": p.Status}
-	s.sendOne(ctx, keyTeamMemberCreated, p.MemberID, vars)
-	s.sendOne(ctx, keyTeamMemberCreated, p.DeptLeaderID, vars)
+	vars := map[string]any{
+		"role":   p.Role,
+		"status": p.Status,
+	}
+	s.sendOne(ctx, keyTeamMemberCreated, p.UserID, vars)
 	return nil
 }
 
 func (s *Service) handleTeamMemberStatusChanged(ctx context.Context, evt events.Event) error {
-	p, ok := evt.Payload.(events.TeamMemberEventPayload)
+	p, ok := evt.Payload.(events.TeamMemberStatusChangedPayload)
 	if !ok {
 		s.logBadPayload(evt.Type)
 		return nil
 	}
-	vars := map[string]any{"status": p.Status}
-	s.sendOne(ctx, keyTeamMemberStatusChanged, p.MemberID, vars)
-	s.sendOne(ctx, keyTeamMemberStatusChanged, p.DeptLeaderID, vars)
+	vars := map[string]any{
+		"old_status": p.OldStatus,
+		"new_status": p.NewStatus,
+	}
+	s.sendOne(ctx, keyTeamMemberStatusChanged, p.TeamMemberID, vars)
 	return nil
 }
 

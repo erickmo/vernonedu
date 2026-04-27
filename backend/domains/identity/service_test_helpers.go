@@ -232,6 +232,21 @@ func (r *fakeRepo) ListStudents(ctx context.Context, limit, offset int) ([]*Stud
 	return out, nil
 }
 
+// SeedTeamMember inserts a team member with the given role + status for tests.
+func (r *fakeRepo) SeedTeamMember(role UserRole, status EmploymentStatus) *TeamMember {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	tm := &TeamMember{
+		ID:               uuid.New(),
+		UserID:           uuid.New(),
+		Role:             role,
+		EmploymentStatus: status,
+		JoinedAt:         time.Now(),
+	}
+	r.teamMembers[tm.ID] = tm
+	return tm
+}
+
 func (r *fakeRepo) CreateTeamMember(ctx context.Context, tm *TeamMember) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -311,23 +326,39 @@ func (r *fakeRepo) UpdateFacilitatorProposal(ctx context.Context, p *Facilitator
 	return nil
 }
 
-// fakeBus is an in-memory events.Bus that records published event types.
+// fakeBus is an in-memory events.Bus that records published events.
 type fakeBus struct {
-	mu    sync.Mutex
-	fired map[events.EventType]int
+	mu       sync.Mutex
+	fired    map[events.EventType]int
+	payloads map[events.EventType][]any
 }
 
 var _ events.Bus = (*fakeBus)(nil)
 
 func newFakeBus() *fakeBus {
-	return &fakeBus{fired: map[events.EventType]int{}}
+	return &fakeBus{
+		fired:    map[events.EventType]int{},
+		payloads: map[events.EventType][]any{},
+	}
 }
 
 func (b *fakeBus) Publish(ctx context.Context, e events.Event) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	b.fired[e.Type]++
+	b.payloads[e.Type] = append(b.payloads[e.Type], e.Payload)
 	return nil
+}
+
+// LastPayload returns the most recent payload for the given event type.
+func (b *fakeBus) LastPayload(typ events.EventType) any {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	list := b.payloads[typ]
+	if len(list) == 0 {
+		return nil
+	}
+	return list[len(list)-1]
 }
 
 func (b *fakeBus) Subscribe(t events.EventType, h events.HandlerFunc) {}

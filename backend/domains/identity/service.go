@@ -288,33 +288,92 @@ func (s *Service) ListStudents(ctx context.Context, limit, offset int) ([]*Stude
 	return s.repo.ListStudents(ctx, limit, offset)
 }
 
-// CreateTeamMember creates a team member record.
-func (s *Service) CreateTeamMember(ctx context.Context, tm *TeamMember) error {
-	tm.ID = uuid.New()
+// CreateTeamMemberInput captures fields required to create a team member.
+type CreateTeamMemberInput struct {
+	UserID           uuid.UUID
+	FullName         string
+	Phone            string
+	Role             UserRole
+	DepartmentID     *uuid.UUID
+	EmploymentStatus EmploymentStatus
+	IsFacilitator    bool
+}
+
+// CreateTeamMember creates a team member record and publishes
+// team_member.created with the typed payload from internal/events.
+func (s *Service) CreateTeamMember(ctx context.Context, in CreateTeamMemberInput) (*TeamMember, error) {
+	status := in.EmploymentStatus
+	if status == "" {
+		status = StatusActive
+	}
+
+	tm := &TeamMember{
+		ID:               uuid.New(),
+		UserID:           in.UserID,
+		FullName:         in.FullName,
+		Phone:            in.Phone,
+		DepartmentID:     in.DepartmentID,
+		Role:             in.Role,
+		EmploymentStatus: status,
+		JoinedAt:         time.Now(),
+		IsFacilitator:    in.IsFacilitator,
+	}
 	if err := s.repo.CreateTeamMember(ctx, tm); err != nil {
+		return nil, err
+	}
+
+	_ = s.bus.Publish(ctx, events.Event{
+		Type: events.TeamMemberCreated,
+		Payload: events.TeamMemberCreatedPayload{
+			TeamMemberID: tm.ID,
+			UserID:       tm.UserID,
+			Role:         string(tm.Role),
+			DepartmentID: tm.DepartmentID,
+			Status:       string(tm.EmploymentStatus),
+		},
+	})
+
+	return tm, nil
+}
+
+// UpdateTeamMemberStatus changes employment status. It is a noop when the
+// new status equals the current one. On change it persists the new value
+// and publishes team_member.status_changed with old + new status.
+func (s *Service) UpdateTeamMemberStatus(ctx context.Context, id uuid.UUID, newStatus EmploymentStatus) error {
+	current, err := s.repo.GetTeamMemberByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if current.EmploymentStatus == newStatus {
+		return nil
+	}
+
+	oldStatus := current.EmploymentStatus
+	if err := s.repo.UpdateTeamMemberStatus(ctx, id, newStatus); err != nil {
 		return err
 	}
 
 	_ = s.bus.Publish(ctx, events.Event{
-		Type:    events.TeamMemberCreated,
-		Payload: TeamMemberCreatedPayload{TeamMemberID: tm.ID, UserID: tm.UserID},
+		Type: events.TeamMemberStatusChanged,
+		Payload: events.TeamMemberStatusChangedPayload{
+			TeamMemberID: id,
+			OldStatus:    string(oldStatus),
+			NewStatus:    string(newStatus),
+		},
 	})
 
 	return nil
 }
 
-// UpdateTeamMemberStatus updates employment status and publishes event.
-func (s *Service) UpdateTeamMemberStatus(ctx context.Context, id uuid.UUID, status EmploymentStatus) error {
-	if err := s.repo.UpdateTeamMemberStatus(ctx, id, status); err != nil {
-		return err
-	}
+// DeactivateTeamMember sets a team member's employment status to inactive.
+// Delegates to UpdateTeamMemberStatus so the status_changed event fires.
+func (s *Service) DeactivateTeamMember(ctx context.Context, id uuid.UUID) error {
+	return s.UpdateTeamMemberStatus(ctx, id, StatusInactive)
+}
 
-	_ = s.bus.Publish(ctx, events.Event{
-		Type:    events.TeamMemberStatusChanged,
-		Payload: TeamMemberStatusChangedPayload{TeamMemberID: id, Status: string(status)},
-	})
-
-	return nil
+// GetTeamMember fetches a team member by primary key.
+func (s *Service) GetTeamMember(ctx context.Context, id uuid.UUID) (*TeamMember, error) {
+	return s.repo.GetTeamMemberByID(ctx, id)
 }
 
 // CreateDepartment creates a department.

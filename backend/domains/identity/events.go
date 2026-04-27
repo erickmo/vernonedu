@@ -17,18 +17,6 @@ type UserDeactivatedPayload struct {
 	UserID uuid.UUID `json:"user_id"`
 }
 
-// TeamMemberCreatedPayload is published when a team member is created.
-type TeamMemberCreatedPayload struct {
-	TeamMemberID uuid.UUID `json:"team_member_id"`
-	UserID       uuid.UUID `json:"user_id"`
-}
-
-// TeamMemberStatusChangedPayload is published on employment status change.
-type TeamMemberStatusChangedPayload struct {
-	TeamMemberID uuid.UUID `json:"team_member_id"`
-	Status       string    `json:"status"`
-}
-
 // FacilitatorProposedPayload is published on proposal create/review.
 type FacilitatorProposedPayload struct {
 	ProposalID    uuid.UUID `json:"proposal_id"`

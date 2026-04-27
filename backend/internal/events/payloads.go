@@ -60,10 +60,22 @@ type InvoiceSentPayload struct {
 
 type InvoiceOverduePayload InvoiceSentPayload
 
-type TeamMemberEventPayload struct {
-	MemberID     uuid.UUID
-	DeptLeaderID uuid.UUID
+// TeamMemberCreatedPayload describes a newly created team member for
+// notification fan-out and downstream listeners.
+type TeamMemberCreatedPayload struct {
+	TeamMemberID uuid.UUID
+	UserID       uuid.UUID
+	Role         string
+	DepartmentID *uuid.UUID
 	Status       string
+}
+
+// TeamMemberStatusChangedPayload carries old/new employment status so
+// listeners can decide what notification to send.
+type TeamMemberStatusChangedPayload struct {
+	TeamMemberID uuid.UUID
+	OldStatus    string
+	NewStatus    string
 }
 
 type ClassReminderPayload struct {
