@@ -6,6 +6,9 @@ import (
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 )
 
+// RequireRoles is an alias for RequireRole, matching plan naming.
+var RequireRoles = RequireRole
+
 // RequireRole returns middleware that allows only users whose role is in the allowed list.
 func RequireRole(roles ...string) func(http.Handler) http.Handler {
 	allowed := make(map[string]struct{}, len(roles))
