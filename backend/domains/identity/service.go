@@ -387,65 +387,179 @@ func (s *Service) ListDepartments(ctx context.Context) ([]*Department, error) {
 	return s.repo.ListDepartments(ctx)
 }
 
-// ProposeF acilitator creates a facilitator proposal and publishes the event.
-func (s *Service) ProposeFacilitator(ctx context.Context, p *FacilitatorProposal) error {
-	p.ID = uuid.New()
-	p.DeptLeaderStatus = ProposalPending
-	p.AcademicLeaderStatus = ProposalPending
-	p.FinalStatus = ProposalPending
+// Approval flow stage labels emitted on facilitator.rejected events.
+const (
+	StageDeptLeader      = "dept_leader"
+	StageAcademicLeader  = "academic_leader"
+)
 
+// ProposeFacilitatorInput carries data needed to create a proposal.
+type ProposeFacilitatorInput struct {
+	ProposedByTeamMemberID  uuid.UUID
+	CourseID                uuid.UUID
+	FacilitatorTeamMemberID uuid.UUID
+	FeeTierID               uuid.UUID
+	FeeBasis                FeeBasis
+}
+
+// ProposeFacilitator creates a pending facilitator proposal after verifying
+// the proposer is a course_creator team member and the candidate has a
+// FacilitatorProfile. Publishes facilitator.proposed on success.
+func (s *Service) ProposeFacilitator(ctx context.Context, in ProposeFacilitatorInput) (*FacilitatorProposal, error) {
+	proposer, err := s.repo.GetTeamMemberByID(ctx, in.ProposedByTeamMemberID)
+	if err != nil {
+		return nil, err
+	}
+	if proposer.Role != RoleCourseCreator {
+		return nil, apperrors.Validationf("proposer must be course_creator")
+	}
+	if _, err := s.repo.GetFacilitatorProfileByTeamMemberID(ctx, in.FacilitatorTeamMemberID); err != nil {
+		if errors.Is(err, apperrors.ErrNotFound) {
+			return nil, apperrors.Validationf("facilitator has no facilitator profile")
+		}
+		return nil, err
+	}
+
+	p := &FacilitatorProposal{
+		ID:                   uuid.New(),
+		CourseID:             in.CourseID,
+		ProposedBy:           in.ProposedByTeamMemberID,
+		FacilitatorID:        in.FacilitatorTeamMemberID,
+		FeeTierID:            in.FeeTierID,
+		FeeBasis:             in.FeeBasis,
+		DeptLeaderStatus:     ProposalPending,
+		AcademicLeaderStatus: ProposalPending,
+		FinalStatus:          ProposalPending,
+	}
 	if err := s.repo.CreateFacilitatorProposal(ctx, p); err != nil {
-		return err
+		return nil, err
 	}
 
 	_ = s.bus.Publish(ctx, events.Event{
-		Type:    events.FacilitatorProposed,
-		Payload: FacilitatorProposedPayload{ProposalID: p.ID, CourseID: p.CourseID, FacilitatorID: p.FacilitatorID},
+		Type: events.FacilitatorProposed,
+		Payload: events.FacilitatorProposedPayload{
+			ProposalID:    p.ID,
+			CourseID:      p.CourseID,
+			ProposedBy:    p.ProposedBy,
+			FacilitatorID: p.FacilitatorID,
+		},
 	})
 
-	return nil
+	return p, nil
 }
 
-// ReviewProposal updates dept or academic leader review status.
-func (s *Service) ReviewProposal(ctx context.Context, id uuid.UUID, reviewer string, status ProposalStatus, note *string) error {
-	p, err := s.repo.GetFacilitatorProposalByID(ctx, id)
+// ApproveProposalDeptLeader marks dept-leader stage approved. Final status
+// remains pending until academic leader also approves.
+func (s *Service) ApproveProposalDeptLeader(ctx context.Context, proposalID, deptLeaderID uuid.UUID, note *string) error {
+	p, err := s.repo.GetFacilitatorProposalByID(ctx, proposalID)
 	if err != nil {
 		return err
 	}
-
-	switch reviewer {
-	case "dept_leader":
-		p.DeptLeaderStatus = status
-		p.DeptLeaderNote = note
-	case "academic_leader":
-		p.AcademicLeaderStatus = status
-		p.AcademicLeaderNote = note
-	default:
-		return apperrors.Validationf("invalid reviewer type")
+	if p.DeptLeaderStatus != ProposalPending {
+		return apperrors.Validationf("dept leader already reviewed")
 	}
+	now := time.Now()
+	p.DeptLeaderStatus = ProposalApproved
+	p.DeptLeaderReviewedAt = &now
+	p.DeptLeaderNote = note
+	// Final status stays pending — academic leader still required.
+	return s.repo.UpdateFacilitatorProposal(ctx, p)
+}
 
-	// Compute final status
-	if p.DeptLeaderStatus == ProposalApproved && p.AcademicLeaderStatus == ProposalApproved {
-		p.FinalStatus = ProposalApproved
-	} else if p.DeptLeaderStatus == ProposalRejected || p.AcademicLeaderStatus == ProposalRejected {
-		p.FinalStatus = ProposalRejected
+// RejectProposalDeptLeader marks dept-leader stage rejected and finalises
+// the proposal as rejected. Publishes facilitator.rejected.
+func (s *Service) RejectProposalDeptLeader(ctx context.Context, proposalID, deptLeaderID uuid.UUID, note *string) error {
+	p, err := s.repo.GetFacilitatorProposalByID(ctx, proposalID)
+	if err != nil {
+		return err
 	}
-
+	if p.DeptLeaderStatus != ProposalPending {
+		return apperrors.Validationf("dept leader already reviewed")
+	}
+	now := time.Now()
+	p.DeptLeaderStatus = ProposalRejected
+	p.DeptLeaderReviewedAt = &now
+	p.DeptLeaderNote = note
+	p.FinalStatus = ProposalRejected
 	if err := s.repo.UpdateFacilitatorProposal(ctx, p); err != nil {
 		return err
 	}
-
-	evType := events.FacilitatorProposed
-	if p.FinalStatus == ProposalApproved {
-		evType = events.FacilitatorApproved
-	} else if p.FinalStatus == ProposalRejected {
-		evType = events.FacilitatorRejected
-	}
-
 	_ = s.bus.Publish(ctx, events.Event{
-		Type:    evType,
-		Payload: FacilitatorProposedPayload{ProposalID: p.ID, CourseID: p.CourseID, FacilitatorID: p.FacilitatorID},
+		Type: events.FacilitatorRejected,
+		Payload: events.FacilitatorRejectedPayload{
+			ProposalID:    p.ID,
+			CourseID:      p.CourseID,
+			FacilitatorID: p.FacilitatorID,
+			Stage:         StageDeptLeader,
+			RejectedBy:    deptLeaderID,
+		},
 	})
+	return nil
+}
 
+// ApproveProposalAcademicLeader requires dept leader approval first, then
+// finalises the proposal as approved and publishes facilitator.approved.
+func (s *Service) ApproveProposalAcademicLeader(ctx context.Context, proposalID, academicLeaderID uuid.UUID, note *string) error {
+	p, err := s.repo.GetFacilitatorProposalByID(ctx, proposalID)
+	if err != nil {
+		return err
+	}
+	if p.DeptLeaderStatus != ProposalApproved {
+		return apperrors.Validationf("dept leader has not approved")
+	}
+	if p.AcademicLeaderStatus != ProposalPending {
+		return apperrors.Validationf("academic leader already reviewed")
+	}
+	now := time.Now()
+	p.AcademicLeaderStatus = ProposalApproved
+	p.AcademicLeaderReviewedAt = &now
+	p.AcademicLeaderNote = note
+	p.FinalStatus = ProposalApproved
+	if err := s.repo.UpdateFacilitatorProposal(ctx, p); err != nil {
+		return err
+	}
+	_ = s.bus.Publish(ctx, events.Event{
+		Type: events.FacilitatorApproved,
+		Payload: events.FacilitatorApprovedPayload{
+			ProposalID:    p.ID,
+			CourseID:      p.CourseID,
+			FacilitatorID: p.FacilitatorID,
+			ApprovedBy:    academicLeaderID,
+		},
+	})
+	return nil
+}
+
+// RejectProposalAcademicLeader requires dept leader approval first, then
+// finalises the proposal as rejected and publishes facilitator.rejected.
+func (s *Service) RejectProposalAcademicLeader(ctx context.Context, proposalID, academicLeaderID uuid.UUID, note *string) error {
+	p, err := s.repo.GetFacilitatorProposalByID(ctx, proposalID)
+	if err != nil {
+		return err
+	}
+	if p.DeptLeaderStatus != ProposalApproved {
+		return apperrors.Validationf("dept leader has not approved")
+	}
+	if p.AcademicLeaderStatus != ProposalPending {
+		return apperrors.Validationf("academic leader already reviewed")
+	}
+	now := time.Now()
+	p.AcademicLeaderStatus = ProposalRejected
+	p.AcademicLeaderReviewedAt = &now
+	p.AcademicLeaderNote = note
+	p.FinalStatus = ProposalRejected
+	if err := s.repo.UpdateFacilitatorProposal(ctx, p); err != nil {
+		return err
+	}
+	_ = s.bus.Publish(ctx, events.Event{
+		Type: events.FacilitatorRejected,
+		Payload: events.FacilitatorRejectedPayload{
+			ProposalID:    p.ID,
+			CourseID:      p.CourseID,
+			FacilitatorID: p.FacilitatorID,
+			Stage:         StageAcademicLeader,
+			RejectedBy:    academicLeaderID,
+		},
+	})
 	return nil
 }

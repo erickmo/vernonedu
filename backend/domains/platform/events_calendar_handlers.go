@@ -173,7 +173,7 @@ func (s *Service) handlePartnershipMeetingScheduled_Calendar(ctx context.Context
 
 // handleFacilitatorApproved_Calendar adds the approved facilitator as attendee on every class_session in the batch.
 func (s *Service) handleFacilitatorApproved_Calendar(ctx context.Context, evt events.Event) error {
-	p, ok := evt.Payload.(events.FacilitatorEventPayload)
+	p, ok := evt.Payload.(events.FacilitatorApprovedPayload)
 	if !ok {
 		s.logBadPayload(evt.Type)
 		return nil

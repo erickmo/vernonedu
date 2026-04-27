@@ -83,27 +83,27 @@ func TestListener_PaymentTermDue_NotifiesStudentAndAdmins(t *testing.T) {
 	assert.Equal(t, 1, countNotificationsByRecipient(t, pool, a2))
 }
 
-func TestListener_FacilitatorApproved_NotifiesCourseCreatorAndFacilitator(t *testing.T) {
+func TestListener_FacilitatorApproved_NotifiesFacilitator(t *testing.T) {
 	svc, bus, pool := newListenerSvc(t)
 	ctx := context.Background()
 	fac := createUser(t, pool)
-	creator := createUser(t, pool)
+	approver := createUser(t, pool)
 
-	_, err := svc.CreateTemplate(ctx, "facilitator.approved", platform.ChannelEmail, nil, "Approved for {{.course_title}}")
+	_, err := svc.CreateTemplate(ctx, "facilitator.approved", platform.ChannelEmail, nil, "Approved for {{.course_id}}")
 	require.NoError(t, err)
 
 	require.NoError(t, bus.Publish(ctx, events.Event{
 		Type: events.FacilitatorApproved,
-		Payload: events.FacilitatorEventPayload{
-			FacilitatorID:   fac,
-			CourseCreatorID: creator,
-			CourseTitle:     "Calculus",
+		Payload: events.FacilitatorApprovedPayload{
+			ProposalID:    uuid.New(),
+			CourseID:      uuid.New(),
+			FacilitatorID: fac,
+			ApprovedBy:    approver,
 		},
 	}))
 
-	assert.Equal(t, 2, countNotifications(t, pool))
+	assert.Equal(t, 1, countNotifications(t, pool))
 	assert.Equal(t, 1, countNotificationsByRecipient(t, pool, fac))
-	assert.Equal(t, 1, countNotificationsByRecipient(t, pool, creator))
 }
 
 func TestListener_BadPayload_NoCrash_NoSends(t *testing.T) {

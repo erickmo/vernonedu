@@ -39,15 +39,35 @@ type UserCreatedPayload struct {
 	FullName string
 }
 
-type FacilitatorEventPayload struct {
-	FacilitatorID   uuid.UUID
-	CourseCreatorID uuid.UUID
-	DeptLeaderID    uuid.UUID
-	CourseTitle     string
-	// BatchID is set on facilitator.approved so the calendar listener can
-	// fan-out attendee adds to every class_session event for the batch.
-	// Other lifecycle events (proposed/rejected) may leave it zero-valued.
+// FacilitatorProposedPayload is published when a course creator proposes a
+// facilitator for a course. Consumed by notification fan-out (dept leader).
+type FacilitatorProposedPayload struct {
+	ProposalID    uuid.UUID
+	CourseID      uuid.UUID
+	ProposedBy    uuid.UUID
+	FacilitatorID uuid.UUID
+}
+
+// FacilitatorApprovedPayload is published once both dept leader and academic
+// leader approve a proposal. Calendar listener uses BatchID to fan-out
+// attendee adds across class_session events.
+type FacilitatorApprovedPayload struct {
+	ProposalID    uuid.UUID
+	CourseID      uuid.UUID
+	FacilitatorID uuid.UUID
+	ApprovedBy    uuid.UUID // academic leader
+	// BatchID is optional — set by upstream if a batch already exists.
+	// May be zero-valued (skipped by calendar listener if so).
 	BatchID uuid.UUID
+}
+
+// FacilitatorRejectedPayload is published when either reviewer rejects.
+type FacilitatorRejectedPayload struct {
+	ProposalID    uuid.UUID
+	CourseID      uuid.UUID
+	FacilitatorID uuid.UUID
+	Stage         string // "dept_leader" | "academic_leader"
+	RejectedBy    uuid.UUID
 }
 
 type InvoiceSentPayload struct {

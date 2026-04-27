@@ -120,36 +120,47 @@ func (s *Service) handleUserCreated(ctx context.Context, evt events.Event) error
 }
 
 func (s *Service) handleFacilitatorProposed(ctx context.Context, evt events.Event) error {
-	p, ok := evt.Payload.(events.FacilitatorEventPayload)
+	p, ok := evt.Payload.(events.FacilitatorProposedPayload)
 	if !ok {
 		s.logBadPayload(evt.Type)
 		return nil
 	}
-	vars := map[string]any{"course_title": p.CourseTitle}
-	s.sendOne(ctx, keyFacilitatorProposed, p.DeptLeaderID, vars)
+	vars := map[string]any{
+		"course_id":      p.CourseID.String(),
+		"facilitator_id": p.FacilitatorID.String(),
+	}
+	// Notify the proposer; dept-leader routing is handled by upstream services
+	// once department wiring exists. For now the proposer is the canonical
+	// recipient that always exists at this stage.
+	s.sendOne(ctx, keyFacilitatorProposed, p.ProposedBy, vars)
 	return nil
 }
 
 func (s *Service) handleFacilitatorApproved(ctx context.Context, evt events.Event) error {
-	p, ok := evt.Payload.(events.FacilitatorEventPayload)
+	p, ok := evt.Payload.(events.FacilitatorApprovedPayload)
 	if !ok {
 		s.logBadPayload(evt.Type)
 		return nil
 	}
-	vars := map[string]any{"course_title": p.CourseTitle}
-	s.sendOne(ctx, keyFacilitatorApproved, p.CourseCreatorID, vars)
+	vars := map[string]any{
+		"course_id":   p.CourseID.String(),
+		"approved_by": p.ApprovedBy.String(),
+	}
 	s.sendOne(ctx, keyFacilitatorApproved, p.FacilitatorID, vars)
 	return nil
 }
 
 func (s *Service) handleFacilitatorRejected(ctx context.Context, evt events.Event) error {
-	p, ok := evt.Payload.(events.FacilitatorEventPayload)
+	p, ok := evt.Payload.(events.FacilitatorRejectedPayload)
 	if !ok {
 		s.logBadPayload(evt.Type)
 		return nil
 	}
-	vars := map[string]any{"course_title": p.CourseTitle}
-	s.sendOne(ctx, keyFacilitatorRejected, p.CourseCreatorID, vars)
+	vars := map[string]any{
+		"course_id":   p.CourseID.String(),
+		"stage":       p.Stage,
+		"rejected_by": p.RejectedBy.String(),
+	}
 	s.sendOne(ctx, keyFacilitatorRejected, p.FacilitatorID, vars)
 	return nil
 }

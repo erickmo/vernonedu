@@ -162,9 +162,10 @@ func TestCalendarListener_FacilitatorApproved_AddsAttendeeToAllBatchClasses(t *t
 
 	require.NoError(t, bus.Publish(ctx, events.Event{
 		Type: events.FacilitatorApproved,
-		Payload: events.FacilitatorEventPayload{
+		Payload: events.FacilitatorApprovedPayload{
+			ProposalID:    uuid.New(),
+			CourseID:      uuid.New(),
 			FacilitatorID: facilitator,
-			CourseTitle:   "Calc",
 			BatchID:       batchID,
 		},
 	}))

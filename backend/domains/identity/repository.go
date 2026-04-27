@@ -39,6 +39,8 @@ type Repository interface {
 	CreateFacilitatorProposal(ctx context.Context, p *FacilitatorProposal) error
 	GetFacilitatorProposalByID(ctx context.Context, id uuid.UUID) (*FacilitatorProposal, error)
 	UpdateFacilitatorProposal(ctx context.Context, p *FacilitatorProposal) error
+
+	GetFacilitatorProfileByTeamMemberID(ctx context.Context, teamMemberID uuid.UUID) (*FacilitatorProfile, error)
 }
 
 type repository struct {
@@ -422,4 +424,21 @@ func (r *repository) UpdateFacilitatorProposal(ctx context.Context, p *Facilitat
 	}
 	p.UpdatedAt = now
 	return nil
+}
+
+func (r *repository) GetFacilitatorProfileByTeamMemberID(ctx context.Context, teamMemberID uuid.UUID) (*FacilitatorProfile, error) {
+	query := `SELECT id, team_member_id, specialization, bio, created_at, updated_at
+	          FROM identity.facilitator_profiles WHERE team_member_id = $1`
+
+	p := &FacilitatorProfile{}
+	err := r.pool.QueryRow(ctx, query, teamMemberID).Scan(
+		&p.ID, &p.TeamMemberID, &p.Specialization, &p.Bio, &p.CreatedAt, &p.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("identity.GetFacilitatorProfileByTeamMemberID: %w", err)
+	}
+	return p, nil
 }

@@ -25,8 +25,9 @@ type fakeRepo struct {
 	studentByU  map[uuid.UUID]*Student
 	profiles    map[uuid.UUID]*StudentProfile
 	teamMembers map[uuid.UUID]*TeamMember
-	departments map[uuid.UUID]*Department
-	proposals   map[uuid.UUID]*FacilitatorProposal
+	departments         map[uuid.UUID]*Department
+	proposals           map[uuid.UUID]*FacilitatorProposal
+	facilitatorProfiles map[uuid.UUID]*FacilitatorProfile
 }
 
 var _ Repository = (*fakeRepo)(nil)
@@ -39,8 +40,9 @@ func newFakeRepo() *fakeRepo {
 		studentByU:  map[uuid.UUID]*Student{},
 		profiles:    map[uuid.UUID]*StudentProfile{},
 		teamMembers: map[uuid.UUID]*TeamMember{},
-		departments: map[uuid.UUID]*Department{},
-		proposals:   map[uuid.UUID]*FacilitatorProposal{},
+		departments:         map[uuid.UUID]*Department{},
+		proposals:           map[uuid.UUID]*FacilitatorProposal{},
+		facilitatorProfiles: map[uuid.UUID]*FacilitatorProfile{},
 	}
 }
 
@@ -324,6 +326,38 @@ func (r *fakeRepo) UpdateFacilitatorProposal(ctx context.Context, p *Facilitator
 	}
 	r.proposals[p.ID] = p
 	return nil
+}
+
+// SeedFacilitatorProfile inserts a facilitator profile for the given team member.
+func (r *fakeRepo) SeedFacilitatorProfile(teamMemberID uuid.UUID, specialization string) *FacilitatorProfile {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	p := &FacilitatorProfile{
+		ID:             uuid.New(),
+		TeamMemberID:   teamMemberID,
+		Specialization: specialization,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+	}
+	r.facilitatorProfiles[teamMemberID] = p
+	return p
+}
+
+// SeedProposal inserts a fully-formed proposal (helpful for review-flow tests
+// that should not exercise the propose path).
+func (r *fakeRepo) SeedProposal(p *FacilitatorProposal) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.proposals[p.ID] = p
+}
+
+func (r *fakeRepo) GetFacilitatorProfileByTeamMemberID(ctx context.Context, teamMemberID uuid.UUID) (*FacilitatorProfile, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if p, ok := r.facilitatorProfiles[teamMemberID]; ok {
+		return p, nil
+	}
+	return nil, apperrors.ErrNotFound
 }
 
 // fakeBus is an in-memory events.Bus that records published events.
