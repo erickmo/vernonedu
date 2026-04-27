@@ -90,16 +90,14 @@ func (s *Service) Enroll(ctx context.Context, in EnrollInput) (*Enrollment, erro
 	}
 
 	if voucherID != nil {
-		vu := &VoucherUsage{
-			ID:            uuid.New(),
+		_ = s.repo.ConsumeVoucher(ctx, ConsumeVoucherParams{
 			VoucherID:     *voucherID,
 			EnrollmentID:  e.ID,
+			StudentID:     in.StudentID,
 			OriginalPrice: in.Price,
 			FinalPrice:    finalPrice,
 			CreatedBy:     in.StudentID,
-		}
-		_ = s.repo.CreateVoucherUsage(ctx, vu)
-		_ = s.repo.IncrementVoucherUsage(ctx, *voucherID)
+		})
 	}
 
 	_ = s.bus.Publish(ctx, events.Event{
@@ -142,6 +140,22 @@ func (s *Service) DropEnrollment(ctx context.Context, enrollmentID uuid.UUID) er
 		Payload: EnrollmentDroppedPayload{EnrollmentID: enrollmentID},
 	})
 	return nil
+}
+
+// ConsumeVoucher atomically validates and applies a voucher for an enrollment.
+func (s *Service) ConsumeVoucher(
+	ctx context.Context,
+	voucherID, enrollmentID, studentID, createdBy uuid.UUID,
+	originalPrice, finalPrice decimal.Decimal,
+) error {
+	return s.repo.ConsumeVoucher(ctx, ConsumeVoucherParams{
+		VoucherID:     voucherID,
+		EnrollmentID:  enrollmentID,
+		StudentID:     studentID,
+		OriginalPrice: originalPrice,
+		FinalPrice:    finalPrice,
+		CreatedBy:     createdBy,
+	})
 }
 
 // GetEnrollment fetches enrollment by ID.

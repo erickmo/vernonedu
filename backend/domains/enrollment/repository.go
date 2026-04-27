@@ -4,12 +4,24 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/shopspring/decimal"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 )
+
+// ConsumeVoucherParams carries inputs for atomic voucher consumption.
+type ConsumeVoucherParams struct {
+	VoucherID     uuid.UUID
+	EnrollmentID  uuid.UUID
+	StudentID     uuid.UUID
+	OriginalPrice decimal.Decimal
+	FinalPrice    decimal.Decimal
+	CreatedBy     uuid.UUID
+}
 
 // Repository defines enrollment data access.
 type Repository interface {
@@ -22,9 +34,10 @@ type Repository interface {
 
 	GetVoucherByCode(ctx context.Context, code string) (*Voucher, error)
 	CreateVoucher(ctx context.Context, v *Voucher) error
-	IncrementVoucherUsage(ctx context.Context, voucherID uuid.UUID) error
 
-	CreateVoucherUsage(ctx context.Context, vu *VoucherUsage) error
+	// ConsumeVoucher atomically locks, validates, increments used_count,
+	// and inserts voucher_usages within a single transaction.
+	ConsumeVoucher(ctx context.Context, p ConsumeVoucherParams) error
 }
 
 type repository struct {
@@ -209,29 +222,76 @@ func (r *repository) CreateVoucher(ctx context.Context, v *Voucher) error {
 	return nil
 }
 
-func (r *repository) IncrementVoucherUsage(ctx context.Context, voucherID uuid.UUID) error {
-	query := `UPDATE enrollment.vouchers SET used_count = used_count + 1 WHERE id = $1`
-	ct, err := r.pool.Exec(ctx, query, voucherID)
+// ConsumeVoucher atomically locks the voucher row, validates state,
+// increments used_count, and inserts a voucher_usages row in one tx.
+// Relies on FOR UPDATE for concurrent safety and the UNIQUE(enrollment_id)
+// constraint on voucher_usages to detect duplicate consumption.
+func (r *repository) ConsumeVoucher(ctx context.Context, p ConsumeVoucherParams) error {
+	tx, err := r.pool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("enrollment.IncrementVoucherUsage: %w", err)
+		return fmt.Errorf("enrollment.ConsumeVoucher begin: %w", err)
 	}
-	if ct.RowsAffected() == 0 {
-		return apperrors.ErrNotFound
-	}
-	return nil
-}
+	defer func() { _ = tx.Rollback(ctx) }()
 
-func (r *repository) CreateVoucherUsage(ctx context.Context, vu *VoucherUsage) error {
-	query := `
-		INSERT INTO enrollment.voucher_usages (id, voucher_id, enrollment_id, original_price, final_price, created_by)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING used_at`
-
-	err := r.pool.QueryRow(ctx, query,
-		vu.ID, vu.VoucherID, vu.EnrollmentID, vu.OriginalPrice, vu.FinalPrice, vu.CreatedBy,
-	).Scan(&vu.UsedAt)
+	var (
+		assignedTo *uuid.UUID
+		validUntil *time.Time
+		maxUses    *int
+		usedCount  int
+		isActive   bool
+	)
+	err = tx.QueryRow(ctx,
+		`SELECT assigned_to, valid_until, max_uses, used_count, is_active
+		 FROM enrollment.vouchers WHERE id = $1 FOR UPDATE`,
+		p.VoucherID,
+	).Scan(&assignedTo, &validUntil, &maxUses, &usedCount, &isActive)
 	if err != nil {
-		return fmt.Errorf("enrollment.CreateVoucherUsage: %w", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return apperrors.ErrNotFound
+		}
+		return fmt.Errorf("enrollment.ConsumeVoucher lock: %w", err)
+	}
+
+	if !isActive {
+		return apperrors.Validationf("voucher inactive")
+	}
+	if assignedTo != nil && *assignedTo != p.StudentID {
+		return apperrors.ErrForbidden
+	}
+	if validUntil != nil && validUntil.Before(time.Now().UTC()) {
+		return apperrors.Validationf("voucher expired")
+	}
+	if maxUses != nil && usedCount >= *maxUses {
+		return apperrors.Validationf("voucher max uses reached")
+	}
+
+	if _, err := tx.Exec(ctx,
+		`UPDATE enrollment.vouchers
+		 SET used_count = used_count + 1, updated_at = now()
+		 WHERE id = $1`,
+		p.VoucherID,
+	); err != nil {
+		return fmt.Errorf("enrollment.ConsumeVoucher incr: %w", err)
+	}
+
+	var usageID uuid.UUID
+	err = tx.QueryRow(ctx,
+		`INSERT INTO enrollment.voucher_usages
+		   (id, voucher_id, enrollment_id, original_price, final_price, created_by)
+		 VALUES ($1, $2, $3, $4, $5, $6)
+		 ON CONFLICT (enrollment_id) DO NOTHING
+		 RETURNING id`,
+		uuid.New(), p.VoucherID, p.EnrollmentID, p.OriginalPrice, p.FinalPrice, p.CreatedBy,
+	).Scan(&usageID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return apperrors.Conflictf("voucher already used for this enrollment")
+		}
+		return fmt.Errorf("enrollment.ConsumeVoucher insert usage: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("enrollment.ConsumeVoucher commit: %w", err)
 	}
 	return nil
 }
