@@ -9,6 +9,7 @@ import Register from '@/pages/Register'
 import CertificateVerify from '@/pages/CertificateVerify'
 import StudentDashboard from '@/portals/student/pages/Dashboard'
 import CourseCatalog from '@/portals/student/pages/CourseCatalog'
+import CourseDetail from '@/portals/student/pages/CourseDetail'
 import MyEnrollments from '@/portals/student/pages/MyEnrollments'
 import Certificates from '@/portals/student/pages/Certificates'
 import StudentProfile from '@/portals/student/pages/Profile'
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/student" element={<StudentPortal />}>
           <Route index element={<StudentDashboard />} />
           <Route path="catalog" element={<CourseCatalog />} />
+          <Route path="courses/:id" element={<CourseDetail />} />
           <Route path="enrollments" element={<MyEnrollments />} />
           <Route path="certificates" element={<Certificates />} />
           <Route path="profile" element={<StudentProfile />} />
