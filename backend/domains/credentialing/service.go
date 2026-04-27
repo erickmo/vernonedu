@@ -311,6 +311,79 @@ func (s *Service) ApproveAction(ctx context.Context, requestID, approverID uuid.
 	return s.repo.UpdateActionRequestStatus(ctx, requestID, ActionApproved, &approverID)
 }
 
+// CreateCertificateTypeInput captures inputs to register a new certificate
+// type. ValidityMonths is optional (NULL → no expiry); when provided it must
+// be positive.
+type CreateCertificateTypeInput struct {
+	Name           string
+	Category       CertCategory
+	ValidityMonths *int
+	CreatedBy      uuid.UUID
+}
+
+// CreateCertificateType registers a new certificate type. The new row is
+// always created with is_active=true.
+func (s *Service) CreateCertificateType(ctx context.Context, in CreateCertificateTypeInput) (*CertificateType, error) {
+	if in.Name == "" {
+		return nil, apperrors.Validationf("name required")
+	}
+	if in.ValidityMonths != nil && *in.ValidityMonths <= 0 {
+		return nil, apperrors.Validationf("validity_months must be positive")
+	}
+	ct := &CertificateType{
+		ID:             uuid.New(),
+		Name:           in.Name,
+		Category:       in.Category,
+		ValidityMonths: in.ValidityMonths,
+		IsActive:       true,
+		CreatedBy:      in.CreatedBy,
+	}
+	if err := s.repo.CreateCertificateType(ctx, ct); err != nil {
+		return nil, err
+	}
+	return ct, nil
+}
+
+// DeactivateCertificateType flips is_active=false on the certificate type.
+// Existing issued certificates referencing this type are NOT affected — only
+// new issuance is gated by callers checking the active flag.
+func (s *Service) DeactivateCertificateType(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeactivateCertificateType(ctx, id)
+}
+
+// AddCertificateConfigInput captures inputs to link a course to a certificate
+// type for auto- or manual issuance.
+type AddCertificateConfigInput struct {
+	CourseID          uuid.UUID
+	CertificateTypeID uuid.UUID
+	IssuedOn          IssuedOn
+}
+
+// AddCertificateConfig links a course to a certificate type. Duplicate
+// (course_id, certificate_type_id) pairs are rejected with apperrors.ErrConflict
+// (DB-level UNIQUE uq_cert_config).
+func (s *Service) AddCertificateConfig(ctx context.Context, in AddCertificateConfigInput) (*CertificateConfig, error) {
+	if in.IssuedOn != IssuedOnCompletion && in.IssuedOn != IssuedOnManual {
+		return nil, apperrors.Validationf("invalid issued_on")
+	}
+	cfg := &CertificateConfig{
+		ID:                uuid.New(),
+		CourseID:          in.CourseID,
+		CertificateTypeID: in.CertificateTypeID,
+		IssuedOn:          in.IssuedOn,
+	}
+	if err := s.repo.CreateCertificateConfig(ctx, cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+// ListCertificateConfigsByCourse returns all certificate configs registered
+// for a given course.
+func (s *Service) ListCertificateConfigsByCourse(ctx context.Context, courseID uuid.UUID) ([]*CertificateConfig, error) {
+	return s.repo.GetCertificateConfigByCourse(ctx, courseID)
+}
+
 // RejectAction marks a pending action request as rejected. The certificate is
 // not modified.
 func (s *Service) RejectAction(ctx context.Context, requestID, reviewerID uuid.UUID) error {

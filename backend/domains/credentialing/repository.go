@@ -21,6 +21,7 @@ type Repository interface {
 	CreateCertificateType(ctx context.Context, ct *CertificateType) error
 	GetCertificateTypeByID(ctx context.Context, id uuid.UUID) (*CertificateType, error)
 	ListActiveCertificateTypes(ctx context.Context) ([]*CertificateType, error)
+	DeactivateCertificateType(ctx context.Context, id uuid.UUID) error
 
 	CreateCertificateConfig(ctx context.Context, cc *CertificateConfig) error
 	GetCertificateConfigByID(ctx context.Context, id uuid.UUID) (*CertificateConfig, error)
@@ -124,7 +125,23 @@ func (r *repository) CreateCertificateConfig(ctx context.Context, cc *Certificat
 	err := r.pool.QueryRow(ctx, query, cc.ID, cc.CourseID, cc.CertificateTypeID, cc.IssuedOn).
 		Scan(&cc.CreatedAt, &cc.UpdatedAt)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolation {
+			return apperrors.ErrConflict
+		}
 		return fmt.Errorf("credentialing.CreateCertificateConfig: %w", err)
+	}
+	return nil
+}
+
+func (r *repository) DeactivateCertificateType(ctx context.Context, id uuid.UUID) error {
+	query := `UPDATE credentialing.certificate_types SET is_active=false, updated_at=now() WHERE id=$1`
+	ct, err := r.pool.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("credentialing.DeactivateCertificateType: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
 	}
 	return nil
 }

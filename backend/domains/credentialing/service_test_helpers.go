@@ -46,6 +46,11 @@ func (r *fakeCredRepo) NextCertificateNumber(ctx context.Context, year int) (str
 func (r *fakeCredRepo) CreateCertificateType(ctx context.Context, ct *CertificateType) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	now := time.Now().UTC()
+	if ct.CreatedAt.IsZero() {
+		ct.CreatedAt = now
+	}
+	ct.UpdatedAt = now
 	r.certTypes[ct.ID] = ct
 	return nil
 }
@@ -74,7 +79,31 @@ func (r *fakeCredRepo) ListActiveCertificateTypes(ctx context.Context) ([]*Certi
 func (r *fakeCredRepo) CreateCertificateConfig(ctx context.Context, cc *CertificateConfig) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	// Mirror DB-level UNIQUE (course_id, certificate_type_id) constraint
+	// uq_cert_config: forbid duplicate (course, type) pairs.
+	for _, existing := range r.certConfigs {
+		if existing.CourseID == cc.CourseID && existing.CertificateTypeID == cc.CertificateTypeID {
+			return apperrors.ErrConflict
+		}
+	}
+	now := time.Now().UTC()
+	if cc.CreatedAt.IsZero() {
+		cc.CreatedAt = now
+	}
+	cc.UpdatedAt = now
 	r.certConfigs[cc.ID] = cc
+	return nil
+}
+
+func (r *fakeCredRepo) DeactivateCertificateType(ctx context.Context, id uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	ct, ok := r.certTypes[id]
+	if !ok {
+		return apperrors.ErrNotFound
+	}
+	ct.IsActive = false
+	ct.UpdatedAt = time.Now().UTC()
 	return nil
 }
 

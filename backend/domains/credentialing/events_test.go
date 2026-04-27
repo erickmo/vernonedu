@@ -19,28 +19,40 @@ func newListenerService() (*Service, *fakeCredRepo, *fakeBus, *fakeCatalogReader
 	return svc, repo, bus, cat
 }
 
-// seedTwoConfigsForCourse seeds one cert type plus two configs on the same
-// course: one issued_on=completion, one issued_on=manual. Returns the
-// completion config id (the only one the listener should auto-issue).
+// seedTwoConfigsForCourse seeds two cert types plus two configs on the same
+// course: one issued_on=completion, one issued_on=manual. Each config uses a
+// distinct cert type to satisfy the DB-level UNIQUE (course_id,
+// certificate_type_id) constraint. Returns the completion config id (the only
+// one the listener should auto-issue).
 func seedTwoConfigsForCourse(t *testing.T, repo *fakeCredRepo, courseID uuid.UUID) (completionConfigID uuid.UUID) {
 	t.Helper()
 	ctx := context.Background()
 
 	twelve := 12
-	ct := &CertificateType{
+	ctCompletion := &CertificateType{
 		ID:             uuid.New(),
-		Name:           "Auto Issue Cert",
+		Name:           "Auto Issue Cert (completion)",
 		Category:       CertVernonEduCompetence,
 		ValidityMonths: &twelve,
 		IsActive:       true,
 		CreatedBy:      uuid.New(),
 	}
-	require.NoError(t, repo.CreateCertificateType(ctx, ct))
+	require.NoError(t, repo.CreateCertificateType(ctx, ctCompletion))
+
+	ctManual := &CertificateType{
+		ID:             uuid.New(),
+		Name:           "Auto Issue Cert (manual)",
+		Category:       CertVernonEduParticipation,
+		ValidityMonths: &twelve,
+		IsActive:       true,
+		CreatedBy:      uuid.New(),
+	}
+	require.NoError(t, repo.CreateCertificateType(ctx, ctManual))
 
 	cfgCompletion := &CertificateConfig{
 		ID:                uuid.New(),
 		CourseID:          courseID,
-		CertificateTypeID: ct.ID,
+		CertificateTypeID: ctCompletion.ID,
 		IssuedOn:          IssuedOnCompletion,
 	}
 	require.NoError(t, repo.CreateCertificateConfig(ctx, cfgCompletion))
@@ -48,7 +60,7 @@ func seedTwoConfigsForCourse(t *testing.T, repo *fakeCredRepo, courseID uuid.UUI
 	cfgManual := &CertificateConfig{
 		ID:                uuid.New(),
 		CourseID:          courseID,
-		CertificateTypeID: ct.ID,
+		CertificateTypeID: ctManual.ID,
 		IssuedOn:          IssuedOnManual,
 	}
 	require.NoError(t, repo.CreateCertificateConfig(ctx, cfgManual))
