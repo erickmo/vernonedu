@@ -457,7 +457,7 @@ func (r *repository) CreateBatchWithCostsCopy(ctx context.Context, b *CourseBatc
 	if err != nil {
 		return fmt.Errorf("catalog.CreateBatchWithCostsCopy begin: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	insertBatch := `
 		INSERT INTO catalog.course_batches (id, course_id, label, start_date, end_date, price, status, web_registration_open, created_by)
@@ -665,7 +665,7 @@ func (r *repository) PublishModuleVersionAtomic(ctx context.Context, versionID, 
 	if err != nil {
 		return fmt.Errorf("catalog.PublishModuleVersionAtomic begin: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	var moduleID uuid.UUID
 	if err := tx.QueryRow(ctx,
