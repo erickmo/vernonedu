@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -15,13 +16,13 @@ func (r *repository) CreateCalendarEvent(ctx context.Context, e *CalendarEvent) 
 	query := `
 		INSERT INTO platform.calendar_events
 		  (id, title, description, event_type, start_at, end_at, location, rrule,
-		   source_domain, source_id, created_by, reminder_fired_at)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+		   source_domain, source_id, batch_id, created_by, reminder_fired_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
 		RETURNING created_at, updated_at`
 
 	err := r.pool.QueryRow(ctx, query,
 		e.ID, e.Title, e.Description, e.EventType, e.StartAt, e.EndAt,
-		e.Location, e.Rrule, e.SourceDomain, e.SourceID, e.CreatedBy, e.ReminderFiredAt,
+		e.Location, e.Rrule, e.SourceDomain, e.SourceID, e.BatchID, e.CreatedBy, e.ReminderFiredAt,
 	).Scan(&e.CreatedAt, &e.UpdatedAt)
 	if err != nil {
 		return fmt.Errorf("platform.CreateCalendarEvent: %w", err)
@@ -31,13 +32,13 @@ func (r *repository) CreateCalendarEvent(ctx context.Context, e *CalendarEvent) 
 
 func (r *repository) GetCalendarEvent(ctx context.Context, id uuid.UUID) (*CalendarEvent, error) {
 	query := `SELECT id, title, description, event_type, start_at, end_at, location, rrule,
-	                 source_domain, source_id, created_by, reminder_fired_at, created_at, updated_at
+	                 source_domain, source_id, batch_id, created_by, reminder_fired_at, created_at, updated_at
 	          FROM platform.calendar_events WHERE id=$1`
 
 	e := &CalendarEvent{}
 	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&e.ID, &e.Title, &e.Description, &e.EventType, &e.StartAt, &e.EndAt,
-		&e.Location, &e.Rrule, &e.SourceDomain, &e.SourceID, &e.CreatedBy,
+		&e.Location, &e.Rrule, &e.SourceDomain, &e.SourceID, &e.BatchID, &e.CreatedBy,
 		&e.ReminderFiredAt, &e.CreatedAt, &e.UpdatedAt,
 	)
 	if err != nil {
@@ -45,6 +46,26 @@ func (r *repository) GetCalendarEvent(ctx context.Context, id uuid.UUID) (*Calen
 			return nil, apperrors.ErrNotFound
 		}
 		return nil, fmt.Errorf("platform.GetCalendarEvent: %w", err)
+	}
+	return e, nil
+}
+
+func (r *repository) GetCalendarEventBySource(ctx context.Context, sourceDomain string, sourceID uuid.UUID) (*CalendarEvent, error) {
+	query := `SELECT id, title, description, event_type, start_at, end_at, location, rrule,
+	                 source_domain, source_id, batch_id, created_by, reminder_fired_at, created_at, updated_at
+	          FROM platform.calendar_events WHERE source_domain=$1 AND source_id=$2`
+
+	e := &CalendarEvent{}
+	err := r.pool.QueryRow(ctx, query, sourceDomain, sourceID).Scan(
+		&e.ID, &e.Title, &e.Description, &e.EventType, &e.StartAt, &e.EndAt,
+		&e.Location, &e.Rrule, &e.SourceDomain, &e.SourceID, &e.BatchID, &e.CreatedBy,
+		&e.ReminderFiredAt, &e.CreatedAt, &e.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("platform.GetCalendarEventBySource: %w", err)
 	}
 	return e, nil
 }
@@ -67,6 +88,22 @@ func (r *repository) UpdateCalendarEvent(ctx context.Context, e *CalendarEvent) 
 	return nil
 }
 
+func (r *repository) UpdateCalendarEventTimes(ctx context.Context, sourceDomain string, sourceID uuid.UUID, start, end time.Time) error {
+	ct, err := r.pool.Exec(ctx,
+		`UPDATE platform.calendar_events
+		   SET start_at=$3, end_at=$4, updated_at=now()
+		 WHERE source_domain=$1 AND source_id=$2`,
+		sourceDomain, sourceID, start, end,
+	)
+	if err != nil {
+		return fmt.Errorf("platform.UpdateCalendarEventTimes: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
+}
+
 func (r *repository) DeleteCalendarEvent(ctx context.Context, id uuid.UUID) error {
 	ct, err := r.pool.Exec(ctx, `DELETE FROM platform.calendar_events WHERE id=$1`, id)
 	if err != nil {
@@ -78,9 +115,20 @@ func (r *repository) DeleteCalendarEvent(ctx context.Context, id uuid.UUID) erro
 	return nil
 }
 
+func (r *repository) DeleteCalendarEventBySource(ctx context.Context, sourceDomain string, sourceID uuid.UUID) error {
+	_, err := r.pool.Exec(ctx,
+		`DELETE FROM platform.calendar_events WHERE source_domain=$1 AND source_id=$2`,
+		sourceDomain, sourceID,
+	)
+	if err != nil {
+		return fmt.Errorf("platform.DeleteCalendarEventBySource: %w", err)
+	}
+	return nil
+}
+
 func (r *repository) ListCalendarEventsByUser(ctx context.Context, userID uuid.UUID) ([]*CalendarEvent, error) {
 	query := `SELECT DISTINCT e.id, e.title, e.description, e.event_type, e.start_at, e.end_at,
-	                 e.location, e.rrule, e.source_domain, e.source_id, e.created_by,
+	                 e.location, e.rrule, e.source_domain, e.source_id, e.batch_id, e.created_by,
 	                 e.reminder_fired_at, e.created_at, e.updated_at
 	          FROM platform.calendar_events e
 	          LEFT JOIN platform.calendar_attendees a ON a.event_id = e.id
@@ -98,10 +146,38 @@ func (r *repository) ListCalendarEventsByUser(ctx context.Context, userID uuid.U
 		e := &CalendarEvent{}
 		if err := rows.Scan(
 			&e.ID, &e.Title, &e.Description, &e.EventType, &e.StartAt, &e.EndAt,
-			&e.Location, &e.Rrule, &e.SourceDomain, &e.SourceID, &e.CreatedBy,
+			&e.Location, &e.Rrule, &e.SourceDomain, &e.SourceID, &e.BatchID, &e.CreatedBy,
 			&e.ReminderFiredAt, &e.CreatedAt, &e.UpdatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("platform.ListCalendarEventsByUser scan: %w", err)
+		}
+		events = append(events, e)
+	}
+	return events, rows.Err()
+}
+
+func (r *repository) ListCalendarEventsByBatchID(ctx context.Context, batchID uuid.UUID) ([]*CalendarEvent, error) {
+	query := `SELECT id, title, description, event_type, start_at, end_at, location, rrule,
+	                 source_domain, source_id, batch_id, created_by, reminder_fired_at, created_at, updated_at
+	          FROM platform.calendar_events
+	          WHERE batch_id=$1 AND event_type='class_session'
+	          ORDER BY start_at`
+
+	rows, err := r.pool.Query(ctx, query, batchID)
+	if err != nil {
+		return nil, fmt.Errorf("platform.ListCalendarEventsByBatchID: %w", err)
+	}
+	defer rows.Close()
+
+	var events []*CalendarEvent
+	for rows.Next() {
+		e := &CalendarEvent{}
+		if err := rows.Scan(
+			&e.ID, &e.Title, &e.Description, &e.EventType, &e.StartAt, &e.EndAt,
+			&e.Location, &e.Rrule, &e.SourceDomain, &e.SourceID, &e.BatchID, &e.CreatedBy,
+			&e.ReminderFiredAt, &e.CreatedAt, &e.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("platform.ListCalendarEventsByBatchID scan: %w", err)
 		}
 		events = append(events, e)
 	}

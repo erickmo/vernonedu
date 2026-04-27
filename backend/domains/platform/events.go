@@ -28,6 +28,15 @@ func RegisterSubscriptions(bus events.Bus, svc *Service) {
 		{events.TeamMemberStatusChanged, svc.handleTeamMemberStatusChanged},
 		{events.ClassReminder, svc.handleClassReminder},
 		{events.CertificateIssued, svc.handleCertificateIssued},
+
+		// Calendar cross-domain listeners (Task 8).
+		{events.BatchCreated, svc.handleBatchCreated_Calendar},
+		{events.ClassFacilitatorAssigned, svc.handleClassFacilitatorAssigned_Calendar},
+		{events.ClassRescheduled, svc.handleClassRescheduled_Calendar},
+		{events.ClassCancelled, svc.handleClassCancelled_Calendar},
+		{events.PaymentTermDue, svc.handlePaymentTermDue_Calendar},
+		{events.PartnershipMeetingScheduled, svc.handlePartnershipMeetingScheduled_Calendar},
+		{events.FacilitatorApproved, svc.handleFacilitatorApproved_Calendar},
 	}
 	for _, r := range registrations {
 		bus.Subscribe(r.t, r.h)

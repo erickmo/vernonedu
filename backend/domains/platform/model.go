@@ -92,6 +92,7 @@ type CalendarEvent struct {
 	Rrule           *string           `json:"rrule,omitempty"`
 	SourceDomain    *string           `json:"source_domain,omitempty"`
 	SourceID        *uuid.UUID        `json:"source_id,omitempty"`
+	BatchID         *uuid.UUID        `json:"batch_id,omitempty"`
 	CreatedBy       *uuid.UUID        `json:"created_by,omitempty"`
 	ReminderFiredAt *time.Time        `json:"reminder_fired_at,omitempty"`
 	CreatedAt       time.Time         `json:"created_at"`

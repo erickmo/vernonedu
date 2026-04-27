@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -36,9 +37,13 @@ type Repository interface {
 	// Calendar
 	CreateCalendarEvent(ctx context.Context, e *CalendarEvent) error
 	GetCalendarEvent(ctx context.Context, id uuid.UUID) (*CalendarEvent, error)
+	GetCalendarEventBySource(ctx context.Context, sourceDomain string, sourceID uuid.UUID) (*CalendarEvent, error)
 	UpdateCalendarEvent(ctx context.Context, e *CalendarEvent) error
+	UpdateCalendarEventTimes(ctx context.Context, sourceDomain string, sourceID uuid.UUID, start, end time.Time) error
 	DeleteCalendarEvent(ctx context.Context, id uuid.UUID) error
+	DeleteCalendarEventBySource(ctx context.Context, sourceDomain string, sourceID uuid.UUID) error
 	ListCalendarEventsByUser(ctx context.Context, userID uuid.UUID) ([]*CalendarEvent, error)
+	ListCalendarEventsByBatchID(ctx context.Context, batchID uuid.UUID) ([]*CalendarEvent, error)
 	AddCalendarAttendee(ctx context.Context, a *CalendarAttendee) error
 	RemoveCalendarAttendee(ctx context.Context, eventID, userID uuid.UUID) error
 	ListCalendarAttendeesByEvent(ctx context.Context, eventID uuid.UUID) ([]*CalendarAttendee, error)
