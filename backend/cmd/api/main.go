@@ -11,6 +11,7 @@ import (
 	"github.com/vernonedu/vernonedu2/backend/internal/db"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	"github.com/vernonedu/vernonedu2/backend/internal/server"
+	"github.com/vernonedu/vernonedu2/backend/internal/worker"
 	"go.uber.org/fx"
 )
 
@@ -24,6 +25,9 @@ func main() {
 
 		// HTTP server
 		server.Module,
+
+		// Worker primitives (PDF + storage + verify URL) feeding credentialing.
+		worker.Module,
 
 		// Domain modules
 		identity.Module,

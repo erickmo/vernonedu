@@ -77,8 +77,28 @@ type Certificate struct {
 	RevokedAt           *time.Time `json:"revoked_at,omitempty"`
 	RevokedBy           *uuid.UUID `json:"revoked_by,omitempty"`
 	ReissuedFrom        *uuid.UUID `json:"reissued_from,omitempty"`
+	PDFPath             *string    `json:"pdf_path,omitempty"`
+	PDFHash             *string    `json:"pdf_hash,omitempty"`
 	CreatedAt           time.Time  `json:"created_at"`
 	UpdatedAt           time.Time  `json:"updated_at"`
+}
+
+// CertificateContext holds joined data needed for PDF rendering.
+type CertificateContext struct {
+	EnrollmentID uuid.UUID
+	StudentName  string
+	CourseName   string
+	CompletedAt  time.Time
+}
+
+// VerificationResult is the public payload returned by verify endpoint.
+type VerificationResult struct {
+	Valid         bool      `json:"valid"`
+	CertificateID uuid.UUID `json:"certificate_id"`
+	Number        string    `json:"certificate_number"`
+	StudentName   string    `json:"student_name"`
+	CourseName    string    `json:"course_name"`
+	IssuedAt      time.Time `json:"issued_at"`
 }
 
 type CertificateActionRequest struct {

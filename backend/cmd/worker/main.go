@@ -4,11 +4,13 @@ import (
 	"context"
 	"time"
 
+	"github.com/vernonedu/vernonedu2/backend/domains/credentialing"
 	"github.com/vernonedu/vernonedu2/backend/domains/finance"
 	"github.com/vernonedu/vernonedu2/backend/domains/platform"
 	"github.com/vernonedu/vernonedu2/backend/internal/db"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	"github.com/vernonedu/vernonedu2/backend/internal/server"
+	"github.com/vernonedu/vernonedu2/backend/internal/worker"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -98,6 +100,12 @@ func main() {
 		fx.Provide(finance.NewService),
 		fx.Provide(platform.NewRepository),
 		fx.Provide(platform.NewService),
+
+		// Credentialing async cert issuer
+		worker.Module,
+		fx.Provide(credentialing.NewRepository),
+		fx.Provide(credentialing.NewService),
+		fx.Invoke(credentialing.RegisterSubscriptions),
 
 		fx.Invoke(runWorkers),
 
