@@ -247,6 +247,20 @@ func (s *Service) ListCertificatesByEnrollment(ctx context.Context, enrollmentID
 	return s.repo.ListCertificatesByEnrollment(ctx, enrollmentID)
 }
 
+// ListMyCertificates returns certificates owned by the authenticated user.
+// It resolves the caller's student id via the identity reader, then defers to
+// the repository for the join across the enrollment schema.
+func (s *Service) ListMyCertificates(ctx context.Context, userID uuid.UUID) ([]*Certificate, error) {
+	if s.identity == nil {
+		return nil, apperrors.Validationf("identity reader not configured")
+	}
+	ref, err := s.identity.GetStudentByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.ListCertificatesByStudentID(ctx, ref.StudentID)
+}
+
 // RequestActionInput captures inputs to open a revoke/reissue approval request.
 type RequestActionInput struct {
 	StudentCertificateID uuid.UUID

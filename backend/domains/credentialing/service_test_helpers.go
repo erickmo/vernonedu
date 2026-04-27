@@ -21,6 +21,9 @@ type fakeCredRepo struct {
 	certificates map[uuid.UUID]*Certificate
 	certByNumber map[string]*Certificate
 	actionReqs   map[uuid.UUID]*CertificateActionRequest
+	// enrollmentStudent simulates the enrollment.enrollments.student_id column
+	// used by ListCertificatesByStudentID. Tests seed via SeedEnrollmentStudent.
+	enrollmentStudent map[uuid.UUID]uuid.UUID // enrollmentID -> studentID
 }
 
 var _ Repository = (*fakeCredRepo)(nil)
@@ -32,8 +35,17 @@ func newFakeCredRepo() *fakeCredRepo {
 		certConfigs:  map[uuid.UUID]*CertificateConfig{},
 		certificates: map[uuid.UUID]*Certificate{},
 		certByNumber: map[string]*Certificate{},
-		actionReqs:   map[uuid.UUID]*CertificateActionRequest{},
+		actionReqs:        map[uuid.UUID]*CertificateActionRequest{},
+		enrollmentStudent: map[uuid.UUID]uuid.UUID{},
 	}
+}
+
+// SeedEnrollmentStudent registers an enrollment -> student mapping used by
+// ListCertificatesByStudentID in the in-memory repo.
+func (r *fakeCredRepo) SeedEnrollmentStudent(enrollmentID, studentID uuid.UUID) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.enrollmentStudent[enrollmentID] = studentID
 }
 
 func (r *fakeCredRepo) NextCertificateNumber(ctx context.Context, year int) (string, error) {
@@ -183,6 +195,18 @@ func (r *fakeCredRepo) ListCertificatesByEnrollment(ctx context.Context, enrollm
 	out := []*Certificate{}
 	for _, c := range r.certificates {
 		if c.EnrollmentID == enrollmentID {
+			out = append(out, c)
+		}
+	}
+	return out, nil
+}
+
+func (r *fakeCredRepo) ListCertificatesByStudentID(ctx context.Context, studentID uuid.UUID) ([]*Certificate, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := []*Certificate{}
+	for _, c := range r.certificates {
+		if r.enrollmentStudent[c.EnrollmentID] == studentID {
 			out = append(out, c)
 		}
 	}
@@ -402,16 +426,35 @@ func (r *fakeCatalogReader) GetBatchCourse(_ context.Context, batchID uuid.UUID)
 // It maps an enrollment id to the student/user info needed by the download
 // gate (ownership check + profile completion flag).
 type fakeIdentityReader struct {
-	mu       sync.Mutex
-	students map[uuid.UUID]*StudentDownloadInfo // keyed by enrollmentID
+	mu             sync.Mutex
+	students       map[uuid.UUID]*StudentDownloadInfo // keyed by enrollmentID
+	studentByUser  map[uuid.UUID]*StudentRef          // keyed by userID
 }
 
 var _ IdentityReader = (*fakeIdentityReader)(nil)
 
 func newFakeIdentityReader() *fakeIdentityReader {
 	return &fakeIdentityReader{
-		students: map[uuid.UUID]*StudentDownloadInfo{},
+		students:      map[uuid.UUID]*StudentDownloadInfo{},
+		studentByUser: map[uuid.UUID]*StudentRef{},
 	}
+}
+
+// SeedUser registers a user -> student mapping used by GetStudentByUserID.
+func (r *fakeIdentityReader) SeedUser(userID, studentID uuid.UUID) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.studentByUser[userID] = &StudentRef{StudentID: studentID}
+}
+
+func (r *fakeIdentityReader) GetStudentByUserID(_ context.Context, userID uuid.UUID) (*StudentRef, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	ref, ok := r.studentByUser[userID]
+	if !ok {
+		return nil, apperrors.ErrNotFound
+	}
+	return ref, nil
 }
 
 // Seed registers an enrollment -> student/user/profile-complete mapping.

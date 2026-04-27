@@ -42,6 +42,17 @@ type IdentityReader interface {
 	// returning the user_id (for ownership check) and profile_complete flag
 	// (for the gate).
 	GetStudentForCertDownload(ctx context.Context, enrollmentID uuid.UUID) (*StudentDownloadInfo, error)
+
+	// GetStudentByUserID resolves the student id for the given authenticated
+	// user id. Used by the "list my certificates" endpoint to scope the query
+	// to certificates belonging to the caller.
+	GetStudentByUserID(ctx context.Context, userID uuid.UUID) (*StudentRef, error)
+}
+
+// StudentRef carries the minimum identity reference needed by credentialing
+// to scope queries to a single student.
+type StudentRef struct {
+	StudentID uuid.UUID
 }
 
 // StudentDownloadInfo carries the cross-domain identity data needed to
