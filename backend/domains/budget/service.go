@@ -45,6 +45,10 @@ func (s *Service) ListTemplateItems(ctx context.Context, courseID uuid.UUID) ([]
 	return s.repo.ListTemplateItems(ctx, courseID)
 }
 
+func (s *Service) GetTemplateItem(ctx context.Context, id uuid.UUID) (*CourseBudgetTemplateItem, error) {
+	return s.repo.GetTemplateItem(ctx, id)
+}
+
 // ─── Batch Items ──────────────────────────────────────────────────────────────
 
 func (s *Service) CreateBatchItem(ctx context.Context, item *BatchBudgetItem) error {
@@ -75,6 +79,10 @@ func (s *Service) ListBatchItems(ctx context.Context, batchID uuid.UUID) ([]*Bat
 	return s.repo.ListBatchItems(ctx, batchID)
 }
 
+func (s *Service) GetBatchItem(ctx context.Context, id uuid.UUID) (*BatchBudgetItem, error) {
+	return s.repo.GetBatchItem(ctx, id)
+}
+
 // ─── Realizations ─────────────────────────────────────────────────────────────
 
 // CreateRealization validates class_id consistency before persisting.
@@ -88,6 +96,9 @@ func (s *Service) CreateRealization(ctx context.Context, r *BudgetRealization) e
 	}
 	r.ID = uuid.New()
 	r.CreatedAt = time.Now()
+	if r.SpentAt.IsZero() {
+		r.SpentAt = time.Now()
+	}
 	return s.repo.CreateRealization(ctx, r)
 }
 
@@ -112,6 +123,10 @@ func (s *Service) DeleteRealization(ctx context.Context, id uuid.UUID) error {
 
 func (s *Service) ListRealizations(ctx context.Context, batchItemID uuid.UUID) ([]*BudgetRealization, error) {
 	return s.repo.ListRealizations(ctx, batchItemID)
+}
+
+func (s *Service) GetRealization(ctx context.Context, id uuid.UUID) (*BudgetRealization, error) {
+	return s.repo.GetRealization(ctx, id)
 }
 
 // ─── Summary ──────────────────────────────────────────────────────────────────
