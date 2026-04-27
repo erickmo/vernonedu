@@ -40,6 +40,13 @@ const (
 	CompletionDropped   CompletionStatus = "dropped"
 )
 
+type Payer string
+
+const (
+	PayerPartner Payer = "partner"
+	PayerStudent Payer = "student"
+)
+
 type DiscountType string
 
 const (
