@@ -7,13 +7,20 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 )
 
+// pgUniqueViolation is the SQLSTATE code for unique constraint violations.
+const pgUniqueViolation = "23505"
+
 // Repository defines platform data access.
 type Repository interface {
+	CreateTemplate(ctx context.Context, t *NotificationTemplate) error
+	GetTemplateByID(ctx context.Context, id uuid.UUID) (*NotificationTemplate, error)
 	GetTemplateByKey(ctx context.Context, key string, channel NotificationChannel) (*NotificationTemplate, error)
+	DeactivateTemplate(ctx context.Context, id uuid.UUID) error
 	CreateNotification(ctx context.Context, n *Notification) error
 	GetNotificationByID(ctx context.Context, id uuid.UUID) (*Notification, error)
 	UpdateNotificationStatus(ctx context.Context, id uuid.UUID, status NotificationStatus) error
@@ -32,6 +39,54 @@ type repository struct {
 // NewRepository creates platform repository.
 func NewRepository(pool *pgxpool.Pool) Repository {
 	return &repository{pool: pool}
+}
+
+func (r *repository) CreateTemplate(ctx context.Context, t *NotificationTemplate) error {
+	query := `
+		INSERT INTO platform.notification_templates (id, key, channel, subject, body, is_active)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING created_at, updated_at`
+
+	err := r.pool.QueryRow(ctx, query,
+		t.ID, t.Key, t.Channel, t.Subject, t.Body, t.IsActive,
+	).Scan(&t.CreatedAt, &t.UpdatedAt)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolation {
+			return apperrors.ErrConflict
+		}
+		return fmt.Errorf("platform.CreateTemplate: %w", err)
+	}
+	return nil
+}
+
+func (r *repository) GetTemplateByID(ctx context.Context, id uuid.UUID) (*NotificationTemplate, error) {
+	query := `SELECT id, key, channel, subject, body, is_active, created_at, updated_at
+	          FROM platform.notification_templates WHERE id=$1`
+
+	t := &NotificationTemplate{}
+	err := r.pool.QueryRow(ctx, query, id).Scan(
+		&t.ID, &t.Key, &t.Channel, &t.Subject, &t.Body, &t.IsActive, &t.CreatedAt, &t.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("platform.GetTemplateByID: %w", err)
+	}
+	return t, nil
+}
+
+func (r *repository) DeactivateTemplate(ctx context.Context, id uuid.UUID) error {
+	query := `UPDATE platform.notification_templates SET is_active=false WHERE id=$1`
+	ct, err := r.pool.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("platform.DeactivateTemplate: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
 }
 
 func (r *repository) GetTemplateByKey(ctx context.Context, key string, channel NotificationChannel) (*NotificationTemplate, error) {

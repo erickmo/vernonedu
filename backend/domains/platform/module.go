@@ -27,4 +27,12 @@ func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {
 		r.Get("/api/v1/notifications", h.ListMyNotifications)
 		r.Post("/api/v1/notifications/{id}/read", h.MarkRead)
 	})
+
+	r.Group(func(r chi.Router) {
+		r.Use(jwtMW)
+		r.Use(mw.RequireRole("vernonedu_admin"))
+
+		r.Post("/api/v1/notification-templates", h.CreateTemplate)
+		r.Patch("/api/v1/notification-templates/{id}/deactivate", h.DeactivateTemplate)
+	})
 }

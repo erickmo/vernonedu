@@ -2,8 +2,10 @@ package platform
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
+	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	"go.uber.org/zap"
 )
@@ -18,6 +20,41 @@ type Service struct {
 // NewService constructs platform Service.
 func NewService(repo Repository, bus events.Bus, log *zap.Logger) *Service {
 	return &Service{repo: repo, bus: bus, log: log}
+}
+
+// CreateTemplate creates a new active notification template.
+// Returns apperrors.ErrConflict on duplicate (key, channel).
+func (s *Service) CreateTemplate(ctx context.Context, key string, channel NotificationChannel, subject *string, body string) (*NotificationTemplate, error) {
+	t := &NotificationTemplate{
+		ID:       uuid.New(),
+		Key:      key,
+		Channel:  channel,
+		Subject:  subject,
+		Body:     body,
+		IsActive: true,
+	}
+	if err := s.repo.CreateTemplate(ctx, t); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+// DeactivateTemplate flips is_active=false on the template (soft delete).
+func (s *Service) DeactivateTemplate(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeactivateTemplate(ctx, id)
+}
+
+// GetActiveTemplate returns the active template for (key, channel) or (nil, nil)
+// when missing or inactive — silent skip per platform spec rules.
+func (s *Service) GetActiveTemplate(ctx context.Context, key string, channel NotificationChannel) (*NotificationTemplate, error) {
+	t, err := s.repo.GetTemplateByKey(ctx, key, channel)
+	if err != nil {
+		if errors.Is(err, apperrors.ErrNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return t, nil
 }
 
 // SendInput carries notification dispatch parameters.
