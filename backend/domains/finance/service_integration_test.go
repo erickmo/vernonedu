@@ -102,7 +102,8 @@ func seedFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 func newService(t *testing.T, pool *pgxpool.Pool) *finance.Service {
 	t.Helper()
 	log := zap.NewNop()
-	return finance.NewService(finance.NewRepository(pool), events.NewBus(log), log)
+	gw := finance.NewFakeGateway("test-secret", "")
+	return finance.NewService(finance.NewRepository(pool), events.NewBus(log), gw, log)
 }
 
 // insertTransaction creates a pending payment_transaction directly (no service helper exists).

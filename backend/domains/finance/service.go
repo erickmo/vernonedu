@@ -14,14 +14,15 @@ import (
 
 // Service holds finance business logic.
 type Service struct {
-	repo Repository
-	bus  events.Bus
-	log  *zap.Logger
+	repo    Repository
+	bus     events.Bus
+	gateway PaymentGateway
+	log     *zap.Logger
 }
 
 // NewService constructs finance Service.
-func NewService(repo Repository, bus events.Bus, log *zap.Logger) *Service {
-	return &Service{repo: repo, bus: bus, log: log}
+func NewService(repo Repository, bus events.Bus, gateway PaymentGateway, log *zap.Logger) *Service {
+	return &Service{repo: repo, bus: bus, gateway: gateway, log: log}
 }
 
 // InitiatePayment creates a Payment record for an enrollment.
@@ -178,6 +179,106 @@ func (s *Service) ListPaymentTerms(ctx context.Context, paymentID uuid.UUID) ([]
 // GetInvoiceByID fetches invoice by ID.
 func (s *Service) GetInvoiceByID(ctx context.Context, id uuid.UUID) (*Invoice, error) {
 	return s.repo.GetInvoiceByID(ctx, id)
+}
+
+// InitiateInvoicePayment asks the configured gateway to create a charge for
+// the given invoice and persists the returned provider reference.
+// Returns the redirect URL the caller should send the payer to.
+func (s *Service) InitiateInvoicePayment(ctx context.Context, invoiceID uuid.UUID) (string, error) {
+	inv, err := s.repo.GetInvoiceByID(ctx, invoiceID)
+	if err != nil {
+		return "", err
+	}
+	if inv.Status == InvoicePaid {
+		return "", apperrors.Validationf("invoice already paid")
+	}
+	if inv.Status == InvoiceCancelled {
+		return "", apperrors.Validationf("invoice cancelled")
+	}
+
+	res, err := s.gateway.CreateCharge(ctx, inv)
+	if err != nil {
+		return "", fmt.Errorf("gateway charge: %w", err)
+	}
+
+	if err := s.repo.SetInvoiceProviderRef(ctx, inv.ID, s.gateway.Name(), res.ProviderRef); err != nil {
+		return "", err
+	}
+
+	_ = s.bus.Publish(ctx, events.Event{
+		Type: events.PaymentInitiated,
+		Payload: PaymentInitiatedPayload{
+			InvoiceID:   inv.ID,
+			Provider:    s.gateway.Name(),
+			ProviderRef: res.ProviderRef,
+		},
+	})
+	return res.RedirectURL, nil
+}
+
+// ProcessGatewayWebhook verifies the webhook and applies the resulting state
+// change to the matching invoice. Idempotent — repeated settled callbacks
+// are a no-op after the first one.
+func (s *Service) ProcessGatewayWebhook(ctx context.Context, payload []byte, signature string) error {
+	res, err := s.gateway.HandleWebhook(ctx, payload, signature)
+	if err != nil {
+		return err
+	}
+
+	inv, err := s.repo.GetInvoiceByProviderRef(ctx, res.ProviderRef)
+	if err != nil {
+		return err
+	}
+
+	switch res.Outcome {
+	case OutcomeSettled:
+		return s.settleInvoice(ctx, inv)
+	case OutcomeFailed:
+		return s.failInvoice(ctx, inv)
+	default:
+		s.log.Info("ignoring pending webhook", zap.String("invoice_id", inv.ID.String()))
+		return nil
+	}
+}
+
+func (s *Service) settleInvoice(ctx context.Context, inv *Invoice) error {
+	now := time.Now()
+	updated, err := s.repo.MarkInvoicePaid(ctx, inv.ID, now)
+	if err != nil {
+		return err
+	}
+	if !updated {
+		return nil // idempotent: already paid
+	}
+	_ = s.bus.Publish(ctx, events.Event{
+		Type: events.PaymentSettled,
+		Payload: PaymentSettledPayload{
+			InvoiceID:   inv.ID,
+			Provider:    derefString(inv.PaymentProvider),
+			ProviderRef: derefString(inv.ProviderRef),
+			PaidAt:      now,
+		},
+	})
+	return nil
+}
+
+func (s *Service) failInvoice(ctx context.Context, inv *Invoice) error {
+	_ = s.bus.Publish(ctx, events.Event{
+		Type: events.PaymentFailed,
+		Payload: PaymentFailedPayload{
+			InvoiceID:   inv.ID,
+			Provider:    derefString(inv.PaymentProvider),
+			ProviderRef: derefString(inv.ProviderRef),
+		},
+	})
+	return nil
+}
+
+func derefString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }
 
 // SendInvoice transitions invoice to sent status.

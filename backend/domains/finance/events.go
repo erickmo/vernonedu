@@ -33,6 +33,29 @@ type InvoiceOverduePayload struct {
 	InvoiceID uuid.UUID `json:"invoice_id"`
 }
 
+// PaymentInitiatedPayload published when an invoice charge is created
+// against an external gateway.
+type PaymentInitiatedPayload struct {
+	InvoiceID   uuid.UUID `json:"invoice_id"`
+	Provider    string    `json:"provider"`
+	ProviderRef string    `json:"provider_ref"`
+}
+
+// PaymentSettledPayload published when a webhook confirms a paid invoice.
+type PaymentSettledPayload struct {
+	InvoiceID   uuid.UUID `json:"invoice_id"`
+	Provider    string    `json:"provider"`
+	ProviderRef string    `json:"provider_ref"`
+	PaidAt      time.Time `json:"paid_at"`
+}
+
+// PaymentFailedPayload published when a webhook reports a failed gateway charge.
+type PaymentFailedPayload struct {
+	InvoiceID   uuid.UUID `json:"invoice_id"`
+	Provider    string    `json:"provider"`
+	ProviderRef string    `json:"provider_ref"`
+}
+
 // RegisterSubscriptions subscribes finance to cross-domain events.
 func RegisterSubscriptions(bus events.Bus, svc *Service) {
 	bus.Subscribe(events.EnrollmentConfirmed, func(_ context.Context, _ events.Event) error {

@@ -18,6 +18,9 @@ const (
 	PaymentConfirmed  EventType = "payment.confirmed"
 	PaymentTermDue    EventType = "payment.term.due"
 	PaymentTermOverdue EventType = "payment.term.overdue"
+	PaymentInitiated  EventType = "payment.initiated"
+	PaymentSettled    EventType = "payment.settled"
+	PaymentFailed     EventType = "payment.failed"
 
 	FacilitatorProposed EventType = "facilitator.proposed"
 	FacilitatorApproved EventType = "facilitator.approved"
