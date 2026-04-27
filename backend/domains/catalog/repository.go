@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -38,6 +39,13 @@ type Repository interface {
 	CreateClass(ctx context.Context, cl *Class) error
 	GetClassByID(ctx context.Context, id uuid.UUID) (*Class, error)
 	ListClassesByBatch(ctx context.Context, batchID uuid.UUID) ([]*Class, error)
+	UpdateClassInstructor(ctx context.Context, classID, instructorID uuid.UUID, instructorType InstructorType, assignedBy AssignedByType) error
+	UpdateClassSchedule(ctx context.Context, classID uuid.UUID, sessionDate time.Time, startTime, endTime string) error
+	DeleteClass(ctx context.Context, classID uuid.UUID) error
+
+	// IsApprovedFacilitator returns true if userID has both a FacilitatorProfile
+	// and at least one FacilitatorProposal with final_status='approved'.
+	IsApprovedFacilitator(ctx context.Context, userID uuid.UUID) (bool, error)
 
 	CreateModule(ctx context.Context, m *CourseModule) error
 	GetModuleByID(ctx context.Context, id uuid.UUID) (*CourseModule, error)
@@ -544,6 +552,60 @@ func (r *repository) CountEnrollmentsByBatch(ctx context.Context, batchID uuid.U
 		return 0, fmt.Errorf("catalog.CountEnrollmentsByBatch: %w", err)
 	}
 	return n, nil
+}
+
+func (r *repository) UpdateClassInstructor(ctx context.Context, classID, instructorID uuid.UUID, instructorType InstructorType, assignedBy AssignedByType) error {
+	query := `UPDATE catalog.classes SET instructor_id=$1, instructor_type=$2, assigned_by=$3 WHERE id=$4`
+	ct, err := r.pool.Exec(ctx, query, instructorID, instructorType, assignedBy, classID)
+	if err != nil {
+		return fmt.Errorf("catalog.UpdateClassInstructor: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) UpdateClassSchedule(ctx context.Context, classID uuid.UUID, sessionDate time.Time, startTime, endTime string) error {
+	query := `UPDATE catalog.classes SET session_date=$1, start_time=$2, end_time=$3 WHERE id=$4`
+	ct, err := r.pool.Exec(ctx, query, sessionDate, startTime, endTime, classID)
+	if err != nil {
+		return fmt.Errorf("catalog.UpdateClassSchedule: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) DeleteClass(ctx context.Context, classID uuid.UUID) error {
+	ct, err := r.pool.Exec(ctx, `DELETE FROM catalog.classes WHERE id=$1`, classID)
+	if err != nil {
+		return fmt.Errorf("catalog.DeleteClass: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
+}
+
+// IsApprovedFacilitator checks the identity domain for a FacilitatorProfile
+// belonging to the user and at least one FacilitatorProposal with
+// final_status='approved'.
+func (r *repository) IsApprovedFacilitator(ctx context.Context, userID uuid.UUID) (bool, error) {
+	const query = `
+		SELECT EXISTS(
+			SELECT 1
+			FROM identity.facilitator_proposals p
+			JOIN identity.facilitator_profiles fp ON fp.id = p.facilitator_id
+			JOIN identity.team_members tm ON tm.id = fp.team_member_id
+			WHERE tm.user_id = $1 AND p.final_status = 'approved'
+		)`
+	var ok bool
+	if err := r.pool.QueryRow(ctx, query, userID).Scan(&ok); err != nil {
+		return false, fmt.Errorf("catalog.IsApprovedFacilitator: %w", err)
+	}
+	return ok, nil
 }
 
 func (r *repository) GetModuleVersionByID(ctx context.Context, id uuid.UUID) (*ModuleVersion, error) {

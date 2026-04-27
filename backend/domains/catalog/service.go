@@ -290,10 +290,154 @@ func (s *Service) ListBatchesByCourse(ctx context.Context, courseID uuid.UUID) (
 	return s.repo.ListBatchesByCourse(ctx, courseID)
 }
 
-// CreateClass adds a class to a batch.
-func (s *Service) CreateClass(ctx context.Context, cl *Class) error {
-	cl.ID = uuid.New()
-	return s.repo.CreateClass(ctx, cl)
+// CreateClassInput is the structured input for scheduling a class within a batch.
+type CreateClassInput struct {
+	CourseBatchID  uuid.UUID
+	Title          *string
+	SessionDate    time.Time
+	StartTime      string // "HH:MM" or "HH:MM:SS"
+	EndTime        string
+	Mode           DeliveryMode
+	Location       *string
+	OnlineLink     *string
+	InstructorID   uuid.UUID
+	InstructorType InstructorType
+	AssignedBy     AssignedByType
+}
+
+// CreateClass schedules a class within a batch. Validates mode-specific
+// requirements (offline → location, online → online_link) and, for facilitator
+// instructors, requires an approved FacilitatorProposal.
+func (s *Service) CreateClass(ctx context.Context, in CreateClassInput) (*Class, error) {
+	if in.Mode == ModeOffline && (in.Location == nil || strings.TrimSpace(*in.Location) == "") {
+		return nil, apperrors.Validationf("location required for offline mode")
+	}
+	if in.Mode == ModeOnline && (in.OnlineLink == nil || strings.TrimSpace(*in.OnlineLink) == "") {
+		return nil, apperrors.Validationf("online_link required for online mode")
+	}
+	if in.InstructorType == InstructorFacilitator {
+		if err := s.assertApprovedFacilitator(ctx, in.InstructorID); err != nil {
+			return nil, err
+		}
+	}
+	cl := &Class{
+		ID:             uuid.New(),
+		CourseBatchID:  in.CourseBatchID,
+		Title:          in.Title,
+		SessionDate:    in.SessionDate,
+		StartTime:      in.StartTime,
+		EndTime:        in.EndTime,
+		Mode:           in.Mode,
+		Location:       in.Location,
+		OnlineLink:     in.OnlineLink,
+		InstructorID:   in.InstructorID,
+		InstructorType: in.InstructorType,
+		AssignedBy:     in.AssignedBy,
+	}
+	if err := s.repo.CreateClass(ctx, cl); err != nil {
+		return nil, err
+	}
+	if in.InstructorType == InstructorFacilitator {
+		_ = s.bus.Publish(ctx, events.Event{
+			Type: events.ClassFacilitatorAssigned,
+			Payload: events.ClassFacilitatorAssignedPayload{
+				ClassID:       cl.ID,
+				FacilitatorID: in.InstructorID,
+			},
+		})
+	}
+	return cl, nil
+}
+
+// AssignInstructor (re)assigns the instructor on an existing class. For
+// facilitator assignments, an approved FacilitatorProposal is required. The
+// class.facilitator_assigned event is published on facilitator assignment.
+func (s *Service) AssignInstructor(
+	ctx context.Context,
+	classID, instructorID uuid.UUID,
+	instructorType InstructorType,
+	assignedBy AssignedByType,
+) error {
+	if instructorType == InstructorFacilitator {
+		if err := s.assertApprovedFacilitator(ctx, instructorID); err != nil {
+			return err
+		}
+	}
+	if err := s.repo.UpdateClassInstructor(ctx, classID, instructorID, instructorType, assignedBy); err != nil {
+		return err
+	}
+	if instructorType == InstructorFacilitator {
+		_ = s.bus.Publish(ctx, events.Event{
+			Type: events.ClassFacilitatorAssigned,
+			Payload: events.ClassFacilitatorAssignedPayload{
+				ClassID:       classID,
+				FacilitatorID: instructorID,
+			},
+		})
+	}
+	return nil
+}
+
+// RescheduleClass updates the session date/time of a class and emits
+// course.class.rescheduled with the new start/end times.
+func (s *Service) RescheduleClass(
+	ctx context.Context,
+	classID uuid.UUID,
+	sessionDate time.Time,
+	startTime, endTime string,
+) error {
+	if err := s.repo.UpdateClassSchedule(ctx, classID, sessionDate, startTime, endTime); err != nil {
+		return err
+	}
+	startAt, _ := combineDateTime(sessionDate, startTime)
+	endAt, _ := combineDateTime(sessionDate, endTime)
+	_ = s.bus.Publish(ctx, events.Event{
+		Type: events.ClassRescheduled,
+		Payload: events.ClassRescheduledPayload{
+			ClassID: classID,
+			StartAt: startAt,
+			EndAt:   endAt,
+		},
+	})
+	return nil
+}
+
+// CancelClass deletes a class and emits course.class.cancelled.
+func (s *Service) CancelClass(ctx context.Context, classID uuid.UUID) error {
+	if err := s.repo.DeleteClass(ctx, classID); err != nil {
+		return err
+	}
+	_ = s.bus.Publish(ctx, events.Event{
+		Type:    events.ClassCancelled,
+		Payload: events.ClassCancelledPayload{ClassID: classID},
+	})
+	return nil
+}
+
+// assertApprovedFacilitator returns nil only when the user has both a
+// FacilitatorProfile and at least one approved FacilitatorProposal.
+func (s *Service) assertApprovedFacilitator(ctx context.Context, userID uuid.UUID) error {
+	ok, err := s.repo.IsApprovedFacilitator(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return apperrors.Validationf("instructor is not an approved facilitator")
+	}
+	return nil
+}
+
+// combineDateTime merges a calendar date with an "HH:MM" or "HH:MM:SS" string
+// into a UTC time.Time. Returns the date itself on parse failure.
+func combineDateTime(d time.Time, hhmm string) (time.Time, error) {
+	layouts := []string{"15:04:05", "15:04"}
+	for _, layout := range layouts {
+		t, err := time.Parse(layout, hhmm)
+		if err == nil {
+			return time.Date(d.Year(), d.Month(), d.Day(), t.Hour(), t.Minute(), t.Second(), 0, time.UTC), nil
+		}
+	}
+	return d, apperrors.Validationf("invalid time format")
 }
 
 // GetClass fetches class by ID.

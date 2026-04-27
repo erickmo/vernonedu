@@ -22,8 +22,9 @@ type fakeCatalogRepo struct {
 	moduleVersions     map[uuid.UUID]*ModuleVersion
 	formatConfigs      map[uuid.UUID]*CourseFormatConfig
 	costTemplates      map[uuid.UUID]*CourseCostTemplate
-	batchCostLineItems map[uuid.UUID]*BatchCostLineItem
-	enrollmentCounts   map[uuid.UUID]int
+	batchCostLineItems    map[uuid.UUID]*BatchCostLineItem
+	enrollmentCounts      map[uuid.UUID]int
+	approvedFacilitators  map[uuid.UUID]bool
 }
 
 var _ Repository = (*fakeCatalogRepo)(nil)
@@ -37,9 +38,62 @@ func newFakeCatalogRepo() *fakeCatalogRepo {
 		moduleVersions: map[uuid.UUID]*ModuleVersion{},
 		formatConfigs:      map[uuid.UUID]*CourseFormatConfig{},
 		costTemplates:      map[uuid.UUID]*CourseCostTemplate{},
-		batchCostLineItems: map[uuid.UUID]*BatchCostLineItem{},
-		enrollmentCounts:   map[uuid.UUID]int{},
+		batchCostLineItems:   map[uuid.UUID]*BatchCostLineItem{},
+		enrollmentCounts:     map[uuid.UUID]int{},
+		approvedFacilitators: map[uuid.UUID]bool{},
 	}
+}
+
+// SeedApprovedFacilitator marks userID as having an approved FacilitatorProposal.
+func (r *fakeCatalogRepo) SeedApprovedFacilitator(userID uuid.UUID) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.approvedFacilitators[userID] = true
+}
+
+// IsApprovedFacilitator returns the seeded flag (false by default).
+func (r *fakeCatalogRepo) IsApprovedFacilitator(ctx context.Context, userID uuid.UUID) (bool, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.approvedFacilitators[userID], nil
+}
+
+func (r *fakeCatalogRepo) UpdateClassInstructor(ctx context.Context, classID, instructorID uuid.UUID, instructorType InstructorType, assignedBy AssignedByType) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	cl, ok := r.classes[classID]
+	if !ok {
+		return apperrors.ErrNotFound
+	}
+	cl.InstructorID = instructorID
+	cl.InstructorType = instructorType
+	cl.AssignedBy = assignedBy
+	cl.UpdatedAt = time.Now()
+	return nil
+}
+
+func (r *fakeCatalogRepo) UpdateClassSchedule(ctx context.Context, classID uuid.UUID, sessionDate time.Time, startTime, endTime string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	cl, ok := r.classes[classID]
+	if !ok {
+		return apperrors.ErrNotFound
+	}
+	cl.SessionDate = sessionDate
+	cl.StartTime = startTime
+	cl.EndTime = endTime
+	cl.UpdatedAt = time.Now()
+	return nil
+}
+
+func (r *fakeCatalogRepo) DeleteClass(ctx context.Context, classID uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if _, ok := r.classes[classID]; !ok {
+		return apperrors.ErrNotFound
+	}
+	delete(r.classes, classID)
+	return nil
 }
 
 // SeedEnrollmentCount sets the confirmed enrollment count for a batch.

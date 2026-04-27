@@ -72,6 +72,22 @@ const (
 	ModeOffline DeliveryMode = "offline"
 )
 
+// InstructorType identifies who is teaching a class.
+type InstructorType string
+
+const (
+	InstructorCourseCreator InstructorType = "course_creator"
+	InstructorFacilitator   InstructorType = "facilitator"
+)
+
+// AssignedByType identifies who assigned the instructor.
+type AssignedByType string
+
+const (
+	AssignedByCourseCreatorSelf AssignedByType = "course_creator_self"
+	AssignedByDeptLeader        AssignedByType = "dept_leader"
+)
+
 type ModuleStatus string
 
 const (
@@ -146,9 +162,9 @@ type Class struct {
 	Mode           DeliveryMode `json:"mode"`
 	Location       *string      `json:"location,omitempty"`
 	OnlineLink     *string      `json:"online_link,omitempty"`
-	InstructorID   uuid.UUID    `json:"instructor_id"`
-	InstructorType string       `json:"instructor_type"`
-	AssignedBy     string       `json:"assigned_by"`
+	InstructorID   uuid.UUID      `json:"instructor_id"`
+	InstructorType InstructorType `json:"instructor_type"`
+	AssignedBy     AssignedByType `json:"assigned_by"`
 	CreatedAt      time.Time    `json:"created_at"`
 	UpdatedAt      time.Time    `json:"updated_at"`
 }
