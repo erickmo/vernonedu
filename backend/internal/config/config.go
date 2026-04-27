@@ -19,6 +19,18 @@ type Config struct {
 	Email    EmailConfig
 	Midtrans MidtransConfig
 	CORS     CORSConfig
+	Calendar CalendarConfig
+}
+
+type CalendarConfig struct {
+	OAuth            CalendarOAuthConfig
+	EncryptionKeyHex string
+}
+
+type CalendarOAuthConfig struct {
+	GoogleClientID     string
+	GoogleClientSecret string
+	GoogleRedirectURL  string
 }
 
 type AppConfig struct {
@@ -161,6 +173,15 @@ func Load() (*Config, error) {
 		ServerKey: getEnv("MIDTRANS_SERVER_KEY", ""),
 		ClientKey: getEnv("MIDTRANS_CLIENT_KEY", ""),
 		Env:       getEnv("MIDTRANS_ENV", "sandbox"),
+	}
+
+	cfg.Calendar = CalendarConfig{
+		OAuth: CalendarOAuthConfig{
+			GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
+			GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
+			GoogleRedirectURL:  getEnv("GOOGLE_REDIRECT_URL", ""),
+		},
+		EncryptionKeyHex: getEnv("CALENDAR_ENC_KEY_HEX", ""),
 	}
 
 	originsRaw := getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:3000")

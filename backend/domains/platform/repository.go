@@ -48,6 +48,10 @@ type Repository interface {
 	RemoveCalendarAttendee(ctx context.Context, eventID, userID uuid.UUID) error
 	ListCalendarAttendeesByEvent(ctx context.Context, eventID uuid.UUID) ([]*CalendarAttendee, error)
 
+	// Calendar sync (OAuth tokens at rest)
+	GetCalendarSyncByUser(ctx context.Context, userID uuid.UUID) (*CalendarSync, error)
+	UpsertCalendarSync(ctx context.Context, s *CalendarSync) error
+
 	// Reminder scanner
 	ListEventsNeedingReminder(ctx context.Context) ([]*CalendarEvent, error)
 	// MarkReminderFired sets reminder_fired_at=now() iff still NULL.

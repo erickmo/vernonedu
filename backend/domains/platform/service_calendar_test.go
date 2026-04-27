@@ -27,7 +27,7 @@ func newCalendarSvc(t *testing.T) (*platform.Service, platform.Repository, *pgxp
 	pool := testdb.New(t)
 	testdb.Truncate(t, pool, usersTable, calendarEventsTable, calendarAttendeesTable)
 	repo := platform.NewRepository(pool)
-	svc := platform.NewService(repo, nil, zap.NewNop(), nil)
+	svc := platform.NewService(repo, nil, zap.NewNop(), nil, nil, nil)
 	return svc, repo, pool
 }
 
@@ -179,7 +179,7 @@ func TestUpdateEvent_AutoCreated_Rejected(t *testing.T) {
 	}
 	require.NoError(t, repo.CreateCalendarEvent(ctx, autoEvt))
 
-	svc := platform.NewService(repo, nil, zap.NewNop(), nil)
+	svc := platform.NewService(repo, nil, zap.NewNop(), nil, nil, nil)
 	modified := *autoEvt
 	modified.Title = "Hacked Title"
 	err := svc.UpdateEvent(ctx, &modified)

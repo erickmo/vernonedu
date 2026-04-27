@@ -46,7 +46,7 @@ func newDispatchSvc(t *testing.T, senders platform.Senders) (*platform.Service, 
 	pool := testdb.New(t)
 	testdb.Truncate(t, pool, usersTable, templatesTable, notificationsTable, preferencesTable)
 	repo := platform.NewRepository(pool)
-	svc := platform.NewService(repo, nil, zap.NewNop(), senders)
+	svc := platform.NewService(repo, nil, zap.NewNop(), senders, nil, nil)
 	return svc, repo, pool
 }
 

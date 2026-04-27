@@ -21,7 +21,7 @@ func newListenerSvc(t *testing.T) (*platform.Service, events.Bus, *pgxpool.Pool)
 	testdb.Truncate(t, pool, usersTable, templatesTable, notificationsTable, preferencesTable)
 	repo := platform.NewRepository(pool)
 	bus := events.NewBus(zap.NewNop())
-	svc := platform.NewService(repo, bus, zap.NewNop(), nil)
+	svc := platform.NewService(repo, bus, zap.NewNop(), nil, nil, nil)
 	platform.RegisterSubscriptions(bus, svc)
 	return svc, bus, pool
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
+	"github.com/vernonedu/vernonedu2/backend/internal/crypto"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	"go.uber.org/zap"
@@ -18,23 +19,28 @@ type HasDeviceTokenFunc func(ctx context.Context, userID uuid.UUID) (bool, error
 
 // Service holds platform notification logic.
 type Service struct {
-	repo    Repository
-	bus     events.Bus
-	log     *zap.Logger
-	senders Senders
+	repo      Repository
+	bus       events.Bus
+	log       *zap.Logger
+	senders   Senders
+	exchanger TokenExchanger
+	crypto    *crypto.AESGCM
 
 	// HasDeviceTokenFn is used to gate Push-channel deliveries.
 	// Defaults to a stub returning (false, nil) until identity wiring is added.
 	HasDeviceTokenFn HasDeviceTokenFunc
 }
 
-// NewService constructs platform Service.
-func NewService(repo Repository, bus events.Bus, log *zap.Logger, senders Senders) *Service {
+// NewService constructs platform Service. exchanger and aesgcm may be nil; the
+// calendar-sync methods will return ErrSyncNotConfigured in that case.
+func NewService(repo Repository, bus events.Bus, log *zap.Logger, senders Senders, exchanger TokenExchanger, aesgcm *crypto.AESGCM) *Service {
 	return &Service{
-		repo:    repo,
-		bus:     bus,
-		log:     log,
-		senders: senders,
+		repo:      repo,
+		bus:       bus,
+		log:       log,
+		senders:   senders,
+		exchanger: exchanger,
+		crypto:    aesgcm,
 		HasDeviceTokenFn: func(context.Context, uuid.UUID) (bool, error) {
 			return false, nil
 		},

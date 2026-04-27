@@ -46,7 +46,7 @@ func newReminderSvc(t *testing.T) (*platform.Service, platform.Repository, *reco
 	testdb.Truncate(t, pool, usersTable, calendarEventsTable, calendarAttendeesTable)
 	repo := platform.NewRepository(pool)
 	bus := &recordingBus{}
-	svc := platform.NewService(repo, bus, zap.NewNop(), nil)
+	svc := platform.NewService(repo, bus, zap.NewNop(), nil, nil, nil)
 	return svc, repo, bus, pool
 }
 

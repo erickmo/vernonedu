@@ -24,7 +24,7 @@ func newCalendarListenerSvc(t *testing.T) (*platform.Service, events.Bus, platfo
 	testdb.Truncate(t, pool, calendarAttendeesTable, calendarEventsTable, usersTable)
 	repo := platform.NewRepository(pool)
 	bus := events.NewBus(zap.NewNop())
-	svc := platform.NewService(repo, bus, zap.NewNop(), nil)
+	svc := platform.NewService(repo, bus, zap.NewNop(), nil, nil, nil)
 	platform.RegisterSubscriptions(bus, svc)
 	return svc, bus, repo, pool
 }

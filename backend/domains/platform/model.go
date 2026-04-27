@@ -99,6 +99,20 @@ type CalendarEvent struct {
 	UpdatedAt       time.Time         `json:"updated_at"`
 }
 
+// CalendarSync represents a per-user external calendar OAuth connection.
+// Tokens are stored encrypted-at-rest (AES-GCM, see internal/crypto).
+type CalendarSync struct {
+	ID                 uuid.UUID `json:"id"`
+	UserID             uuid.UUID `json:"user_id"`
+	Provider           string    `json:"provider"`
+	AccessTokenEnc     []byte    `json:"-"`
+	RefreshTokenEnc    []byte    `json:"-"`
+	TokenExpiresAt     time.Time `json:"token_expires_at"`
+	ExternalCalendarID *string   `json:"external_calendar_id,omitempty"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
+}
+
 type CalendarAttendee struct {
 	ID         uuid.UUID          `json:"id"`
 	EventID    uuid.UUID          `json:"event_id"`
