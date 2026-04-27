@@ -69,6 +69,28 @@ func (s *Service) DeactivateTemplate(ctx context.Context, id uuid.UUID) error {
 	return s.repo.DeactivateTemplate(ctx, id)
 }
 
+// UpdateTemplate updates subject and/or body for a template. Nil fields are
+// left unchanged. Returns apperrors.ErrNotFound if the template does not exist.
+func (s *Service) UpdateTemplate(ctx context.Context, id uuid.UUID, subject *string, body *string) error {
+	if subject == nil && body == nil {
+		return nil
+	}
+	return s.repo.UpdateTemplateContent(ctx, id, subject, body)
+}
+
+// GetMyPreferences returns all notification preferences set by a user.
+func (s *Service) GetMyPreferences(ctx context.Context, userID uuid.UUID) ([]*NotificationPreference, error) {
+	return s.repo.ListPreferencesByUser(ctx, userID)
+}
+
+// UpsertPreference creates or updates a single notification preference row.
+func (s *Service) UpsertPreference(ctx context.Context, pref *NotificationPreference) error {
+	if pref.ID == uuid.Nil {
+		pref.ID = uuid.New()
+	}
+	return s.repo.UpsertPreference(ctx, pref)
+}
+
 // GetActiveTemplate returns the active template for (key, channel) or (nil, nil)
 // when missing or inactive — silent skip per platform spec rules.
 func (s *Service) GetActiveTemplate(ctx context.Context, key string, channel NotificationChannel) (*NotificationTemplate, error) {

@@ -33,6 +33,8 @@ type Repository interface {
 
 	GetPreference(ctx context.Context, userID uuid.UUID, templateKey string, channel NotificationChannel) (*NotificationPreference, error)
 	UpsertPreference(ctx context.Context, pref *NotificationPreference) error
+	ListPreferencesByUser(ctx context.Context, userID uuid.UUID) ([]*NotificationPreference, error)
+	UpdateTemplateContent(ctx context.Context, id uuid.UUID, subject *string, body *string) error
 
 	// Calendar
 	CreateCalendarEvent(ctx context.Context, e *CalendarEvent) error
@@ -290,6 +292,43 @@ func (r *repository) GetPreference(ctx context.Context, userID uuid.UUID, templa
 		return nil, fmt.Errorf("platform.GetPreference: %w", err)
 	}
 	return pref, nil
+}
+
+func (r *repository) ListPreferencesByUser(ctx context.Context, userID uuid.UUID) ([]*NotificationPreference, error) {
+	query := `SELECT id, user_id, template_key, channel, enabled, created_at, updated_at
+	          FROM platform.notification_preferences WHERE user_id=$1 ORDER BY template_key, channel`
+
+	rows, err := r.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("platform.ListPreferencesByUser: %w", err)
+	}
+	defer rows.Close()
+
+	var prefs []*NotificationPreference
+	for rows.Next() {
+		p := &NotificationPreference{}
+		if err := rows.Scan(&p.ID, &p.UserID, &p.TemplateKey, &p.Channel, &p.Enabled, &p.CreatedAt, &p.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("platform.ListPreferencesByUser scan: %w", err)
+		}
+		prefs = append(prefs, p)
+	}
+	return prefs, rows.Err()
+}
+
+func (r *repository) UpdateTemplateContent(ctx context.Context, id uuid.UUID, subject *string, body *string) error {
+	query := `UPDATE platform.notification_templates
+	          SET subject = COALESCE($2, subject),
+	              body    = COALESCE($3, body),
+	              updated_at = now()
+	          WHERE id = $1`
+	ct, err := r.pool.Exec(ctx, query, id, subject, body)
+	if err != nil {
+		return fmt.Errorf("platform.UpdateTemplateContent: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
 }
 
 func (r *repository) UpsertPreference(ctx context.Context, pref *NotificationPreference) error {

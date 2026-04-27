@@ -74,6 +74,16 @@ func (s *Service) ListEventsByUser(ctx context.Context, userID uuid.UUID) ([]*Ca
 	return s.repo.ListCalendarEventsByUser(ctx, userID)
 }
 
+// GetCalendarEvent returns a calendar event by id.
+func (s *Service) GetCalendarEvent(ctx context.Context, id uuid.UUID) (*CalendarEvent, error) {
+	return s.repo.GetCalendarEvent(ctx, id)
+}
+
+// ListEventAttendees returns attendees for an event.
+func (s *Service) ListEventAttendees(ctx context.Context, eventID uuid.UUID) ([]*CalendarAttendee, error) {
+	return s.repo.ListCalendarAttendeesByEvent(ctx, eventID)
+}
+
 // UpdateEvent updates a manual event. Auto-created events (source_id != nil)
 // cannot be edited via the manual API.
 func (s *Service) UpdateEvent(ctx context.Context, evt *CalendarEvent) error {
