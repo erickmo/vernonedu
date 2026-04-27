@@ -76,7 +76,12 @@ func (h *Handler) RequestAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	actionReq, err := h.svc.RequestAction(r.Context(), certID, CertAction(req.Action), req.Reason, uc.ID)
+	actionReq, err := h.svc.RequestAction(r.Context(), RequestActionInput{
+		StudentCertificateID: certID,
+		Action:               CertAction(req.Action),
+		Reason:               req.Reason,
+		RequestedBy:          uc.ID,
+	})
 	if err != nil {
 		apperrors.Render(w, err)
 		return
@@ -87,7 +92,7 @@ func (h *Handler) RequestAction(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(actionReq)
 }
 
-func (h *Handler) ApproveActionRequest(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ApproveAction(w http.ResponseWriter, r *http.Request) {
 	uc := mw.GetUserContext(r.Context())
 	if uc == nil {
 		apperrors.Render(w, apperrors.ErrUnauthorized)
@@ -100,7 +105,7 @@ func (h *Handler) ApproveActionRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.svc.ApproveActionRequest(r.Context(), reqID, uc.ID); err != nil {
+	if err := h.svc.ApproveAction(r.Context(), reqID, uc.ID); err != nil {
 		apperrors.Render(w, err)
 		return
 	}

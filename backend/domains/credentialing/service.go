@@ -186,53 +186,80 @@ func (s *Service) ListCertificatesByEnrollment(ctx context.Context, enrollmentID
 	return s.repo.ListCertificatesByEnrollment(ctx, enrollmentID)
 }
 
-// RequestAction creates a revoke or reissue request.
-func (s *Service) RequestAction(ctx context.Context, certID uuid.UUID, action CertAction, reason string, requestedBy uuid.UUID) (*CertificateActionRequest, error) {
-	cert, err := s.repo.GetCertificateByID(ctx, certID)
-	if err != nil {
+// RequestActionInput captures inputs to open a revoke/reissue approval request.
+type RequestActionInput struct {
+	StudentCertificateID uuid.UUID
+	Action               CertAction
+	Reason               string
+	RequestedBy          uuid.UUID
+}
+
+// RequestAction opens a pending CertificateActionRequest for an existing
+// certificate. The certificate must exist; action must be revoke|reissue;
+// reason must be non-empty.
+func (s *Service) RequestAction(ctx context.Context, in RequestActionInput) (*CertificateActionRequest, error) {
+	if _, err := s.repo.GetCertificateByID(ctx, in.StudentCertificateID); err != nil {
 		return nil, err
 	}
-
-	if action == ActionRevoke && cert.Status == CertRevoked {
-		return nil, apperrors.Validationf("certificate already revoked")
+	if in.Action != ActionRevoke && in.Action != ActionReissue {
+		return nil, apperrors.Validationf("invalid action")
+	}
+	if in.Reason == "" {
+		return nil, apperrors.Validationf("reason required")
 	}
 
 	req := &CertificateActionRequest{
-		ID:                  uuid.New(),
-		StudentCertificateID: cert.ID,
-		Action:              action,
-		Reason:              reason,
-		RequestedBy:         requestedBy,
-		Status:              ActionPending,
+		ID:                   uuid.New(),
+		StudentCertificateID: in.StudentCertificateID,
+		Action:               in.Action,
+		Reason:               in.Reason,
+		RequestedBy:          in.RequestedBy,
+		Status:               ActionPending,
 	}
-
 	if err := s.repo.CreateActionRequest(ctx, req); err != nil {
 		return nil, err
 	}
 	return req, nil
 }
 
-// ApproveActionRequest approves a cert action request and applies it.
-func (s *Service) ApproveActionRequest(ctx context.Context, reqID uuid.UUID, approverID uuid.UUID) error {
-	req, err := s.repo.GetActionRequestByID(ctx, reqID)
+// ApproveAction approves a pending action request and applies the
+// corresponding certificate state change (revoke or reissue). Idempotency is
+// enforced: an already-resolved request returns a validation error.
+func (s *Service) ApproveAction(ctx context.Context, requestID, approverID uuid.UUID) error {
+	req, err := s.repo.GetActionRequestByID(ctx, requestID)
 	if err != nil {
 		return err
 	}
 	if req.Status != ActionPending {
-		return apperrors.Validationf("request is not pending")
-	}
-
-	if err := s.repo.UpdateActionRequestStatus(ctx, reqID, ActionApproved, &approverID); err != nil {
-		return err
+		return apperrors.Validationf("action already resolved")
 	}
 
 	switch req.Action {
 	case ActionRevoke:
-		return s.repo.UpdateCertificateStatus(ctx, req.StudentCertificateID, CertRevoked)
+		if err := s.repo.RevokeCertificate(ctx, req.StudentCertificateID, approverID); err != nil {
+			return err
+		}
 	case ActionReissue:
-		// Original revoked, new cert issued via IssueCertificate (caller handles)
-		return s.repo.UpdateCertificateStatus(ctx, req.StudentCertificateID, CertRevoked)
+		if _, err := s.repo.ReissueCertificate(ctx, req.StudentCertificateID, approverID); err != nil {
+			return err
+		}
+	default:
+		return apperrors.Validationf("invalid action")
 	}
-	return nil
+
+	return s.repo.UpdateActionRequestStatus(ctx, requestID, ActionApproved, &approverID)
+}
+
+// RejectAction marks a pending action request as rejected. The certificate is
+// not modified.
+func (s *Service) RejectAction(ctx context.Context, requestID, reviewerID uuid.UUID) error {
+	req, err := s.repo.GetActionRequestByID(ctx, requestID)
+	if err != nil {
+		return err
+	}
+	if req.Status != ActionPending {
+		return apperrors.Validationf("action already resolved")
+	}
+	return s.repo.UpdateActionRequestStatus(ctx, requestID, ActionRejected, &reviewerID)
 }
 

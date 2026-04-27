@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
@@ -101,11 +102,17 @@ func (r *fakeCredRepo) GetCertificateConfigByCourse(ctx context.Context, courseI
 func (r *fakeCredRepo) CreateCertificate(ctx context.Context, c *Certificate) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	// Mirror the DB-level uq_student_cert_enrollment_config constraint.
+	// Mirror the DB-level partial unique index uq_student_cert_active:
+	// at most one non-revoked row per (enrollment_id, certificate_config_id).
 	for _, existing := range r.certificates {
-		if existing.EnrollmentID == c.EnrollmentID && existing.CertificateConfigID == c.CertificateConfigID {
+		if existing.EnrollmentID == c.EnrollmentID &&
+			existing.CertificateConfigID == c.CertificateConfigID &&
+			existing.Status != CertRevoked {
 			return apperrors.ErrConflict
 		}
+	}
+	if c.IssuedAt.IsZero() {
+		c.IssuedAt = time.Now().UTC()
 	}
 	r.certificates[c.ID] = c
 	r.certByNumber[c.CertificateNumber] = c
@@ -178,7 +185,67 @@ func (r *fakeCredRepo) UpdateActionRequestStatus(ctx context.Context, id uuid.UU
 	}
 	req.Status = status
 	req.ApprovedBy = approvedBy
+	now := time.Now().UTC()
+	req.ResolvedAt = &now
+	req.UpdatedAt = now
 	return nil
+}
+
+func (r *fakeCredRepo) RevokeCertificate(ctx context.Context, certID, revokerID uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	c, ok := r.certificates[certID]
+	if !ok {
+		return apperrors.ErrNotFound
+	}
+	now := time.Now().UTC()
+	c.Status = CertRevoked
+	c.RevokedAt = &now
+	revoker := revokerID
+	c.RevokedBy = &revoker
+	c.UpdatedAt = now
+	return nil
+}
+
+func (r *fakeCredRepo) ReissueCertificate(ctx context.Context, oldCertID, approverID uuid.UUID) (*Certificate, error) {
+	r.mu.Lock()
+	old, ok := r.certificates[oldCertID]
+	if !ok {
+		r.mu.Unlock()
+		return nil, apperrors.ErrNotFound
+	}
+	// Revoke old
+	now := time.Now().UTC()
+	old.Status = CertRevoked
+	old.RevokedAt = &now
+	revoker := approverID
+	old.RevokedBy = &revoker
+	old.UpdatedAt = now
+
+	// Allocate new number
+	year := now.Year()
+	r.seqs[year]++
+	number := fmt.Sprintf("VE-%d-%05d", year, r.seqs[year])
+	qrURL := verifyEndpointPrefix + number
+
+	newCert := &Certificate{
+		ID:                  uuid.New(),
+		EnrollmentID:        old.EnrollmentID,
+		CertificateTypeID:   old.CertificateTypeID,
+		CertificateConfigID: old.CertificateConfigID,
+		CertificateNumber:   number,
+		IssuedAt:            now,
+		Status:              CertIssued,
+		QRCodeURL:           &qrURL,
+		ExpiresAt:           old.ExpiresAt,
+		ReissuedFrom:        &oldCertID,
+		CreatedAt:           now,
+		UpdatedAt:           now,
+	}
+	r.certificates[newCert.ID] = newCert
+	r.certByNumber[newCert.CertificateNumber] = newCert
+	r.mu.Unlock()
+	return newCert, nil
 }
 
 // fakeBus is an in-memory events.Bus that records published events.

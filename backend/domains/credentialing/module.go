@@ -35,6 +35,6 @@ func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {
 
 		r.Get("/api/v1/enrollments/{enrollmentID}/certificates", h.ListCertificates)
 		r.Post("/api/v1/certificates/{id}/actions", h.RequestAction)
-		r.Post("/api/v1/certificate-actions/{id}/approve", h.ApproveActionRequest)
+		r.Post("/api/v1/certificate-actions/{id}/approve", h.ApproveAction)
 	})
 }
