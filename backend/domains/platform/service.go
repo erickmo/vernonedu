@@ -10,16 +10,33 @@ import (
 	"go.uber.org/zap"
 )
 
+// HasDeviceTokenFunc reports whether a user has a registered push device token.
+// Used by Send() to skip Push-channel notifications when the recipient cannot
+// receive them. The default implementation returns false; identity-domain wiring
+// is expected to override it later.
+type HasDeviceTokenFunc func(ctx context.Context, userID uuid.UUID) (bool, error)
+
 // Service holds platform notification logic.
 type Service struct {
 	repo Repository
 	bus  events.Bus
 	log  *zap.Logger
+
+	// HasDeviceTokenFn is used to gate Push-channel deliveries.
+	// Defaults to a stub returning (false, nil) until identity wiring is added.
+	HasDeviceTokenFn HasDeviceTokenFunc
 }
 
 // NewService constructs platform Service.
 func NewService(repo Repository, bus events.Bus, log *zap.Logger) *Service {
-	return &Service{repo: repo, bus: bus, log: log}
+	return &Service{
+		repo: repo,
+		bus:  bus,
+		log:  log,
+		HasDeviceTokenFn: func(context.Context, uuid.UUID) (bool, error) {
+			return false, nil
+		},
+	}
 }
 
 // CreateTemplate creates a new active notification template.
@@ -68,14 +85,61 @@ type SendInput struct {
 }
 
 // Send creates and dispatches a notification.
+//
+// Behaviour (per platform spec):
+//   - Missing or inactive template       → silent skip, returns (nil, nil)
+//   - Preference exists with enabled=false → silent skip, returns (nil, nil)
+//   - Push channel without device_token  → silent skip, returns (nil, nil)
+//   - Template body references a variable not in Variables → returns (nil, ErrMissingVariable)
+//   - Otherwise creates a pending notification
 func (s *Service) Send(ctx context.Context, in SendInput) (*Notification, error) {
 	template, err := s.repo.GetTemplateByKey(ctx, in.TemplateKey, in.Channel)
 	if err != nil {
-		s.log.Warn("notification template not found",
-			zap.String("key", in.TemplateKey),
-			zap.String("channel", string(in.Channel)),
-		)
+		if errors.Is(err, apperrors.ErrNotFound) {
+			s.log.Warn("notification template not found",
+				zap.String("key", in.TemplateKey),
+				zap.String("channel", string(in.Channel)),
+			)
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// Preference check — absence treated as enabled.
+	pref, err := s.repo.GetPreference(ctx, in.RecipientID, in.TemplateKey, in.Channel)
+	if err != nil && !errors.Is(err, apperrors.ErrNotFound) {
+		return nil, err
+	}
+	if pref != nil && !pref.Enabled {
 		return nil, nil
+	}
+
+	// Push channel requires a registered device token.
+	if in.Channel == ChannelPush {
+		ok, err := s.HasDeviceTokenFn(ctx, in.RecipientID)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, nil
+		}
+	}
+
+	// Validate template variables: render body (and subject if present).
+	// Missing keys → ErrMissingVariable, no record is created.
+	if _, err := Render(template.Body, in.Variables); err != nil {
+		if errors.Is(err, ErrMissingVariable) {
+			return nil, ErrMissingVariable
+		}
+		return nil, err
+	}
+	if template.Subject != nil {
+		if _, err := Render(*template.Subject, in.Variables); err != nil {
+			if errors.Is(err, ErrMissingVariable) {
+				return nil, ErrMissingVariable
+			}
+			return nil, err
+		}
 	}
 
 	n := &Notification{
