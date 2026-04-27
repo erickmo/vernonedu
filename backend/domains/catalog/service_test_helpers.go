@@ -19,6 +19,7 @@ type fakeCatalogRepo struct {
 	classes        map[uuid.UUID]*Class
 	modules        map[uuid.UUID]*CourseModule
 	moduleVersions map[uuid.UUID]*ModuleVersion
+	formatConfigs  map[uuid.UUID]*CourseFormatConfig
 }
 
 var _ Repository = (*fakeCatalogRepo)(nil)
@@ -30,7 +31,56 @@ func newFakeCatalogRepo() *fakeCatalogRepo {
 		classes:        map[uuid.UUID]*Class{},
 		modules:        map[uuid.UUID]*CourseModule{},
 		moduleVersions: map[uuid.UUID]*ModuleVersion{},
+		formatConfigs:  map[uuid.UUID]*CourseFormatConfig{},
 	}
+}
+
+func (r *fakeCatalogRepo) AddFormatConfig(ctx context.Context, cfg *CourseFormatConfig) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, existing := range r.formatConfigs {
+		if existing.CourseID == cfg.CourseID && existing.Format == cfg.Format {
+			return apperrors.ErrConflict
+		}
+	}
+	now := time.Now()
+	cfg.CreatedAt = now
+	cfg.UpdatedAt = now
+	r.formatConfigs[cfg.ID] = cfg
+	return nil
+}
+
+func (r *fakeCatalogRepo) DisableFormat(ctx context.Context, configID uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	cfg, ok := r.formatConfigs[configID]
+	if !ok {
+		return apperrors.ErrNotFound
+	}
+	cfg.IsEnabled = false
+	cfg.UpdatedAt = time.Now()
+	return nil
+}
+
+func (r *fakeCatalogRepo) ListFormatConfigsByCourse(ctx context.Context, courseID uuid.UUID) ([]*CourseFormatConfig, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := make([]*CourseFormatConfig, 0)
+	for _, cfg := range r.formatConfigs {
+		if cfg.CourseID == courseID {
+			out = append(out, cfg)
+		}
+	}
+	return out, nil
+}
+
+func (r *fakeCatalogRepo) GetFormatConfig(ctx context.Context, id uuid.UUID) (*CourseFormatConfig, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if cfg, ok := r.formatConfigs[id]; ok {
+		return cfg, nil
+	}
+	return nil, apperrors.ErrNotFound
 }
 
 // SeedCourse inserts a fully-formed course for tests.

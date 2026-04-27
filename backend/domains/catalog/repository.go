@@ -7,9 +7,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 )
+
+// pgUniqueViolation is the SQLSTATE code for unique constraint violations.
+const pgUniqueViolation = "23505"
 
 // Repository defines catalog data access.
 type Repository interface {
@@ -33,6 +37,11 @@ type Repository interface {
 
 	CreateModuleVersion(ctx context.Context, mv *ModuleVersion) error
 	GetModuleVersionByID(ctx context.Context, id uuid.UUID) (*ModuleVersion, error)
+
+	AddFormatConfig(ctx context.Context, cfg *CourseFormatConfig) error
+	DisableFormat(ctx context.Context, configID uuid.UUID) error
+	ListFormatConfigsByCourse(ctx context.Context, courseID uuid.UUID) ([]*CourseFormatConfig, error)
+	GetFormatConfig(ctx context.Context, id uuid.UUID) (*CourseFormatConfig, error)
 }
 
 type repository struct {
@@ -314,6 +323,81 @@ func (r *repository) CreateModuleVersion(ctx context.Context, mv *ModuleVersion)
 		return fmt.Errorf("catalog.CreateModuleVersion: %w", err)
 	}
 	return nil
+}
+
+func (r *repository) AddFormatConfig(ctx context.Context, cfg *CourseFormatConfig) error {
+	query := `
+		INSERT INTO catalog.course_format_configs
+			(id, course_id, format, is_enabled, min_students, max_students, mode_online, mode_offline)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING created_at, updated_at`
+
+	err := r.pool.QueryRow(ctx, query,
+		cfg.ID, cfg.CourseID, cfg.Format, cfg.IsEnabled, cfg.MinStudents, cfg.MaxStudents,
+		cfg.ModeOnline, cfg.ModeOffline,
+	).Scan(&cfg.CreatedAt, &cfg.UpdatedAt)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolation {
+			return apperrors.ErrConflict
+		}
+		return fmt.Errorf("catalog.AddFormatConfig: %w", err)
+	}
+	return nil
+}
+
+func (r *repository) DisableFormat(ctx context.Context, configID uuid.UUID) error {
+	query := `UPDATE catalog.course_format_configs SET is_enabled=false WHERE id=$1`
+	ct, err := r.pool.Exec(ctx, query, configID)
+	if err != nil {
+		return fmt.Errorf("catalog.DisableFormat: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) ListFormatConfigsByCourse(ctx context.Context, courseID uuid.UUID) ([]*CourseFormatConfig, error) {
+	query := `SELECT id, course_id, format, is_enabled, min_students, max_students, mode_online, mode_offline, created_at, updated_at
+	          FROM catalog.course_format_configs WHERE course_id=$1 ORDER BY format`
+
+	rows, err := r.pool.Query(ctx, query, courseID)
+	if err != nil {
+		return nil, fmt.Errorf("catalog.ListFormatConfigsByCourse: %w", err)
+	}
+	defer rows.Close()
+
+	var configs []*CourseFormatConfig
+	for rows.Next() {
+		cfg := &CourseFormatConfig{}
+		if err := rows.Scan(&cfg.ID, &cfg.CourseID, &cfg.Format, &cfg.IsEnabled,
+			&cfg.MinStudents, &cfg.MaxStudents, &cfg.ModeOnline, &cfg.ModeOffline,
+			&cfg.CreatedAt, &cfg.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("catalog.ListFormatConfigsByCourse scan: %w", err)
+		}
+		configs = append(configs, cfg)
+	}
+	return configs, rows.Err()
+}
+
+func (r *repository) GetFormatConfig(ctx context.Context, id uuid.UUID) (*CourseFormatConfig, error) {
+	query := `SELECT id, course_id, format, is_enabled, min_students, max_students, mode_online, mode_offline, created_at, updated_at
+	          FROM catalog.course_format_configs WHERE id=$1`
+
+	cfg := &CourseFormatConfig{}
+	err := r.pool.QueryRow(ctx, query, id).Scan(
+		&cfg.ID, &cfg.CourseID, &cfg.Format, &cfg.IsEnabled,
+		&cfg.MinStudents, &cfg.MaxStudents, &cfg.ModeOnline, &cfg.ModeOffline,
+		&cfg.CreatedAt, &cfg.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("catalog.GetFormatConfig: %w", err)
+	}
+	return cfg, nil
 }
 
 func (r *repository) GetModuleVersionByID(ctx context.Context, id uuid.UUID) (*ModuleVersion, error) {

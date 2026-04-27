@@ -191,6 +191,48 @@ func (s *Service) ListModulesByCourse(ctx context.Context, courseID uuid.UUID) (
 	return s.repo.ListModulesByCourse(ctx, courseID)
 }
 
+// AddFormatConfigInput is structured input for adding a course format config.
+type AddFormatConfigInput struct {
+	CourseID    uuid.UUID
+	Format      CourseFormat
+	MinStudents *int
+	MaxStudents *int
+	ModeOnline  bool
+	ModeOffline bool
+}
+
+// AddFormatConfig adds a per-format config for a course. Returns ErrConflict
+// if a config for the same (course, format) already exists.
+func (s *Service) AddFormatConfig(ctx context.Context, in AddFormatConfigInput) (*CourseFormatConfig, error) {
+	if in.MinStudents != nil && in.MaxStudents != nil && *in.MinStudents > *in.MaxStudents {
+		return nil, apperrors.Validationf("min_students cannot exceed max_students")
+	}
+	cfg := &CourseFormatConfig{
+		ID:          uuid.New(),
+		CourseID:    in.CourseID,
+		Format:      in.Format,
+		IsEnabled:   true,
+		MinStudents: in.MinStudents,
+		MaxStudents: in.MaxStudents,
+		ModeOnline:  in.ModeOnline,
+		ModeOffline: in.ModeOffline,
+	}
+	if err := s.repo.AddFormatConfig(ctx, cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+// DisableFormat marks a format config as disabled.
+func (s *Service) DisableFormat(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DisableFormat(ctx, id)
+}
+
+// ListFormatConfigs returns all format configs for a course.
+func (s *Service) ListFormatConfigs(ctx context.Context, courseID uuid.UUID) ([]*CourseFormatConfig, error) {
+	return s.repo.ListFormatConfigsByCourse(ctx, courseID)
+}
+
 // CreateModuleVersion creates a new version of a module.
 func (s *Service) CreateModuleVersion(ctx context.Context, mv *ModuleVersion) error {
 	mv.ID = uuid.New()
