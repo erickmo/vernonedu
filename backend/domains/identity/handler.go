@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/vernonedu/vernonedu2/backend/internal/config"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
@@ -76,20 +74,14 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.svc.Login(r.Context(), req.Email, req.Password)
+	out, err := h.svc.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
 		apperrors.Render(w, err)
 		return
 	}
 
-	token, err := h.generateJWT(user)
-	if err != nil {
-		apperrors.Render(w, apperrors.ErrInternal)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(map[string]string{"token": token})
+	_ = json.NewEncoder(w).Encode(map[string]string{"token": out.Token})
 }
 
 func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
@@ -168,14 +160,3 @@ func (h *Handler) ListDepartments(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(depts)
 }
 
-func (h *Handler) generateJWT(user *User) (string, error) {
-	claims := jwt.MapClaims{
-		"sub":   user.ID.String(),
-		"email": user.Email,
-		"role":  string(user.Role),
-		"exp":   time.Now().Add(time.Duration(h.cfg.JWT.ExpiryHours) * time.Hour).Unix(),
-		"iat":   time.Now().Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(h.cfg.JWT.Secret))
-}

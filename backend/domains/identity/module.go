@@ -1,21 +1,30 @@
 package identity
 
 import (
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/vernonedu/vernonedu2/backend/internal/config"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	mw "github.com/vernonedu/vernonedu2/backend/internal/middleware"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 // Module wires identity domain via FX.
 var Module = fx.Options(
 	fx.Provide(NewRepository),
-	fx.Provide(NewService),
+	fx.Provide(provideService),
 	fx.Provide(NewHandler),
 	fx.Invoke(RegisterRoutes),
 	fx.Invoke(RegisterSubscriptions),
 )
+
+// provideService adapts NewService to fx by reading JWT settings from config.
+func provideService(repo Repository, bus events.Bus, log *zap.Logger, cfg *config.Config) *Service {
+	expiry := time.Duration(cfg.JWT.ExpiryHours) * time.Hour
+	return NewService(repo, bus, log, cfg.JWT.Secret, expiry)
+}
 
 // RegisterRoutes mounts identity HTTP routes on the Chi router.
 func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {

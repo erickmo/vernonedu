@@ -3,11 +3,17 @@ package identity
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	"go.uber.org/zap"
+)
+
+const (
+	testJWTSecret = "test-secret-do-not-use-in-prod"
+	testJWTExpiry = 24 * time.Hour
 )
 
 // fakeRepo is an in-memory Repository implementation for service tests.
@@ -43,6 +49,22 @@ func (r *fakeRepo) SeedUserEmail(email string) {
 	u := &User{ID: uuid.New(), Email: email, IsActive: true, Role: RoleStudent}
 	r.users[u.ID] = u
 	r.byEmail[email] = u
+}
+
+// SeedUser inserts a fully-formed user with the given password hash and role.
+func (r *fakeRepo) SeedUser(email, hash string, role UserRole) *User {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	u := &User{
+		ID:           uuid.New(),
+		Email:        email,
+		PasswordHash: hash,
+		Role:         role,
+		IsActive:     true,
+	}
+	r.users[u.ID] = u
+	r.byEmail[email] = u
+	return u
 }
 
 func (r *fakeRepo) CreateUser(ctx context.Context, user *User) error {

@@ -11,7 +11,7 @@ func TestRegisterStudent_CreatesUserAndStudent(t *testing.T) {
 	ctx := context.Background()
 	repo := newFakeRepo()
 	bus := newFakeBus()
-	svc := NewService(repo, bus, testLogger())
+	svc := NewService(repo, bus, testLogger(), testJWTSecret, testJWTExpiry)
 
 	out, err := svc.RegisterStudent(ctx, RegisterInput{
 		Name:     "Alice",
@@ -41,7 +41,7 @@ func TestRegisterStudent_RejectsDuplicateEmail(t *testing.T) {
 	ctx := context.Background()
 	repo := newFakeRepo()
 	repo.SeedUserEmail("a@example.com")
-	svc := NewService(repo, newFakeBus(), testLogger())
+	svc := NewService(repo, newFakeBus(), testLogger(), testJWTSecret, testJWTExpiry)
 
 	_, err := svc.RegisterStudent(ctx, RegisterInput{
 		Name:     "Alice",

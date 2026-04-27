@@ -3,7 +3,9 @@ package identity
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
@@ -12,14 +14,22 @@ import (
 
 // Service exposes identity domain business logic.
 type Service struct {
-	repo Repository
-	bus  events.Bus
-	log  *zap.Logger
+	repo      Repository
+	bus       events.Bus
+	log       *zap.Logger
+	jwtSecret string
+	jwtExpiry time.Duration
 }
 
 // NewService constructs an identity Service.
-func NewService(repo Repository, bus events.Bus, log *zap.Logger) *Service {
-	return &Service{repo: repo, bus: bus, log: log}
+func NewService(repo Repository, bus events.Bus, log *zap.Logger, jwtSecret string, jwtExpiry time.Duration) *Service {
+	return &Service{
+		repo:      repo,
+		bus:       bus,
+		log:       log,
+		jwtSecret: jwtSecret,
+		jwtExpiry: jwtExpiry,
+	}
 }
 
 // RegisterInput is the data needed to create a new user + student.
@@ -131,22 +141,57 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*User, error)
 	return user, nil
 }
 
-// Login validates credentials and returns the user.
-func (s *Service) Login(ctx context.Context, email, password string) (*User, error) {
+// LoginOutput is returned by Login: authenticated user + signed JWT.
+type LoginOutput struct {
+	User  User
+	Token string
+}
+
+// Login validates credentials and returns the user with a signed JWT.
+func (s *Service) Login(ctx context.Context, email, password string) (*LoginOutput, error) {
 	user, err := s.repo.GetUserByEmail(ctx, email)
-	if err != nil {
+	if err != nil || user == nil {
 		return nil, apperrors.ErrUnauthorized
 	}
 
 	if !user.IsActive {
-		return nil, apperrors.Validationf("account is deactivated")
+		return nil, apperrors.ErrUnauthorized
 	}
 
 	if !VerifyPassword(user.PasswordHash, password) {
 		return nil, apperrors.ErrUnauthorized
 	}
 
-	return user, nil
+	token, err := s.issueJWT(user)
+	if err != nil {
+		return nil, fmt.Errorf("identity.Login issue jwt: %w", err)
+	}
+
+	return &LoginOutput{User: *user, Token: token}, nil
+}
+
+// jwtClaims mirrors internal/middleware.jwtClaims so the middleware can
+// validate tokens issued by this service. Keep the JSON tags aligned.
+type jwtClaims struct {
+	jwt.RegisteredClaims
+	Role  string `json:"role"`
+	Email string `json:"email"`
+}
+
+// issueJWT signs an HS256 JWT for the given user using the configured secret.
+func (s *Service) issueJWT(u *User) (string, error) {
+	now := time.Now()
+	claims := jwtClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   u.ID.String(),
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(s.jwtExpiry)),
+		},
+		Role:  string(u.Role),
+		Email: u.Email,
+	}
+	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return tok.SignedString([]byte(s.jwtSecret))
 }
 
 // GetUser fetches a user by ID.
