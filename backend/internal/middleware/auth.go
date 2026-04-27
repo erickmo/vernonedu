@@ -27,6 +27,11 @@ func GetUserContext(ctx context.Context) *UserContext {
 	return v
 }
 
+// WithUserContext injects a UserContext into ctx — used in tests.
+func WithUserContext(ctx context.Context, uc *UserContext) context.Context {
+	return context.WithValue(ctx, userContextKey, uc)
+}
+
 // JWT returns a middleware that validates Bearer tokens and injects UserContext.
 func JWT(secret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
