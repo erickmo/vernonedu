@@ -23,6 +23,7 @@ type fakeRepo struct {
 	byEmail     map[string]*User
 	students    map[uuid.UUID]*Student
 	studentByU  map[uuid.UUID]*Student
+	profiles    map[uuid.UUID]*StudentProfile
 	teamMembers map[uuid.UUID]*TeamMember
 	departments map[uuid.UUID]*Department
 	proposals   map[uuid.UUID]*FacilitatorProposal
@@ -36,6 +37,7 @@ func newFakeRepo() *fakeRepo {
 		byEmail:     map[string]*User{},
 		students:    map[uuid.UUID]*Student{},
 		studentByU:  map[uuid.UUID]*Student{},
+		profiles:    map[uuid.UUID]*StudentProfile{},
 		teamMembers: map[uuid.UUID]*TeamMember{},
 		departments: map[uuid.UUID]*Department{},
 		proposals:   map[uuid.UUID]*FacilitatorProposal{},
@@ -116,6 +118,82 @@ func (r *fakeRepo) DeactivateUser(ctx context.Context, id uuid.UUID) error {
 	}
 	u.IsActive = false
 	return nil
+}
+
+// SeedStudent inserts a minimal student record (and matching user) for tests.
+func (r *fakeRepo) SeedStudent(email string, source StudentSource) *Student {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	u := &User{ID: uuid.New(), Email: email, IsActive: true, Role: RoleStudent}
+	r.users[u.ID] = u
+	r.byEmail[email] = u
+	s := &Student{
+		ID:     uuid.New(),
+		UserID: u.ID,
+		Email:  email,
+		Source: source,
+	}
+	r.students[s.ID] = s
+	r.studentByU[u.ID] = s
+	return s
+}
+
+// GetProfile returns the seeded/upserted student profile for inspection.
+func (r *fakeRepo) GetProfile(studentID uuid.UUID) *StudentProfile {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.profiles[studentID]
+}
+
+func (r *fakeRepo) GetStudentProfileByStudentID(ctx context.Context, studentID uuid.UUID) (*StudentProfile, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if p, ok := r.profiles[studentID]; ok {
+		return p, nil
+	}
+	return nil, apperrors.ErrNotFound
+}
+
+func (r *fakeRepo) UpsertStudentProfile(ctx context.Context, studentID uuid.UUID, in ProfileInput, complete bool) (*StudentProfile, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now()
+	p, ok := r.profiles[studentID]
+	if !ok {
+		p = &StudentProfile{
+			ID:        uuid.New(),
+			StudentID: studentID,
+			CreatedAt: now,
+		}
+	}
+	if in.DateOfBirth != nil {
+		p.DateOfBirth = in.DateOfBirth
+	}
+	if in.Gender != nil {
+		p.Gender = in.Gender
+	}
+	if in.IDType != nil {
+		p.IDType = in.IDType
+	}
+	if in.IDNumber != nil {
+		p.IDNumber = in.IDNumber
+	}
+	if in.Address != nil {
+		p.Address = in.Address
+	}
+	if in.City != nil {
+		p.City = in.City
+	}
+	if in.Province != nil {
+		p.Province = in.Province
+	}
+	if in.PostalCode != nil {
+		p.PostalCode = in.PostalCode
+	}
+	p.ProfileComplete = complete
+	p.UpdatedAt = now
+	r.profiles[studentID] = p
+	return p, nil
 }
 
 func (r *fakeRepo) CreateStudent(ctx context.Context, s *Student) error {

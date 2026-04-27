@@ -25,6 +25,9 @@ type Repository interface {
 	GetStudentByUserID(ctx context.Context, userID uuid.UUID) (*Student, error)
 	ListStudents(ctx context.Context, limit, offset int) ([]*Student, error)
 
+	GetStudentProfileByStudentID(ctx context.Context, studentID uuid.UUID) (*StudentProfile, error)
+	UpsertStudentProfile(ctx context.Context, studentID uuid.UUID, in ProfileInput, complete bool) (*StudentProfile, error)
+
 	CreateTeamMember(ctx context.Context, tm *TeamMember) error
 	GetTeamMemberByID(ctx context.Context, id uuid.UUID) (*TeamMember, error)
 	UpdateTeamMemberStatus(ctx context.Context, id uuid.UUID, status EmploymentStatus) error
@@ -199,6 +202,60 @@ func (r *repository) ListStudents(ctx context.Context, limit, offset int) ([]*St
 		students = append(students, s)
 	}
 	return students, rows.Err()
+}
+
+func (r *repository) GetStudentProfileByStudentID(ctx context.Context, studentID uuid.UUID) (*StudentProfile, error) {
+	query := `SELECT id, student_id, date_of_birth, gender, id_type, id_number,
+	                 address, city, province, postal_code, profile_complete, created_at, updated_at
+	          FROM identity.student_profiles WHERE student_id = $1`
+
+	p := &StudentProfile{}
+	err := r.pool.QueryRow(ctx, query, studentID).Scan(
+		&p.ID, &p.StudentID, &p.DateOfBirth, &p.Gender, &p.IDType, &p.IDNumber,
+		&p.Address, &p.City, &p.Province, &p.PostalCode, &p.ProfileComplete,
+		&p.CreatedAt, &p.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("identity.GetStudentProfileByStudentID: %w", err)
+	}
+	return p, nil
+}
+
+func (r *repository) UpsertStudentProfile(ctx context.Context, studentID uuid.UUID, in ProfileInput, complete bool) (*StudentProfile, error) {
+	query := `
+		INSERT INTO identity.student_profiles
+		  (student_id, date_of_birth, gender, id_type, id_number,
+		   address, city, province, postal_code, profile_complete)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+		ON CONFLICT (student_id) DO UPDATE SET
+		  date_of_birth    = COALESCE(EXCLUDED.date_of_birth,    identity.student_profiles.date_of_birth),
+		  gender           = COALESCE(EXCLUDED.gender,           identity.student_profiles.gender),
+		  id_type          = COALESCE(EXCLUDED.id_type,          identity.student_profiles.id_type),
+		  id_number        = COALESCE(EXCLUDED.id_number,        identity.student_profiles.id_number),
+		  address          = COALESCE(EXCLUDED.address,          identity.student_profiles.address),
+		  city             = COALESCE(EXCLUDED.city,             identity.student_profiles.city),
+		  province         = COALESCE(EXCLUDED.province,         identity.student_profiles.province),
+		  postal_code      = COALESCE(EXCLUDED.postal_code,      identity.student_profiles.postal_code),
+		  profile_complete = EXCLUDED.profile_complete
+		RETURNING id, student_id, date_of_birth, gender, id_type, id_number,
+		          address, city, province, postal_code, profile_complete, created_at, updated_at`
+
+	p := &StudentProfile{}
+	err := r.pool.QueryRow(ctx, query,
+		studentID, in.DateOfBirth, in.Gender, in.IDType, in.IDNumber,
+		in.Address, in.City, in.Province, in.PostalCode, complete,
+	).Scan(
+		&p.ID, &p.StudentID, &p.DateOfBirth, &p.Gender, &p.IDType, &p.IDNumber,
+		&p.Address, &p.City, &p.Province, &p.PostalCode, &p.ProfileComplete,
+		&p.CreatedAt, &p.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("identity.UpsertStudentProfile: %w", err)
+	}
+	return p, nil
 }
 
 func (r *repository) CreateTeamMember(ctx context.Context, tm *TeamMember) error {

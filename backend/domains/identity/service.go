@@ -2,6 +2,7 @@ package identity
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -211,6 +212,62 @@ func (s *Service) DeactivateUser(ctx context.Context, id uuid.UUID) error {
 	})
 
 	return nil
+}
+
+// Profile field constants. Values match identity.gender_type / id_card_type enums.
+const (
+	GenderMale     = "male"
+	GenderFemale   = "female"
+	IDTypeKTP      = "ktp"
+	IDTypePassport = "passport"
+	IDTypeSIM      = "sim"
+)
+
+// ProfileInput captures partial or full student profile data.
+// All fields are optional; HasAllRequired determines profile completion.
+type ProfileInput struct {
+	DateOfBirth *time.Time
+	Gender      *string
+	IDType      *string
+	IDNumber    *string
+	Address     *string
+	City        *string
+	Province    *string
+	PostalCode  *string
+}
+
+// HasAllRequired returns true when every profile field is populated.
+func (in ProfileInput) HasAllRequired() bool {
+	return in.DateOfBirth != nil &&
+		nonEmpty(in.Gender) && nonEmpty(in.IDType) && nonEmpty(in.IDNumber) &&
+		nonEmpty(in.Address) && nonEmpty(in.City) &&
+		nonEmpty(in.Province) && nonEmpty(in.PostalCode)
+}
+
+func nonEmpty(s *string) bool { return s != nil && *s != "" }
+
+// UpdateStudentProfile upserts the student profile and emits
+// student.profile_completed exactly once when the profile transitions
+// from incomplete to complete.
+func (s *Service) UpdateStudentProfile(ctx context.Context, studentID uuid.UUID, in ProfileInput) (*StudentProfile, error) {
+	prev, err := s.repo.GetStudentProfileByStudentID(ctx, studentID)
+	if err != nil && !errors.Is(err, apperrors.ErrNotFound) {
+		return nil, err
+	}
+
+	complete := in.HasAllRequired()
+	p, err := s.repo.UpsertStudentProfile(ctx, studentID, in, complete)
+	if err != nil {
+		return nil, err
+	}
+
+	if complete && (prev == nil || !prev.ProfileComplete) {
+		_ = s.bus.Publish(ctx, events.Event{
+			Type:    events.StudentProfileCompleted,
+			Payload: map[string]any{"student_id": studentID},
+		})
+	}
+	return p, nil
 }
 
 // GetStudentByID fetches student by primary key.

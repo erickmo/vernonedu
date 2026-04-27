@@ -26,6 +26,8 @@ const (
 	TeamMemberCreated       EventType = "team_member.created"
 	TeamMemberStatusChanged EventType = "team_member.status_changed"
 
+	StudentProfileCompleted EventType = "student.profile_completed"
+
 	InvoiceSent    EventType = "invoice.sent"
 	InvoiceOverdue EventType = "invoice.overdue"
 
