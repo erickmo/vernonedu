@@ -37,6 +37,83 @@
 
 ---
 
+## Task 1.5: Calendar schema migration + sqlc
+
+Audit (GAPS.md) found `calendar_events`, `calendar_attendees`, `calendar_sync` tables absent from `000007_init_platform.up.sql`. Add them before any calendar-related task.
+
+**Files:**
+- Create: `backend/migrations/000008_init_calendar.up.sql` (and matching `.down.sql`)
+- Modify: `backend/sqlc/platform.sql` — add CalendarEvent / CalendarAttendee / CalendarSync queries
+- Run: `sqlc generate` (regenerates `backend/internal/db/generated/platform.sql.go`)
+
+- [ ] **Step 1: Schema (per `docs/domains/calendar/spec.md`)**
+
+```sql
+CREATE TYPE calendar_event_type AS ENUM (
+  'class_session','payment_due','partner_meeting','manual_internal','manual_personal'
+);
+
+CREATE TYPE calendar_rsvp_status AS ENUM ('pending','accepted','declined','tentative');
+
+CREATE TABLE calendar_events (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title           TEXT NOT NULL,
+  description     TEXT,
+  event_type      calendar_event_type NOT NULL,
+  start_at        TIMESTAMPTZ NOT NULL,
+  end_at          TIMESTAMPTZ NOT NULL,
+  location        TEXT,
+  rrule           TEXT,
+  source_domain   TEXT,                -- e.g., 'course','payment','partnership'
+  source_id       UUID,                -- FK varies by source_domain
+  created_by      UUID,                -- nullable for auto-created
+  reminder_fired_at TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_calendar_events_start_at ON calendar_events(start_at);
+CREATE INDEX idx_calendar_events_source ON calendar_events(source_domain, source_id);
+
+CREATE TABLE calendar_attendees (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id      UUID NOT NULL REFERENCES calendar_events(id) ON DELETE CASCADE,
+  user_id       UUID NOT NULL,
+  role          TEXT NOT NULL,                  -- organizer | attendee | optional
+  rsvp_status   calendar_rsvp_status NOT NULL DEFAULT 'pending',
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(event_id, user_id)
+);
+CREATE INDEX idx_calendar_attendees_user ON calendar_attendees(user_id);
+
+CREATE TABLE calendar_sync (
+  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id             UUID NOT NULL UNIQUE,
+  provider            TEXT NOT NULL,            -- 'google'
+  access_token_enc    BYTEA NOT NULL,
+  refresh_token_enc   BYTEA NOT NULL,
+  token_expires_at    TIMESTAMPTZ NOT NULL,
+  external_calendar_id TEXT,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+`.down.sql` drops in reverse order.
+
+- [ ] **Step 2: Add sqlc queries** for: CreateEvent, GetEvent, ListEventsByUser, UpdateEvent, DeleteEvent, AddAttendee, RemoveAttendee, ListAttendeesByEvent, ListEventsNeedingReminder (`reminder_fired_at IS NULL AND start_at BETWEEN now()+interval '60 min' AND now()+interval '65 min'`), MarkReminderFired, UpsertCalendarSync, GetCalendarSyncByUser.
+
+- [ ] **Step 3: Run** `cd backend && sqlc generate`. Verify `internal/db/generated/platform.sql.go` builds.
+
+- [ ] **Step 4: Apply migration locally** with `migrate -path backend/migrations -database "$DATABASE_URL" up`.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git commit -m "feat(platform): calendar schema migration + sqlc queries"
+```
+
+---
+
 ## Task 2: NotificationTemplate CRUD
 
 **Files:**
