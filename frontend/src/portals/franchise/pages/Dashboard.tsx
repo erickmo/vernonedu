@@ -29,7 +29,7 @@ function SummaryCard({
   color: string
 }) {
   return (
-    <div className="bg-white rounded-xl border border-border p-5">
+    <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-neutral-500">{title}</p>
@@ -79,7 +79,7 @@ export default function FranchiseDashboard() {
         />
       </div>
 
-      <div className="bg-white rounded-xl border border-border p-5">
+      <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5">
         <h2 className="font-semibold text-neutral-800 mb-4">Monthly Revenue vs Royalty</h2>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={MOCK_MONTHLY_DATA} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
@@ -104,7 +104,7 @@ export default function FranchiseDashboard() {
         </ResponsiveContainer>
       </div>
 
-      <div className="bg-white rounded-xl border border-border p-5">
+      <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5">
         <h2 className="font-semibold text-neutral-800 mb-4">Royalty Status</h2>
         <div className="space-y-3">
           {MOCK_MONTHLY_DATA.slice().reverse().map((row) => (

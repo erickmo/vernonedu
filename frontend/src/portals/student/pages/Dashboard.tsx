@@ -128,7 +128,7 @@ export default function StudentDashboard() {
           Keep the streak alive
         </div>
 
-        <div className="relative max-w-2xl space-y-3">
+        <div className="relative space-y-3">
           <p className="text-sm text-white/70 font-medium">Welcome back</p>
           <h1 className="text-3xl md:text-4xl font-bold leading-tight">
             Hi {firstName}, {isCompleting ? 'almost there!' : "let's keep learning."}
