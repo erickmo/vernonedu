@@ -69,6 +69,13 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*User, error)
 		if err := s.repo.CreateStudent(ctx, student); err != nil {
 			return nil, err
 		}
+		profile := &StudentProfile{
+			ID:        uuid.New(),
+			StudentID: student.ID,
+		}
+		if err := s.repo.CreateStudentProfile(ctx, profile); err != nil {
+			return nil, err
+		}
 	}
 
 	_ = s.bus.Publish(ctx, events.Event{
@@ -114,24 +121,6 @@ func (s *Service) DeactivateUser(ctx context.Context, id uuid.UUID) error {
 	})
 
 	return nil
-}
-
-// GetStudentByID fetches student by primary key.
-func (s *Service) GetStudentByID(ctx context.Context, id uuid.UUID) (*Student, error) {
-	return s.repo.GetStudentByID(ctx, id)
-}
-
-// GetStudentByUserID fetches the student profile linked to a user.
-func (s *Service) GetStudentByUserID(ctx context.Context, userID uuid.UUID) (*Student, error) {
-	return s.repo.GetStudentByUserID(ctx, userID)
-}
-
-// ListStudents paginates the student list.
-func (s *Service) ListStudents(ctx context.Context, limit, offset int) ([]*Student, error) {
-	if limit <= 0 || limit > 100 {
-		limit = 20
-	}
-	return s.repo.ListStudents(ctx, limit, offset)
 }
 
 // CreateTeamMember creates a team member record.

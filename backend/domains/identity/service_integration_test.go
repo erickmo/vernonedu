@@ -171,3 +171,31 @@ func TestLogin_DeactivatedUser(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "deactivated")
 }
+
+func TestRegister_AutoCreatesStudentProfile(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	truncateIdentity(t, pool)
+
+	svc := newTestService(t, pool)
+	ctx := context.Background()
+
+	user, err := svc.Register(ctx, identity.RegisterInput{
+		Email:    "profiletest@test.local",
+		Password: "secret123",
+		Name:     "Profile Test",
+		Phone:    "0812",
+		Role:     identity.RoleStudent,
+		Source:   identity.SourceB2C,
+	})
+	require.NoError(t, err)
+
+	student, err := svc.GetStudentByUserID(ctx, user.ID)
+	require.NoError(t, err)
+
+	profile, err := svc.GetStudentProfile(ctx, student.ID)
+	require.NoError(t, err)
+	require.NotNil(t, profile)
+	require.Equal(t, student.ID, profile.StudentID)
+	require.False(t, profile.ProfileComplete)
+}

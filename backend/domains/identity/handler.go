@@ -3,7 +3,6 @@ package identity
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -107,38 +106,6 @@ func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(user)
-}
-
-func (h *Handler) ListStudents(w http.ResponseWriter, r *http.Request) {
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
-
-	students, err := h.svc.ListStudents(r.Context(), limit, offset)
-	if err != nil {
-		apperrors.Render(w, err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(students)
-}
-
-func (h *Handler) GetStudent(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		apperrors.Render(w, apperrors.Validationf("invalid student id"))
-		return
-	}
-
-	student, err := h.svc.GetStudentByID(r.Context(), id)
-	if err != nil {
-		apperrors.Render(w, err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(student)
 }
 
 func (h *Handler) DeactivateUser(w http.ResponseWriter, r *http.Request) {

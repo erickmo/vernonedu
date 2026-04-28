@@ -152,3 +152,36 @@ type FacilitatorProposal struct {
 	CreatedAt                time.Time      `json:"created_at"`
 	UpdatedAt                time.Time      `json:"updated_at"`
 }
+
+// StudentFilter holds parameters for filtered student queries.
+type StudentFilter struct {
+	Source          *StudentSource
+	PartnerID       *uuid.UUID
+	Search          string
+	ProfileComplete *bool
+	SortBy          string
+	SortDir         string
+	Limit           int
+	Offset          int
+}
+
+// UpdateStudentInput carries fields for admin student update.
+type UpdateStudentInput struct {
+	Name      string
+	Email     string
+	Phone     string
+	Source    StudentSource
+	PartnerID *uuid.UUID
+}
+
+// UpdateStudentProfileInput carries profile update fields.
+type UpdateStudentProfileInput struct {
+	DateOfBirth *time.Time
+	Gender      *string
+	IDType      *string
+	IDNumber    *string
+	Address     *string
+	City        *string
+	Province    *string
+	PostalCode  *string
+}
