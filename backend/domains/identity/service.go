@@ -69,6 +69,13 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*User, error)
 		if err := s.repo.CreateStudent(ctx, student); err != nil {
 			return nil, err
 		}
+		profile := &StudentProfile{
+			ID:        uuid.New(),
+			StudentID: student.ID,
+		}
+		if err := s.repo.CreateStudentProfile(ctx, profile); err != nil {
+			return nil, err
+		}
 	}
 
 	_ = s.bus.Publish(ctx, events.Event{

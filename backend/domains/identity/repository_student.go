@@ -78,12 +78,43 @@ func (r *repository) UpdateStudent(_ context.Context, _ *Student) error {
 	return nil
 }
 
-func (r *repository) CreateStudentProfile(_ context.Context, _ *StudentProfile) error {
+func (r *repository) CreateStudentProfile(ctx context.Context, p *StudentProfile) error {
+	query := `
+		INSERT INTO identity.student_profiles
+		  (id, student_id, date_of_birth, gender, id_type, id_number,
+		   address, city, province, postal_code, profile_complete)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+		RETURNING created_at, updated_at`
+
+	err := r.pool.QueryRow(ctx, query,
+		p.ID, p.StudentID, p.DateOfBirth, p.Gender, p.IDType, p.IDNumber,
+		p.Address, p.City, p.Province, p.PostalCode, p.ProfileComplete,
+	).Scan(&p.CreatedAt, &p.UpdatedAt)
+	if err != nil {
+		return fmt.Errorf("identity.CreateStudentProfile: %w", err)
+	}
 	return nil
 }
 
-func (r *repository) GetStudentProfile(_ context.Context, _ uuid.UUID) (*StudentProfile, error) {
-	return nil, nil
+func (r *repository) GetStudentProfile(ctx context.Context, studentID uuid.UUID) (*StudentProfile, error) {
+	query := `
+		SELECT id, student_id, date_of_birth, gender, id_type, id_number,
+		       address, city, province, postal_code, profile_complete, created_at, updated_at
+		FROM identity.student_profiles WHERE student_id = $1`
+
+	p := &StudentProfile{}
+	err := r.pool.QueryRow(ctx, query, studentID).Scan(
+		&p.ID, &p.StudentID, &p.DateOfBirth, &p.Gender, &p.IDType, &p.IDNumber,
+		&p.Address, &p.City, &p.Province, &p.PostalCode, &p.ProfileComplete,
+		&p.CreatedAt, &p.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("identity.GetStudentProfile: %w", err)
+	}
+	return p, nil
 }
 
 func (r *repository) UpdateStudentProfile(_ context.Context, _ *StudentProfile) error {
