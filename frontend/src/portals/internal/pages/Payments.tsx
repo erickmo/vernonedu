@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { Check, X } from 'lucide-react'
-import * as Tabs from '@radix-ui/react-tabs'
+import { useState, useMemo } from 'react'
+import { Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { useInvoices, useUpdateInvoiceStatus, type Invoice } from '@/lib/api/finance'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
@@ -8,13 +7,26 @@ import StatusBadge from '@/components/shared/StatusBadge'
 import DataTable, { Column } from '@/components/shared/DataTable'
 import PageHeader from '@/components/shared/PageHeader'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import { cn } from '@/lib/utils/cn'
+import { useSubNav, SubNavItem } from '@/components/layout/SubNavContext'
+
+const PAYMENT_TABS: SubNavItem[] = [
+  { label: 'Pending', value: 'pending' },
+  { label: 'All', value: 'all' },
+]
+
+const LIMIT = 15
 
 export default function Payments() {
   const [activeTab, setActiveTab] = useState('pending')
   const [page, setPage] = useState(1)
   const [confirmItem, setConfirmItem] = useState<Invoice | null>(null)
-  const LIMIT = 15
+
+  const handleTabChange = useMemo(
+    () => (v: string) => { setActiveTab(v); setPage(1) },
+    [],
+  )
+
+  useSubNav(PAYMENT_TABS, activeTab, handleTabChange)
 
   const updateStatus = useUpdateInvoiceStatus()
 
@@ -36,11 +48,21 @@ export default function Payments() {
   }
 
   const columns: Column<Invoice>[] = [
-    { header: 'Invoice #', accessor: 'number' },
+    {
+      header: 'Invoice #',
+      accessor: 'number',
+      cell: (row) => (
+        <span className="font-mono text-xs text-neutral-700">{row.number}</span>
+      ),
+    },
     {
       header: 'Amount',
       accessor: 'total',
-      cell: (row) => <span className="font-medium">{formatCurrency(row.total)}</span>,
+      cell: (row) => (
+        <span className="font-semibold text-neutral-800 font-mono">
+          {formatCurrency(row.total)}
+        </span>
+      ),
     },
     {
       header: 'Status',
@@ -50,12 +72,16 @@ export default function Payments() {
     {
       header: 'Due Date',
       accessor: 'due_date',
-      cell: (row) => formatDate(row.due_date),
+      cell: (row) => (
+        <span className="text-xs text-neutral-500">{formatDate(row.due_date)}</span>
+      ),
     },
     {
       header: 'Issued',
       accessor: 'issued_date',
-      cell: (row) => formatDate(row.issued_date),
+      cell: (row) => (
+        <span className="text-xs text-neutral-500">{formatDate(row.issued_date)}</span>
+      ),
     },
     ...(activeTab === 'pending'
       ? [
@@ -63,17 +89,12 @@ export default function Payments() {
             header: 'Actions',
             accessor: 'id' as keyof Invoice,
             cell: (row: Invoice) => (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setConfirmItem(row)}
-                  className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition-colors"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors"
                 >
-                  <Check className="w-3.5 h-3.5" />
-                  Confirm
-                </button>
-                <button className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors">
-                  <X className="w-3.5 h-3.5" />
-                  Reject
+                  <Check className="w-3 h-3" /> Confirm
                 </button>
               </div>
             ),
@@ -84,42 +105,23 @@ export default function Payments() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Payments" subtitle="Review and confirm incoming payments" breadcrumbs={[{ label: 'Payments' }]} />
+      <PageHeader title="Payments" subtitle="Invoice and payment management" />
 
-      <Tabs.Root value={activeTab} onValueChange={(v) => { setActiveTab(v); setPage(1) }}>
-        <Tabs.List className="flex border-b border-border mb-4">
-          {[{ value: 'pending', label: 'Pending Confirmation' }, { value: 'all', label: 'All Invoices' }].map((tab) => (
-            <Tabs.Trigger
-              key={tab.value}
-              value={tab.value}
-              className={cn(
-                'px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors',
-                'data-[state=active]:border-brand-600 data-[state=active]:text-brand-700',
-                'data-[state=inactive]:border-transparent data-[state=inactive]:text-neutral-500 data-[state=inactive]:hover:text-neutral-700'
-              )}
-            >
-              {tab.label}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-
-        <Tabs.Content value={activeTab}>
-          <DataTable
-            columns={columns}
-            data={data?.data ?? []}
-            loading={isLoading}
-            pagination={data ? { page, limit: LIMIT, total: data.total } : undefined}
-            onPageChange={setPage}
-            rowKey={(row) => row.id}
-          />
-        </Tabs.Content>
-      </Tabs.Root>
+      <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+        <DataTable
+          columns={columns}
+          data={data?.data ?? []}
+          loading={isLoading}
+          pagination={{ page, limit: LIMIT, total: data?.total ?? 0 }}
+          onPageChange={setPage}
+          rowKey={(row) => row.id}
+        />
+      </div>
 
       <ConfirmDialog
         open={!!confirmItem}
         title="Confirm Payment"
-        description={`Confirm payment for invoice ${confirmItem?.number}?`}
-        confirmLabel="Confirm Payment"
+        description={`Mark invoice ${confirmItem?.number ?? ''} as paid?`}
         onConfirm={handleConfirm}
         onCancel={() => setConfirmItem(null)}
       />
