@@ -38,7 +38,7 @@ const STAT_ACCENTS: Record<StatCardProps['accent'], { bg: string; ring: string; 
 function StatCard({ label, value, hint, icon: Icon, accent }: StatCardProps) {
   const a = STAT_ACCENTS[accent]
   return (
-    <div className="group relative bg-white rounded-2xl border border-border p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+    <div className="group relative bg-white rounded-2xl border border-neutral-100 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">{label}</p>
@@ -190,8 +190,8 @@ export default function StudentDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-border overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-neutral-100 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
             <div>
               <h2 className="font-semibold text-neutral-800">Active enrollments</h2>
               <p className="text-xs text-neutral-500 mt-0.5">Pick up where you left off</p>
@@ -233,8 +233,8 @@ export default function StudentDashboard() {
           )}
         </div>
 
-        <div className="bg-white rounded-2xl border border-border overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div className="bg-white rounded-2xl border border-neutral-100 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
             <div>
               <h2 className="font-semibold text-neutral-800">Recent certificates</h2>
               <p className="text-xs text-neutral-500 mt-0.5">Your wins</p>

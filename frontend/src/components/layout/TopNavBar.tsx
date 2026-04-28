@@ -124,7 +124,7 @@ export default function TopNavBar({
 
       {/* Mobile nav drawer */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-x-0 top-14 z-40 bg-white border-b border-neutral-100 shadow-lg px-4 py-3 space-y-0.5">
+        <div className="md:hidden fixed inset-x-0 top-14 z-50 bg-white border-b border-neutral-100 shadow-lg px-4 py-3 space-y-0.5">
           {mainNav.map((item) => (
             <NavLink
               key={item.to}

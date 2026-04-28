@@ -23,6 +23,8 @@ const courseSchema = z.object({
 
 type CourseForm = z.infer<typeof courseSchema>
 
+const LIMIT = 15
+
 const COLUMNS: Column<Course>[] = [
   { header: 'Code', accessor: 'code', className: 'font-mono text-xs w-24' },
   { header: 'Name', accessor: 'name' },
@@ -38,7 +40,6 @@ const COLUMNS: Column<Course>[] = [
 export default function Courses() {
   const [page, setPage] = useState(1)
   const [open, setOpen] = useState(false)
-  const LIMIT = 15
 
   const { data, isLoading } = useCourses({ page, limit: LIMIT })
   const createCourse = useCreateCourse()

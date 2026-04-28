@@ -4,7 +4,7 @@ import { useEnrollments, type Enrollment } from '@/lib/api/enrollment'
 import { formatDate } from '@/lib/utils/format'
 import StatusBadge from '@/components/shared/StatusBadge'
 import DataTable, { Column } from '@/components/shared/DataTable'
-import { useSubNav, SubNavItem } from '@/components/layout/SubNavContext'
+import { useSubNav, type SubNavItem } from '@/components/layout/SubNavContext'
 
 const ENROLLMENT_TABS: SubNavItem[] = [
   { label: 'Active', value: 'confirmed' },

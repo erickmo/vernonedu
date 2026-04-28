@@ -113,7 +113,11 @@ export default function CourseCatalog() {
                   </div>
 
                   <div className="pt-2 border-t border-neutral-50">
-                    <button className="w-full py-2 text-xs font-semibold text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors">
+                    <button
+                      disabled
+                      className="w-full py-2 text-xs font-semibold text-neutral-400 rounded-lg cursor-not-allowed"
+                      title="Batch enrollment coming soon"
+                    >
                       View batches →
                     </button>
                   </div>

@@ -7,7 +7,7 @@ import StatusBadge from '@/components/shared/StatusBadge'
 import DataTable, { Column } from '@/components/shared/DataTable'
 import PageHeader from '@/components/shared/PageHeader'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import { useSubNav, SubNavItem } from '@/components/layout/SubNavContext'
+import { useSubNav, type SubNavItem } from '@/components/layout/SubNavContext'
 
 const PAYMENT_TABS: SubNavItem[] = [
   { label: 'Pending', value: 'pending' },

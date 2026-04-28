@@ -2,6 +2,7 @@ import { TrendingUp, DollarSign, Percent, ArrowUpRight } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { formatCurrency } from '@/lib/utils/format'
 
+// TODO: replace with real API data once franchise revenue endpoints are implemented
 const MOCK_MONTHLY_DATA = [
   { month: 'Jan', revenue: 45_000_000, royalty: 4_500_000 },
   { month: 'Feb', revenue: 52_000_000, royalty: 5_200_000 },
@@ -98,8 +99,8 @@ export default function FranchiseDashboard() {
               ]}
               contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }}
             />
-            <Bar dataKey="revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="royalty" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="revenue" fill="#3b82f6" /* brand-500 */ radius={[4, 4, 0, 0]} />
+            <Bar dataKey="royalty" fill="#a78bfa" /* violet-400 */ radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
