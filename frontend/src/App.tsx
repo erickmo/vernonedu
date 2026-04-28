@@ -67,7 +67,7 @@ export default function App() {
         </Route>
       </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={['admin', 'ceo', 'manager', 'staff', 'facilitator']} />}>
+      <Route element={<ProtectedRoute allowedRoles={['ceo', 'admin', 'vernonedu_admin', 'finance', 'academic_leader', 'dept_leader', 'course_creator', 'facilitator']} />}>
         <Route path="/internal" element={<InternalPortal />}>
           <Route index element={<InternalDashboard />} />
           <Route path="enrollments" element={<Enrollments />} />
