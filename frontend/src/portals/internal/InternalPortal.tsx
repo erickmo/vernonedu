@@ -1,7 +1,7 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/lib/auth/useAuth'
 import { useUnreadCount } from '@/lib/api/platform'
-import { SubNavProvider, SubNavBar, useSubNavState } from '@/components/layout/SubNavContext'
+import { SubNavProvider, SubNavBar } from '@/components/layout/SubNavContext'
 import TopNavBar, { NavItem } from '@/components/layout/TopNavBar'
 
 const NAV_ITEMS: NavItem[] = [
@@ -16,14 +16,11 @@ function InternalLayout() {
   const { user, logout } = useAuth()
   const unread = useUnreadCount()
   const navigate = useNavigate()
-  const subNavState = useSubNavState()
 
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
-
-  const hasSubNav = subNavState && subNavState.items.length > 0
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -35,7 +32,7 @@ function InternalLayout() {
         avatarClass="bg-brand-100 text-brand-700"
       />
       <SubNavBar />
-      <main className={hasSubNav ? 'px-6 md:px-8 lg:px-12 py-6' : 'px-6 md:px-8 lg:px-12 py-6'}>
+      <main className="px-6 md:px-8 lg:px-12 py-6">
         <Outlet />
       </main>
     </div>
