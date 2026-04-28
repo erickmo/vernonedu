@@ -124,12 +124,12 @@ func (h *Handler) PayInvoice(w http.ResponseWriter, r *http.Request) {
 // MidtransWebhook receives an HTTP notification from Midtrans, verifies the
 // signature, and applies the resulting state change to the invoice.
 func (h *Handler) MidtransWebhook(w http.ResponseWriter, r *http.Request) {
+	defer func() { _ = r.Body.Close() }()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		apperrors.Render(w, apperrors.Validationf("invalid body"))
 		return
 	}
-	defer r.Body.Close()
 
 	signature := r.Header.Get(MidtransSignatureHeader)
 	if err := h.svc.ProcessGatewayWebhook(r.Context(), body, signature); err != nil {
