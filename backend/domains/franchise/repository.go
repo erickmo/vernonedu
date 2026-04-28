@@ -16,6 +16,8 @@ type Repository interface {
 	CreateFranchisee(ctx context.Context, f *Franchisee) error
 	GetFranchiseeByID(ctx context.Context, id uuid.UUID) (*Franchisee, error)
 	ListFranchisees(ctx context.Context) ([]*Franchisee, error)
+	GetFranchiseeByUserID(ctx context.Context, userID uuid.UUID) (*Franchisee, error)
+	ListRoyaltyByFranchisee(ctx context.Context, franchiseeID uuid.UUID) ([]*RoyaltyPaymentRecord, error)
 
 	CreateAgreement(ctx context.Context, a *FranchiseAgreement) error
 	GetAgreementByFranchiseeID(ctx context.Context, franchiseeID uuid.UUID) (*FranchiseAgreement, error)
@@ -58,13 +60,13 @@ func (r *repository) CreateFranchisee(ctx context.Context, f *Franchisee) error 
 
 func (r *repository) GetFranchiseeByID(ctx context.Context, id uuid.UUID) (*Franchisee, error) {
 	query := `
-		SELECT id, name, branch_name, location, contact, status, created_by, created_at, updated_at
+		SELECT id, name, branch_name, location, contact, status, created_by, user_id, created_at, updated_at
 		FROM franchise.franchisees WHERE id = $1`
 
 	f := &Franchisee{}
 	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&f.ID, &f.Name, &f.BranchName, &f.Location, &f.Contact,
-		&f.Status, &f.CreatedBy, &f.CreatedAt, &f.UpdatedAt,
+		&f.Status, &f.CreatedBy, &f.UserID, &f.CreatedAt, &f.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -77,7 +79,7 @@ func (r *repository) GetFranchiseeByID(ctx context.Context, id uuid.UUID) (*Fran
 
 func (r *repository) ListFranchisees(ctx context.Context) ([]*Franchisee, error) {
 	query := `
-		SELECT id, name, branch_name, location, contact, status, created_by, created_at, updated_at
+		SELECT id, name, branch_name, location, contact, status, created_by, user_id, created_at, updated_at
 		FROM franchise.franchisees ORDER BY created_at DESC`
 
 	rows, err := r.pool.Query(ctx, query)
@@ -91,7 +93,7 @@ func (r *repository) ListFranchisees(ctx context.Context) ([]*Franchisee, error)
 		f := &Franchisee{}
 		if err := rows.Scan(
 			&f.ID, &f.Name, &f.BranchName, &f.Location, &f.Contact,
-			&f.Status, &f.CreatedBy, &f.CreatedAt, &f.UpdatedAt,
+			&f.Status, &f.CreatedBy, &f.UserID, &f.CreatedAt, &f.UpdatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("franchise.ListFranchisees scan: %w", err)
 		}
@@ -260,6 +262,56 @@ func (r *repository) GetEnrollmentRevenue(ctx context.Context, franchiseeID uuid
 		return "0", fmt.Errorf("franchise.GetEnrollmentRevenue: %w", err)
 	}
 	return sum, nil
+}
+
+func (r *repository) GetFranchiseeByUserID(ctx context.Context, userID uuid.UUID) (*Franchisee, error) {
+	query := `
+		SELECT id, name, branch_name, location, contact, status, created_by, user_id, created_at, updated_at
+		FROM franchise.franchisees WHERE user_id = $1`
+
+	f := &Franchisee{}
+	err := r.pool.QueryRow(ctx, query, userID).Scan(
+		&f.ID, &f.Name, &f.BranchName, &f.Location, &f.Contact,
+		&f.Status, &f.CreatedBy, &f.UserID, &f.CreatedAt, &f.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.ErrNotFound
+		}
+		return nil, fmt.Errorf("franchise.GetFranchiseeByUserID: %w", err)
+	}
+	return f, nil
+}
+
+func (r *repository) ListRoyaltyByFranchisee(ctx context.Context, franchiseeID uuid.UUID) ([]*RoyaltyPaymentRecord, error) {
+	query := `
+		SELECT rpr.id, rpr.franchise_agreement_id, rpr.period, rpr.gross_revenue,
+		       rpr.monthly_royalty, rpr.revenue_royalty, rpr.total_royalty,
+		       rpr.status, rpr.created_at, rpr.paid_at, rpr.recorded_by
+		FROM franchise.royalty_payment_records rpr
+		JOIN franchise.franchise_agreements fa ON fa.id = rpr.franchise_agreement_id
+		WHERE fa.franchisee_id = $1
+		ORDER BY rpr.period DESC`
+
+	rows, err := r.pool.Query(ctx, query, franchiseeID)
+	if err != nil {
+		return nil, fmt.Errorf("franchise.ListRoyaltyByFranchisee: %w", err)
+	}
+	defer rows.Close()
+
+	var list []*RoyaltyPaymentRecord
+	for rows.Next() {
+		rec := &RoyaltyPaymentRecord{}
+		if err := rows.Scan(
+			&rec.ID, &rec.FranchiseAgreementID, &rec.Period, &rec.GrossRevenue,
+			&rec.MonthlyRoyalty, &rec.RevenueRoyalty, &rec.TotalRoyalty,
+			&rec.Status, &rec.CreatedAt, &rec.PaidAt, &rec.RecordedBy,
+		); err != nil {
+			return nil, fmt.Errorf("franchise.ListRoyaltyByFranchisee scan: %w", err)
+		}
+		list = append(list, rec)
+	}
+	return list, nil
 }
 
 // GetOtherRevenue returns the sum of branch_other_revenues for a franchisee

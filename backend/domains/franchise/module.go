@@ -36,8 +36,12 @@ func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {
 		// Branch other revenue routes
 		r.Post("/api/v1/franchise-revenues", h.AddBranchOtherRevenue)
 
+		// Me routes (franchise portal self-service)
+		r.Get("/api/v1/me/franchisee", h.GetMyFranchisee)
+
 		// Royalty record routes
 		r.Post("/api/v1/royalty-records", h.CreateRoyaltyRecord)
+		r.Get("/api/v1/royalty-records/{franchiseeID}/all", h.ListRoyaltyRecords)
 		r.Get("/api/v1/royalty-records/{franchiseeID}/{period}", h.GetRoyaltyRecord)
 		r.Post("/api/v1/royalty-records/{id}/mark-paid", h.MarkRoyaltyPaid)
 	})

@@ -48,6 +48,11 @@ func (s *Service) ListFranchisees(ctx context.Context) ([]*Franchisee, error) {
 	return s.repo.ListFranchisees(ctx)
 }
 
+// GetMyFranchisee returns the franchisee record linked to the calling user.
+func (s *Service) GetMyFranchisee(ctx context.Context, userID uuid.UUID) (*Franchisee, error) {
+	return s.repo.GetFranchiseeByUserID(ctx, userID)
+}
+
 // CreateAgreement creates a franchise agreement for a franchisee.
 // revenue_royalty_pct must be between 0 and 100.
 func (s *Service) CreateAgreement(ctx context.Context, a *FranchiseAgreement) (*FranchiseAgreement, error) {
@@ -148,4 +153,9 @@ func (s *Service) MarkRoyaltyPaid(ctx context.Context, id uuid.UUID) error {
 // if their period end date + 14 days has passed.
 func (s *Service) MarkOverdueRoyalties(ctx context.Context) error {
 	return s.repo.MarkOverdueRoyalties(ctx)
+}
+
+// ListRoyaltyRecords returns all royalty records for a franchisee ordered by period desc.
+func (s *Service) ListRoyaltyRecords(ctx context.Context, franchiseeID uuid.UUID) ([]*RoyaltyPaymentRecord, error) {
+	return s.repo.ListRoyaltyByFranchisee(ctx, franchiseeID)
 }

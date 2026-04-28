@@ -306,3 +306,38 @@ func (h *Handler) MarkRoyaltyPaid(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// GetMyFranchisee handles GET /api/v1/me/franchisee.
+func (h *Handler) GetMyFranchisee(w http.ResponseWriter, r *http.Request) {
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
+	f, err := h.svc.GetMyFranchisee(r.Context(), uc.ID)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(f)
+}
+
+// ListRoyaltyRecords handles GET /api/v1/royalty-records/{franchiseeID}/all.
+func (h *Handler) ListRoyaltyRecords(w http.ResponseWriter, r *http.Request) {
+	franchiseeID, err := uuid.Parse(chi.URLParam(r, "franchiseeID"))
+	if err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid franchisee id"))
+		return
+	}
+	records, err := h.svc.ListRoyaltyRecords(r.Context(), franchiseeID)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	if records == nil {
+		records = []*RoyaltyPaymentRecord{}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(records)
+}
