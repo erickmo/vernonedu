@@ -388,7 +388,10 @@ func (s *Service) ResolveStudentModule(ctx context.Context, enrollmentID, module
 		return nil, apperrors.ErrNotFound
 	}
 
-	configs, _ := s.repo.ListBatchModuleConfigs(ctx, batchID)
+	configs, err := s.repo.ListBatchModuleConfigs(ctx, batchID)
+	if err != nil {
+		return nil, err
+	}
 	configMap := make(map[uuid.UUID]*BatchModuleConfig, len(configs))
 	for _, cfg := range configs {
 		configMap[cfg.ModuleID] = cfg
