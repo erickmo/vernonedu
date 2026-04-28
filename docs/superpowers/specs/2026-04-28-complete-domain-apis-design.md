@@ -68,8 +68,8 @@ Priority based on business risk (active bugs first, then coverage gaps):
 | 8 | voucher | none expected | 6 | Voucher CRUD + apply | Audit first |
 | 9 | profit_split | none expected | 12 | Split config + batch costs | Audit first |
 | 10 | team_member | none expected | 8 | Team + proposals | Audit first |
-| 11 | catalog | TBD (audit) | TBD | Audit required | |
-| 12 | finance | TBD (audit) | TBD | Audit required | |
+| 11 | catalog | none — all returns valid | 9 | Courses + batches + classes | |
+| 12 | finance | none — all returns valid | 7 | Payments + invoices + webhook | |
 
 ---
 
