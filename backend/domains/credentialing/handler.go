@@ -150,7 +150,7 @@ func (h *Handler) DownloadCertificate(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.NotFoundf("certificate file missing"))
 		return
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	w.Header().Set("Content-Type", contentTypePDF)
 	w.Header().Set("Content-Disposition", fmt.Sprintf(contentDispositionFmt, cert.CertificateNumber))
