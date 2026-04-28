@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Users } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -146,10 +146,9 @@ export default function TeamMembers() {
   return (
     <div className="space-y-6">
       <PageHeader
-        icon={<Users className="w-5 h-5 text-brand-600" />}
         title="Team Members"
-        description={`${data.length} member${data.length !== 1 ? 's' : ''}`}
-        action={
+        subtitle={`${data.length} member${data.length !== 1 ? 's' : ''}`}
+        actions={
           <button
             onClick={() => setOpen(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"

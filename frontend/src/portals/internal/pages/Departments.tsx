@@ -1,4 +1,3 @@
-import { Building2 } from 'lucide-react'
 import { useDepartments, type Department } from '@/lib/api/people'
 import { formatDate } from '@/lib/utils/format'
 import DataTable, { Column } from '@/components/shared/DataTable'
@@ -34,9 +33,8 @@ export default function Departments() {
   return (
     <div className="space-y-6">
       <PageHeader
-        icon={<Building2 className="w-5 h-5 text-brand-600" />}
         title="Departments"
-        description={`${data.length} department${data.length !== 1 ? 's' : ''}`}
+        subtitle={`${data.length} department${data.length !== 1 ? 's' : ''}`}
       />
       <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
         <DataTable

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, FileText } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -191,10 +191,9 @@ export default function Proposals() {
   return (
     <div className="space-y-6">
       <PageHeader
-        icon={<FileText className="w-5 h-5 text-brand-600" />}
         title="Facilitator Proposals"
-        description="Create and review facilitator assignment proposals"
-        action={
+        subtitle="Create and review facilitator assignment proposals"
+        actions={
           <button
             onClick={() => setCreateOpen(true)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
