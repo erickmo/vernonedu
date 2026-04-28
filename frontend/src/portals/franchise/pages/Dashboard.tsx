@@ -2,6 +2,7 @@ import { TrendingUp, DollarSign, Percent, ArrowUpRight } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { formatCurrency } from '@/lib/utils/format'
 
+// TODO: replace with real API data once franchise revenue endpoints are implemented
 const MOCK_MONTHLY_DATA = [
   { month: 'Jan', revenue: 45_000_000, royalty: 4_500_000 },
   { month: 'Feb', revenue: 52_000_000, royalty: 5_200_000 },
@@ -29,7 +30,7 @@ function SummaryCard({
   color: string
 }) {
   return (
-    <div className="bg-white rounded-xl border border-border p-5">
+    <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-neutral-500">{title}</p>
@@ -79,7 +80,7 @@ export default function FranchiseDashboard() {
         />
       </div>
 
-      <div className="bg-white rounded-xl border border-border p-5">
+      <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5">
         <h2 className="font-semibold text-neutral-800 mb-4">Monthly Revenue vs Royalty</h2>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={MOCK_MONTHLY_DATA} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
@@ -98,13 +99,13 @@ export default function FranchiseDashboard() {
               ]}
               contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }}
             />
-            <Bar dataKey="revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="royalty" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="revenue" fill="#3b82f6" /* brand-500 */ radius={[4, 4, 0, 0]} />
+            <Bar dataKey="royalty" fill="#a78bfa" /* violet-400 */ radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="bg-white rounded-xl border border-border p-5">
+      <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-5">
         <h2 className="font-semibold text-neutral-800 mb-4">Royalty Status</h2>
         <div className="space-y-3">
           {MOCK_MONTHLY_DATA.slice().reverse().map((row) => (

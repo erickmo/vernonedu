@@ -1,9 +1,20 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useEnrollments, type Enrollment } from '@/lib/api/enrollment'
 import { formatDate } from '@/lib/utils/format'
 import StatusBadge from '@/components/shared/StatusBadge'
 import DataTable, { Column } from '@/components/shared/DataTable'
 import PageHeader from '@/components/shared/PageHeader'
+import { useSubNav, type SubNavItem } from '@/components/layout/SubNavContext'
+
+const STATUS_TABS: SubNavItem[] = [
+  { label: 'All', value: '' },
+  { label: 'Pending', value: 'pending' },
+  { label: 'Confirmed', value: 'confirmed' },
+  { label: 'Completed', value: 'completed' },
+  { label: 'Dropped', value: 'dropped' },
+]
+
+const LIMIT = 15
 
 const COLUMNS: Column<Enrollment>[] = [
   { header: 'Student', accessor: 'student_id' },
@@ -29,72 +40,50 @@ const COLUMNS: Column<Enrollment>[] = [
             style={{ width: `${row.completion_percent}%` }}
           />
         </div>
-        <span className="text-xs text-neutral-500">{row.completion_percent}%</span>
+        <span className="text-xs text-neutral-500 font-mono tabular-nums">
+          {row.completion_percent}%
+        </span>
       </div>
     ),
   },
   {
     header: 'Enrolled',
     accessor: 'enrolled_at',
-    cell: (row) => <span className="text-xs">{formatDate(row.enrolled_at)}</span>,
+    cell: (row) => <span className="text-xs text-neutral-500">{formatDate(row.enrolled_at)}</span>,
   },
 ]
 
 export default function Enrollments() {
+  const [activeTab, setActiveTab] = useState('')
   const [page, setPage] = useState(1)
-  const [statusFilter, setStatusFilter] = useState('')
-  const [paymentFilter, setPaymentFilter] = useState('')
-  const LIMIT = 15
+
+  const handleTabChange = useMemo(
+    () => (v: string) => { setActiveTab(v); setPage(1) },
+    [],
+  )
+
+  useSubNav(STATUS_TABS, activeTab, handleTabChange)
 
   const { data, isLoading } = useEnrollments({
-    status: statusFilter || undefined,
-    payment_status: paymentFilter || undefined,
+    status: activeTab || undefined,
     page,
     limit: LIMIT,
   })
 
   return (
     <div className="space-y-5">
-      <PageHeader
-        title="Enrollments"
-        subtitle="Manage all student enrollments"
-        breadcrumbs={[{ label: 'Enrollments' }]}
-      />
+      <PageHeader title="Enrollments" subtitle="Manage all student enrollments" />
 
-      <div className="flex flex-wrap gap-3">
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
-          className="px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
-        >
-          <option value="">All statuses</option>
-          <option value="pending">Pending</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="dropped">Dropped</option>
-          <option value="completed">Completed</option>
-        </select>
-
-        <select
-          value={paymentFilter}
-          onChange={(e) => { setPaymentFilter(e.target.value); setPage(1) }}
-          className="px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
-        >
-          <option value="">All payment statuses</option>
-          <option value="pending">Pending</option>
-          <option value="partial">Partial</option>
-          <option value="paid">Paid</option>
-          <option value="overdue">Overdue</option>
-        </select>
+      <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+        <DataTable
+          columns={COLUMNS}
+          data={data?.data ?? []}
+          loading={isLoading}
+          pagination={{ page, limit: LIMIT, total: data?.total ?? 0 }}
+          onPageChange={setPage}
+          rowKey={(row) => row.id}
+        />
       </div>
-
-      <DataTable
-        columns={COLUMNS}
-        data={data?.data ?? []}
-        loading={isLoading}
-        pagination={data ? { page, limit: LIMIT, total: data.total } : undefined}
-        onPageChange={setPage}
-        rowKey={(row) => row.id}
-      />
     </div>
   )
 }
