@@ -113,7 +113,10 @@ func (h *Handler) ListStudents(w http.ResponseWriter, r *http.Request) {
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 
-	students, err := h.svc.ListStudents(r.Context(), limit, offset)
+	students, err := h.svc.ListStudentsFiltered(r.Context(), StudentFilter{
+		Limit:  limit,
+		Offset: offset,
+	})
 	if err != nil {
 		apperrors.Render(w, err)
 		return

@@ -23,7 +23,12 @@ type Repository interface {
 	CreateStudent(ctx context.Context, s *Student) error
 	GetStudentByID(ctx context.Context, id uuid.UUID) (*Student, error)
 	GetStudentByUserID(ctx context.Context, userID uuid.UUID) (*Student, error)
-	ListStudents(ctx context.Context, limit, offset int) ([]*Student, error)
+	ListStudentsFiltered(ctx context.Context, f StudentFilter) ([]*Student, error)
+	CountStudentsFiltered(ctx context.Context, f StudentFilter) (int, error)
+	UpdateStudent(ctx context.Context, s *Student) error
+	CreateStudentProfile(ctx context.Context, p *StudentProfile) error
+	GetStudentProfile(ctx context.Context, studentID uuid.UUID) (*StudentProfile, error)
+	UpdateStudentProfile(ctx context.Context, p *StudentProfile) error
 
 	CreateTeamMember(ctx context.Context, tm *TeamMember) error
 	GetTeamMemberByID(ctx context.Context, id uuid.UUID) (*TeamMember, error)
@@ -124,81 +129,6 @@ func (r *repository) DeactivateUser(ctx context.Context, id uuid.UUID) error {
 		return apperrors.ErrNotFound
 	}
 	return nil
-}
-
-func (r *repository) CreateStudent(ctx context.Context, s *Student) error {
-	query := `
-		INSERT INTO identity.students (id, user_id, name, email, phone, source, partner_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING created_at, updated_at`
-
-	err := r.pool.QueryRow(ctx, query,
-		s.ID, s.UserID, s.Name, s.Email, s.Phone, s.Source, s.PartnerID,
-	).Scan(&s.CreatedAt, &s.UpdatedAt)
-	if err != nil {
-		return fmt.Errorf("identity.CreateStudent: %w", err)
-	}
-	return nil
-}
-
-func (r *repository) GetStudentByID(ctx context.Context, id uuid.UUID) (*Student, error) {
-	query := `SELECT id, user_id, name, email, phone, source, partner_id, created_at, updated_at
-	          FROM identity.students WHERE id = $1`
-
-	s := &Student{}
-	err := r.pool.QueryRow(ctx, query, id).Scan(
-		&s.ID, &s.UserID, &s.Name, &s.Email, &s.Phone, &s.Source, &s.PartnerID,
-		&s.CreatedAt, &s.UpdatedAt,
-	)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, apperrors.ErrNotFound
-		}
-		return nil, fmt.Errorf("identity.GetStudentByID: %w", err)
-	}
-	return s, nil
-}
-
-func (r *repository) GetStudentByUserID(ctx context.Context, userID uuid.UUID) (*Student, error) {
-	query := `SELECT id, user_id, name, email, phone, source, partner_id, created_at, updated_at
-	          FROM identity.students WHERE user_id = $1`
-
-	s := &Student{}
-	err := r.pool.QueryRow(ctx, query, userID).Scan(
-		&s.ID, &s.UserID, &s.Name, &s.Email, &s.Phone, &s.Source, &s.PartnerID,
-		&s.CreatedAt, &s.UpdatedAt,
-	)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, apperrors.ErrNotFound
-		}
-		return nil, fmt.Errorf("identity.GetStudentByUserID: %w", err)
-	}
-	return s, nil
-}
-
-func (r *repository) ListStudents(ctx context.Context, limit, offset int) ([]*Student, error) {
-	query := `SELECT id, user_id, name, email, phone, source, partner_id, created_at, updated_at
-	          FROM identity.students ORDER BY created_at DESC LIMIT $1 OFFSET $2`
-
-	rows, err := r.pool.Query(ctx, query, limit, offset)
-	if err != nil {
-		return nil, fmt.Errorf("identity.ListStudents: %w", err)
-	}
-	defer rows.Close()
-
-	var students []*Student
-	for rows.Next() {
-		s := &Student{}
-		if err := rows.Scan(
-			&s.ID, &s.UserID, &s.Name, &s.Email, &s.Phone, &s.Source, &s.PartnerID,
-			&s.CreatedAt, &s.UpdatedAt,
-		); err != nil {
-			return nil, fmt.Errorf("identity.ListStudents scan: %w", err)
-		}
-		students = append(students, s)
-	}
-	return students, rows.Err()
 }
 
 func (r *repository) CreateTeamMember(ctx context.Context, tm *TeamMember) error {
