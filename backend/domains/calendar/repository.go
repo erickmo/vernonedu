@@ -17,6 +17,7 @@ type Repository interface {
 	GetEventByID(ctx context.Context, id uuid.UUID) (*CalendarEvent, error)
 	GetEventBySourceID(ctx context.Context, domain SourceDomain, sourceID uuid.UUID) (*CalendarEvent, error)
 	UpdateEvent(ctx context.Context, e *CalendarEvent) error
+	DeleteEventByID(ctx context.Context, id uuid.UUID) error
 	DeleteEventBySourceID(ctx context.Context, domain SourceDomain, sourceID uuid.UUID) error
 	ListEvents(ctx context.Context, f ListFilter) ([]*CalendarEvent, error)
 
@@ -105,6 +106,11 @@ func (r *repository) UpdateEvent(ctx context.Context, e *CalendarEvent) error {
 		e.ID, e.Title, e.Description, e.StartAt, e.EndAt, e.IsAllDay,
 		e.RecurrenceRule, e.Location, e.Agenda, e.MeetingNotes,
 	)
+	return err
+}
+
+func (r *repository) DeleteEventByID(ctx context.Context, id uuid.UUID) error {
+	_, err := r.pool.Exec(ctx, `DELETE FROM calendar.events WHERE id=$1`, id)
 	return err
 }
 

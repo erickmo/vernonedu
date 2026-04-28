@@ -60,7 +60,7 @@ func (s *Service) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 	if existing.SourceDomain != nil && *existing.SourceDomain != SourceManual {
 		return apperrors.ErrForbidden
 	}
-	return s.repo.DeleteEventBySourceID(ctx, SourceManual, id)
+	return s.repo.DeleteEventByID(ctx, id)
 }
 
 func (s *Service) AddAttendee(ctx context.Context, eventID, userID uuid.UUID, role AttendeeRole) error {
@@ -277,18 +277,18 @@ func buildICal(evts []*CalendarEvent) string {
 func buildICalEvent(e *CalendarEvent) string {
 	var sb strings.Builder
 	sb.WriteString("BEGIN:VEVENT\r\n")
-	sb.WriteString(fmt.Sprintf("UID:%s@vernonedu\r\n", e.ID))
-	sb.WriteString(fmt.Sprintf("DTSTART:%s\r\n", e.StartAt.UTC().Format("20060102T150405Z")))
-	sb.WriteString(fmt.Sprintf("DTEND:%s\r\n", e.EndAt.UTC().Format("20060102T150405Z")))
-	sb.WriteString(fmt.Sprintf("SUMMARY:%s\r\n", escapeICal(e.Title)))
+	fmt.Fprintf(&sb, "UID:%s@vernonedu\r\n", e.ID)
+	fmt.Fprintf(&sb, "DTSTART:%s\r\n", e.StartAt.UTC().Format("20060102T150405Z"))
+	fmt.Fprintf(&sb, "DTEND:%s\r\n", e.EndAt.UTC().Format("20060102T150405Z"))
+	fmt.Fprintf(&sb, "SUMMARY:%s\r\n", escapeICal(e.Title))
 	if e.Description != nil {
-		sb.WriteString(fmt.Sprintf("DESCRIPTION:%s\r\n", escapeICal(*e.Description)))
+		fmt.Fprintf(&sb, "DESCRIPTION:%s\r\n", escapeICal(*e.Description))
 	}
 	if e.Location != nil {
-		sb.WriteString(fmt.Sprintf("LOCATION:%s\r\n", escapeICal(*e.Location)))
+		fmt.Fprintf(&sb, "LOCATION:%s\r\n", escapeICal(*e.Location))
 	}
 	if e.RecurrenceRule != nil {
-		sb.WriteString(fmt.Sprintf("RRULE:%s\r\n", *e.RecurrenceRule))
+		fmt.Fprintf(&sb, "RRULE:%s\r\n", *e.RecurrenceRule)
 	}
 	sb.WriteString("END:VEVENT\r\n")
 	return sb.String()
