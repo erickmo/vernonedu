@@ -2,15 +2,8 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/lib/auth/useAuth'
 import { useUnreadCount } from '@/lib/api/platform'
 import { SubNavProvider, SubNavBar } from '@/components/layout/SubNavContext'
-import TopNavBar, { NavItem } from '@/components/layout/TopNavBar'
-
-const NAV_ITEMS: NavItem[] = [
-  { to: '/internal', label: 'Dashboard', end: true },
-  { to: '/internal/enrollments', label: 'Enrollments' },
-  { to: '/internal/payments', label: 'Payments' },
-  { to: '/internal/courses', label: 'Courses' },
-  { to: '/internal/students', label: 'Students' },
-]
+import TopNavBar from '@/components/layout/TopNavBar'
+import { getInternalNavItems } from '@/lib/auth/roleNav'
 
 function InternalLayout() {
   const { user, logout } = useAuth()
@@ -22,10 +15,12 @@ function InternalLayout() {
     navigate('/login')
   }
 
+  const navItems = getInternalNavItems(user?.role ?? '')
+
   return (
     <div className="min-h-screen bg-neutral-50">
       <TopNavBar
-        mainNav={NAV_ITEMS}
+        mainNav={navItems}
         user={user}
         unreadCount={unread}
         onLogout={handleLogout}
