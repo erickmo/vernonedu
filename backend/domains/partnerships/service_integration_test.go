@@ -97,11 +97,10 @@ func TestTerminateAgreement_PersistsReason(t *testing.T) {
 
 	repo := partnerships.NewRepository(pool)
 	bus := events.NewBus(zap.NewNop())
-	svc := partnerships.NewService(repo, bus, zap.NewNop(), partnerships.NewPassthroughStorage())
+	svc := partnerships.NewService(repo, bus, zap.NewNop())
 
 	const reason = "contract expired early"
-	terminatedBy := uuid.New()
-	require.NoError(t, svc.TerminateAgreement(context.Background(), agreementID, reason, terminatedBy))
+	require.NoError(t, svc.TerminateAgreement(context.Background(), agreementID, reason))
 
 	a, err := repo.GetAgreementByID(context.Background(), agreementID)
 	require.NoError(t, err)

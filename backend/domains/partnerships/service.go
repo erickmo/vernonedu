@@ -72,11 +72,7 @@ func (s *Service) TerminateAgreement(ctx context.Context, id uuid.UUID, reason s
 	if a.Status != AgreementActive {
 		return apperrors.Validationf("only active agreements can be terminated")
 	}
-	a.TerminationReason = &reason
-	if err := s.repo.UpdateAgreementStatus(ctx, id, AgreementTerminated); err != nil {
-		return err
-	}
-	return nil
+	return s.repo.TerminateAgreementRecord(ctx, id, reason)
 }
 
 // CreateFranchisee creates a franchisee.

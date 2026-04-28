@@ -41,7 +41,7 @@ func newPartnershipsService(t *testing.T, pool *pgxpool.Pool) *partnerships.Serv
 	t.Helper()
 	repo := partnerships.NewRepository(pool)
 	bus := events.NewBus(zap.NewNop())
-	return partnerships.NewService(repo, bus, zap.NewNop(), partnerships.NewPassthroughStorage())
+	return partnerships.NewService(repo, bus, zap.NewNop())
 }
 
 func TestPartnerships_ListPartners_Authenticated(t *testing.T) {

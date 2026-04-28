@@ -21,6 +21,7 @@ type Repository interface {
 	CreateAgreement(ctx context.Context, a *PartnershipAgreement) error
 	GetAgreementByID(ctx context.Context, id uuid.UUID) (*PartnershipAgreement, error)
 	UpdateAgreementStatus(ctx context.Context, id uuid.UUID, status AgreementStatus) error
+	TerminateAgreementRecord(ctx context.Context, id uuid.UUID, reason string) error
 	ListAgreementsByPartner(ctx context.Context, partnerID uuid.UUID) ([]*PartnershipAgreement, error)
 
 	CreateFranchisee(ctx context.Context, f *Franchisee) error
@@ -160,6 +161,20 @@ func (r *repository) UpdateAgreementStatus(ctx context.Context, id uuid.UUID, st
 	ct, err := r.pool.Exec(ctx, query, status, id)
 	if err != nil {
 		return fmt.Errorf("partnerships.UpdateAgreementStatus: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) TerminateAgreementRecord(ctx context.Context, id uuid.UUID, reason string) error {
+	query := `UPDATE partnerships.partnership_agreements
+	          SET status='terminated', termination_reason=$1, terminated_at=NOW()
+	          WHERE id=$2`
+	ct, err := r.pool.Exec(ctx, query, reason, id)
+	if err != nil {
+		return fmt.Errorf("partnerships.TerminateAgreementRecord: %w", err)
 	}
 	if ct.RowsAffected() == 0 {
 		return apperrors.ErrNotFound
