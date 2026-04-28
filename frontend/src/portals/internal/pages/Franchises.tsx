@@ -150,11 +150,14 @@ function AddFranchiseeDialog({ open, onOpenChange }: { open: boolean; onOpenChan
 // ── Franchisees Tab ───────────────────────────────────────────────────────────
 
 function FranchiseesTab({
+  data,
+  isLoading,
   onViewRoyalty,
 }: {
+  data: Franchisee[]
+  isLoading: boolean
   onViewRoyalty: (franchisee: Franchisee) => void
 }) {
-  const { data, isLoading } = useFranchisees()
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const COLUMNS: Column<Franchisee>[] = [
@@ -296,17 +299,22 @@ function RoyaltyTab({ selectedFranchisee }: { selectedFranchisee: Franchisee | n
 export default function Franchises() {
   const [activeTab, setActiveTab] = useState<Tab>('Franchisees')
   const [selectedFranchisee, setSelectedFranchisee] = useState<Franchisee | null>(null)
+  const { data: franchisees = [], isLoading } = useFranchisees()
 
   const handleViewRoyalty = (franchisee: Franchisee) => {
     setSelectedFranchisee(franchisee)
     setActiveTab('Royalty')
   }
 
+  const subtitle = isLoading
+    ? 'Loading…'
+    : `${franchisees.length} franchisee${franchisees.length !== 1 ? 's' : ''}`
+
   return (
     <div className="space-y-5">
       <PageHeader
         title="Franchises"
-        subtitle="Manage franchisees and royalty records"
+        subtitle={subtitle}
         breadcrumbs={[{ label: 'Franchises' }]}
       />
 
@@ -330,7 +338,7 @@ export default function Franchises() {
 
       {/* Tab content */}
       {activeTab === 'Franchisees' ? (
-        <FranchiseesTab onViewRoyalty={handleViewRoyalty} />
+        <FranchiseesTab data={franchisees} isLoading={isLoading} onViewRoyalty={handleViewRoyalty} />
       ) : (
         <RoyaltyTab selectedFranchisee={selectedFranchisee} />
       )}
