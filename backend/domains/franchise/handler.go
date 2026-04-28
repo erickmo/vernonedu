@@ -335,9 +335,6 @@ func (h *Handler) ListRoyaltyRecords(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, err)
 		return
 	}
-	if records == nil {
-		records = []*RoyaltyPaymentRecord{}
-	}
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(records)
 }

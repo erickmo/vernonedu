@@ -311,7 +311,7 @@ func (r *repository) ListRoyaltyByFranchisee(ctx context.Context, franchiseeID u
 		}
 		list = append(list, rec)
 	}
-	return list, nil
+	return list, rows.Err()
 }
 
 // GetOtherRevenue returns the sum of branch_other_revenues for a franchisee
