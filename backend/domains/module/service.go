@@ -287,12 +287,16 @@ func (s *Service) ResolveStudentModules(ctx context.Context, enrollmentID, stude
 
 	var out []*StudentModuleView
 	for _, m := range modules {
-		version, err := s.resolveVersion(ctx, m.ID, batchID, configMap)
+		version, err := s.resolveVersion(ctx, m.ID, configMap)
 		if err != nil {
 			s.log.Warn("module: skipping module, no published version", zap.String("module_id", m.ID.String()))
 			continue
 		}
-		assets, _ := s.repo.ListAssetsByVersion(ctx, version.ID)
+		assets, err := s.repo.ListAssetsByVersion(ctx, version.ID)
+		if err != nil {
+			s.log.Warn("module: failed to list assets", zap.String("version_id", version.ID.String()), zap.Error(err))
+			assets = nil
+		}
 		out = append(out, &StudentModuleView{
 			ModuleID:      m.ID,
 			Title:         m.Title,
@@ -334,11 +338,15 @@ func (s *Service) ResolveStudentModule(ctx context.Context, enrollmentID, module
 		configMap[cfg.ModuleID] = cfg
 	}
 
-	version, err := s.resolveVersion(ctx, moduleID, batchID, configMap)
+	version, err := s.resolveVersion(ctx, moduleID, configMap)
 	if err != nil {
 		return nil, err
 	}
-	assets, _ := s.repo.ListAssetsByVersion(ctx, version.ID)
+	assets, err := s.repo.ListAssetsByVersion(ctx, version.ID)
+	if err != nil {
+		s.log.Warn("module: failed to list assets", zap.String("version_id", version.ID.String()), zap.Error(err))
+		assets = nil
+	}
 	return &StudentModuleView{
 		ModuleID:      m.ID,
 		Title:         m.Title,
@@ -350,7 +358,7 @@ func (s *Service) ResolveStudentModule(ctx context.Context, enrollmentID, module
 	}, nil
 }
 
-func (s *Service) resolveVersion(ctx context.Context, moduleID, _ uuid.UUID, configMap map[uuid.UUID]*BatchModuleConfig) (*ModuleVersion, error) {
+func (s *Service) resolveVersion(ctx context.Context, moduleID uuid.UUID, configMap map[uuid.UUID]*BatchModuleConfig) (*ModuleVersion, error) {
 	if cfg, ok := configMap[moduleID]; ok && cfg.VersionPolicy == PolicyLocked && cfg.LockedVersionID != nil {
 		return s.repo.GetModuleVersionByID(ctx, *cfg.LockedVersionID)
 	}
