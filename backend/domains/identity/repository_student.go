@@ -66,15 +66,78 @@ func (r *repository) GetStudentByUserID(ctx context.Context, userID uuid.UUID) (
 
 // ─── New implementations (stubs — filled in Task 4) ─────────────────────────
 
-func (r *repository) ListStudentsFiltered(_ context.Context, _ StudentFilter) ([]*Student, error) {
-	return nil, nil
+func (r *repository) ListStudentsFiltered(ctx context.Context, f StudentFilter) ([]*Student, error) {
+	where, args := buildStudentWhere(f)
+
+	col := studentSortCol(f.SortBy)
+	dir := "DESC"
+	if strings.EqualFold(f.SortDir, "asc") {
+		dir = "ASC"
+	}
+
+	n := len(args) + 1
+	query := fmt.Sprintf(`
+		SELECT s.id, s.user_id, s.name, s.email, s.phone, s.source, s.partner_id, s.created_at, s.updated_at
+		FROM identity.students s
+		LEFT JOIN identity.student_profiles p ON p.student_id = s.id
+		%s
+		ORDER BY %s %s
+		LIMIT $%d OFFSET $%d`,
+		studentWhereClause(where), col, dir, n, n+1)
+
+	args = append(args, f.Limit, f.Offset)
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("identity.ListStudentsFiltered: %w", err)
+	}
+	defer rows.Close()
+
+	var students []*Student
+	for rows.Next() {
+		s := &Student{}
+		if err := rows.Scan(
+			&s.ID, &s.UserID, &s.Name, &s.Email, &s.Phone, &s.Source,
+			&s.PartnerID, &s.CreatedAt, &s.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("identity.ListStudentsFiltered scan: %w", err)
+		}
+		students = append(students, s)
+	}
+	return students, rows.Err()
 }
 
-func (r *repository) CountStudentsFiltered(_ context.Context, _ StudentFilter) (int, error) {
-	return 0, nil
+func (r *repository) CountStudentsFiltered(ctx context.Context, f StudentFilter) (int, error) {
+	where, args := buildStudentWhere(f)
+
+	query := fmt.Sprintf(`
+		SELECT COUNT(*)
+		FROM identity.students s
+		LEFT JOIN identity.student_profiles p ON p.student_id = s.id
+		%s`, studentWhereClause(where))
+
+	var count int
+	if err := r.pool.QueryRow(ctx, query, args...).Scan(&count); err != nil {
+		return 0, fmt.Errorf("identity.CountStudentsFiltered: %w", err)
+	}
+	return count, nil
 }
 
-func (r *repository) UpdateStudent(_ context.Context, _ *Student) error {
+func (r *repository) UpdateStudent(ctx context.Context, s *Student) error {
+	query := `
+		UPDATE identity.students
+		SET name=$1, email=$2, phone=$3, source=$4, partner_id=$5
+		WHERE id=$6 RETURNING updated_at`
+
+	err := r.pool.QueryRow(ctx, query,
+		s.Name, s.Email, s.Phone, s.Source, s.PartnerID, s.ID,
+	).Scan(&s.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return apperrors.ErrNotFound
+		}
+		return fmt.Errorf("identity.UpdateStudent: %w", err)
+	}
 	return nil
 }
 
@@ -117,7 +180,24 @@ func (r *repository) GetStudentProfile(ctx context.Context, studentID uuid.UUID)
 	return p, nil
 }
 
-func (r *repository) UpdateStudentProfile(_ context.Context, _ *StudentProfile) error {
+func (r *repository) UpdateStudentProfile(ctx context.Context, p *StudentProfile) error {
+	query := `
+		UPDATE identity.student_profiles
+		SET date_of_birth=$1, gender=$2, id_type=$3, id_number=$4,
+		    address=$5, city=$6, province=$7, postal_code=$8, profile_complete=$9
+		WHERE student_id=$10 RETURNING updated_at`
+
+	err := r.pool.QueryRow(ctx, query,
+		p.DateOfBirth, p.Gender, p.IDType, p.IDNumber,
+		p.Address, p.City, p.Province, p.PostalCode, p.ProfileComplete,
+		p.StudentID,
+	).Scan(&p.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return apperrors.ErrNotFound
+		}
+		return fmt.Errorf("identity.UpdateStudentProfile: %w", err)
+	}
 	return nil
 }
 

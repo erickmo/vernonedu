@@ -31,7 +31,19 @@ func (s *Service) CountStudentsFiltered(ctx context.Context, f StudentFilter) (i
 
 // UpdateStudent updates student core fields.
 func (s *Service) UpdateStudent(ctx context.Context, id uuid.UUID, in UpdateStudentInput) (*Student, error) {
-	return nil, nil // stub — implemented in Task 4
+	student, err := s.repo.GetStudentByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	student.Name = in.Name
+	student.Email = in.Email
+	student.Phone = in.Phone
+	student.Source = in.Source
+	student.PartnerID = in.PartnerID
+	if err := s.repo.UpdateStudent(ctx, student); err != nil {
+		return nil, err
+	}
+	return student, nil
 }
 
 // GetStudentProfile fetches the profile for a student.
@@ -41,5 +53,27 @@ func (s *Service) GetStudentProfile(ctx context.Context, studentID uuid.UUID) (*
 
 // UpdateStudentProfile updates profile fields and recomputes profile_complete.
 func (s *Service) UpdateStudentProfile(ctx context.Context, studentID uuid.UUID, in UpdateStudentProfileInput) (*StudentProfile, error) {
-	return nil, nil // stub — implemented in Task 4
+	profile, err := s.repo.GetStudentProfile(ctx, studentID)
+	if err != nil {
+		return nil, err
+	}
+	profile.DateOfBirth = in.DateOfBirth
+	profile.Gender = in.Gender
+	profile.IDType = in.IDType
+	profile.IDNumber = in.IDNumber
+	profile.Address = in.Address
+	profile.City = in.City
+	profile.Province = in.Province
+	profile.PostalCode = in.PostalCode
+	profile.ProfileComplete = isProfileComplete(profile)
+	if err := s.repo.UpdateStudentProfile(ctx, profile); err != nil {
+		return nil, err
+	}
+	return profile, nil
+}
+
+func isProfileComplete(p *StudentProfile) bool {
+	return p.DateOfBirth != nil && p.Gender != nil && p.IDType != nil &&
+		p.IDNumber != nil && p.Address != nil && p.City != nil &&
+		p.Province != nil && p.PostalCode != nil
 }
