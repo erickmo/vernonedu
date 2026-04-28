@@ -35,7 +35,17 @@ func buildFranchiseRouter(svc *franchise.Service, role string) http.Handler {
 	r.Post("/api/v1/royalty-records", h.CreateRoyaltyRecord)
 	r.Get("/api/v1/royalty-records/{franchiseeID}/{period}", h.GetRoyaltyRecord)
 	r.Post("/api/v1/royalty-records/{id}/mark-paid", h.MarkRoyaltyPaid)
+	r.Get("/api/v1/me/franchisee", h.GetMyFranchisee)
+	r.Get("/api/v1/royalty-records/{franchiseeID}/all", h.ListRoyaltyRecords)
 
+	return r
+}
+
+func buildFranchiseRouterNoAuth(svc *franchise.Service) http.Handler {
+	h := franchise.NewHandler(svc)
+	r := chi.NewRouter()
+	r.Get("/api/v1/me/franchisee", h.GetMyFranchisee)
+	r.Get("/api/v1/royalty-records/{franchiseeID}/all", h.ListRoyaltyRecords)
 	return r
 }
 
@@ -68,4 +78,50 @@ func TestFranchise_GetFranchisee_NotFound(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	require.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func TestFranchise_GetMyFranchisee_Unauthenticated(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	resetSchemas(t, pool)
+
+	svc := newService(t, pool)
+	router := buildFranchiseRouterNoAuth(svc)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/me/franchisee", http.NoBody)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestFranchise_GetMyFranchisee_NotLinked(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	resetSchemas(t, pool)
+
+	svc := newService(t, pool)
+	router := buildFranchiseRouter(svc, "franchisee")
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/me/franchisee", http.NoBody)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func TestFranchise_ListRoyaltyRecords_Empty(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	resetSchemas(t, pool)
+
+	svc := newService(t, pool)
+	router := buildFranchiseRouter(svc, "vernonedu_admin")
+
+	id := uuid.New()
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/royalty-records/"+id.String()+"/all", http.NoBody)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
 }
