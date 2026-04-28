@@ -26,12 +26,6 @@ type Repository interface {
 	GetClassByID(ctx context.Context, id uuid.UUID) (*Class, error)
 	ListClassesByBatch(ctx context.Context, batchID uuid.UUID) ([]*Class, error)
 
-	CreateModule(ctx context.Context, m *CourseModule) error
-	GetModuleByID(ctx context.Context, id uuid.UUID) (*CourseModule, error)
-	ListModulesByCourse(ctx context.Context, courseID uuid.UUID) ([]*CourseModule, error)
-
-	CreateModuleVersion(ctx context.Context, mv *ModuleVersion) error
-	GetModuleVersionByID(ctx context.Context, id uuid.UUID) (*ModuleVersion, error)
 }
 
 type repository struct {
@@ -229,87 +223,4 @@ func (r *repository) ListClassesByBatch(ctx context.Context, batchID uuid.UUID) 
 	return classes, rows.Err()
 }
 
-func (r *repository) CreateModule(ctx context.Context, m *CourseModule) error {
-	query := `
-		INSERT INTO catalog.modules (id, course_id, title, "order", is_active, created_by)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING created_at, updated_at`
 
-	err := r.pool.QueryRow(ctx, query, m.ID, m.CourseID, m.Title, m.Order, m.IsActive, m.CreatedBy).
-		Scan(&m.CreatedAt, &m.UpdatedAt)
-	if err != nil {
-		return fmt.Errorf("catalog.CreateModule: %w", err)
-	}
-	return nil
-}
-
-func (r *repository) GetModuleByID(ctx context.Context, id uuid.UUID) (*CourseModule, error) {
-	query := `SELECT id, course_id, title, "order", is_active, created_by, created_at, updated_at
-	          FROM catalog.modules WHERE id = $1`
-
-	m := &CourseModule{}
-	err := r.pool.QueryRow(ctx, query, id).Scan(
-		&m.ID, &m.CourseID, &m.Title, &m.Order, &m.IsActive, &m.CreatedBy, &m.CreatedAt, &m.UpdatedAt,
-	)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, apperrors.ErrNotFound
-		}
-		return nil, fmt.Errorf("catalog.GetModuleByID: %w", err)
-	}
-	return m, nil
-}
-
-func (r *repository) ListModulesByCourse(ctx context.Context, courseID uuid.UUID) ([]*CourseModule, error) {
-	query := `SELECT id, course_id, title, "order", is_active, created_by, created_at, updated_at
-	          FROM catalog.modules WHERE course_id = $1 AND is_active=true ORDER BY "order"`
-
-	rows, err := r.pool.Query(ctx, query, courseID)
-	if err != nil {
-		return nil, fmt.Errorf("catalog.ListModulesByCourse: %w", err)
-	}
-	defer rows.Close()
-
-	var modules []*CourseModule
-	for rows.Next() {
-		m := &CourseModule{}
-		if err := rows.Scan(&m.ID, &m.CourseID, &m.Title, &m.Order, &m.IsActive, &m.CreatedBy, &m.CreatedAt, &m.UpdatedAt); err != nil {
-			return nil, fmt.Errorf("catalog.ListModulesByCourse scan: %w", err)
-		}
-		modules = append(modules, m)
-	}
-	return modules, rows.Err()
-}
-
-func (r *repository) CreateModuleVersion(ctx context.Context, mv *ModuleVersion) error {
-	query := `
-		INSERT INTO catalog.module_versions (id, module_id, version_number, title, description, status, created_by)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING created_at, updated_at`
-
-	err := r.pool.QueryRow(ctx, query,
-		mv.ID, mv.ModuleID, mv.VersionNumber, mv.Title, mv.Description, mv.Status, mv.CreatedBy,
-	).Scan(&mv.CreatedAt, &mv.UpdatedAt)
-	if err != nil {
-		return fmt.Errorf("catalog.CreateModuleVersion: %w", err)
-	}
-	return nil
-}
-
-func (r *repository) GetModuleVersionByID(ctx context.Context, id uuid.UUID) (*ModuleVersion, error) {
-	query := `SELECT id, module_id, version_number, title, description, status, published_at, published_by, created_by, created_at, updated_at
-	          FROM catalog.module_versions WHERE id = $1`
-
-	mv := &ModuleVersion{}
-	err := r.pool.QueryRow(ctx, query, id).Scan(
-		&mv.ID, &mv.ModuleID, &mv.VersionNumber, &mv.Title, &mv.Description,
-		&mv.Status, &mv.PublishedAt, &mv.PublishedBy, &mv.CreatedBy, &mv.CreatedAt, &mv.UpdatedAt,
-	)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, apperrors.ErrNotFound
-		}
-		return nil, fmt.Errorf("catalog.GetModuleVersionByID: %w", err)
-	}
-	return mv, nil
-}

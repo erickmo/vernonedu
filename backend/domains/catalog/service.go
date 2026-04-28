@@ -110,21 +110,4 @@ func (s *Service) ListClassesByBatch(ctx context.Context, batchID uuid.UUID) ([]
 	return s.repo.ListClassesByBatch(ctx, batchID)
 }
 
-// CreateModule creates a module for a course.
-func (s *Service) CreateModule(ctx context.Context, m *CourseModule) error {
-	m.ID = uuid.New()
-	m.IsActive = true
-	return s.repo.CreateModule(ctx, m)
-}
 
-// ListModulesByCourse returns ordered modules for a course.
-func (s *Service) ListModulesByCourse(ctx context.Context, courseID uuid.UUID) ([]*CourseModule, error) {
-	return s.repo.ListModulesByCourse(ctx, courseID)
-}
-
-// CreateModuleVersion creates a new version of a module.
-func (s *Service) CreateModuleVersion(ctx context.Context, mv *ModuleVersion) error {
-	mv.ID = uuid.New()
-	mv.Status = ModuleDraft
-	return s.repo.CreateModuleVersion(ctx, mv)
-}
