@@ -90,3 +90,36 @@ export function useMarkRoyaltyPaid() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['royalty-records'] }),
   })
 }
+
+export function useFranchisees() {
+  return useQuery({
+    queryKey: ['franchisees'],
+    queryFn: () => apiClient.get<Franchisee[]>('/franchisees').then((r) => r.data),
+  })
+}
+
+export interface CreateFranchiseeInput {
+  name: string
+  branch_name: string
+  location: string
+  contact: string
+}
+
+export function useCreateFranchisee() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreateFranchiseeInput) =>
+      apiClient.post<Franchisee>('/franchisees', input).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['franchisees'] }),
+  })
+}
+
+export function useCreateRoyaltyRecord() {
+  return useMutation({
+    mutationFn: (input: {
+      franchise_agreement_id: string
+      period: string
+      gross_revenue: number
+    }) => apiClient.post<RoyaltyRecord>('/royalty-records', input).then((r) => r.data),
+  })
+}
