@@ -186,7 +186,6 @@ func (r *pgRepository) ListNotifications(ctx context.Context, f ListNotifFilter)
 	if f.Channel != nil {
 		q += ` AND channel = $` + itoa(i)
 		args = append(args, *f.Channel)
-		i++
 	}
 	q += ` ORDER BY created_at DESC`
 
