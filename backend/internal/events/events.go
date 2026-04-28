@@ -32,6 +32,7 @@ const (
 	InvoiceSent    EventType = "invoice.sent"
 	InvoiceOverdue EventType = "invoice.overdue"
 
+	ClassCompleted    EventType = "attendance.class_completed"
 	ClassReminder     EventType = "class.reminder"
 	CertificateIssued EventType = "certificate.issued"
 

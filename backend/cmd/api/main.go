@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/vernonedu/vernonedu2/backend/domains/budget"
+	"github.com/vernonedu/vernonedu2/backend/domains/module"
 	"github.com/vernonedu/vernonedu2/backend/domains/calendar"
 	"github.com/vernonedu/vernonedu2/backend/domains/catalog"
 	"github.com/vernonedu/vernonedu2/backend/domains/credentialing"
@@ -51,6 +52,7 @@ func main() {
 		calendar.Module,
 		notification.Module,
 		budget.Module,
+		module.Module,
 
 		fx.NopLogger,
 	)

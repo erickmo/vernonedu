@@ -1,0 +1,71 @@
+package module
+
+import (
+	"github.com/go-chi/chi/v5"
+	"github.com/vernonedu/vernonedu2/backend/internal/config"
+	mw "github.com/vernonedu/vernonedu2/backend/internal/middleware"
+	"go.uber.org/fx"
+)
+
+const (
+	roleAdmin         = "vernonedu_admin"
+	roleCourseCreator = "course_creator"
+	roleDeptLeader    = "dept_leader"
+	roleFacilitator   = "facilitator"
+	roleStudent       = "student"
+)
+
+// Module wires the module domain via FX.
+var Module = fx.Options(
+	fx.Provide(NewRepository),
+	fx.Provide(NewService),
+	fx.Provide(NewHandler),
+	fx.Invoke(RegisterRoutes),
+	fx.Invoke(RegisterSubscriptions),
+)
+
+// RegisterRoutes mounts module HTTP routes.
+func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config) {
+	jwtMW := mw.JWT(cfg.JWT.Secret)
+
+	r.Group(func(r chi.Router) {
+		r.Use(jwtMW)
+		registerModuleRoutes(r, h)
+		registerBatchRoutes(r, h)
+		registerCoverageRoutes(r, h)
+		registerStudentRoutes(r, h)
+	})
+}
+
+func registerModuleRoutes(r chi.Router, h *Handler) {
+	manage := mw.RequireRole(roleAdmin, roleCourseCreator)
+	r.With(manage).Post("/api/v1/courses/{id}/modules", h.CreateModule)
+	r.With(manage).Patch("/api/v1/courses/{id}/modules/{module_id}", h.UpdateModule)
+	r.With(manage).Post("/api/v1/modules/{id}/versions", h.CreateVersion)
+	r.With(manage).Post("/api/v1/modules/{id}/versions/{ver_id}/publish", h.PublishVersion)
+	r.With(manage).Post("/api/v1/modules/{id}/versions/{ver_id}/assets", h.CreateAsset)
+	r.With(manage).Patch("/api/v1/modules/{id}/versions/{ver_id}/assets/{asset_id}", h.UpdateAsset)
+	r.With(manage).Delete("/api/v1/modules/{id}/versions/{ver_id}/assets/{asset_id}", h.DeleteAsset)
+}
+
+func registerBatchRoutes(r chi.Router, h *Handler) {
+	manage := mw.RequireRole(roleAdmin, roleDeptLeader, roleCourseCreator)
+	r.With(manage).Get("/api/v1/batches/{id}/module-configs", h.ListBatchModuleConfigs)
+	r.With(manage).Put("/api/v1/batches/{id}/module-configs/{module_id}", h.UpsertBatchModuleConfig)
+	r.With(mw.RequireRole(roleAdmin, roleDeptLeader, roleCourseCreator)).Get("/api/v1/batches/{id}/progress", h.GetBatchProgress)
+}
+
+func registerCoverageRoutes(r chi.Router, h *Handler) {
+	view   := mw.RequireRole(roleAdmin, roleDeptLeader, roleCourseCreator, roleFacilitator)
+	manage := mw.RequireRole(roleAdmin, roleCourseCreator, roleFacilitator)
+	r.With(view).Get("/api/v1/classes/{id}/coverage", h.ListCoverage)
+	r.With(manage).Post("/api/v1/classes/{id}/coverage", h.CreateCoverage)
+	r.With(manage).Patch("/api/v1/classes/{id}/coverage/{cov_id}", h.UpdateCoverage)
+	r.With(manage).Delete("/api/v1/classes/{id}/coverage/{cov_id}", h.DeleteCoverage)
+}
+
+func registerStudentRoutes(r chi.Router, h *Handler) {
+	student := mw.RequireRole(roleStudent)
+	r.With(student).Get("/api/v1/enrollments/{id}/modules", h.GetStudentModules)
+	r.With(student).Get("/api/v1/enrollments/{id}/modules/{module_id}", h.GetStudentModule)
+}
