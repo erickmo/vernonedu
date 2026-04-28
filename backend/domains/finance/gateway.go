@@ -126,7 +126,7 @@ func (m *MidtransGateway) CreateCharge(ctx context.Context, inv *Invoice) (*Char
 	if err != nil {
 		return nil, fmt.Errorf("midtrans http: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	respBody, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 300 {
