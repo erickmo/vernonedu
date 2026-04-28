@@ -182,12 +182,12 @@ func (h *Handler) handleProfileUpdate(w http.ResponseWriter, r *http.Request, st
 
 	var dob *time.Time
 	if req.DateOfBirth != nil {
-		t, err := time.Parse("2006-01-02", *req.DateOfBirth)
+		dobParsed, err := time.Parse("2006-01-02", *req.DateOfBirth)
 		if err != nil {
 			apperrors.Render(w, apperrors.Validationf("invalid date_of_birth format, use YYYY-MM-DD"))
 			return
 		}
-		dob = &t
+		dob = &dobParsed
 	}
 
 	profile, err := h.svc.UpdateStudentProfile(r.Context(), studentID, UpdateStudentProfileInput{

@@ -228,7 +228,6 @@ func buildStudentWhere(f StudentFilter) ([]string, []interface{}) {
 		args = append(args, *f.ProfileComplete)
 		n++
 	}
-	_ = n
 	return where, args
 }
 

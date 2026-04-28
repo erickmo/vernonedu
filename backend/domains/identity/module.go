@@ -49,7 +49,7 @@ func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {
 		r.With(studentSelf).Get("/api/v1/me/student", h.GetMyStudent)
 		r.With(studentSelf).Put("/api/v1/me/student/profile", h.UpdateMyStudentProfile)
 
-		r.Delete("/api/v1/users/{id}", h.DeactivateUser)
+		r.With(manageStudents).Delete("/api/v1/users/{id}", h.DeactivateUser)
 		r.Get("/api/v1/departments", h.ListDepartments)
 	})
 }
