@@ -451,7 +451,6 @@ func (h *Handler) GetStudentModule(w http.ResponseWriter, r *http.Request) {
 const (
 	roleAdmin         = "vernonedu_admin"
 	roleCourseCreator = "course_creator"
-	roleDeptLeader    = "dept_leader"
 	roleFacilitator   = "facilitator"
 )
 
