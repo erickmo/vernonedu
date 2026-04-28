@@ -2,9 +2,14 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/lib/auth/useAuth'
 import { SubNavProvider, SubNavBar } from '@/components/layout/SubNavContext'
 import TopNavBar, { NavItem } from '@/components/layout/TopNavBar'
+import { FranchiseeProvider } from './FranchiseeContext'
 
 const NAV_ITEMS: NavItem[] = [
   { to: '/franchise', label: 'Dashboard', end: true },
+  { to: '/franchise/royalty', label: 'Royalty' },
+  { to: '/franchise/enrollments', label: 'Enrollments' },
+  { to: '/franchise/payments', label: 'Payments' },
+  { to: '/franchise/team', label: 'Team' },
 ]
 
 function FranchiseLayout() {
@@ -35,8 +40,10 @@ function FranchiseLayout() {
 
 export default function FranchisePortal() {
   return (
-    <SubNavProvider>
-      <FranchiseLayout />
-    </SubNavProvider>
+    <FranchiseeProvider>
+      <SubNavProvider>
+        <FranchiseLayout />
+      </SubNavProvider>
+    </FranchiseeProvider>
   )
 }

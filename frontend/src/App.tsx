@@ -19,6 +19,10 @@ import Payments from '@/portals/internal/pages/Payments'
 import Courses from '@/portals/internal/pages/Courses'
 import Students from '@/portals/internal/pages/Students'
 import FranchiseDashboard from '@/portals/franchise/pages/Dashboard'
+import FranchiseRoyalty from '@/portals/franchise/pages/Royalty'
+import FranchiseEnrollments from '@/portals/franchise/pages/Enrollments'
+import FranchisePayments from '@/portals/franchise/pages/Payments'
+import FranchiseTeamMembers from '@/portals/franchise/pages/TeamMembers'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 
 const ROLE_STUDENT = 'student'
@@ -56,6 +60,10 @@ export default function App() {
       <Route element={<ProtectedRoute allowedRoles={[ROLE_FRANCHISEE]} />}>
         <Route path="/franchise" element={<FranchisePortal />}>
           <Route index element={<FranchiseDashboard />} />
+          <Route path="royalty" element={<FranchiseRoyalty />} />
+          <Route path="enrollments" element={<FranchiseEnrollments />} />
+          <Route path="payments" element={<FranchisePayments />} />
+          <Route path="team" element={<FranchiseTeamMembers />} />
         </Route>
       </Route>
 
