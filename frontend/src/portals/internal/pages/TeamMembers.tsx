@@ -5,13 +5,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import {
   useTeamMembersFull,
   useCreateTeamMember,
   useDeactivateUser,
+  useDepartments,
   type TeamMember,
 } from '@/lib/api/people'
-import { useDepartments } from '@/lib/api/people'
 import { formatDate } from '@/lib/utils/format'
 import DataTable, { Column } from '@/components/shared/DataTable'
 import PageHeader from '@/components/shared/PageHeader'
@@ -41,6 +42,7 @@ type MemberForm = z.infer<typeof memberSchema>
 
 export default function TeamMembers() {
   const [open, setOpen] = useState(false)
+  const [confirmTarget, setConfirmTarget] = useState<TeamMember | null>(null)
   const { data = [], isLoading } = useTeamMembersFull()
   const { data: depts = [] } = useDepartments()
   const createMember = useCreateTeamMember()
@@ -106,14 +108,7 @@ export default function TeamMembers() {
       accessor: 'id',
       cell: (row) => (
         <button
-          onClick={() => {
-            if (confirm(`Deactivate ${row.full_name}?`)) {
-              deactivate.mutate(row.user_id, {
-                onSuccess: () => toast.success('User deactivated'),
-                onError: () => toast.error('Failed to deactivate'),
-              })
-            }
-          }}
+          onClick={() => setConfirmTarget(row)}
           className="text-xs text-red-500 hover:text-red-700 font-medium"
         >
           Deactivate
@@ -147,7 +142,7 @@ export default function TeamMembers() {
     <div className="space-y-6">
       <PageHeader
         title="Team Members"
-        subtitle={`${data.length} member${data.length !== 1 ? 's' : ''}`}
+        subtitle={isLoading ? 'Loading…' : `${data.length} member${data.length !== 1 ? 's' : ''}`}
         actions={
           <button
             onClick={() => setOpen(true)}
@@ -170,7 +165,7 @@ export default function TeamMembers() {
 
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/40 z-40" />
+          <Dialog.Overlay className="fixed inset-0 bg-black/40 z-50" />
           <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-white rounded-xl shadow-xl p-6 space-y-4">
             <Dialog.Title className="text-lg font-semibold text-neutral-900">
               Add Team Member
@@ -275,6 +270,23 @@ export default function TeamMembers() {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
+
+      <ConfirmDialog
+        open={confirmTarget !== null}
+        title="Deactivate Team Member"
+        description={`Are you sure you want to deactivate ${confirmTarget?.full_name ?? ''}? This action cannot be undone.`}
+        confirmLabel="Deactivate"
+        destructive
+        onConfirm={() => {
+          if (!confirmTarget) return
+          deactivate.mutate(confirmTarget.user_id, {
+            onSuccess: () => toast.success('User deactivated'),
+            onError: () => toast.error('Failed to deactivate'),
+          })
+          setConfirmTarget(null)
+        }}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   )
 }

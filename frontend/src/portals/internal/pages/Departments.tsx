@@ -34,7 +34,7 @@ export default function Departments() {
     <div className="space-y-6">
       <PageHeader
         title="Departments"
-        subtitle={`${data.length} department${data.length !== 1 ? 's' : ''}`}
+        subtitle={isLoading ? 'Loading…' : `${data.length} department${data.length !== 1 ? 's' : ''}`}
       />
       <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
         <DataTable

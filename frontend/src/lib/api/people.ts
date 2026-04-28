@@ -154,19 +154,23 @@ export interface ReviewInput {
 }
 
 export function useDeptLeaderReview() {
+  const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, ...body }: ReviewInput & { id: string }) =>
       apiClient
         .post(`/facilitator-proposals/${id}/dept-review`, body)
         .then((r) => r.data),
+    onSuccess: (_data, { id }) => qc.invalidateQueries({ queryKey: ['proposal', id] }),
   })
 }
 
 export function useAcademicLeaderReview() {
+  const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, ...body }: ReviewInput & { id: string }) =>
       apiClient
         .post(`/facilitator-proposals/${id}/academic-review`, body)
         .then((r) => r.data),
+    onSuccess: (_data, { id }) => qc.invalidateQueries({ queryKey: ['proposal', id] }),
   })
 }
