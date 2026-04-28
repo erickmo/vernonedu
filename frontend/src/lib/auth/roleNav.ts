@@ -70,7 +70,8 @@ const INTERNAL_NAV: RoleNavItem[] = [
 ]
 
 export function getInternalNavItems(role: string): NavItem[] {
+  const normalized = role.toLowerCase()
   return INTERNAL_NAV
-    .filter((item) => !item.allowedRoles || item.allowedRoles.includes(role))
+    .filter((item) => !item.allowedRoles || item.allowedRoles.includes(normalized))
     .map(({ allowedRoles: _r, ...item }) => item)
 }
