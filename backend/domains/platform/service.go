@@ -2,9 +2,12 @@ package platform
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
+	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	"go.uber.org/zap"
 )
 
@@ -34,11 +37,14 @@ type SendInput struct {
 func (s *Service) Send(ctx context.Context, in SendInput) (*Notification, error) {
 	template, err := s.repo.GetTemplateByKey(ctx, in.TemplateKey, in.Channel)
 	if err != nil {
-		s.log.Warn("notification template not found",
-			zap.String("key", in.TemplateKey),
-			zap.String("channel", string(in.Channel)),
-		)
-		return nil, nil
+		if errors.Is(err, apperrors.ErrNotFound) {
+			s.log.Warn("notification template not found",
+				zap.String("key", in.TemplateKey),
+				zap.String("channel", string(in.Channel)),
+			)
+			return nil, nil
+		}
+		return nil, fmt.Errorf("platform.Send: get template: %w", err)
 	}
 
 	n := &Notification{

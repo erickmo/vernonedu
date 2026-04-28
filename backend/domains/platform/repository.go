@@ -155,9 +155,12 @@ func (r *repository) ListNotificationsByRecipient(ctx context.Context, recipient
 
 func (r *repository) MarkNotificationRead(ctx context.Context, id uuid.UUID) error {
 	query := `UPDATE platform.notifications SET status='read', read_at=now() WHERE id=$1 AND status='sent'`
-	_, err := r.pool.Exec(ctx, query, id)
+	tag, err := r.pool.Exec(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("platform.MarkNotificationRead: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
 	}
 	return nil
 }
