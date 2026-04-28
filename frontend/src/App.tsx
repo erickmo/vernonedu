@@ -18,6 +18,16 @@ import Enrollments from '@/portals/internal/pages/Enrollments'
 import Payments from '@/portals/internal/pages/Payments'
 import Courses from '@/portals/internal/pages/Courses'
 import Students from '@/portals/internal/pages/Students'
+import Departments from '@/portals/internal/pages/Departments'
+import TeamMembers from '@/portals/internal/pages/TeamMembers'
+import Proposals from '@/portals/internal/pages/Proposals'
+import Budget from '@/portals/internal/pages/Budget'
+import ProfitSplit from '@/portals/internal/pages/ProfitSplit'
+import Partners from '@/portals/internal/pages/Partners'
+import Vouchers from '@/portals/internal/pages/Vouchers'
+import InternalCalendar from '@/portals/internal/pages/Calendar'
+import Franchises from '@/portals/internal/pages/Franchises'
+import Notifications from '@/portals/internal/pages/Notifications'
 import FranchiseDashboard from '@/portals/franchise/pages/Dashboard'
 import FranchiseRoyalty from '@/portals/franchise/pages/Royalty'
 import FranchiseEnrollments from '@/portals/franchise/pages/Enrollments'
@@ -74,6 +84,16 @@ export default function App() {
           <Route path="payments" element={<Payments />} />
           <Route path="courses" element={<Courses />} />
           <Route path="students" element={<Students />} />
+          <Route path="departments" element={<Departments />} />
+          <Route path="team-members" element={<TeamMembers />} />
+          <Route path="proposals" element={<Proposals />} />
+          <Route path="budget" element={<Budget />} />
+          <Route path="profit-split" element={<ProfitSplit />} />
+          <Route path="partners" element={<Partners />} />
+          <Route path="vouchers" element={<Vouchers />} />
+          <Route path="calendar" element={<InternalCalendar />} />
+          <Route path="franchises" element={<Franchises />} />
+          <Route path="notifications" element={<Notifications />} />
         </Route>
       </Route>
 
