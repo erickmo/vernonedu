@@ -343,7 +343,7 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
-func parsePcts(v, cc, dl string) (decimal.Decimal, decimal.Decimal, decimal.Decimal, *apperrors.AppError) {
+func parsePcts(v, cc, dl string) (decimal.Decimal, decimal.Decimal, decimal.Decimal, error) {
 	vPct, err := decimal.NewFromString(v)
 	if err != nil {
 		return decimal.Zero, decimal.Zero, decimal.Zero, apperrors.Validationf("invalid vernonedu_pct")
