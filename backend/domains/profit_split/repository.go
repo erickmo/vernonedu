@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -167,14 +169,19 @@ func (r *repository) GetExtraRevenue(ctx context.Context, id uuid.UUID) (*ExtraR
 func (r *repository) UpdateExtraRevenueStatus(
 	ctx context.Context, id uuid.UUID, status ApprovalStatus, approvedBy *uuid.UUID,
 ) error {
+	var approvedAt *time.Time
+	if status == ApprovalApproved || status == ApprovalRejected {
+		now := time.Now()
+		approvedAt = &now
+	}
 	query := `
 		UPDATE profit_split.extra_revenues
 		SET approval_status = $1,
 		    approved_by     = $2,
-		    approved_at     = CASE WHEN $1 IN ('approved','rejected') THEN now() ELSE NULL END
+		    approved_at     = $4
 		WHERE id = $3`
 
-	ct, err := r.pool.Exec(ctx, query, status, approvedBy, id)
+	ct, err := r.pool.Exec(ctx, query, status, approvedBy, id, approvedAt)
 	if err != nil {
 		return fmt.Errorf("profit_split.UpdateExtraRevenueStatus: %w", err)
 	}

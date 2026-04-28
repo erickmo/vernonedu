@@ -249,10 +249,10 @@ func (r *repository) MarkOverdueRoyalties(ctx context.Context) error {
 // in the given period (YYYY-MM). Returns the sum as a decimal string.
 func (r *repository) GetEnrollmentRevenue(ctx context.Context, franchiseeID uuid.UUID, period string) (string, error) {
 	query := `
-		SELECT COALESCE(SUM(e.price_paid), 0)::TEXT
+		SELECT COALESCE(SUM(e.final_price), 0)::TEXT
 		FROM enrollment.enrollments e
 		WHERE e.franchisee_id = $1
-		  AND date_trunc('month', e.enrolled_at) = date_trunc('month', to_date($2 || '-01', 'YYYY-MM-DD'))`
+		  AND date_trunc('month', e.created_at) = date_trunc('month', to_date($2 || '-01', 'YYYY-MM-DD'))`
 
 	var sum string
 	err := r.pool.QueryRow(ctx, query, franchiseeID, period).Scan(&sum)

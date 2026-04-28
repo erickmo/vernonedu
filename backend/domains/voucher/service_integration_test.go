@@ -4,11 +4,13 @@ package voucher_test
 
 import (
 	"context"
+	"errors"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -274,15 +276,16 @@ func TestApplyVoucher_MaxUsesEnforced(t *testing.T) {
 
 	// Create a fresh enrollment (different enrollment_id) so the UNIQUE constraint is not the blocker
 	var newEnrollID uuid.UUID
-	require.NoError(t, pool.QueryRow(ctx, `
+	scanErr := pool.QueryRow(ctx, `
 		INSERT INTO enrollment.enrollments
 		  (student_id, course_batch_id, format, mode, payer, price, final_price, payment_status, completion_status, source)
 		VALUES ($1, $2, 'regular', 'online', 'student', 1200000, 1200000, 'pending', 'ongoing', 'b2c')
 		ON CONFLICT DO NOTHING
-		RETURNING id`, f.studentID, f.batchID).Scan(&newEnrollID))
-	if newEnrollID == uuid.Nil {
+		RETURNING id`, f.studentID, f.batchID).Scan(&newEnrollID)
+	if errors.Is(scanErr, pgx.ErrNoRows) {
 		t.Skip("no second enrollment possible with same student+batch due to UNIQUE constraint")
 	}
+	require.NoError(t, scanErr)
 
 	_, err = svc.ApplyVoucher(ctx, voucher.ApplyInput{
 		VoucherCode:   v.Code,
