@@ -8,18 +8,16 @@ import (
 	"github.com/google/uuid"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	mw "github.com/vernonedu/vernonedu2/backend/internal/middleware"
-	"go.uber.org/zap"
 )
 
 // Handler exposes HTTP endpoints for the module domain.
 type Handler struct {
 	svc *Service
-	log *zap.Logger
 }
 
 // NewHandler constructs module Handler (FX-injectable).
-func NewHandler(svc *Service, log *zap.Logger) *Handler {
-	return &Handler{svc: svc, log: log}
+func NewHandler(svc *Service) *Handler {
+	return &Handler{svc: svc}
 }
 
 // ─── Module Management ────────────────────────────────────────────────────────
@@ -39,7 +37,11 @@ func (h *Handler) CreateModule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	uc := mw.GetUserContext(r.Context())
-	if err := h.assertCourseOwner(r, courseID, uc); err != nil {
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
+	if err := h.svc.AssertCourseOwner(r.Context(), courseID, uc.ID, uc.Role); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
@@ -66,13 +68,17 @@ func (h *Handler) UpdateModule(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("invalid request body"))
 		return
 	}
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
 	m, err := h.svc.GetModule(r.Context(), moduleID)
 	if err != nil {
 		apperrors.Render(w, err)
 		return
 	}
-	uc := mw.GetUserContext(r.Context())
-	if err := h.assertCourseOwner(r, m.CourseID, uc); err != nil {
+	if err := h.svc.AssertCourseOwner(r.Context(), m.CourseID, uc.ID, uc.Role); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
@@ -98,13 +104,17 @@ func (h *Handler) CreateVersion(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("invalid request body"))
 		return
 	}
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
 	m, err := h.svc.GetModule(r.Context(), moduleID)
 	if err != nil {
 		apperrors.Render(w, err)
 		return
 	}
-	uc := mw.GetUserContext(r.Context())
-	if err := h.assertCourseOwner(r, m.CourseID, uc); err != nil {
+	if err := h.svc.AssertCourseOwner(r.Context(), m.CourseID, uc.ID, uc.Role); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
@@ -127,13 +137,17 @@ func (h *Handler) PublishVersion(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("invalid version id"))
 		return
 	}
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
 	m, err := h.svc.GetModule(r.Context(), moduleID)
 	if err != nil {
 		apperrors.Render(w, err)
 		return
 	}
-	uc := mw.GetUserContext(r.Context())
-	if err := h.assertCourseOwner(r, m.CourseID, uc); err != nil {
+	if err := h.svc.AssertCourseOwner(r.Context(), m.CourseID, uc.ID, uc.Role); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
@@ -167,13 +181,17 @@ func (h *Handler) CreateAsset(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("invalid request body"))
 		return
 	}
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
 	m, err := h.svc.GetModule(r.Context(), moduleID)
 	if err != nil {
 		apperrors.Render(w, err)
 		return
 	}
-	uc := mw.GetUserContext(r.Context())
-	if err := h.assertCourseOwner(r, m.CourseID, uc); err != nil {
+	if err := h.svc.AssertCourseOwner(r.Context(), m.CourseID, uc.ID, uc.Role); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
@@ -208,13 +226,17 @@ func (h *Handler) UpdateAsset(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("invalid request body"))
 		return
 	}
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
 	m, err := h.svc.GetModule(r.Context(), moduleID)
 	if err != nil {
 		apperrors.Render(w, err)
 		return
 	}
-	uc := mw.GetUserContext(r.Context())
-	if err := h.assertCourseOwner(r, m.CourseID, uc); err != nil {
+	if err := h.svc.AssertCourseOwner(r.Context(), m.CourseID, uc.ID, uc.Role); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
@@ -237,13 +259,17 @@ func (h *Handler) DeleteAsset(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("invalid asset_id"))
 		return
 	}
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
 	m, err := h.svc.GetModule(r.Context(), moduleID)
 	if err != nil {
 		apperrors.Render(w, err)
 		return
 	}
-	uc := mw.GetUserContext(r.Context())
-	if err := h.assertCourseOwner(r, m.CourseID, uc); err != nil {
+	if err := h.svc.AssertCourseOwner(r.Context(), m.CourseID, uc.ID, uc.Role); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
@@ -290,6 +316,14 @@ func (h *Handler) UpsertBatchModuleConfig(w http.ResponseWriter, r *http.Request
 		return
 	}
 	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
+	if err := h.svc.AssertBatchCourseOwner(r.Context(), batchID, uc.ID, uc.Role); err != nil {
+		apperrors.Render(w, err)
+		return
+	}
 	cfg, err := h.svc.UpsertBatchModuleConfig(r.Context(), batchID, moduleID, req.VersionPolicy, req.LockedVersionID, uc.ID)
 	if err != nil {
 		apperrors.Render(w, err)
@@ -329,7 +363,11 @@ func (h *Handler) CreateCoverage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	uc := mw.GetUserContext(r.Context())
-	if err := h.assertClassAccess(r, classID, uc); err != nil {
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
+	if err := h.svc.AssertClassAccess(r.Context(), classID, uc.ID, uc.Role); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
@@ -360,7 +398,11 @@ func (h *Handler) UpdateCoverage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	uc := mw.GetUserContext(r.Context())
-	if err := h.assertClassAccess(r, classID, uc); err != nil {
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
+	if err := h.svc.AssertClassAccess(r.Context(), classID, uc.ID, uc.Role); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
@@ -384,7 +426,11 @@ func (h *Handler) DeleteCoverage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	uc := mw.GetUserContext(r.Context())
-	if err := h.assertClassAccess(r, classID, uc); err != nil {
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
+	if err := h.svc.AssertClassAccess(r.Context(), classID, uc.ID, uc.Role); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
@@ -418,6 +464,10 @@ func (h *Handler) GetStudentModules(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
 	modules, err := h.svc.ResolveStudentModules(r.Context(), enrollmentID, uc.ID)
 	if err != nil {
 		apperrors.Render(w, err)
@@ -438,71 +488,16 @@ func (h *Handler) GetStudentModule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
 	m, err := h.svc.ResolveStudentModule(r.Context(), enrollmentID, moduleID, uc.ID)
 	if err != nil {
 		apperrors.Render(w, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, m)
-}
-
-// ─── RBAC helpers ─────────────────────────────────────────────────────────────
-
-const (
-	roleAdmin         = "vernonedu_admin"
-	roleCourseCreator = "course_creator"
-	roleFacilitator   = "facilitator"
-)
-
-// assertCourseOwner allows admin or course_creator who owns the course.
-func (h *Handler) assertCourseOwner(r *http.Request, courseID uuid.UUID, uc *mw.UserContext) error {
-	if uc.Role == roleAdmin {
-		return nil
-	}
-	if uc.Role == roleCourseCreator {
-		creatorID, err := h.svc.GetCourseCreatorID(r.Context(), courseID)
-		if err != nil {
-			return err
-		}
-		if creatorID == uc.ID {
-			return nil
-		}
-	}
-	return apperrors.ErrForbidden
-}
-
-// assertClassAccess allows admin, course_creator (own), or assigned facilitator.
-func (h *Handler) assertClassAccess(r *http.Request, classID uuid.UUID, uc *mw.UserContext) error {
-	if uc.Role == roleAdmin {
-		return nil
-	}
-	if uc.Role == roleCourseCreator {
-		batchID, err := h.svc.GetClassBatchID(r.Context(), classID)
-		if err != nil {
-			return err
-		}
-		courseID, err := h.svc.GetBatchCourseID(r.Context(), batchID)
-		if err != nil {
-			return err
-		}
-		creatorID, err := h.svc.GetCourseCreatorID(r.Context(), courseID)
-		if err != nil {
-			return err
-		}
-		if creatorID == uc.ID {
-			return nil
-		}
-	}
-	if uc.Role == roleFacilitator {
-		instructorID, err := h.svc.GetClassInstructorID(r.Context(), classID)
-		if err != nil {
-			return err
-		}
-		if instructorID == uc.ID {
-			return nil
-		}
-	}
-	return apperrors.ErrForbidden
 }
 
 // ─── Util ─────────────────────────────────────────────────────────────────────

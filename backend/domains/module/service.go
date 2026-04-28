@@ -59,20 +59,76 @@ func (s *Service) ListModules(ctx context.Context, courseID uuid.UUID) ([]*Cours
 	return s.repo.ListModulesByCourse(ctx, courseID)
 }
 
-func (s *Service) GetCourseCreatorID(ctx context.Context, courseID uuid.UUID) (uuid.UUID, error) {
-	return s.repo.GetCourseCreatorID(ctx, courseID)
+// AssertCourseOwner returns ErrForbidden unless actor is admin or is the course_creator who created the course.
+func (s *Service) AssertCourseOwner(ctx context.Context, courseID, actorID uuid.UUID, role string) error {
+	if role == "vernonedu_admin" {
+		return nil
+	}
+	if role == "course_creator" {
+		creatorID, err := s.repo.GetCourseCreatorID(ctx, courseID)
+		if err != nil {
+			return err
+		}
+		if creatorID == actorID {
+			return nil
+		}
+	}
+	return apperrors.ErrForbidden
 }
 
-func (s *Service) GetBatchCourseID(ctx context.Context, batchID uuid.UUID) (uuid.UUID, error) {
-	return s.repo.GetBatchCourseID(ctx, batchID)
+// AssertClassAccess returns ErrForbidden unless actor is admin, the course_creator who owns the class's course, or the assigned facilitator.
+func (s *Service) AssertClassAccess(ctx context.Context, classID, actorID uuid.UUID, role string) error {
+	if role == "vernonedu_admin" {
+		return nil
+	}
+	if role == "course_creator" {
+		batchID, err := s.repo.GetClassBatchID(ctx, classID)
+		if err != nil {
+			return err
+		}
+		courseID, err := s.repo.GetBatchCourseID(ctx, batchID)
+		if err != nil {
+			return err
+		}
+		creatorID, err := s.repo.GetCourseCreatorID(ctx, courseID)
+		if err != nil {
+			return err
+		}
+		if creatorID == actorID {
+			return nil
+		}
+	}
+	if role == "facilitator" {
+		instructorID, err := s.repo.GetClassInstructorID(ctx, classID)
+		if err != nil {
+			return err
+		}
+		if instructorID == actorID {
+			return nil
+		}
+	}
+	return apperrors.ErrForbidden
 }
 
-func (s *Service) GetClassBatchID(ctx context.Context, classID uuid.UUID) (uuid.UUID, error) {
-	return s.repo.GetClassBatchID(ctx, classID)
-}
-
-func (s *Service) GetClassInstructorID(ctx context.Context, classID uuid.UUID) (uuid.UUID, error) {
-	return s.repo.GetClassInstructorID(ctx, classID)
+// AssertBatchCourseOwner returns ErrForbidden unless actor is admin, dept_leader, or course_creator who owns the batch's course.
+func (s *Service) AssertBatchCourseOwner(ctx context.Context, batchID, actorID uuid.UUID, role string) error {
+	if role == "vernonedu_admin" || role == "dept_leader" {
+		return nil
+	}
+	if role == "course_creator" {
+		courseID, err := s.repo.GetBatchCourseID(ctx, batchID)
+		if err != nil {
+			return err
+		}
+		creatorID, err := s.repo.GetCourseCreatorID(ctx, courseID)
+		if err != nil {
+			return err
+		}
+		if creatorID == actorID {
+			return nil
+		}
+	}
+	return apperrors.ErrForbidden
 }
 
 // ─── ModuleVersion ────────────────────────────────────────────────────────────
