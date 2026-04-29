@@ -136,6 +136,9 @@ func TestCatalog_UpdateCourse(t *testing.T) {
 	var result catalog.Course
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&result))
 	require.Equal(t, "Updated", result.Name)
+	require.Equal(t, "New desc", result.Description)
+	require.Equal(t, 14, result.DurationDays)
+	require.Equal(t, "active", result.Status)
 }
 
 // TestCatalog_GetBatch_NotFound verifies 404 for unknown batch ID.

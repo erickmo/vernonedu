@@ -90,6 +90,12 @@ func (h *Handler) ListCourses(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateCourse(w http.ResponseWriter, r *http.Request) {
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
+
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
 		apperrors.Render(w, apperrors.Validationf("invalid course id"))
