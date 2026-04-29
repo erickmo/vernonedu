@@ -31,7 +31,7 @@ const INTERNAL_DOMAINS: DomainGroup[] = [
   {
     label: 'Finance',
     to: '/internal/finance',
-    allowedRoles: ['ceo', 'admin', 'vernonedu_admin', 'finance', 'course_creator'],
+    allowedRoles: ['ceo', 'admin', 'vernonedu_admin', 'finance', 'course_creator', 'dept_leader'],
     items: [
       {
         to: '/internal/payments',
