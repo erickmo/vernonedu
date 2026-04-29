@@ -528,6 +528,95 @@ func (h *Handler) GetStudentModule(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, m)
 }
 
+// ─── Simplified Version/Asset Routes ─────────────────────────────────────────
+
+func (h *Handler) ListAssetsByVersion(w http.ResponseWriter, r *http.Request) {
+	verID, err := parseUUID(chi.URLParam(r, "id"))
+	if err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid version id"))
+		return
+	}
+	assets, err := h.svc.ListAssets(r.Context(), verID)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, assets)
+}
+
+func (h *Handler) PublishVersionByVersionID(w http.ResponseWriter, r *http.Request) {
+	verID, err := parseUUID(chi.URLParam(r, "id"))
+	if err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid version id"))
+		return
+	}
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
+	ver, err := h.svc.GetModuleVersion(r.Context(), verID)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	m, err := h.svc.GetModule(r.Context(), ver.ModuleID)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	if err := h.svc.AssertCourseOwner(r.Context(), m.CourseID, uc.ID, uc.Role); err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	if err := h.svc.PublishVersion(r.Context(), ver.ModuleID, verID, uc.ID); err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) CreateAssetByVersionID(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		VersionID      uuid.UUID `json:"version_id"`
+		Title          string    `json:"title"`
+		AssetType      AssetType `json:"asset_type"`
+		URL            string    `json:"url"`
+		SizeBytes      *int64    `json:"size_bytes"`
+		Order          int       `json:"order"`
+		IsDownloadable bool      `json:"is_downloadable"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid request body"))
+		return
+	}
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
+	ver, err := h.svc.GetModuleVersion(r.Context(), req.VersionID)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	m, err := h.svc.GetModule(r.Context(), ver.ModuleID)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	if err := h.svc.AssertCourseOwner(r.Context(), m.CourseID, uc.ID, uc.Role); err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	a, err := h.svc.CreateAsset(r.Context(), req.VersionID, req.Title, req.AssetType, req.URL, req.SizeBytes, req.Order, req.IsDownloadable, uc.ID)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, a)
+}
+
 // ─── Util ─────────────────────────────────────────────────────────────────────
 
 func parseUUID(s string) (uuid.UUID, error) {

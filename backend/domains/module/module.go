@@ -34,6 +34,7 @@ func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config) {
 		registerBatchRoutes(r, h)
 		registerCoverageRoutes(r, h)
 		registerStudentRoutes(r, h)
+		registerVersionRoutes(r, h)
 	})
 }
 
@@ -71,4 +72,13 @@ func registerStudentRoutes(r chi.Router, h *Handler) {
 	student := mw.RequireRole(roleStudent)
 	r.With(student).Get("/api/v1/enrollments/{id}/modules", h.GetStudentModules)
 	r.With(student).Get("/api/v1/enrollments/{id}/modules/{module_id}", h.GetStudentModule)
+}
+
+func registerVersionRoutes(r chi.Router, h *Handler) {
+	view   := mw.RequireRole(roleAdmin, roleDeptLeader, roleCourseCreator, roleFacilitator, roleStudent)
+	manage := mw.RequireRole(roleAdmin, roleCourseCreator)
+
+	r.With(view).Get("/api/v1/module-versions/{id}/assets", h.ListAssetsByVersion)
+	r.With(manage).Post("/api/v1/module-versions/{id}/publish", h.PublishVersionByVersionID)
+	r.With(manage).Post("/api/v1/module-assets", h.CreateAssetByVersionID)
 }
