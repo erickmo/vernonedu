@@ -138,3 +138,18 @@ func (s *Service) UpdateBatchStatus(ctx context.Context, batchID uuid.UUID, stat
 	return s.repo.UpdateBatchStatus(ctx, batchID, status)
 }
 
+// AssertCourseOwner returns ErrForbidden if actorID is not the course creator (unless admin).
+func (s *Service) AssertCourseOwner(ctx context.Context, courseID, actorID uuid.UUID, role string) error {
+	if role == roleAdmin {
+		return nil
+	}
+	course, err := s.repo.GetCourseByID(ctx, courseID)
+	if err != nil {
+		return err
+	}
+	if course.CourseCreatorID != actorID {
+		return apperrors.ErrForbidden
+	}
+	return nil
+}
+

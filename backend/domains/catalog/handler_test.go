@@ -306,3 +306,135 @@ func TestCatalog_CreateClass(t *testing.T) {
 	require.Equal(t, batch.ID, cl.CourseBatchID)
 	require.NotEqual(t, uuid.Nil, cl.ID)
 }
+
+// buildCatalogRouterWithRole creates a test router with a specific actor role injected.
+func buildCatalogRouterWithRole(svc *catalog.Service, actorID uuid.UUID, role string) http.Handler {
+	h := catalog.NewHandler(svc)
+	r := chi.NewRouter()
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			uc := &mw.UserContext{ID: actorID, Role: role}
+			next.ServeHTTP(w, req.WithContext(mw.WithUserContext(req.Context(), uc)))
+		})
+	})
+	r.Get("/api/v1/courses", h.ListCourses)
+	r.Post("/api/v1/courses", h.CreateCourse)
+	r.Get("/api/v1/courses/{id}", h.GetCourse)
+	r.Patch("/api/v1/courses/{id}", h.UpdateCourse)
+	r.Get("/api/v1/courses/{id}/batches", h.ListBatchesByCourseID)
+	r.Post("/api/v1/batches", h.CreateBatch)
+	r.Get("/api/v1/batches", h.ListBatches)
+	r.Get("/api/v1/batches/{id}", h.GetBatch)
+	r.Post("/api/v1/batches/{id}/open", h.OpenBatch)
+	r.Post("/api/v1/batches/{id}/close", h.CloseBatch)
+	r.Patch("/api/v1/batches/{id}/status", h.PatchBatchStatus)
+	r.Get("/api/v1/batches/{batchID}/classes", h.ListClasses)
+	r.Post("/api/v1/classes", h.CreateClass)
+	return r
+}
+
+// TestCatalog_UpdateCourse_NonOwner verifies that a course_creator who does not own
+// the course receives 403 Forbidden.
+func TestCatalog_UpdateCourse_NonOwner(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	resetSchemas(t, pool)
+	svc := newService(t, pool)
+	s := seedIdentity(t, pool)
+	ctx := context.Background()
+
+	course := &catalog.Course{
+		Name:            "Owned Course",
+		Format:          "online",
+		Status:          "active",
+		DepartmentID:    s.deptID,
+		CourseCreatorID: s.creatorID,
+		BasePrice:       decimal.NewFromInt(1000000),
+		MinPrice:        decimal.NewFromInt(800000),
+		CreatedBy:       s.creatorID,
+	}
+	require.NoError(t, svc.CreateCourse(ctx, course))
+
+	// Different actor — not the owner
+	otherID := uuid.New()
+	router := buildCatalogRouterWithRole(svc, otherID, "course_creator")
+
+	body := `{"name":"Hijack","status":"active"}`
+	req := httptest.NewRequest(http.MethodPatch, "/api/v1/courses/"+course.ID.String(), strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusForbidden, w.Code)
+}
+
+// TestCatalog_PatchBatchStatus_InvalidStatus verifies that an invalid status string
+// returns 400 Bad Request.
+func TestCatalog_PatchBatchStatus_InvalidStatus(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	resetSchemas(t, pool)
+	s := seedIdentity(t, pool)
+	svc := newService(t, pool)
+	ctx := context.Background()
+
+	course := &catalog.Course{
+		Name:            "Course Patch",
+		Format:          "online",
+		Status:          "active",
+		DepartmentID:    s.deptID,
+		CourseCreatorID: s.creatorID,
+		BasePrice:       decimal.NewFromInt(1000000),
+		MinPrice:        decimal.NewFromInt(800000),
+		CreatedBy:       s.creatorID,
+	}
+	require.NoError(t, svc.CreateCourse(ctx, course))
+
+	batch := &catalog.CourseBatch{
+		CourseID:  course.ID,
+		Label:     "Batch Invalid",
+		StartDate: time.Now(),
+		EndDate:   time.Now().AddDate(0, 1, 0),
+		Price:     decimal.NewFromInt(1000000),
+		CreatedBy: s.creatorID,
+	}
+	require.NoError(t, svc.CreateBatch(ctx, batch))
+
+	router := buildCatalogRouter(svc, s.creatorID)
+	body := `{"status":"not_a_real_status"}`
+	req := httptest.NewRequest(http.MethodPatch, "/api/v1/batches/"+batch.ID.String()+"/status", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+// TestCatalog_CreateClass_MissingCourseBatchID verifies that a zero UUID course_batch_id
+// fails at the DB level with a non-201 response.
+func TestCatalog_CreateClass_MissingCourseBatchID(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	resetSchemas(t, pool)
+	s := seedIdentity(t, pool)
+	svc := newService(t, pool)
+
+	router := buildCatalogRouter(svc, s.creatorID)
+	// course_batch_id is zero UUID — FK constraint will reject
+	body := fmt.Sprintf(`{
+		"course_batch_id": %q,
+		"session_date": "2026-05-01T09:00:00Z",
+		"start_time": "09:00",
+		"end_time": "12:00",
+		"mode": "online",
+		"instructor_id": %q,
+		"instructor_type": "course_creator",
+		"assigned_by": "course_creator_self"
+	}`, uuid.Nil, s.creatorID)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/classes", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.NotEqual(t, http.StatusCreated, w.Code)
+}

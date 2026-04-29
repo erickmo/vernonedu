@@ -102,13 +102,8 @@ func (h *Handler) UpdateCourse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existing, err := h.svc.GetCourse(r.Context(), id)
-	if err != nil {
+	if err := h.svc.AssertCourseOwner(r.Context(), id, uc.ID, uc.Role); err != nil {
 		apperrors.Render(w, err)
-		return
-	}
-	if uc.Role != "vernonedu_admin" && existing.CourseCreatorID != uc.ID {
-		apperrors.Render(w, apperrors.ErrForbidden)
 		return
 	}
 
@@ -271,6 +266,19 @@ func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("invalid request body"))
 		return
 	}
+	switch uc.Role {
+	case roleCourseCreator:
+		cl.AssignedBy = "course_creator_self"
+	case roleDeptLeader:
+		cl.AssignedBy = "dept_leader"
+	case roleAdmin:
+		if cl.AssignedBy != "course_creator_self" && cl.AssignedBy != "dept_leader" {
+			cl.AssignedBy = "course_creator_self"
+		}
+	default:
+		apperrors.Render(w, apperrors.ErrForbidden)
+		return
+	}
 	if err := h.svc.CreateClass(r.Context(), &cl); err != nil {
 		apperrors.Render(w, err)
 		return
@@ -284,6 +292,11 @@ func (h *Handler) PatchBatchStatus(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
 		apperrors.Render(w, apperrors.Validationf("invalid batch id"))
+		return
+	}
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
 		return
 	}
 	var req struct {
@@ -304,11 +317,20 @@ func (h *Handler) PatchBatchStatus(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("invalid status value"))
 		return
 	}
+	batch, err := h.svc.GetBatch(r.Context(), id)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	if err := h.svc.AssertCourseOwner(r.Context(), batch.CourseID, uc.ID, uc.Role); err != nil {
+		apperrors.Render(w, err)
+		return
+	}
 	if err := h.svc.UpdateBatchStatus(r.Context(), id, req.Status); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
-	batch, err := h.svc.GetBatch(r.Context(), id)
+	batch, err = h.svc.GetBatch(r.Context(), id)
 	if err != nil {
 		apperrors.Render(w, err)
 		return
