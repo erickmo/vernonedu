@@ -9,7 +9,7 @@ import Register from '@/pages/Register'
 import CertificateVerify from '@/pages/CertificateVerify'
 import StudentDashboard from '@/portals/student/pages/Dashboard'
 import CourseCatalog from '@/portals/student/pages/CourseCatalog'
-import CourseDetail from '@/portals/student/pages/CourseDetail'
+import StudentCourseDetail from '@/portals/student/pages/CourseDetail'
 import MyEnrollments from '@/portals/student/pages/MyEnrollments'
 import Certificates from '@/portals/student/pages/Certificates'
 import StudentProfile from '@/portals/student/pages/Profile'
@@ -28,6 +28,25 @@ import Vouchers from '@/portals/internal/pages/Vouchers'
 import InternalCalendar from '@/portals/internal/pages/Calendar'
 import Franchises from '@/portals/internal/pages/Franchises'
 import Notifications from '@/portals/internal/pages/Notifications'
+// Domain overviews
+import AcademicOverview from '@/portals/internal/pages/domains/AcademicOverview'
+import FinanceOverview from '@/portals/internal/pages/domains/FinanceOverview'
+import OperationsOverview from '@/portals/internal/pages/domains/OperationsOverview'
+import HROverview from '@/portals/internal/pages/domains/HROverview'
+// Entity detail pages
+import CourseDetail from '@/portals/internal/pages/detail/CourseDetail'
+import StudentDetail from '@/portals/internal/pages/detail/StudentDetail'
+import EnrollmentDetail from '@/portals/internal/pages/detail/EnrollmentDetail'
+import DepartmentDetail from '@/portals/internal/pages/detail/DepartmentDetail'
+import TeamMemberDetail from '@/portals/internal/pages/detail/TeamMemberDetail'
+import ProposalDetail from '@/portals/internal/pages/detail/ProposalDetail'
+import PartnerDetail from '@/portals/internal/pages/detail/PartnerDetail'
+import FranchiseDetail from '@/portals/internal/pages/detail/FranchiseDetail'
+import VoucherDetail from '@/portals/internal/pages/detail/VoucherDetail'
+import PaymentDetail from '@/portals/internal/pages/detail/PaymentDetail'
+import BudgetDetail from '@/portals/internal/pages/detail/BudgetDetail'
+import ProfitSplitDetail from '@/portals/internal/pages/detail/ProfitSplitDetail'
+import NotificationDetail from '@/portals/internal/pages/detail/NotificationDetail'
 import FranchiseDashboard from '@/portals/franchise/pages/Dashboard'
 import FranchiseRoyalty from '@/portals/franchise/pages/Royalty'
 import FranchiseEnrollments from '@/portals/franchise/pages/Enrollments'
@@ -60,7 +79,7 @@ export default function App() {
         <Route path="/student" element={<StudentPortal />}>
           <Route index element={<StudentDashboard />} />
           <Route path="catalog" element={<CourseCatalog />} />
-          <Route path="courses/:id" element={<CourseDetail />} />
+          <Route path="courses/:id" element={<StudentCourseDetail />} />
           <Route path="enrollments" element={<MyEnrollments />} />
           <Route path="certificates" element={<Certificates />} />
           <Route path="profile" element={<StudentProfile />} />
@@ -94,6 +113,25 @@ export default function App() {
           <Route path="calendar" element={<InternalCalendar />} />
           <Route path="franchises" element={<Franchises />} />
           <Route path="notifications" element={<Notifications />} />
+          {/* Domain overviews */}
+          <Route path="academic" element={<AcademicOverview />} />
+          <Route path="finance" element={<FinanceOverview />} />
+          <Route path="operations" element={<OperationsOverview />} />
+          <Route path="hr" element={<HROverview />} />
+          {/* Entity detail pages */}
+          <Route path="courses/:id" element={<CourseDetail />} />
+          <Route path="students/:id" element={<StudentDetail />} />
+          <Route path="enrollments/:id" element={<EnrollmentDetail />} />
+          <Route path="departments/:id" element={<DepartmentDetail />} />
+          <Route path="team-members/:id" element={<TeamMemberDetail />} />
+          <Route path="proposals/:id" element={<ProposalDetail />} />
+          <Route path="partners/:id" element={<PartnerDetail />} />
+          <Route path="franchises/:id" element={<FranchiseDetail />} />
+          <Route path="vouchers/:id" element={<VoucherDetail />} />
+          <Route path="payments/:id" element={<PaymentDetail />} />
+          <Route path="budget/:id" element={<BudgetDetail />} />
+          <Route path="profit-split/:id" element={<ProfitSplitDetail />} />
+          <Route path="notifications/:id" element={<NotificationDetail />} />
         </Route>
       </Route>
 
