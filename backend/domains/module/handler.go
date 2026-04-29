@@ -140,6 +140,20 @@ func (h *Handler) CreateVersion(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, mv)
 }
 
+func (h *Handler) ListVersions(w http.ResponseWriter, r *http.Request) {
+	moduleID, err := parseUUID(chi.URLParam(r, "id"))
+	if err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid module id"))
+		return
+	}
+	versions, err := h.svc.ListVersionsByModule(r.Context(), moduleID)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, versions)
+}
+
 func (h *Handler) PublishVersion(w http.ResponseWriter, r *http.Request) {
 	moduleID, err := parseUUID(chi.URLParam(r, "id"))
 	if err != nil {

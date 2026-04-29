@@ -44,6 +44,7 @@ func registerModuleRoutes(r chi.Router, h *Handler) {
 	r.With(view).Get("/api/v1/courses/{id}/modules", h.ListModules)
 	r.With(manage).Patch("/api/v1/courses/{id}/modules/{module_id}", h.UpdateModule)
 	r.With(manage).Post("/api/v1/modules/{id}/versions", h.CreateVersion)
+	r.With(view).Get("/api/v1/modules/{id}/versions", h.ListVersions)
 	r.With(manage).Post("/api/v1/modules/{id}/versions/{ver_id}/publish", h.PublishVersion)
 	r.With(manage).Post("/api/v1/modules/{id}/versions/{ver_id}/assets", h.CreateAsset)
 	r.With(manage).Patch("/api/v1/modules/{id}/versions/{ver_id}/assets/{asset_id}", h.UpdateAsset)

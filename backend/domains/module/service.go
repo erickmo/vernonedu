@@ -157,6 +157,10 @@ func (s *Service) GetModuleVersion(ctx context.Context, id uuid.UUID) (*ModuleVe
 	return s.repo.GetModuleVersionByID(ctx, id)
 }
 
+func (s *Service) ListVersionsByModule(ctx context.Context, moduleID uuid.UUID) ([]*ModuleVersion, error) {
+	return s.repo.ListVersionsByModule(ctx, moduleID)
+}
+
 func (s *Service) PublishVersion(ctx context.Context, moduleID, versionID uuid.UUID, actorID uuid.UUID) error {
 	mv, err := s.repo.GetModuleVersionByID(ctx, versionID)
 	if err != nil {
