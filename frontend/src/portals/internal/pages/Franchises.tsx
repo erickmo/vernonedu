@@ -17,6 +17,7 @@ import TableCard from '@/components/shared/TableCard'
 import FilterTabs from '@/components/shared/FilterTabs'
 import ListPageTemplate from '@/components/templates/ListPageTemplate'
 import CreateFranchiseeModal from '@/portals/internal/components/CreateFranchiseeModal'
+import Button from '@/components/ui/Button'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -77,13 +78,10 @@ export default function Franchises() {
           title="Franchises"
           subtitle={subtitle}
           actions={
-            <button
-              onClick={() => setDialogOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 transition-colors shadow-sm"
-            >
+            <Button onClick={() => setDialogOpen(true)}>
               <Plus className="w-4 h-4" />
               Add Franchisee
-            </button>
+            </Button>
           }
           columns={franchiseeColumns}
           data={franchisees}
@@ -144,13 +142,14 @@ function RoyaltySection({ selectedFranchisee }: { selectedFranchisee: Franchisee
       className: 'text-right',
       cell: (row) =>
         row.status !== 'paid' ? (
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => handleMarkPaid(row.id)}
-            disabled={markPaid.isPending}
-            className="px-3 py-1.5 text-xs font-medium text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-colors disabled:opacity-50"
+            loading={markPaid.isPending}
           >
             Mark Paid
-          </button>
+          </Button>
         ) : null,
     },
   ]

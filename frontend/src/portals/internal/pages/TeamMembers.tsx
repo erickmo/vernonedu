@@ -87,12 +87,9 @@ export default function TeamMembers() {
       header: '',
       accessor: 'id',
       cell: (row) => (
-        <button
-          onClick={() => setConfirmTarget(row)}
-          className="text-xs text-red-500 hover:text-red-700 font-medium"
-        >
+        <Button variant="danger" size="sm" onClick={() => setConfirmTarget(row)}>
           Deactivate
-        </button>
+        </Button>
       ),
     },
   ]

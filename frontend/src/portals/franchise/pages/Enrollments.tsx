@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useEnrollments, type Enrollment } from '@/lib/api/enrollment'
 import { formatDate } from '@/lib/utils/format'
 import StatusBadge from '@/components/shared/StatusBadge'
@@ -50,11 +50,6 @@ export default function FranchiseEnrollments() {
   const [activeTab, setActiveTab] = useState('')
   const [page, setPage] = useState(1)
 
-  const handleTabChange = useMemo(
-    () => (v: string) => { setActiveTab(v); setPage(1) },
-    [],
-  )
-
   const { data, isLoading } = useEnrollments({
     status: activeTab || undefined,
     page,
@@ -74,7 +69,7 @@ export default function FranchiseEnrollments() {
       filterTabs={{
         tabs: STATUS_TABS,
         active: activeTab,
-        onChange: handleTabChange,
+        onChange: (v) => { setActiveTab(v); setPage(1) },
       }}
     />
   )
