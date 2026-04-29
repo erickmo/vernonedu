@@ -31,9 +31,12 @@ func buildModuleRouter(svc *module.Service, actorID uuid.UUID, role string) http
 	})
 
 	manageModule  := mw.RequireRole("vernonedu_admin", "course_creator")
+	viewModule    := mw.RequireRole("vernonedu_admin", "course_creator", "dept_leader", "facilitator", "student")
 	studentAccess := mw.RequireRole("student")
 
 	r.With(manageModule).Post("/api/v1/courses/{id}/modules", h.CreateModule)
+	r.With(viewModule).Get("/api/v1/courses/{id}/modules", h.ListModules)
+	r.With(viewModule).Get("/api/v1/modules/{id}/versions", h.ListVersions)
 	r.With(studentAccess).Get("/api/v1/enrollments/{id}/modules", h.GetStudentModules)
 	r.With(manageModule).Get("/api/v1/module-versions/{id}/assets", h.ListAssetsByVersion)
 	r.With(manageModule).Post("/api/v1/module-versions/{id}/publish", h.PublishVersionByVersionID)
@@ -152,4 +155,55 @@ func TestCreateAssetByVersionID(t *testing.T) {
 	router.ServeHTTP(rec, req)
 
 	require.Equal(t, http.StatusCreated, rec.Code)
+}
+
+func TestListModules(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	resetSchemas(t, pool)
+	seed := seedCatalog(t, pool)
+	svc := newService(t, pool)
+	ctx := context.Background()
+
+	_, err := svc.CreateModule(ctx, seed.courseID, "Module A", 1, seed.actorID)
+	require.NoError(t, err)
+	_, err = svc.CreateModule(ctx, seed.courseID, "Module B", 2, seed.actorID)
+	require.NoError(t, err)
+
+	router := buildModuleRouter(svc, seed.actorID, "vernonedu_admin")
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/courses/"+seed.courseID.String()+"/modules", http.NoBody)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	require.Equal(t, http.StatusOK, rec.Code)
+	var result []*module.CourseModule
+	require.NoError(t, json.NewDecoder(rec.Body).Decode(&result))
+	require.Len(t, result, 2)
+}
+
+func TestListVersionsByModule(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	resetSchemas(t, pool)
+	seed := seedCatalog(t, pool)
+	svc := newService(t, pool)
+	ctx := context.Background()
+
+	m, err := svc.CreateModule(ctx, seed.courseID, "Versioned Module", 1, seed.actorID)
+	require.NoError(t, err)
+
+	_, err = svc.CreateModuleVersion(ctx, m.ID, "Draft v1", nil, seed.actorID)
+	require.NoError(t, err)
+	_, err = svc.CreateModuleVersion(ctx, m.ID, "Draft v2", nil, seed.actorID)
+	require.NoError(t, err)
+
+	router := buildModuleRouter(svc, seed.actorID, "vernonedu_admin")
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/modules/"+m.ID.String()+"/versions", http.NoBody)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	require.Equal(t, http.StatusOK, rec.Code)
+	var result []*module.ModuleVersion
+	require.NoError(t, json.NewDecoder(rec.Body).Decode(&result))
+	require.Len(t, result, 2)
 }

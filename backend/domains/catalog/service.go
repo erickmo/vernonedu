@@ -119,8 +119,18 @@ func (s *Service) ListBatchesByCourse(ctx context.Context, courseID uuid.UUID) (
 }
 
 // CreateClass adds a class to a batch.
-func (s *Service) CreateClass(ctx context.Context, cl *Class) error {
+func (s *Service) CreateClass(ctx context.Context, cl *Class, actorRole string) error {
 	cl.ID = uuid.New()
+	switch actorRole {
+	case roles.CourseCreator:
+		cl.AssignedBy = "course_creator_self"
+	case roles.DeptLeader:
+		cl.AssignedBy = "dept_leader"
+	case roles.Admin:
+		cl.AssignedBy = "course_creator_self"
+	default:
+		return apperrors.ErrForbidden
+	}
 	return s.repo.CreateClass(ctx, cl)
 }
 
@@ -132,11 +142,6 @@ func (s *Service) GetClass(ctx context.Context, id uuid.UUID) (*Class, error) {
 // ListClassesByBatch returns all classes in a batch.
 func (s *Service) ListClassesByBatch(ctx context.Context, batchID uuid.UUID) ([]*Class, error) {
 	return s.repo.ListClassesByBatch(ctx, batchID)
-}
-
-// UpdateBatchStatus updates a batch status directly.
-func (s *Service) UpdateBatchStatus(ctx context.Context, batchID uuid.UUID, status BatchStatus) error {
-	return s.repo.UpdateBatchStatus(ctx, batchID, status)
 }
 
 // AssertCourseOwner returns ErrForbidden if actorID is not the course creator (unless admin).

@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
+	"github.com/vernonedu/vernonedu2/backend/internal/roles"
 	"go.uber.org/zap"
 )
 
@@ -61,10 +62,10 @@ func (s *Service) ListModules(ctx context.Context, courseID uuid.UUID) ([]*Cours
 
 // AssertCourseOwner returns ErrForbidden unless actor is admin or is the course_creator who created the course.
 func (s *Service) AssertCourseOwner(ctx context.Context, courseID, actorID uuid.UUID, role string) error {
-	if role == "vernonedu_admin" {
+	if role == roles.Admin {
 		return nil
 	}
-	if role == "course_creator" {
+	if role == roles.CourseCreator {
 		creatorID, err := s.repo.GetCourseCreatorID(ctx, courseID)
 		if err != nil {
 			return err
@@ -78,10 +79,10 @@ func (s *Service) AssertCourseOwner(ctx context.Context, courseID, actorID uuid.
 
 // AssertClassAccess returns ErrForbidden unless actor is admin, the course_creator who owns the class's course, or the assigned facilitator.
 func (s *Service) AssertClassAccess(ctx context.Context, classID, actorID uuid.UUID, role string) error {
-	if role == "vernonedu_admin" {
+	if role == roles.Admin {
 		return nil
 	}
-	if role == "course_creator" {
+	if role == roles.CourseCreator {
 		batchID, err := s.repo.GetClassBatchID(ctx, classID)
 		if err != nil {
 			return err
@@ -98,7 +99,7 @@ func (s *Service) AssertClassAccess(ctx context.Context, classID, actorID uuid.U
 			return nil
 		}
 	}
-	if role == "facilitator" {
+	if role == roles.Facilitator {
 		instructorID, err := s.repo.GetClassInstructorID(ctx, classID)
 		if err != nil {
 			return err
@@ -112,10 +113,10 @@ func (s *Service) AssertClassAccess(ctx context.Context, classID, actorID uuid.U
 
 // AssertBatchCourseOwner returns ErrForbidden unless actor is admin, dept_leader, or course_creator who owns the batch's course.
 func (s *Service) AssertBatchCourseOwner(ctx context.Context, batchID, actorID uuid.UUID, role string) error {
-	if role == "vernonedu_admin" || role == "dept_leader" {
+	if role == roles.Admin || role == roles.DeptLeader {
 		return nil
 	}
-	if role == "course_creator" {
+	if role == roles.CourseCreator {
 		courseID, err := s.repo.GetBatchCourseID(ctx, batchID)
 		if err != nil {
 			return err

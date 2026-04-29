@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	mw "github.com/vernonedu/vernonedu2/backend/internal/middleware"
-	"github.com/vernonedu/vernonedu2/backend/internal/roles"
 )
 
 // Handler holds catalog HTTP handlers.
@@ -139,6 +138,11 @@ func (h *Handler) CreateBatch(w http.ResponseWriter, r *http.Request) {
 	}
 	batch.CreatedBy = uc.ID
 
+	if err := h.svc.AssertCourseOwner(r.Context(), batch.CourseID, uc.ID, uc.Role); err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+
 	if err := h.svc.CreateBatch(r.Context(), &batch); err != nil {
 		apperrors.Render(w, err)
 		return
@@ -205,6 +209,20 @@ func (h *Handler) OpenBatch(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("invalid batch id"))
 		return
 	}
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
+	batch, err := h.svc.GetBatch(r.Context(), id)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	if err := h.svc.AssertCourseOwner(r.Context(), batch.CourseID, uc.ID, uc.Role); err != nil {
+		apperrors.Render(w, err)
+		return
+	}
 
 	if err := h.svc.OpenBatch(r.Context(), id); err != nil {
 		apperrors.Render(w, err)
@@ -218,6 +236,20 @@ func (h *Handler) CloseBatch(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
 		apperrors.Render(w, apperrors.Validationf("invalid batch id"))
+		return
+	}
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
+	batch, err := h.svc.GetBatch(r.Context(), id)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	if err := h.svc.AssertCourseOwner(r.Context(), batch.CourseID, uc.ID, uc.Role); err != nil {
+		apperrors.Render(w, err)
 		return
 	}
 
@@ -256,20 +288,16 @@ func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("invalid request body"))
 		return
 	}
-	switch uc.Role {
-	case roles.CourseCreator:
-		cl.AssignedBy = "course_creator_self"
-	case roles.DeptLeader:
-		cl.AssignedBy = "dept_leader"
-	case roles.Admin:
-		if cl.AssignedBy != "course_creator_self" && cl.AssignedBy != "dept_leader" {
-			cl.AssignedBy = "course_creator_self"
-		}
-	default:
-		apperrors.Render(w, apperrors.ErrForbidden)
+	batch, err := h.svc.GetBatch(r.Context(), cl.CourseBatchID)
+	if err != nil {
+		apperrors.Render(w, err)
 		return
 	}
-	if err := h.svc.CreateClass(r.Context(), &cl); err != nil {
+	if err := h.svc.AssertCourseOwner(r.Context(), batch.CourseID, uc.ID, uc.Role); err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	if err := h.svc.CreateClass(r.Context(), &cl, uc.Role); err != nil {
 		apperrors.Render(w, err)
 		return
 	}
@@ -311,8 +339,19 @@ func (h *Handler) PatchBatchStatus(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, err)
 		return
 	}
-	if err := h.svc.UpdateBatchStatus(r.Context(), id, req.Status); err != nil {
-		apperrors.Render(w, err)
+	switch req.Status {
+	case BatchOpen:
+		if err := h.svc.OpenBatch(r.Context(), id); err != nil {
+			apperrors.Render(w, err)
+			return
+		}
+	case BatchClosed:
+		if err := h.svc.CloseBatch(r.Context(), id); err != nil {
+			apperrors.Render(w, err)
+			return
+		}
+	default:
+		apperrors.Render(w, apperrors.Validationf("status must be 'open' or 'closed'"))
 		return
 	}
 	batch, err = h.svc.GetBatch(r.Context(), id)

@@ -369,7 +369,7 @@ func TestCatalog_UpdateCourse_NonOwner(t *testing.T) {
 }
 
 // TestCatalog_PatchBatchStatus_InvalidStatus verifies that an invalid status string
-// returns 400 Bad Request.
+// returns 422 Unprocessable Entity.
 func TestCatalog_PatchBatchStatus_InvalidStatus(t *testing.T) {
 	pool := newTestPool(t)
 	defer pool.Close()
@@ -407,7 +407,7 @@ func TestCatalog_PatchBatchStatus_InvalidStatus(t *testing.T) {
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
-	require.Equal(t, http.StatusBadRequest, w.Code)
+	require.Equal(t, http.StatusUnprocessableEntity, w.Code)
 }
 
 // TestCatalog_CreateClass_MissingCourseBatchID verifies that a zero UUID course_batch_id
