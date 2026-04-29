@@ -2,11 +2,10 @@ import { useState, useMemo } from 'react'
 import { useEnrollments, type Enrollment } from '@/lib/api/enrollment'
 import { formatDate } from '@/lib/utils/format'
 import StatusBadge from '@/components/shared/StatusBadge'
-import DataTable, { Column } from '@/components/shared/DataTable'
-import PageHeader from '@/components/shared/PageHeader'
-import { useSubNav, type SubNavItem } from '@/components/layout/SubNavContext'
+import { Column } from '@/components/shared/DataTable'
+import ListPageTemplate from '@/components/templates/ListPageTemplate'
 
-const STATUS_TABS: SubNavItem[] = [
+const STATUS_TABS = [
   { label: 'All', value: '' },
   { label: 'Pending', value: 'pending' },
   { label: 'Confirmed', value: 'confirmed' },
@@ -56,8 +55,6 @@ export default function FranchiseEnrollments() {
     [],
   )
 
-  useSubNav(STATUS_TABS, activeTab, handleTabChange)
-
   const { data, isLoading } = useEnrollments({
     status: activeTab || undefined,
     page,
@@ -65,18 +62,20 @@ export default function FranchiseEnrollments() {
   })
 
   return (
-    <div className="space-y-5">
-      <PageHeader title="Enrollments" subtitle="Students enrolled at your franchise" />
-      <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
-        <DataTable
-          columns={COLUMNS}
-          data={data?.data ?? []}
-          loading={isLoading}
-          pagination={{ page, limit: LIMIT, total: data?.total ?? 0 }}
-          onPageChange={setPage}
-          rowKey={(row) => row.id}
-        />
-      </div>
-    </div>
+    <ListPageTemplate
+      title="Enrollments"
+      subtitle="View franchise enrollments"
+      columns={COLUMNS}
+      data={data?.data ?? []}
+      loading={isLoading}
+      pagination={{ page, limit: LIMIT, total: data?.total ?? 0 }}
+      onPageChange={setPage}
+      rowKey={(row) => row.id}
+      filterTabs={{
+        tabs: STATUS_TABS,
+        active: activeTab,
+        onChange: handleTabChange,
+      }}
+    />
   )
 }
