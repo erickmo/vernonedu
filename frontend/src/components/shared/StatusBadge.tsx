@@ -5,8 +5,10 @@ type PaymentStatus = 'paid' | 'partial' | 'pending' | 'overdue'
 type InvoiceStatus = 'paid' | 'sent' | 'draft' | 'overdue' | 'cancelled'
 type BatchStatus = 'open' | 'full' | 'ongoing' | 'completed' | 'cancelled' | 'draft'
 type ProposalStatus = 'pending' | 'approved' | 'rejected'
+type FranchiseeStatus = 'active' | 'inactive' | 'terminated'
+type RoyaltyStatus = 'paid' | 'unpaid' | 'overdue'
 
-type StatusVariant = 'enrollment' | 'payment' | 'invoice' | 'batch' | 'proposal'
+type StatusVariant = 'enrollment' | 'payment' | 'invoice' | 'batch' | 'proposal' | 'franchisee' | 'royalty'
 
 const ENROLLMENT_MAP: Record<EnrollmentStatus, { label: string; className: string }> = {
   confirmed: { label: 'Confirmed', className: 'bg-emerald-100 text-emerald-800' },
@@ -45,6 +47,18 @@ const PROPOSAL_MAP: Record<ProposalStatus, { label: string; className: string }>
   rejected: { label: 'Rejected', className: 'bg-red-100 text-red-800' },
 }
 
+const FRANCHISEE_MAP: Record<FranchiseeStatus, { label: string; className: string }> = {
+  active: { label: 'Active', className: 'bg-emerald-100 text-emerald-800' },
+  inactive: { label: 'Inactive', className: 'bg-slate-100 text-slate-700' },
+  terminated: { label: 'Terminated', className: 'bg-red-100 text-red-800' },
+}
+
+const ROYALTY_MAP: Record<RoyaltyStatus, { label: string; className: string }> = {
+  paid: { label: 'Paid', className: 'bg-emerald-100 text-emerald-800' },
+  unpaid: { label: 'Unpaid', className: 'bg-amber-100 text-amber-800' },
+  overdue: { label: 'Overdue', className: 'bg-red-100 text-red-800' },
+}
+
 interface StatusBadgeProps {
   status: string
   variant?: StatusVariant
@@ -62,6 +76,10 @@ function resolveConfig(status: string, variant?: StatusVariant) {
       return BATCH_MAP[status as BatchStatus]
     case 'proposal':
       return PROPOSAL_MAP[status as ProposalStatus]
+    case 'franchisee':
+      return FRANCHISEE_MAP[status as FranchiseeStatus]
+    case 'royalty':
+      return ROYALTY_MAP[status as RoyaltyStatus]
     default:
       return null
   }
