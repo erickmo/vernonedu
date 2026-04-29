@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react'
 import { useTeamMembers, type TeamMember } from '@/lib/api/team_member'
 import { formatDate } from '@/lib/utils/format'
-import DataTable, { Column } from '@/components/shared/DataTable'
-import PageHeader from '@/components/shared/PageHeader'
+import { Column } from '@/components/shared/DataTable'
 import { useSubNav, type SubNavItem } from '@/components/layout/SubNavContext'
+import ListPageTemplate from '@/components/templates/ListPageTemplate'
 
 const TEAM_TABS: SubNavItem[] = [
   { label: 'All', value: '' },
@@ -73,16 +73,15 @@ export default function TeamMembers() {
         : members
 
   return (
-    <div className="space-y-5">
-      <PageHeader title="Team Members" subtitle="VernonEdu staff and facilitators" />
-      <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
-        <DataTable
-          columns={COLUMNS}
-          data={filtered}
-          loading={isLoading}
-          rowKey={(row) => row.id}
-        />
-      </div>
-    </div>
+    <ListPageTemplate
+      title="Team Members"
+      subtitle="VernonEdu staff and facilitators"
+      columns={COLUMNS}
+      data={filtered}
+      loading={isLoading}
+      pagination={{ page: 1, limit: 100, total: filtered.length }}
+      onPageChange={() => {}}
+      rowKey={(row) => row.id}
+    />
   )
 }
