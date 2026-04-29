@@ -99,6 +99,8 @@ func TestCreateCourse_AndListByDepartment(t *testing.T) {
 
 	course := &catalog.Course{
 		Name:            "Intro Go",
+		Format:          "online",
+		Status:          "active",
 		DepartmentID:    s.deptID,
 		CourseCreatorID: s.creatorID,
 		BasePrice:       decimal.NewFromInt(1500000),
@@ -128,6 +130,8 @@ func TestBatchLifecycle_DraftOpenClosed(t *testing.T) {
 
 	course := &catalog.Course{
 		Name:            "Course A",
+		Format:          "online",
+		Status:          "active",
 		DepartmentID:    s.deptID,
 		CourseCreatorID: s.creatorID,
 		BasePrice:       decimal.NewFromInt(1000000),

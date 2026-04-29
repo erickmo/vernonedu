@@ -117,6 +117,8 @@ func TestCatalog_UpdateCourse(t *testing.T) {
 	ctx := t.Context()
 	course := &catalog.Course{
 		Name:            "Intro Go",
+		Format:          "online",
+		Status:          "active",
 		DepartmentID:    s.deptID,
 		CourseCreatorID: s.creatorID,
 		BasePrice:       decimal.NewFromInt(1500000),
@@ -175,6 +177,8 @@ func TestCatalog_ListBatchesByCourseID(t *testing.T) {
 
 	course := &catalog.Course{
 		Name:            "Course X",
+		Format:          "online",
+		Status:          "active",
 		DepartmentID:    s.deptID,
 		CourseCreatorID: s.creatorID,
 		BasePrice:       decimal.NewFromInt(1000000),
@@ -216,6 +220,8 @@ func TestCatalog_PatchBatchStatus(t *testing.T) {
 
 	course := &catalog.Course{
 		Name:            "Course Y",
+		Format:          "online",
+		Status:          "active",
 		DepartmentID:    s.deptID,
 		CourseCreatorID: s.creatorID,
 		BasePrice:       decimal.NewFromInt(1000000),
@@ -258,6 +264,8 @@ func TestCatalog_CreateClass(t *testing.T) {
 
 	course := &catalog.Course{
 		Name:            "Course Z",
+		Format:          "online",
+		Status:          "active",
 		DepartmentID:    s.deptID,
 		CourseCreatorID: s.creatorID,
 		BasePrice:       decimal.NewFromInt(1000000),
@@ -285,7 +293,7 @@ func TestCatalog_CreateClass(t *testing.T) {
 		"mode": "online",
 		"instructor_id": %q,
 		"instructor_type": "course_creator",
-		"assigned_by": "admin"
+		"assigned_by": "course_creator_self"
 	}`, batch.ID, s.creatorID)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/classes", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
