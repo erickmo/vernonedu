@@ -267,6 +267,13 @@ func (h *Handler) PatchBatchStatus(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("status is required"))
 		return
 	}
+	switch req.Status {
+	case BatchDraft, BatchOpen, BatchOngoing, BatchClosed:
+		// valid
+	default:
+		apperrors.Render(w, apperrors.Validationf("invalid status value"))
+		return
+	}
 	if err := h.svc.UpdateBatchStatus(r.Context(), id, req.Status); err != nil {
 		apperrors.Render(w, err)
 		return
