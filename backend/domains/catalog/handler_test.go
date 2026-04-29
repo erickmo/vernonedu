@@ -4,10 +4,12 @@ package catalog_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -34,6 +36,7 @@ func buildCatalogRouter(svc *catalog.Service, actorID uuid.UUID) http.Handler {
 	r.Post("/api/v1/courses", h.CreateCourse)
 	r.Get("/api/v1/courses/{id}", h.GetCourse)
 	r.Patch("/api/v1/courses/{id}", h.UpdateCourse)
+	r.Get("/api/v1/courses/{id}/batches", h.ListBatchesByCourseID)
 
 	r.Post("/api/v1/batches", h.CreateBatch)
 	r.Get("/api/v1/batches", h.ListBatches)
@@ -155,4 +158,45 @@ func TestCatalog_GetBatch_NotFound(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	require.Equal(t, http.StatusNotFound, w.Code)
+}
+
+// TestCatalog_ListBatchesByCourseID verifies GET /api/v1/courses/{id}/batches returns batches for a course.
+func TestCatalog_ListBatchesByCourseID(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	resetSchemas(t, pool)
+	s := seedIdentity(t, pool)
+	svc := newService(t, pool)
+	ctx := context.Background()
+
+	course := &catalog.Course{
+		Name:            "Course X",
+		DepartmentID:    s.deptID,
+		CourseCreatorID: s.creatorID,
+		BasePrice:       decimal.NewFromInt(1000000),
+		MinPrice:        decimal.NewFromInt(800000),
+		CreatedBy:       s.creatorID,
+	}
+	require.NoError(t, svc.CreateCourse(ctx, course))
+
+	batch := &catalog.CourseBatch{
+		CourseID:  course.ID,
+		Label:     "Batch A",
+		StartDate: time.Now(),
+		EndDate:   time.Now().AddDate(0, 1, 0),
+		Price:     decimal.NewFromInt(1200000),
+		CreatedBy: s.creatorID,
+	}
+	require.NoError(t, svc.CreateBatch(ctx, batch))
+
+	router := buildCatalogRouter(svc, s.creatorID)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/courses/"+course.ID.String()+"/batches", http.NoBody)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+	var result []*catalog.CourseBatch
+	require.NoError(t, json.NewDecoder(w.Body).Decode(&result))
+	require.Len(t, result, 1)
+	require.Equal(t, batch.ID, result[0].ID)
 }

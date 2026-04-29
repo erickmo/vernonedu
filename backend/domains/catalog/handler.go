@@ -188,6 +188,21 @@ func (h *Handler) ListBatches(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(batches)
 }
 
+func (h *Handler) ListBatchesByCourseID(w http.ResponseWriter, r *http.Request) {
+	courseID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid course id"))
+		return
+	}
+	batches, err := h.svc.ListBatchesByCourse(r.Context(), courseID)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(batches)
+}
+
 func (h *Handler) OpenBatch(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
