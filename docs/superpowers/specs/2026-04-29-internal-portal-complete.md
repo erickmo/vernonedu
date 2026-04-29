@@ -62,9 +62,8 @@ All pages use existing design system: `bg-white rounded-xl border border-neutral
 Pages:
 - `src/portals/internal/pages/Departments.tsx`
   - List departments: `GET /api/v1/departments`
-  - Create department: `POST /api/v1/departments` (service has `CreateDepartment`)
+  - Read-only (no POST route registered in backend — service has `CreateDepartment` but no handler/route)
   - Table: Name, Leader, Status, Created
-  - Dialog: Create form (name, leader_id)
 
 - `src/portals/internal/pages/TeamMembers.tsx`
   - List team members: `GET /api/v1/team-members`
