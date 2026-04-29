@@ -5,9 +5,9 @@ import { toast } from 'sonner'
 import { useInvoices, useUpdateInvoiceStatus, type Invoice } from '@/lib/api/finance'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import StatusBadge from '@/components/shared/StatusBadge'
-import DataTable, { Column } from '@/components/shared/DataTable'
-import PageHeader from '@/components/shared/PageHeader'
+import { Column } from '@/components/shared/DataTable'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
+import ListPageTemplate from '@/components/templates/ListPageTemplate'
 import { useSubNav, type SubNavItem } from '@/components/layout/SubNavContext'
 
 const PAYMENT_TABS: SubNavItem[] = [
@@ -106,21 +106,18 @@ export default function Payments() {
   ]
 
   return (
-    <div className="space-y-5">
-      <PageHeader title="Payments" subtitle="Invoice and payment management" />
-
-      <div className="bg-white rounded-xl border border-neutral-100 shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
-        <DataTable
-          columns={columns}
-          data={data?.data ?? []}
-          loading={isLoading}
-          pagination={{ page, limit: LIMIT, total: data?.total ?? 0 }}
-          onPageChange={setPage}
-          rowKey={(row) => row.id}
-          onRowClick={(row) => navigate(`/internal/payments/${row.id}`)}
-        />
-      </div>
-
+    <>
+      <ListPageTemplate
+        title="Payments"
+        subtitle="Invoice and payment management"
+        columns={columns}
+        data={data?.data ?? []}
+        loading={isLoading}
+        pagination={{ page, limit: LIMIT, total: data?.total ?? 0 }}
+        onPageChange={setPage}
+        rowKey={(row) => row.id}
+        onRowClick={(row) => navigate(`/internal/payments/${row.id}`)}
+      />
       <ConfirmDialog
         open={!!confirmItem}
         title="Confirm Payment"
@@ -128,6 +125,6 @@ export default function Payments() {
         onConfirm={handleConfirm}
         onCancel={() => setConfirmItem(null)}
       />
-    </div>
+    </>
   )
 }
