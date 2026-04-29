@@ -25,6 +25,15 @@ const (
 	BatchClosed  BatchStatus = "closed"
 )
 
+// IsValid reports whether s is a recognized BatchStatus value.
+func (s BatchStatus) IsValid() bool {
+	switch s {
+	case BatchDraft, BatchOpen, BatchOngoing, BatchClosed:
+		return true
+	}
+	return false
+}
+
 type DeliveryMode string
 
 const (

@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
+	"github.com/vernonedu/vernonedu2/backend/internal/roles"
 	"go.uber.org/zap"
 )
 
@@ -140,7 +141,7 @@ func (s *Service) UpdateBatchStatus(ctx context.Context, batchID uuid.UUID, stat
 
 // AssertCourseOwner returns ErrForbidden if actorID is not the course creator (unless admin).
 func (s *Service) AssertCourseOwner(ctx context.Context, courseID, actorID uuid.UUID, role string) error {
-	if role == roleAdmin {
+	if role == roles.Admin {
 		return nil
 	}
 	course, err := s.repo.GetCourseByID(ctx, courseID)

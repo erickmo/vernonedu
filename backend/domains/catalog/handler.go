@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	apperrors "github.com/vernonedu/vernonedu2/backend/internal/errors"
 	mw "github.com/vernonedu/vernonedu2/backend/internal/middleware"
+	"github.com/vernonedu/vernonedu2/backend/internal/roles"
 )
 
 // Handler holds catalog HTTP handlers.
@@ -41,9 +42,7 @@ func (h *Handler) CreateCourse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(course)
+	writeJSON(w, http.StatusCreated, course)
 }
 
 func (h *Handler) GetCourse(w http.ResponseWriter, r *http.Request) {
@@ -59,8 +58,7 @@ func (h *Handler) GetCourse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(course)
+	writeJSON(w, http.StatusOK, course)
 }
 
 func (h *Handler) ListCourses(w http.ResponseWriter, r *http.Request) {
@@ -85,8 +83,7 @@ func (h *Handler) ListCourses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(result)
+	writeJSON(w, http.StatusOK, result)
 }
 
 func (h *Handler) UpdateCourse(w http.ResponseWriter, r *http.Request) {
@@ -125,8 +122,7 @@ func (h *Handler) UpdateCourse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(updated)
+	writeJSON(w, http.StatusOK, updated)
 }
 
 func (h *Handler) CreateBatch(w http.ResponseWriter, r *http.Request) {
@@ -148,9 +144,7 @@ func (h *Handler) CreateBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(batch)
+	writeJSON(w, http.StatusCreated, batch)
 }
 
 func (h *Handler) GetBatch(w http.ResponseWriter, r *http.Request) {
@@ -166,8 +160,7 @@ func (h *Handler) GetBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(batch)
+	writeJSON(w, http.StatusOK, batch)
 }
 
 func (h *Handler) ListBatches(w http.ResponseWriter, r *http.Request) {
@@ -189,8 +182,7 @@ func (h *Handler) ListBatches(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(batches)
+	writeJSON(w, http.StatusOK, batches)
 }
 
 func (h *Handler) ListBatchesByCourseID(w http.ResponseWriter, r *http.Request) {
@@ -204,8 +196,7 @@ func (h *Handler) ListBatchesByCourseID(w http.ResponseWriter, r *http.Request) 
 		apperrors.Render(w, err)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(batches)
+	writeJSON(w, http.StatusOK, batches)
 }
 
 func (h *Handler) OpenBatch(w http.ResponseWriter, r *http.Request) {
@@ -251,8 +242,7 @@ func (h *Handler) ListClasses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(classes)
+	writeJSON(w, http.StatusOK, classes)
 }
 
 func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
@@ -267,11 +257,11 @@ func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch uc.Role {
-	case roleCourseCreator:
+	case roles.CourseCreator:
 		cl.AssignedBy = "course_creator_self"
-	case roleDeptLeader:
+	case roles.DeptLeader:
 		cl.AssignedBy = "dept_leader"
-	case roleAdmin:
+	case roles.Admin:
 		if cl.AssignedBy != "course_creator_self" && cl.AssignedBy != "dept_leader" {
 			cl.AssignedBy = "course_creator_self"
 		}
@@ -283,9 +273,7 @@ func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, err)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(cl)
+	writeJSON(w, http.StatusCreated, cl)
 }
 
 func (h *Handler) PatchBatchStatus(w http.ResponseWriter, r *http.Request) {
@@ -310,10 +298,7 @@ func (h *Handler) PatchBatchStatus(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, apperrors.Validationf("status is required"))
 		return
 	}
-	switch req.Status {
-	case BatchDraft, BatchOpen, BatchOngoing, BatchClosed:
-		// valid
-	default:
+	if !req.Status.IsValid() {
 		apperrors.Render(w, apperrors.Validationf("invalid status value"))
 		return
 	}
@@ -335,6 +320,11 @@ func (h *Handler) PatchBatchStatus(w http.ResponseWriter, r *http.Request) {
 		apperrors.Render(w, err)
 		return
 	}
+	writeJSON(w, http.StatusOK, batch)
+}
+
+func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(batch)
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(v)
 }

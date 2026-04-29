@@ -4,7 +4,6 @@ package catalog_test
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -16,20 +15,12 @@ import (
 
 	"github.com/vernonedu/vernonedu2/backend/domains/catalog"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
+	"github.com/vernonedu/vernonedu2/backend/internal/testutil"
 )
-
-const defaultTestDBURL = "postgres://vernonedu:vernonedu_secret@localhost:5433/vernonedu?sslmode=disable"
 
 func newTestPool(t *testing.T) *pgxpool.Pool {
 	t.Helper()
-	url := os.Getenv("TEST_DB_URL")
-	if url == "" {
-		url = defaultTestDBURL
-	}
-	pool, err := pgxpool.New(context.Background(), url)
-	require.NoError(t, err)
-	require.NoError(t, pool.Ping(context.Background()))
-	return pool
+	return testutil.NewTestPool(t)
 }
 
 func resetSchemas(t *testing.T, pool *pgxpool.Pool) {

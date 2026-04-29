@@ -5,15 +5,8 @@ import (
 	"github.com/vernonedu/vernonedu2/backend/internal/config"
 	"github.com/vernonedu/vernonedu2/backend/internal/events"
 	mw "github.com/vernonedu/vernonedu2/backend/internal/middleware"
+	"github.com/vernonedu/vernonedu2/backend/internal/roles"
 	"go.uber.org/fx"
-)
-
-const (
-	roleAdmin         = "vernonedu_admin"
-	roleCourseCreator = "course_creator"
-	roleDeptLeader    = "dept_leader"
-	roleFacilitator   = "facilitator"
-	roleStudent       = "student"
 )
 
 // Module wires catalog domain via FX.
@@ -28,7 +21,7 @@ var Module = fx.Options(
 // RegisterRoutes mounts catalog HTTP routes.
 func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {
 	jwtMW := mw.JWT(cfg.JWT.Secret)
-	manage := mw.RequireRole(roleAdmin, roleCourseCreator)
+	manage := mw.RequireRole(roles.Admin, roles.CourseCreator)
 
 	r.Group(func(r chi.Router) {
 		r.Use(jwtMW)
@@ -47,6 +40,6 @@ func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {
 		r.With(manage).Patch("/api/v1/batches/{id}/status", h.PatchBatchStatus)
 
 		r.Get("/api/v1/batches/{batchID}/classes", h.ListClasses)
-		r.With(mw.RequireRole(roleAdmin, roleCourseCreator, roleFacilitator)).Post("/api/v1/classes", h.CreateClass)
+		r.With(mw.RequireRole(roles.Admin, roles.CourseCreator, roles.Facilitator)).Post("/api/v1/classes", h.CreateClass)
 	})
 }

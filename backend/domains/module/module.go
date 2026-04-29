@@ -4,15 +4,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/vernonedu/vernonedu2/backend/internal/config"
 	mw "github.com/vernonedu/vernonedu2/backend/internal/middleware"
+	"github.com/vernonedu/vernonedu2/backend/internal/roles"
 	"go.uber.org/fx"
-)
-
-const (
-	roleAdmin         = "vernonedu_admin"
-	roleCourseCreator = "course_creator"
-	roleDeptLeader    = "dept_leader"
-	roleFacilitator   = "facilitator"
-	roleStudent       = "student"
 )
 
 // Module wires the module domain via FX.
@@ -39,8 +32,8 @@ func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config) {
 }
 
 func registerModuleRoutes(r chi.Router, h *Handler) {
-	manage := mw.RequireRole(roleAdmin, roleCourseCreator)
-	view := mw.RequireRole(roleAdmin, roleDeptLeader, roleCourseCreator, roleFacilitator, roleStudent)
+	manage := mw.RequireRole(roles.Admin, roles.CourseCreator)
+	view := mw.RequireRole(roles.Admin, roles.DeptLeader, roles.CourseCreator, roles.Facilitator, roles.Student)
 	r.With(manage).Post("/api/v1/courses/{id}/modules", h.CreateModule)
 	r.With(view).Get("/api/v1/courses/{id}/modules", h.ListModules)
 	r.With(manage).Patch("/api/v1/courses/{id}/modules/{module_id}", h.UpdateModule)
@@ -53,15 +46,15 @@ func registerModuleRoutes(r chi.Router, h *Handler) {
 }
 
 func registerBatchRoutes(r chi.Router, h *Handler) {
-	manage := mw.RequireRole(roleAdmin, roleDeptLeader, roleCourseCreator)
+	manage := mw.RequireRole(roles.Admin, roles.DeptLeader, roles.CourseCreator)
 	r.With(manage).Get("/api/v1/batches/{id}/module-configs", h.ListBatchModuleConfigs)
 	r.With(manage).Put("/api/v1/batches/{id}/module-configs/{module_id}", h.UpsertBatchModuleConfig)
-	r.With(mw.RequireRole(roleAdmin, roleDeptLeader, roleCourseCreator)).Get("/api/v1/batches/{id}/progress", h.GetBatchProgress)
+	r.With(mw.RequireRole(roles.Admin, roles.DeptLeader, roles.CourseCreator)).Get("/api/v1/batches/{id}/progress", h.GetBatchProgress)
 }
 
 func registerCoverageRoutes(r chi.Router, h *Handler) {
-	view   := mw.RequireRole(roleAdmin, roleDeptLeader, roleCourseCreator, roleFacilitator)
-	manage := mw.RequireRole(roleAdmin, roleCourseCreator, roleFacilitator)
+	view   := mw.RequireRole(roles.Admin, roles.DeptLeader, roles.CourseCreator, roles.Facilitator)
+	manage := mw.RequireRole(roles.Admin, roles.CourseCreator, roles.Facilitator)
 	r.With(view).Get("/api/v1/classes/{id}/coverage", h.ListCoverage)
 	r.With(manage).Post("/api/v1/classes/{id}/coverage", h.CreateCoverage)
 	r.With(manage).Patch("/api/v1/classes/{id}/coverage/{cov_id}", h.UpdateCoverage)
@@ -69,14 +62,14 @@ func registerCoverageRoutes(r chi.Router, h *Handler) {
 }
 
 func registerStudentRoutes(r chi.Router, h *Handler) {
-	student := mw.RequireRole(roleStudent)
+	student := mw.RequireRole(roles.Student)
 	r.With(student).Get("/api/v1/enrollments/{id}/modules", h.GetStudentModules)
 	r.With(student).Get("/api/v1/enrollments/{id}/modules/{module_id}", h.GetStudentModule)
 }
 
 func registerVersionRoutes(r chi.Router, h *Handler) {
-	view   := mw.RequireRole(roleAdmin, roleDeptLeader, roleCourseCreator, roleFacilitator, roleStudent)
-	manage := mw.RequireRole(roleAdmin, roleCourseCreator)
+	view   := mw.RequireRole(roles.Admin, roles.DeptLeader, roles.CourseCreator, roles.Facilitator, roles.Student)
+	manage := mw.RequireRole(roles.Admin, roles.CourseCreator)
 
 	r.With(view).Get("/api/v1/module-versions/{id}/assets", h.ListAssetsByVersion)
 	r.With(manage).Post("/api/v1/module-versions/{id}/publish", h.PublishVersionByVersionID)
