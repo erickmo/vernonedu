@@ -88,7 +88,14 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(map[string]string{"token": token})
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"access_token": token,
+		"user": map[string]string{
+			"id":    user.ID.String(),
+			"email": user.Email,
+			"role":  string(user.Role),
+		},
+	})
 }
 
 func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
