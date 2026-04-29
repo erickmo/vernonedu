@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, Link } from 'react-router-dom'
+import { NavLink, Link, useLocation } from 'react-router-dom'
 import { Bell, ChevronDown, GraduationCap, LogOut, Menu, X } from 'lucide-react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { cn } from '@/lib/utils/cn'
@@ -31,6 +31,7 @@ export default function TopNavBar({
   avatarClass = 'bg-brand-100 text-brand-700',
 }: TopNavBarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const location = useLocation()
   const initial = user?.name?.charAt(0).toUpperCase() ?? '?'
 
   return (
@@ -63,22 +64,25 @@ export default function TopNavBar({
             </NavLink>
           )}
           {domainNav
-            ? domainNav.map(domain => (
-                <NavLink
-                  key={domain.to}
-                  to={domain.to}
-                  className={({ isActive }) =>
-                    cn(
+            ? domainNav.map(domain => {
+                const isDomainActive =
+                  location.pathname === domain.to ||
+                  domain.items.some(item => location.pathname.startsWith(item.to))
+                return (
+                  <Link
+                    key={domain.to}
+                    to={domain.to}
+                    className={cn(
                       'relative px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-                      isActive
+                      isDomainActive
                         ? 'text-brand-600 after:absolute after:bottom-1 after:left-3 after:right-3 after:h-0.5 after:bg-brand-600 after:rounded-full'
                         : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50',
-                    )
-                  }
-                >
-                  {domain.label}
-                </NavLink>
-              ))
+                    )}
+                  >
+                    {domain.label}
+                  </Link>
+                )
+              })
             : (mainNav ?? []).map(item => (
                 <NavLink
                   key={item.to}
@@ -182,23 +186,26 @@ export default function TopNavBar({
                   Dashboard
                 </NavLink>
               )}
-              {domainNav.map(domain => (
-                <NavLink
-                  key={domain.to}
-                  to={domain.to}
-                  onClick={() => setMobileOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
+              {domainNav.map(domain => {
+                const isDomainActive =
+                  location.pathname === domain.to ||
+                  domain.items.some(item => location.pathname.startsWith(item.to))
+                return (
+                  <Link
+                    key={domain.to}
+                    to={domain.to}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
                       'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                      isActive
+                      isDomainActive
                         ? 'bg-brand-50 text-brand-700'
                         : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
-                    )
-                  }
-                >
-                  {domain.label}
-                </NavLink>
-              ))}
+                    )}
+                  >
+                    {domain.label}
+                  </Link>
+                )
+              })}
             </>
           ) : (
             (mainNav ?? []).map((item) => (

@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { GraduationCap } from 'lucide-react'
 import DetailPageLayout, { BreadcrumbItem, DetailTab } from '@/components/layout/DetailPageLayout'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
-import StatusBadge from '@/components/shared/StatusBadge'
 import { useStudent } from '@/lib/api/identity'
 
 const TABS: DetailTab[] = [
@@ -54,7 +53,7 @@ export default function StudentDetail() {
       icon={<GraduationCap className="w-5 h-5 text-brand-600" />}
       title={student.name}
       subtitle={student.email}
-      status={<StatusBadge status={student.source} />}
+      status={<span className="text-xs px-2 py-0.5 bg-neutral-100 text-neutral-600 rounded-full capitalize">{student.source}</span>}
       tabs={TABS}
       activeTab={activeTab}
       onTabChange={setActiveTab}
