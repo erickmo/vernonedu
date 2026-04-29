@@ -3,6 +3,7 @@ package catalog
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -33,6 +34,7 @@ func (h *Handler) CreateCourse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	course.CreatedBy = uc.ID
+	course.CourseCreatorID = uc.ID
 
 	if err := h.svc.CreateCourse(r.Context(), &course); err != nil {
 		apperrors.Render(w, err)
@@ -62,26 +64,29 @@ func (h *Handler) GetCourse(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ListCourses(w http.ResponseWriter, r *http.Request) {
-	deptIDStr := r.URL.Query().Get("department_id")
-	if deptIDStr == "" {
-		apperrors.Render(w, apperrors.Validationf("department_id query param required"))
-		return
+	q := r.URL.Query()
+
+	var deptID *uuid.UUID
+	if s := q.Get("department_id"); s != "" {
+		id, err := uuid.Parse(s)
+		if err != nil {
+			apperrors.Render(w, apperrors.Validationf("invalid department_id"))
+			return
+		}
+		deptID = &id
 	}
 
-	deptID, err := uuid.Parse(deptIDStr)
-	if err != nil {
-		apperrors.Render(w, apperrors.Validationf("invalid department_id"))
-		return
-	}
+	page, _ := strconv.Atoi(q.Get("page"))
+	limit, _ := strconv.Atoi(q.Get("limit"))
 
-	courses, err := h.svc.ListCoursesByDepartment(r.Context(), deptID)
+	result, err := h.svc.ListCourses(r.Context(), deptID, page, limit)
 	if err != nil {
 		apperrors.Render(w, err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(courses)
+	_ = json.NewEncoder(w).Encode(result)
 }
 
 func (h *Handler) CreateBatch(w http.ResponseWriter, r *http.Request) {

@@ -33,16 +33,28 @@ const (
 )
 
 type Course struct {
-	ID                   uuid.UUID        `json:"id"`
-	Name                 string           `json:"name"`
-	DepartmentID         uuid.UUID        `json:"department_id"`
-	CourseCreatorID      uuid.UUID        `json:"course_creator_id"`
-	BasePrice            decimal.Decimal  `json:"base_price"`
-	MinPrice             decimal.Decimal  `json:"min_price"`
-	ProfitSplitOverride  *map[string]any  `json:"profit_split_override,omitempty"`
-	CreatedBy            uuid.UUID        `json:"created_by"`
-	CreatedAt            time.Time        `json:"created_at"`
-	UpdatedAt            time.Time        `json:"updated_at"`
+	ID                  uuid.UUID       `json:"id"`
+	Name                string          `json:"name"`
+	Code                string          `json:"code"`
+	Description         string          `json:"description"`
+	DurationDays        int             `json:"duration_days"`
+	Format              string          `json:"format"`
+	Status              string          `json:"status"`
+	DepartmentID        uuid.UUID       `json:"department_id"`
+	CourseCreatorID     uuid.UUID       `json:"course_creator_id"`
+	BasePrice           decimal.Decimal `json:"base_price"`
+	MinPrice            decimal.Decimal `json:"min_price"`
+	ProfitSplitOverride *map[string]any `json:"profit_split_override,omitempty"`
+	CreatedBy           uuid.UUID       `json:"created_by"`
+	CreatedAt           time.Time       `json:"created_at"`
+	UpdatedAt           time.Time       `json:"updated_at"`
+}
+
+type PaginatedCourses struct {
+	Data  []*Course `json:"data"`
+	Total int       `json:"total"`
+	Page  int       `json:"page"`
+	Limit int       `json:"limit"`
 }
 
 type CourseFormatConfig struct {

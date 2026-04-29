@@ -37,6 +37,24 @@ func (s *Service) ListCoursesByDepartment(ctx context.Context, deptID uuid.UUID)
 	return s.repo.ListCoursesByDepartment(ctx, deptID)
 }
 
+// ListCourses returns paginated courses with optional department filter.
+func (s *Service) ListCourses(ctx context.Context, deptID *uuid.UUID, page, limit int) (*PaginatedCourses, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 15
+	}
+	courses, total, err := s.repo.ListCourses(ctx, deptID, page, limit)
+	if err != nil {
+		return nil, err
+	}
+	if courses == nil {
+		courses = []*Course{}
+	}
+	return &PaginatedCourses{Data: courses, Total: total, Page: page, Limit: limit}, nil
+}
+
 // OpenBatch transitions batch from draft to open.
 func (s *Service) OpenBatch(ctx context.Context, batchID uuid.UUID) error {
 	batch, err := s.repo.GetBatchByID(ctx, batchID)
