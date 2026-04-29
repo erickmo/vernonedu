@@ -50,7 +50,7 @@ export default function Franchises() {
     {
       header: 'Status',
       accessor: 'status',
-      cell: (row) => <StatusBadge status={row.status} />,
+      cell: (row) => <StatusBadge status={row.status} variant="franchisee" />,
     },
     {
       header: '',
@@ -136,7 +136,7 @@ function RoyaltySection({ selectedFranchisee }: { selectedFranchisee: Franchisee
     {
       header: 'Status',
       accessor: 'status',
-      cell: (row) => <StatusBadge status={row.status} />,
+      cell: (row) => <StatusBadge status={row.status} variant="royalty" />,
     },
     {
       header: '',
@@ -170,7 +170,7 @@ function RoyaltySection({ selectedFranchisee }: { selectedFranchisee: Franchisee
       <PageHeader
         title="Royalty Records"
         subtitle={`Showing records for ${selectedFranchisee.name}`}
-        actions={<StatusBadge status={selectedFranchisee.status} />}
+        actions={<StatusBadge status={selectedFranchisee.status} variant="franchisee" />}
       />
 
       <TableCard>
