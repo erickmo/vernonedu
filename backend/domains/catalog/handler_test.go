@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -47,6 +48,7 @@ func buildCatalogRouter(svc *catalog.Service, actorID uuid.UUID) http.Handler {
 	r.Patch("/api/v1/batches/{id}/status", h.PatchBatchStatus)
 
 	r.Get("/api/v1/batches/{batchID}/classes", h.ListClasses)
+	r.Post("/api/v1/classes", h.CreateClass)
 
 	return r
 }
@@ -243,4 +245,56 @@ func TestCatalog_PatchBatchStatus(t *testing.T) {
 	var result catalog.CourseBatch
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&result))
 	require.Equal(t, catalog.BatchOpen, result.Status)
+}
+
+// TestCatalog_CreateClass verifies POST /api/v1/classes creates a class and returns 201.
+func TestCatalog_CreateClass(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	resetSchemas(t, pool)
+	s := seedIdentity(t, pool)
+	svc := newService(t, pool)
+	ctx := context.Background()
+
+	course := &catalog.Course{
+		Name:            "Course Z",
+		DepartmentID:    s.deptID,
+		CourseCreatorID: s.creatorID,
+		BasePrice:       decimal.NewFromInt(1000000),
+		MinPrice:        decimal.NewFromInt(800000),
+		CreatedBy:       s.creatorID,
+	}
+	require.NoError(t, svc.CreateCourse(ctx, course))
+
+	batch := &catalog.CourseBatch{
+		CourseID:  course.ID,
+		Label:     "Batch C",
+		StartDate: time.Now(),
+		EndDate:   time.Now().AddDate(0, 1, 0),
+		Price:     decimal.NewFromInt(1200000),
+		CreatedBy: s.creatorID,
+	}
+	require.NoError(t, svc.CreateBatch(ctx, batch))
+
+	router := buildCatalogRouter(svc, s.creatorID)
+	body := fmt.Sprintf(`{
+		"course_batch_id": %q,
+		"session_date": "2026-05-01T09:00:00Z",
+		"start_time": "09:00",
+		"end_time": "12:00",
+		"mode": "online",
+		"instructor_id": %q,
+		"instructor_type": "course_creator",
+		"assigned_by": "admin"
+	}`, batch.ID, s.creatorID)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/classes", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusCreated, w.Code)
+	var cl catalog.Class
+	require.NoError(t, json.NewDecoder(w.Body).Decode(&cl))
+	require.Equal(t, batch.ID, cl.CourseBatchID)
+	require.NotEqual(t, uuid.Nil, cl.ID)
 }

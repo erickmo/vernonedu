@@ -38,5 +38,6 @@ func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {
 		r.Patch("/api/v1/batches/{id}/status", h.PatchBatchStatus)
 
 		r.Get("/api/v1/batches/{batchID}/classes", h.ListClasses)
+		r.Post("/api/v1/classes", h.CreateClass)
 	})
 }

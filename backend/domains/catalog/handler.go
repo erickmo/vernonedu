@@ -250,6 +250,26 @@ func (h *Handler) ListClasses(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(classes)
 }
 
+func (h *Handler) CreateClass(w http.ResponseWriter, r *http.Request) {
+	uc := mw.GetUserContext(r.Context())
+	if uc == nil {
+		apperrors.Render(w, apperrors.ErrUnauthorized)
+		return
+	}
+	var cl Class
+	if err := json.NewDecoder(r.Body).Decode(&cl); err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid request body"))
+		return
+	}
+	if err := h.svc.CreateClass(r.Context(), &cl); err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(cl)
+}
+
 func (h *Handler) PatchBatchStatus(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
