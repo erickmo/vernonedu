@@ -23,6 +23,8 @@ type Repository interface {
 	UpdateBatchStatus(ctx context.Context, id uuid.UUID, status BatchStatus) error
 	ListBatchesByCourse(ctx context.Context, courseID uuid.UUID) ([]*CourseBatch, error)
 
+	UpdateCourse(ctx context.Context, c *Course) error
+
 	CreateClass(ctx context.Context, cl *Class) error
 	GetClassByID(ctx context.Context, id uuid.UUID) (*Class, error)
 	ListClassesByBatch(ctx context.Context, batchID uuid.UUID) ([]*Class, error)
@@ -146,6 +148,20 @@ func scanCourseRows(rows interface {
 		courses = append(courses, c)
 	}
 	return courses, total, rows.Err()
+}
+
+func (r *repository) UpdateCourse(ctx context.Context, c *Course) error {
+	query := `UPDATE catalog.courses
+		SET name=$1, description=$2, duration_days=$3, status=$4, updated_at=NOW()
+		WHERE id=$5`
+	ct, err := r.pool.Exec(ctx, query, c.Name, c.Description, c.DurationDays, c.Status, c.ID)
+	if err != nil {
+		return fmt.Errorf("catalog.UpdateCourse: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+	return nil
 }
 
 func (r *repository) CreateBatch(ctx context.Context, b *CourseBatch) error {

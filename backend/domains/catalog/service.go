@@ -55,6 +55,11 @@ func (s *Service) ListCourses(ctx context.Context, deptID *uuid.UUID, page, limi
 	return &PaginatedCourses{Data: courses, Total: total, Page: page, Limit: limit}, nil
 }
 
+// UpdateCourse updates mutable course fields.
+func (s *Service) UpdateCourse(ctx context.Context, c *Course) error {
+	return s.repo.UpdateCourse(ctx, c)
+}
+
 // OpenBatch transitions batch from draft to open.
 func (s *Service) OpenBatch(ctx context.Context, batchID uuid.UUID) error {
 	batch, err := s.repo.GetBatchByID(ctx, batchID)

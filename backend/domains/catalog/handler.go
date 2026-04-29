@@ -89,6 +89,35 @@ func (h *Handler) ListCourses(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(result)
 }
 
+func (h *Handler) UpdateCourse(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid course id"))
+		return
+	}
+
+	var course Course
+	if err := json.NewDecoder(r.Body).Decode(&course); err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid request body"))
+		return
+	}
+	course.ID = id
+
+	if err := h.svc.UpdateCourse(r.Context(), &course); err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+
+	updated, err := h.svc.GetCourse(r.Context(), id)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(updated)
+}
+
 func (h *Handler) CreateBatch(w http.ResponseWriter, r *http.Request) {
 	uc := mw.GetUserContext(r.Context())
 	if uc == nil {

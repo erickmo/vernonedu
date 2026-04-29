@@ -3,12 +3,15 @@
 package catalog_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 
 	"github.com/vernonedu/vernonedu2/backend/domains/catalog"
@@ -30,6 +33,7 @@ func buildCatalogRouter(svc *catalog.Service, actorID uuid.UUID) http.Handler {
 	r.Get("/api/v1/courses", h.ListCourses)
 	r.Post("/api/v1/courses", h.CreateCourse)
 	r.Get("/api/v1/courses/{id}", h.GetCourse)
+	r.Patch("/api/v1/courses/{id}", h.UpdateCourse)
 
 	r.Post("/api/v1/batches", h.CreateBatch)
 	r.Get("/api/v1/batches", h.ListBatches)
@@ -91,6 +95,47 @@ func TestCatalog_ListBatches_Authenticated(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	require.Equal(t, http.StatusOK, w.Code)
+}
+
+// TestCatalog_UpdateCourse verifies PATCH /api/v1/courses/{id} updates and returns the course.
+func TestCatalog_UpdateCourse(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	resetSchemas(t, pool)
+
+	svc := newService(t, pool)
+	s := seedIdentity(t, pool)
+	router := buildCatalogRouter(svc, s.creatorID)
+
+	ctx := t.Context()
+	course := &catalog.Course{
+		Name:            "Intro Go",
+		DepartmentID:    s.deptID,
+		CourseCreatorID: s.creatorID,
+		BasePrice:       decimal.NewFromInt(1500000),
+		MinPrice:        decimal.NewFromInt(1000000),
+		CreatedBy:       s.creatorID,
+	}
+	require.NoError(t, svc.CreateCourse(ctx, course))
+
+	body, err := json.Marshal(map[string]any{
+		"name":          "Updated",
+		"description":   "New desc",
+		"duration_days": 14,
+		"status":        "active",
+	})
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodPatch, "/api/v1/courses/"+course.ID.String(), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var result catalog.Course
+	require.NoError(t, json.NewDecoder(w.Body).Decode(&result))
+	require.Equal(t, "Updated", result.Name)
 }
 
 // TestCatalog_GetBatch_NotFound verifies 404 for unknown batch ID.

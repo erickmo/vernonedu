@@ -27,6 +27,7 @@ func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {
 		r.Get("/api/v1/courses", h.ListCourses)
 		r.Post("/api/v1/courses", h.CreateCourse)
 		r.Get("/api/v1/courses/{id}", h.GetCourse)
+		r.Patch("/api/v1/courses/{id}", h.UpdateCourse)
 
 		r.Post("/api/v1/batches", h.CreateBatch)
 		r.Get("/api/v1/batches", h.ListBatches)
