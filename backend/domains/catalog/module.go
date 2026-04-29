@@ -35,6 +35,7 @@ func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config, _ events.Bus) {
 		r.Get("/api/v1/batches/{id}", h.GetBatch)
 		r.Post("/api/v1/batches/{id}/open", h.OpenBatch)
 		r.Post("/api/v1/batches/{id}/close", h.CloseBatch)
+		r.Patch("/api/v1/batches/{id}/status", h.PatchBatchStatus)
 
 		r.Get("/api/v1/batches/{batchID}/classes", h.ListClasses)
 	})

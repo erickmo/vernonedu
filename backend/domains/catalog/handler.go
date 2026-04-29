@@ -249,3 +249,33 @@ func (h *Handler) ListClasses(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(classes)
 }
+
+func (h *Handler) PatchBatchStatus(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid batch id"))
+		return
+	}
+	var req struct {
+		Status BatchStatus `json:"status"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid request body"))
+		return
+	}
+	if req.Status == "" {
+		apperrors.Render(w, apperrors.Validationf("status is required"))
+		return
+	}
+	if err := h.svc.UpdateBatchStatus(r.Context(), id, req.Status); err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	batch, err := h.svc.GetBatch(r.Context(), id)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(batch)
+}

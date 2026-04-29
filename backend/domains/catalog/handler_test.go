@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -43,6 +44,7 @@ func buildCatalogRouter(svc *catalog.Service, actorID uuid.UUID) http.Handler {
 	r.Get("/api/v1/batches/{id}", h.GetBatch)
 	r.Post("/api/v1/batches/{id}/open", h.OpenBatch)
 	r.Post("/api/v1/batches/{id}/close", h.CloseBatch)
+	r.Patch("/api/v1/batches/{id}/status", h.PatchBatchStatus)
 
 	r.Get("/api/v1/batches/{batchID}/classes", h.ListClasses)
 
@@ -199,4 +201,46 @@ func TestCatalog_ListBatchesByCourseID(t *testing.T) {
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&result))
 	require.Len(t, result, 1)
 	require.Equal(t, batch.ID, result[0].ID)
+}
+
+// TestCatalog_PatchBatchStatus verifies PATCH /api/v1/batches/{id}/status updates status.
+func TestCatalog_PatchBatchStatus(t *testing.T) {
+	pool := newTestPool(t)
+	defer pool.Close()
+	resetSchemas(t, pool)
+	s := seedIdentity(t, pool)
+	svc := newService(t, pool)
+	ctx := context.Background()
+
+	course := &catalog.Course{
+		Name:            "Course Y",
+		DepartmentID:    s.deptID,
+		CourseCreatorID: s.creatorID,
+		BasePrice:       decimal.NewFromInt(1000000),
+		MinPrice:        decimal.NewFromInt(800000),
+		CreatedBy:       s.creatorID,
+	}
+	require.NoError(t, svc.CreateCourse(ctx, course))
+
+	batch := &catalog.CourseBatch{
+		CourseID:  course.ID,
+		Label:     "Batch B",
+		StartDate: time.Now(),
+		EndDate:   time.Now().AddDate(0, 1, 0),
+		Price:     decimal.NewFromInt(1200000),
+		CreatedBy: s.creatorID,
+	}
+	require.NoError(t, svc.CreateBatch(ctx, batch))
+
+	router := buildCatalogRouter(svc, s.creatorID)
+	body := `{"status":"open"}`
+	req := httptest.NewRequest(http.MethodPatch, "/api/v1/batches/"+batch.ID.String()+"/status", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+	var result catalog.CourseBatch
+	require.NoError(t, json.NewDecoder(w.Body).Decode(&result))
+	require.Equal(t, catalog.BatchOpen, result.Status)
 }

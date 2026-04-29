@@ -133,4 +133,8 @@ func (s *Service) ListClassesByBatch(ctx context.Context, batchID uuid.UUID) ([]
 	return s.repo.ListClassesByBatch(ctx, batchID)
 }
 
+// UpdateBatchStatus updates a batch status directly.
+func (s *Service) UpdateBatchStatus(ctx context.Context, batchID uuid.UUID, status BatchStatus) error {
+	return s.repo.UpdateBatchStatus(ctx, batchID, status)
+}
 
