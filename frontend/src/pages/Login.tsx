@@ -7,6 +7,18 @@ import { GraduationCap, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth/useAuth'
 
+const PRESET_USERS = [
+  { email: 'ceo@vernonedu.id',        role: 'CEO' },
+  { email: 'finance@vernonedu.id',    role: 'Finance' },
+  { email: 'academic@vernonedu.id',   role: 'Academic Leader' },
+  { email: 'dept@vernonedu.id',       role: 'Dept Leader' },
+  { email: 'creator@vernonedu.id',    role: 'Course Creator' },
+  { email: 'superadmin@vernonedu.id', role: 'Vernon Admin' },
+  { email: 'admin2@vernonedu.id',     role: 'Admin' },
+  { email: 'student2@vernonedu.id',   role: 'Student' },
+  { email: 'franchisee@vernonedu.id', role: 'Franchisee' },
+]
+
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -29,10 +41,16 @@ export default function Login() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   })
+
+  const fillPreset = (email: string) => {
+    setValue('email', email, { shouldValidate: true })
+    setValue('password', 'password123', { shouldValidate: true })
+  }
 
   const onSubmit = async (data: LoginForm) => {
     try {
@@ -55,6 +73,22 @@ export default function Login() {
           </div>
           <h1 className="text-2xl font-bold text-neutral-900">Welcome to VernonEdu</h1>
           <p className="text-neutral-500 mt-1 text-sm">Sign in to your account</p>
+        </div>
+
+        <div className="bg-white/60 border border-border rounded-2xl p-4 mb-4">
+          <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">Preset Users</p>
+          <div className="flex flex-wrap gap-1.5">
+            {PRESET_USERS.map((u) => (
+              <button
+                key={u.email}
+                type="button"
+                onClick={() => fillPreset(u.email)}
+                className="text-xs px-2.5 py-1 rounded-full border border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100 transition-colors"
+              >
+                {u.role}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl border border-border shadow-sm p-8">
