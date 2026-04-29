@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useForm } from 'react-hook-form'
@@ -51,6 +52,7 @@ function ProposalRow({
   proposal: FacilitatorProposal
   role: string
 }) {
+  const navigate = useNavigate()
   const [reviewOpen, setReviewOpen] = useState(false)
   const deptReview = useDeptLeaderReview()
   const academicReview = useAcademicLeaderReview()
@@ -95,6 +97,13 @@ function ProposalRow({
           <StatusBadge status={proposal.final_status} />
         </div>
       </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => navigate(`/internal/proposals/${proposal.id}`)}
+          className="px-3 py-1.5 text-xs font-medium text-neutral-600 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
+        >
+          View Details
+        </button>
       {canReview && (
         <>
           <button
@@ -154,6 +163,7 @@ function ProposalRow({
           </Dialog.Root>
         </>
       )}
+      </div>
     </div>
   )
 }

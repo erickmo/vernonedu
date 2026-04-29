@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { useInvoices, useUpdateInvoiceStatus, type Invoice } from '@/lib/api/finance'
@@ -17,6 +18,7 @@ const PAYMENT_TABS: SubNavItem[] = [
 const LIMIT = 15
 
 export default function Payments() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('pending')
   const [page, setPage] = useState(1)
   const [confirmItem, setConfirmItem] = useState<Invoice | null>(null)
@@ -115,6 +117,7 @@ export default function Payments() {
           pagination={{ page, limit: LIMIT, total: data?.total ?? 0 }}
           onPageChange={setPage}
           rowKey={(row) => row.id}
+          onRowClick={(row) => navigate(`/internal/payments/${row.id}`)}
         />
       </div>
 

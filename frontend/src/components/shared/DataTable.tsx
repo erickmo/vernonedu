@@ -23,6 +23,7 @@ interface DataTableProps<T> {
   pagination?: Pagination
   onPageChange?: (page: number) => void
   rowKey?: (row: T) => string
+  onRowClick?: (row: T) => void
 }
 
 function SkeletonRow({ cols }: { cols: number }) {
@@ -50,6 +51,7 @@ export default function DataTable<T>({
   pagination,
   onPageChange,
   rowKey,
+  onRowClick,
 }: DataTableProps<T>) {
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.limit) : 1
   const currentPage = pagination?.page ?? 1
@@ -87,7 +89,11 @@ export default function DataTable<T>({
               : data.map((row, idx) => (
                   <tr
                     key={rowKey ? rowKey(row) : idx}
-                    className="hover:bg-neutral-50 transition-colors"
+                    onClick={() => onRowClick?.(row)}
+                    className={cn(
+                      'hover:bg-neutral-50 transition-colors',
+                      onRowClick && 'cursor-pointer',
+                    )}
                   >
                     {columns.map((col) => (
                       <td

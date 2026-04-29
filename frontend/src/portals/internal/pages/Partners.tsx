@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useForm } from 'react-hook-form'
@@ -77,6 +78,7 @@ const COLUMNS: Column<Partner>[] = [
 ]
 
 export default function Partners() {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const { data = [], isLoading } = usePartners()
   const createPartner = useCreatePartner()
@@ -127,6 +129,7 @@ export default function Partners() {
           data={data}
           loading={isLoading}
           rowKey={(row) => row.id}
+          onRowClick={(row) => navigate(`/internal/partners/${row.id}`)}
         />
       </div>
 

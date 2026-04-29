@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Bell, Edit2, Plus, Trash2 } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useForm } from 'react-hook-form'
@@ -39,6 +40,7 @@ const templateSchema = z.object({
 type TemplateForm = z.infer<typeof templateSchema>
 
 export default function Notifications() {
+  const navigate = useNavigate()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<NotificationTemplate | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<NotificationTemplate | null>(null)
@@ -207,6 +209,7 @@ export default function Notifications() {
           data={data}
           loading={isLoading}
           rowKey={(row) => row.id}
+          onRowClick={(row) => navigate(`/internal/notifications/${row.id}`)}
         />
       </div>
 

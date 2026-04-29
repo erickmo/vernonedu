@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useForm } from 'react-hook-form'
@@ -38,6 +39,7 @@ const COLUMNS: Column<Course>[] = [
 ]
 
 export default function Courses() {
+  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [open, setOpen] = useState(false)
 
@@ -90,6 +92,7 @@ export default function Courses() {
           pagination={{ page, limit: LIMIT, total: data?.total ?? 0 }}
           onPageChange={setPage}
           rowKey={(row) => row.id}
+          onRowClick={(row) => navigate(`/internal/courses/${row.id}`)}
         />
       </div>
 

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useEnrollments, type Enrollment } from '@/lib/api/enrollment'
 import { formatDate } from '@/lib/utils/format'
 import StatusBadge from '@/components/shared/StatusBadge'
@@ -54,6 +55,7 @@ const COLUMNS: Column<Enrollment>[] = [
 ]
 
 export default function Enrollments() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('')
   const [page, setPage] = useState(1)
 
@@ -82,6 +84,7 @@ export default function Enrollments() {
           pagination={{ page, limit: LIMIT, total: data?.total ?? 0 }}
           onPageChange={setPage}
           rowKey={(row) => row.id}
+          onRowClick={(row) => navigate(`/internal/enrollments/${row.id}`)}
         />
       </div>
     </div>

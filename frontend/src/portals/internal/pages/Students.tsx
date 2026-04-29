@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus, Search } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useForm } from 'react-hook-form'
@@ -29,6 +30,7 @@ const SOURCE_FILTERS = [
 const LIMIT = 15
 
 export default function Students() {
+  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [sourceFilter, setSourceFilter] = useState<'' | 'b2c' | 'b2b'>('')
   const [search, setSearch] = useState('')
@@ -156,6 +158,7 @@ export default function Students() {
           pagination={{ page, limit: LIMIT, total: data?.total ?? 0 }}
           onPageChange={setPage}
           rowKey={(row) => row.id}
+          onRowClick={(row) => navigate(`/internal/students/${row.id}`)}
         />
       </div>
 
