@@ -56,12 +56,15 @@ export function useSubNavState(): SubNavState | null {
 }
 
 /** Rendered by portal layouts between Nav1 and main content. */
-export function SubNavBar() {
+export function SubNavBar({ topOffset = 'top-14' }: { topOffset?: string }) {
   const state = useSubNavState()
   if (!state || state.items.length === 0) return null
 
   return (
-    <div className="sticky top-14 z-40 h-11 bg-neutral-50 border-b border-neutral-100 flex items-center px-6 md:px-8 gap-0.5 overflow-x-auto scrollbar-none">
+    <div className={cn(
+      'sticky z-40 h-11 bg-neutral-50 border-b border-neutral-100 flex items-center px-6 md:px-8 gap-0.5 overflow-x-auto scrollbar-none',
+      topOffset,
+    )}>
       {state.items.map((item) => (
         <button
           key={item.value}

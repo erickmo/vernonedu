@@ -3,6 +3,7 @@ import { NavLink, Link } from 'react-router-dom'
 import { Bell, ChevronDown, GraduationCap, LogOut, Menu, X } from 'lucide-react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { cn } from '@/lib/utils/cn'
+import type { DomainGroup } from '@/lib/auth/roleNav'
 
 export interface NavItem {
   to: string
@@ -11,7 +12,9 @@ export interface NavItem {
 }
 
 interface TopNavBarProps {
-  mainNav: NavItem[]
+  mainNav?: NavItem[]
+  domainNav?: DomainGroup[]
+  dashboardTo?: string
   user: { id: string; name: string; role: string; email: string } | null
   unreadCount?: number
   onLogout: () => void
@@ -20,6 +23,8 @@ interface TopNavBarProps {
 
 export default function TopNavBar({
   mainNav,
+  domainNav,
+  dashboardTo,
   user,
   unreadCount = 0,
   onLogout,
@@ -41,11 +46,10 @@ export default function TopNavBar({
 
         {/* Main nav — desktop */}
         <nav className="hidden md:flex items-center gap-0.5 flex-1">
-          {mainNav.map((item) => (
+          {dashboardTo && domainNav && (
             <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
+              to={dashboardTo}
+              end
               className={({ isActive }) =>
                 cn(
                   'relative px-3 py-2 text-sm font-medium rounded-lg transition-colors',
@@ -55,9 +59,43 @@ export default function TopNavBar({
                 )
               }
             >
-              {item.label}
+              Dashboard
             </NavLink>
-          ))}
+          )}
+          {domainNav
+            ? domainNav.map(domain => (
+                <NavLink
+                  key={domain.to}
+                  to={domain.to}
+                  className={({ isActive }) =>
+                    cn(
+                      'relative px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                      isActive
+                        ? 'text-brand-600 after:absolute after:bottom-1 after:left-3 after:right-3 after:h-0.5 after:bg-brand-600 after:rounded-full'
+                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50',
+                    )
+                  }
+                >
+                  {domain.label}
+                </NavLink>
+              ))
+            : (mainNav ?? []).map(item => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) =>
+                    cn(
+                      'relative px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                      isActive
+                        ? 'text-brand-600 after:absolute after:bottom-1 after:left-3 after:right-3 after:h-0.5 after:bg-brand-600 after:rounded-full'
+                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50',
+                    )
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
         </nav>
 
         {/* Right side */}
@@ -125,24 +163,63 @@ export default function TopNavBar({
       {/* Mobile nav drawer */}
       {mobileOpen && (
         <div className="md:hidden fixed inset-x-0 top-14 z-50 bg-white border-b border-neutral-100 shadow-lg px-4 py-3 space-y-0.5">
-          {mainNav.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-brand-50 text-brand-700'
-                    : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
-                )
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          {domainNav ? (
+            <>
+              {dashboardTo && (
+                <NavLink
+                  to={dashboardTo}
+                  end
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-brand-50 text-brand-700'
+                        : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
+                    )
+                  }
+                >
+                  Dashboard
+                </NavLink>
+              )}
+              {domainNav.map(domain => (
+                <NavLink
+                  key={domain.to}
+                  to={domain.to}
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-brand-50 text-brand-700'
+                        : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
+                    )
+                  }
+                >
+                  {domain.label}
+                </NavLink>
+              ))}
+            </>
+          ) : (
+            (mainNav ?? []).map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-brand-50 text-brand-700'
+                      : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
+                  )
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))
+          )}
         </div>
       )}
     </>
