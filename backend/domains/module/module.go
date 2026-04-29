@@ -39,7 +39,9 @@ func RegisterRoutes(r *chi.Mux, h *Handler, cfg *config.Config) {
 
 func registerModuleRoutes(r chi.Router, h *Handler) {
 	manage := mw.RequireRole(roleAdmin, roleCourseCreator)
+	view := mw.RequireRole(roleAdmin, roleDeptLeader, roleCourseCreator, roleFacilitator, roleStudent)
 	r.With(manage).Post("/api/v1/courses/{id}/modules", h.CreateModule)
+	r.With(view).Get("/api/v1/courses/{id}/modules", h.ListModules)
 	r.With(manage).Patch("/api/v1/courses/{id}/modules/{module_id}", h.UpdateModule)
 	r.With(manage).Post("/api/v1/modules/{id}/versions", h.CreateVersion)
 	r.With(manage).Post("/api/v1/modules/{id}/versions/{ver_id}/publish", h.PublishVersion)

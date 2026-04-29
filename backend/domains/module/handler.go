@@ -90,6 +90,20 @@ func (h *Handler) UpdateModule(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, updated)
 }
 
+func (h *Handler) ListModules(w http.ResponseWriter, r *http.Request) {
+	courseID, err := parseUUID(chi.URLParam(r, "id"))
+	if err != nil {
+		apperrors.Render(w, apperrors.Validationf("invalid course id"))
+		return
+	}
+	modules, err := h.svc.ListModules(r.Context(), courseID)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, modules)
+}
+
 func (h *Handler) CreateVersion(w http.ResponseWriter, r *http.Request) {
 	moduleID, err := parseUUID(chi.URLParam(r, "id"))
 	if err != nil {
