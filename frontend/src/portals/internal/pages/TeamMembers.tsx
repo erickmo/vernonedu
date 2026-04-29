@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useForm } from 'react-hook-form'
@@ -41,6 +42,7 @@ const memberSchema = z.object({
 type MemberForm = z.infer<typeof memberSchema>
 
 export default function TeamMembers() {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [confirmTarget, setConfirmTarget] = useState<TeamMember | null>(null)
   const { data = [], isLoading } = useTeamMembersFull()
@@ -160,6 +162,7 @@ export default function TeamMembers() {
           data={data}
           loading={isLoading}
           rowKey={(row) => row.id}
+          onRowClick={(row) => navigate(`/internal/team-members/${row.id}`)}
         />
       </div>
 

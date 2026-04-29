@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus, ArrowRight } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useForm } from 'react-hook-form'
@@ -158,6 +159,7 @@ function FranchiseesTab({
   isLoading: boolean
   onViewRoyalty: (franchisee: Franchisee) => void
 }) {
+  const navigate = useNavigate()
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const COLUMNS: Column<Franchisee>[] = [
@@ -203,6 +205,7 @@ function FranchiseesTab({
           data={data ?? []}
           loading={isLoading}
           rowKey={(row) => row.id}
+          onRowClick={(row) => navigate(`/internal/franchises/${row.id}`)}
         />
       </div>
 

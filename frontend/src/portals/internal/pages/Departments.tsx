@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { useDepartments, type Department } from '@/lib/api/people'
 import { formatDate } from '@/lib/utils/format'
 import DataTable, { Column } from '@/components/shared/DataTable'
@@ -28,6 +29,7 @@ const COLUMNS: Column<Department>[] = [
 ]
 
 export default function Departments() {
+  const navigate = useNavigate()
   const { data = [], isLoading } = useDepartments()
 
   return (
@@ -42,6 +44,7 @@ export default function Departments() {
           data={data}
           loading={isLoading}
           rowKey={(row) => row.id}
+          onRowClick={(row) => navigate(`/internal/departments/${row.id}`)}
         />
       </div>
     </div>

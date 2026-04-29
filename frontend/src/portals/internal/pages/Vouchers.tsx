@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useForm } from 'react-hook-form'
@@ -87,6 +88,7 @@ const COLUMNS: Column<Voucher>[] = [
 ]
 
 export default function Vouchers() {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const { data = [], isLoading } = useVouchers()
   const createVoucher = useCreateVoucher()
@@ -141,6 +143,7 @@ export default function Vouchers() {
           data={data}
           loading={isLoading}
           rowKey={(row) => row.id}
+          onRowClick={(row) => navigate(`/internal/vouchers/${row.id}`)}
         />
       </div>
 
