@@ -200,7 +200,7 @@ func (r *repository) GetBatchByID(ctx context.Context, id uuid.UUID) (*CourseBat
 }
 
 func (r *repository) UpdateBatchStatus(ctx context.Context, id uuid.UUID, status BatchStatus) error {
-	query := `UPDATE catalog.course_batches SET status=$1 WHERE id=$2`
+	query := `UPDATE catalog.course_batches SET status=$1, updated_at=NOW() WHERE id=$2`
 	ct, err := r.pool.Exec(ctx, query, status, id)
 	if err != nil {
 		return fmt.Errorf("catalog.UpdateBatchStatus: %w", err)

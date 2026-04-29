@@ -102,6 +102,16 @@ func (h *Handler) UpdateCourse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	existing, err := h.svc.GetCourse(r.Context(), id)
+	if err != nil {
+		apperrors.Render(w, err)
+		return
+	}
+	if uc.Role != "vernonedu_admin" && existing.CourseCreatorID != uc.ID {
+		apperrors.Render(w, apperrors.ErrForbidden)
+		return
+	}
+
 	var course Course
 	if err := json.NewDecoder(r.Body).Decode(&course); err != nil {
 		apperrors.Render(w, apperrors.Validationf("invalid request body"))
