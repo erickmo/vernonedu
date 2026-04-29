@@ -590,6 +590,10 @@ func (h *Handler) CreateAssetByVersionID(w http.ResponseWriter, r *http.Request)
 		apperrors.Render(w, apperrors.Validationf("invalid request body"))
 		return
 	}
+	if req.VersionID == uuid.Nil {
+		apperrors.Render(w, apperrors.Validationf("version_id is required"))
+		return
+	}
 	uc := mw.GetUserContext(r.Context())
 	if uc == nil {
 		apperrors.Render(w, apperrors.ErrUnauthorized)
