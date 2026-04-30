@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -17,6 +17,7 @@ import { formatPercent } from '@/lib/utils/format'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 import EmptyState from '@/components/shared/EmptyState'
 import StatusBadge from '@/components/shared/StatusBadge'
+import EnrollmentModal from '../components/EnrollmentModal'
 
 const RESUME_THRESHOLD = 1
 const COMPLETED_THRESHOLD = 100
@@ -56,6 +57,8 @@ function ModuleProgressIndicator({ done, active }: ModuleProgressIndicatorProps)
 export default function CourseDetail() {
   const { id = '' } = useParams<{ id: string }>()
   const { user } = useAuth()
+
+  const [enrollOpen, setEnrollOpen] = useState(false)
 
   const { data: course, isLoading: loadingCourse } = useCourse(id)
   const { data: modules, isLoading: loadingModules } = useModules(id)
@@ -140,13 +143,14 @@ export default function CourseDetail() {
                 {resumeLabel}
               </button>
             ) : (
-              <Link
-                to="/student/catalog"
+              <button
+                type="button"
+                onClick={() => setEnrollOpen(true)}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white text-brand-700 font-semibold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all"
               >
                 <GraduationCap className="w-4 h-4" />
                 Enroll now
-              </Link>
+              </button>
             )}
 
             {enrollment && (
@@ -235,6 +239,14 @@ export default function CourseDetail() {
           </ol>
         )}
       </div>
+
+      <EnrollmentModal
+        open={enrollOpen}
+        onClose={() => setEnrollOpen(false)}
+        courseId={id}
+        courseName={course.name}
+        courseFormat={course.format}
+      />
     </div>
   )
 }
