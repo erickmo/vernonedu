@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Search, Calendar, Monitor, MapPin, Layers } from 'lucide-react'
 import { useCourses } from '@/lib/api/catalog'
 import { useDepartments } from '@/lib/api/identity'
@@ -113,13 +114,12 @@ export default function CourseCatalog() {
                   </div>
 
                   <div className="pt-2 border-t border-neutral-50">
-                    <button
-                      disabled
-                      className="w-full py-2 text-xs font-semibold text-neutral-400 rounded-lg cursor-not-allowed"
-                      title="Batch enrollment coming soon"
+                    <Link
+                      to={`/student/courses/${course.id}`}
+                      className="block w-full py-2 text-xs font-semibold text-center text-brand-600 hover:text-brand-700 rounded-lg hover:bg-brand-50 transition-colors"
                     >
                       View batches →
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
