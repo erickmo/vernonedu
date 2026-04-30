@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 interface SectionHeaderProps {
   eyebrow: string
   title: ReactNode
-  seeAll?: { label: string; href: string }
+  seeAll?: { label: string; to: string }
 }
 
 export function SectionHeader({ eyebrow, title, seeAll }: SectionHeaderProps) {
@@ -20,7 +20,7 @@ export function SectionHeader({ eyebrow, title, seeAll }: SectionHeaderProps) {
       </div>
       {seeAll && (
         <Link
-          to={seeAll.href}
+          to={seeAll.to}
           className="text-sm font-semibold text-brand-500 flex items-center gap-1 hover:text-brand-700 whitespace-nowrap"
         >
           {seeAll.label} →

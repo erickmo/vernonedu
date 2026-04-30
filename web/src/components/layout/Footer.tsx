@@ -22,7 +22,9 @@ const COMPANY_LINKS = [
   { label: 'Kebijakan Privasi', to: '/privacy' },
 ]
 
-type FooterLink = { label: string; to?: string; href?: string }
+type FooterLink =
+  | { label: string; to: string; href?: never }
+  | { label: string; href: string; to?: never }
 
 function FooterLinkItem({ link }: { link: FooterLink }) {
   if (link.href) {
@@ -33,7 +35,7 @@ function FooterLinkItem({ link }: { link: FooterLink }) {
     )
   }
   return (
-    <Link to={link.to!} className="block text-[0.8rem] text-white/40 hover:text-brand-200 transition-colors mb-2.5">
+    <Link to={link.to} className="block text-[0.8rem] text-white/40 hover:text-brand-200 transition-colors mb-2.5">
       {link.label}
     </Link>
   )

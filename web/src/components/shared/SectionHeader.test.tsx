@@ -14,7 +14,7 @@ it('renders seeAll link when provided', () => {
       <SectionHeader
         eyebrow="Blog"
         title="Blog"
-        seeAll={{ label: 'Lihat Semua', href: '/blog' }}
+        seeAll={{ label: 'Lihat Semua', to: '/blog' }}
       />
     </BrowserRouter>
   )
