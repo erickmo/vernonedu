@@ -5,9 +5,11 @@ import { Home } from './pages/Home'
 import { Students } from './pages/Students'
 import { Partners } from './pages/Partners'
 import { Batch } from './pages/Batch'
+import { BatchDetail } from './pages/BatchDetail'
 import { Blog } from './pages/Blog'
 import { BlogPost } from './pages/BlogPost'
 import { About } from './pages/About'
+import { Register } from './pages/Register'
 
 function NotFound() {
   return (
@@ -30,6 +32,8 @@ export default function App() {
           <Route path="/students"   element={<Students />} />
           <Route path="/partners"   element={<Partners />} />
           <Route path="/batch"      element={<Batch />} />
+          <Route path="/batch/:id"  element={<BatchDetail />} />
+          <Route path="/register"   element={<Register />} />
           <Route path="/blog"       element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/about"      element={<About />} />

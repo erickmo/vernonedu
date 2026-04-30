@@ -20,9 +20,9 @@ export function BlogPost() {
   }
 
   return (
-    <div className="pt-24 min-h-screen bg-white">
-      <div className="bg-brand-900 px-12 py-16">
-        <div className="max-w-[720px] mx-auto">
+    <div className="min-h-screen bg-white">
+      <div className="bg-brand-900 px-12 pt-24 pb-16">
+        <div className="max-w-[1200px] mx-auto">
           <Link to="/blog" className="text-[0.75rem] text-brand-300 hover:text-brand-200 mb-6 inline-block">
             ← Blog
           </Link>
@@ -41,7 +41,7 @@ export function BlogPost() {
 
       <div className="px-12 py-16">
         <div className="max-w-[720px] mx-auto">
-          <p className="text-[0.95rem] text-slate-600 leading-[1.85]">{post.content}</p>
+          <p className="text-[1.05rem] text-slate-600 leading-[1.9]">{post.content}</p>
         </div>
       </div>
     </div>

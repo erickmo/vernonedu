@@ -6,8 +6,8 @@ export function Blog() {
   const rest = BLOG_POSTS.filter(p => !p.featured)
 
   return (
-    <div className="pt-24 min-h-screen bg-white">
-      <div className="bg-brand-900 px-12 py-16">
+    <div className="min-h-screen bg-white">
+      <div className="bg-brand-900 px-12 pt-24 pb-16">
         <div className="max-w-[1200px] mx-auto">
           <p className="text-[0.7rem] font-bold tracking-[3px] uppercase text-brand-300 mb-3">Blog</p>
           <h1 className="text-[2.5rem] font-black tracking-[-2px] text-white">

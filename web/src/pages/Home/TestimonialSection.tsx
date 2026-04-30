@@ -14,7 +14,7 @@ export function TestimonialSection() {
               Apa kata <em className="italic text-brand-500">mereka?</em>
             </h2>
           </div>
-          <a href="#" className="text-[0.8rem] font-semibold text-brand-500 hover:text-brand-700">
+          <a href="#" className="text-sm font-semibold text-brand-500 hover:text-brand-700">
             Lihat semua →
           </a>
         </div>
@@ -24,7 +24,7 @@ export function TestimonialSection() {
           <div className="bg-brand-900 rounded-2xl p-8">
             <p className="text-[0.7rem] text-brand-500 tracking-[2px] mb-4">★ ★ ★ ★ ★</p>
             <p className="text-base text-white/80 leading-[1.75] italic mb-6">{`"${featured.quote}"`}</p>
-            <p className="text-[0.85rem] font-black text-brand-200">{featured.name}</p>
+            <p className="text-[1rem] font-black text-brand-200">{featured.name}</p>
             <p className="text-[0.72rem] text-white/35 mt-0.5">{featured.role}</p>
           </div>
 
@@ -32,8 +32,8 @@ export function TestimonialSection() {
           {compact.map(t => (
             <div key={t.id} className="bg-slate-50 border border-brand-100 rounded-2xl p-8">
               <p className="text-[0.7rem] text-brand-500 tracking-[2px] mb-4">★ ★ ★ ★ ★</p>
-              <p className="text-[0.875rem] text-brand-800 leading-[1.75] italic mb-6">{`"${t.quote}"`}</p>
-              <p className="text-[0.85rem] font-black text-brand-600">{t.name}</p>
+              <p className="text-base text-brand-800 leading-[1.75] italic mb-6">{`"${t.quote}"`}</p>
+              <p className="text-[1rem] font-black text-brand-600">{t.name}</p>
               <p className="text-[0.72rem] text-slate-400 mt-0.5">{t.role}</p>
             </div>
           ))}

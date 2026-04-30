@@ -18,12 +18,12 @@ export function B2BSection() {
             <em className="italic text-brand-500">Siswa Anda</em><br />
             Bersama Kami.
           </h2>
-          <p className="text-[0.9rem] text-slate-400 leading-[1.8] mb-7">
+          <p className="text-base text-slate-400 leading-[1.8] mb-7">
             Kami bekerja sama dengan sekolah dan universitas untuk menghadirkan kursus, seminar, dan workshop berkualitas langsung ke institusi Anda.
           </p>
           <a
             href="mailto:partnership@vernonedu.id"
-            className="inline-flex items-center gap-2 bg-brand-900 text-white text-[0.875rem] font-bold px-8 py-3.5 rounded-full hover:bg-brand-800 transition-colors"
+            className="inline-flex items-center gap-2 bg-brand-900 text-white text-base font-bold px-8 py-3.5 rounded-full hover:bg-brand-800 transition-colors"
           >
             Hubungi Tim Partnership →
           </a>
@@ -32,8 +32,8 @@ export function B2BSection() {
         <div className="flex flex-col gap-3.5">
           {B2B_CARDS.map(card => (
             <div key={card.title} className="bg-white border border-brand-100 rounded-2xl px-6 py-5">
-              <p className="text-[0.9rem] font-black text-brand-900 mb-1.5">{card.title}</p>
-              <p className="text-[0.78rem] text-slate-400 leading-relaxed">{card.desc}</p>
+              <p className="text-base font-black text-brand-900 mb-1.5">{card.title}</p>
+              <p className="text-sm text-slate-400 leading-relaxed">{card.desc}</p>
             </div>
           ))}
         </div>

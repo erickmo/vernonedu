@@ -26,7 +26,7 @@ export function BlogCard({ post, featured = false }: BlogCardProps) {
         <h3 className={`font-black text-brand-900 leading-tight mb-2 ${featured ? 'text-xl' : 'text-base'}`}>
           {post.title}
         </h3>
-        <p className="text-xs text-slate-500 leading-relaxed mb-4">{post.excerpt}</p>
+        <p className="text-sm text-slate-500 leading-relaxed mb-4">{post.excerpt}</p>
         <div className="flex gap-4 text-xs text-slate-400">
           <span>{post.date}</span>
           <span>{post.readMinutes} min baca</span>

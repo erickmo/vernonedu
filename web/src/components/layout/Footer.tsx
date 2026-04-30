@@ -27,7 +27,7 @@ type FooterLink =
   | { label: string; href: string; to?: never }
 
 function FooterLinkItem({ link }: { link: FooterLink }) {
-  const cls = "block text-[0.8rem] text-white/40 hover:text-brand-200 transition-colors mb-2.5"
+  const cls = "block text-sm text-white/40 hover:text-brand-200 transition-colors mb-2.5"
   if ('href' in link) {
     return <a href={link.href} className={cls}>{link.label}</a>
   }
@@ -42,7 +42,7 @@ export function Footer() {
           <div className="text-[1.35rem] font-black text-white mb-3">
             Vernon<span className="text-brand-200">Edu</span>
           </div>
-          <p className="text-[0.8rem] text-white/25 leading-relaxed max-w-[240px]">
+          <p className="text-sm text-white/25 leading-relaxed max-w-[240px]">
             Pendidikan yang relevan, fleksibel, dan berdampak untuk semua kalangan di Indonesia.
           </p>
         </div>

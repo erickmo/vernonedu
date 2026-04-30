@@ -30,9 +30,9 @@ const DELIVERY_MODES = [
 
 export function Students() {
   return (
-    <div className="pt-24 min-h-screen bg-white">
+    <div className="min-h-screen bg-white">
       {/* header */}
-      <div className="bg-brand-900 px-12 py-20">
+      <div className="bg-brand-900 px-12 pt-24 pb-20">
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div>
             <p className="text-[0.7rem] font-bold tracking-[3px] uppercase text-brand-300 mb-3">Untuk Individu</p>
@@ -40,7 +40,7 @@ export function Students() {
               Kursus untuk Anda.<br />
               <em className="italic text-brand-200">Sesuai Kebutuhan.</em>
             </h1>
-            <p className="text-[0.9rem] text-white/45 leading-relaxed max-w-[420px]">
+            <p className="text-[1rem] text-white/45 leading-relaxed max-w-[420px]">
               Pilih format kelas, mode belajar, dan jadwal yang paling sesuai dengan gaya hidup Anda.
             </p>
           </div>
@@ -74,7 +74,7 @@ export function Students() {
                   <h3 className="text-base font-black text-brand-900">{f.title}</h3>
                   <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-brand-50 text-brand-500">{f.badge}</span>
                 </div>
-                <p className="text-[0.78rem] text-slate-400 leading-relaxed">{f.desc}</p>
+                <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -92,7 +92,7 @@ export function Students() {
                 <div className="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center text-2xl shrink-0">{m.icon}</div>
                 <div>
                   <h3 className="text-base font-black text-brand-900 mb-1.5">{m.title}</h3>
-                  <p className="text-[0.78rem] text-slate-400 leading-relaxed">{m.desc}</p>
+                  <p className="text-sm text-slate-400 leading-relaxed">{m.desc}</p>
                 </div>
               </div>
             ))}

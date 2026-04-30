@@ -4,6 +4,13 @@ const config: Config = {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      fontSize: {
+        xs:   ['0.8rem',   { lineHeight: '1.4' }],
+        sm:   ['1rem',     { lineHeight: '1.5' }],
+        base: ['1.13rem',  { lineHeight: '1.6' }],
+        lg:   ['1.38rem',  { lineHeight: '1.5' }],
+        xl:   ['1.69rem',  { lineHeight: '1.4' }],
+      },
       colors: {
         brand: {
           50:  '#f8f0fd',

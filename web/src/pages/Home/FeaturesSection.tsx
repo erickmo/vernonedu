@@ -31,8 +31,8 @@ export function FeaturesSection() {
                   {feat.icon}
                 </div>
                 <div>
-                  <p className="text-[0.9rem] font-black text-brand-900 mb-1">{feat.title}</p>
-                  <p className="text-[0.78rem] text-slate-400 leading-relaxed">{feat.description}</p>
+                  <p className="text-base font-black text-brand-900 mb-1">{feat.title}</p>
+                  <p className="text-sm text-slate-400 leading-relaxed">{feat.description}</p>
                 </div>
               </div>
             ))}
@@ -47,12 +47,12 @@ export function FeaturesSection() {
           <h3 className="text-[1.75rem] font-black leading-tight tracking-tight mb-4">
             Untuk Sekolah &amp; Kampus
           </h3>
-          <p className="text-[0.82rem] text-white/65 leading-[1.75] mb-7">
+          <p className="text-sm text-white/65 leading-[1.75] mb-7">
             Program kemitraan fleksibel untuk menghadirkan kursus VernonEdu langsung ke institusi Anda.
           </p>
           <ul className="flex flex-col gap-3 mb-8">
             {B2B_CHECKLIST.map(item => (
-              <li key={item} className="flex gap-3 items-start text-[0.82rem] text-white/75">
+              <li key={item} className="flex gap-3 items-start text-sm text-white/75">
                 <span className="text-brand-200 font-black shrink-0 mt-0.5">✓</span>
                 {item}
               </li>
@@ -60,7 +60,7 @@ export function FeaturesSection() {
           </ul>
           <a
             href="mailto:partnership@vernonedu.id"
-            className="block bg-white text-brand-500 text-[0.875rem] font-black py-3.5 rounded-xl text-center hover:bg-brand-50 transition-colors"
+            className="block bg-white text-brand-500 text-base font-black py-3.5 rounded-xl text-center hover:bg-brand-50 transition-colors"
           >
             Hubungi Tim Partnership →
           </a>

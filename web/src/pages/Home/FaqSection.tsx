@@ -13,7 +13,7 @@ export function FaqSection() {
         {FAQS.map(faq => (
           <div key={faq.id} className="border-t border-brand-100 py-5">
             <button
-              className="w-full flex justify-between items-center text-[0.925rem] font-bold text-brand-900 text-left"
+              className="w-full flex justify-between items-center text-[1rem] font-bold text-brand-900 text-left"
               onClick={() => setOpen(open === faq.id ? null : faq.id)}
             >
               {faq.question}
@@ -22,7 +22,7 @@ export function FaqSection() {
               </span>
             </button>
             {open === faq.id && (
-              <p className="text-[0.82rem] text-slate-400 leading-[1.75] mt-3.5">{faq.answer}</p>
+              <p className="text-sm text-slate-400 leading-[1.75] mt-3.5">{faq.answer}</p>
             )}
           </div>
         ))}

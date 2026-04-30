@@ -8,19 +8,19 @@ export function CtaBand() {
           Siap mulai<br />
           <em className="italic text-brand-200">perjalananmu?</em>
         </h2>
-        <p className="text-[0.9rem] text-white/45 leading-[1.7] mb-8">
+        <p className="text-[1rem] text-white/45 leading-[1.7] mb-8">
           Bergabung dengan 12.000+ siswa yang sudah belajar bersama VernonEdu.
         </p>
         <div className="flex gap-4 justify-center">
           <a
             href={LINKS.register}
-            className="bg-white text-brand-900 text-[0.875rem] font-black px-8 py-3.5 rounded-full hover:bg-brand-50 transition-colors"
+            className="bg-white text-brand-900 text-base font-black px-8 py-3.5 rounded-full hover:bg-brand-50 transition-colors"
           >
             Daftar Gratis
           </a>
           <a
             href="mailto:hello@vernonedu.id"
-            className="border-[1.5px] border-white/20 text-white/60 text-[0.875rem] font-semibold px-7 py-3.5 rounded-full hover:border-white/40 transition-colors"
+            className="border-[1.5px] border-white/20 text-white/60 text-base font-semibold px-7 py-3.5 rounded-full hover:border-white/40 transition-colors"
           >
             Hubungi Kami
           </a>

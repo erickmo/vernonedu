@@ -28,7 +28,7 @@ export function Nav() {
                 to={link.to}
                 end={link.to === '/'}
                 className={({ isActive }) =>
-                  `text-[0.82rem] font-semibold transition-colors ${isActive ? 'text-brand-900' : 'text-slate-400 hover:text-brand-500'}`
+                  `text-sm font-semibold transition-colors ${isActive ? 'text-brand-900' : 'text-slate-400 hover:text-brand-500'}`
                 }
               >
                 {link.label}
@@ -40,7 +40,7 @@ export function Nav() {
         {/* desktop CTA */}
         <a
           href={LINKS.register}
-          className="hidden md:block bg-brand-500 text-white text-[0.8rem] font-bold px-5 py-2 rounded-full hover:bg-brand-600 transition-colors"
+          className="hidden md:block bg-brand-500 text-white text-sm font-bold px-5 py-2 rounded-full hover:bg-brand-600 transition-colors"
         >
           Daftar Sekarang
         </a>

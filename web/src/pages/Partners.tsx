@@ -15,15 +15,15 @@ const PAYMENT_MODELS = [
 
 export function Partners() {
   return (
-    <div className="pt-24 min-h-screen bg-white">
-      <div className="bg-brand-900 px-12 py-20">
+    <div className="min-h-screen bg-white">
+      <div className="bg-brand-900 px-12 pt-24 pb-20">
         <div className="max-w-[1200px] mx-auto">
           <p className="text-[0.7rem] font-bold tracking-[3px] uppercase text-brand-300 mb-3">Untuk Institusi</p>
           <h1 className="text-[clamp(2.25rem,5vw,3.5rem)] font-black tracking-[-2px] text-white leading-tight mb-4">
             Program Kemitraan<br />
             <em className="italic text-brand-200">yang Fleksibel.</em>
           </h1>
-          <p className="text-[0.9rem] text-white/45 leading-relaxed max-w-[520px]">
+          <p className="text-[1rem] text-white/45 leading-relaxed max-w-[520px]">
             Kami bekerja sama dengan sekolah, universitas, dan perusahaan untuk menghadirkan pendidikan berkualitas langsung ke lingkungan Anda.
           </p>
         </div>
@@ -39,7 +39,7 @@ export function Partners() {
                 <div className="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center text-2xl shrink-0">{p.icon}</div>
                 <div>
                   <h3 className="text-base font-black text-brand-900 mb-1.5">{p.title}</h3>
-                  <p className="text-[0.78rem] text-slate-400 leading-relaxed">{p.desc}</p>
+                  <p className="text-sm text-slate-400 leading-relaxed">{p.desc}</p>
                 </div>
               </div>
             ))}
@@ -55,7 +55,7 @@ export function Partners() {
             {PAYMENT_MODELS.map(m => (
               <div key={m.model} className="bg-white border border-brand-100 rounded-2xl p-6">
                 <h3 className="text-base font-black text-brand-900 mb-2">{m.model}</h3>
-                <p className="text-[0.78rem] text-slate-400 leading-relaxed">{m.desc}</p>
+                <p className="text-sm text-slate-400 leading-relaxed">{m.desc}</p>
               </div>
             ))}
           </div>
@@ -68,7 +68,7 @@ export function Partners() {
           <h2 className="text-3xl font-black tracking-tight text-brand-900 mb-4">
             Hubungi Kami
           </h2>
-          <p className="text-[0.9rem] text-slate-400 leading-relaxed mb-8">
+          <p className="text-[1rem] text-slate-400 leading-relaxed mb-8">
             Tim partnership kami siap berdiskusi tentang kebutuhan spesifik institusi Anda dan merancang program yang tepat.
           </p>
           <a
