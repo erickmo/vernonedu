@@ -1,5 +1,4 @@
 import { FEATURES } from '../../data/features'
-import { LINKS } from '../../tokens'
 
 const B2B_CHECKLIST = [
   'Kursus standar dari katalog VernonEdu',
