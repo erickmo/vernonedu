@@ -17,6 +17,7 @@ export interface Course {
 export interface Batch {
   id: string
   course_id: string
+  label: string
   code: string
   start_date: string
   end_date: string
