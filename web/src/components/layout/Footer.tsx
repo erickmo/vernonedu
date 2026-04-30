@@ -44,7 +44,7 @@ function FooterLinkItem({ link }: { link: FooterLink }) {
 export function Footer() {
   return (
     <footer className="bg-brand-900">
-      <div className="max-w-[1200px] mx-auto px-12 pt-16 pb-12 grid grid-cols-[2fr_1fr_1fr_1fr] gap-12">
+      <div className="max-w-[1200px] mx-auto px-6 md:px-12 pt-16 pb-12 grid grid-cols-2 md:grid-cols-[2fr_1fr_1fr_1fr] gap-8 md:gap-12">
         <div>
           <div className="text-[1.35rem] font-black text-white mb-3">
             Vernon<span className="text-brand-200">Edu</span>
@@ -70,7 +70,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/5 max-w-[1200px] mx-auto px-12 py-5 flex justify-between text-[0.72rem] text-white/20">
+      <div className="border-t border-white/5 max-w-[1200px] mx-auto px-6 md:px-12 py-5 flex flex-col md:flex-row gap-1 justify-between text-[0.72rem] text-white/20">
         <span>© 2025 VernonEdu. All rights reserved.</span>
         <span>Made in Indonesia 🇮🇩</span>
       </div>
