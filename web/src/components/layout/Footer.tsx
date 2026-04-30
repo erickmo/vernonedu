@@ -27,18 +27,11 @@ type FooterLink =
   | { label: string; href: string; to?: never }
 
 function FooterLinkItem({ link }: { link: FooterLink }) {
-  if (link.href) {
-    return (
-      <a href={link.href} className="block text-[0.8rem] text-white/40 hover:text-brand-200 transition-colors mb-2.5">
-        {link.label}
-      </a>
-    )
+  const cls = "block text-[0.8rem] text-white/40 hover:text-brand-200 transition-colors mb-2.5"
+  if ('href' in link) {
+    return <a href={link.href} className={cls}>{link.label}</a>
   }
-  return (
-    <Link to={link.to!} className="block text-[0.8rem] text-white/40 hover:text-brand-200 transition-colors mb-2.5">
-      {link.label}
-    </Link>
-  )
+  return <Link to={link.to} className={cls}>{link.label}</Link>
 }
 
 export function Footer() {
