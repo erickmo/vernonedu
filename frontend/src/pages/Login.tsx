@@ -8,15 +8,11 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/auth/useAuth'
 
 const PRESET_USERS = [
-  { email: 'ceo@vernonedu.id',        role: 'CEO' },
-  { email: 'finance@vernonedu.id',    role: 'Finance' },
-  { email: 'academic@vernonedu.id',   role: 'Academic Leader' },
-  { email: 'dept@vernonedu.id',       role: 'Dept Leader' },
-  { email: 'creator@vernonedu.id',    role: 'Course Creator' },
-  { email: 'superadmin@vernonedu.id', role: 'Vernon Admin' },
-  { email: 'admin2@vernonedu.id',     role: 'Admin' },
-  { email: 'student2@vernonedu.id',   role: 'Student' },
-  { email: 'franchisee@vernonedu.id', role: 'Franchisee' },
+  { email: 'director2@test.com',     role: 'CEO / Director' },
+  { email: 'education2@test.com',    role: 'Education Leader' },
+  { email: 'dept@test.com',          role: 'Dept Leader' },
+  { email: 'course2@test.com',       role: 'Course Creator' },
+  { email: 'student@test.com',       role: 'Student' },
 ]
 
 const loginSchema = z.object({
