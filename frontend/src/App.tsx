@@ -53,6 +53,11 @@ import FranchiseEnrollments from '@/portals/franchise/pages/Enrollments'
 import FranchisePayments from '@/portals/franchise/pages/Payments'
 import FranchiseTeamMembers from '@/portals/franchise/pages/TeamMembers'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
+// Admin pages
+import { AdminLayout } from '@/pages/admin/AdminLayout'
+import DepartmentListPage from '@/pages/admin/DepartmentListPage'
+import DepartmentCreatePage from '@/pages/admin/DepartmentCreatePage'
+import DepartmentDetailPage from '@/pages/admin/DepartmentDetailPage'
 
 const ROLE_STUDENT = 'student'
 const ROLE_FRANCHISEE = 'franchisee'
@@ -133,6 +138,14 @@ export default function App() {
           <Route path="profit-split/:id" element={<ProfitSplitDetail />} />
           <Route path="notifications/:id" element={<NotificationDetail />} />
         </Route>
+      </Route>
+
+      {/* Admin Routes */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<Navigate to="/admin/departments" replace />} />
+        <Route path="departments" element={<DepartmentListPage />} />
+        <Route path="departments/new" element={<DepartmentCreatePage />} />
+        <Route path="departments/:id" element={<DepartmentDetailPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
