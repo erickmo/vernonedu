@@ -12,7 +12,7 @@ export function Hero() {
       }}
     >
       {/* main content */}
-      <div className="flex-1 max-w-[1200px] w-full mx-auto px-12 flex items-center py-12">
+      <div className="flex-1 max-w-[1200px] w-full mx-auto px-12 flex items-start py-12">
         {/* left */}
         <div style={{ maxWidth: '600px' }}>
           <div className="inline-flex items-center gap-2 bg-brand-50 border border-brand-100 rounded-full px-4 py-1.5 text-[0.7rem] font-bold text-brand-500 tracking-[1.5px] uppercase mb-6">
