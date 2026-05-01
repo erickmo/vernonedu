@@ -7,14 +7,12 @@ it('renders headline', () => {
   expect(screen.getByText(/belajar lebih/i)).toBeInTheDocument()
 })
 
-it('renders audience chooser options', () => {
+it('renders "Mulai Belajar" CTA button', () => {
   render(<BrowserRouter><Hero /></BrowserRouter>)
-  expect(screen.getByText(/siswa \/ pelajar/i)).toBeInTheDocument()
-  expect(screen.getAllByText(/mitra institusi/i).length).toBeGreaterThan(0)
+  expect(screen.getByText(/mulai belajar/i)).toBeInTheDocument()
 })
 
-it('renders stat: 12K+ Siswa Aktif', () => {
+it('renders "Lihat Kelas Batch" secondary link', () => {
   render(<BrowserRouter><Hero /></BrowserRouter>)
-  expect(screen.getByText('12K+')).toBeInTheDocument()
-  expect(screen.getByText(/siswa aktif/i)).toBeInTheDocument()
+  expect(screen.getByText(/lihat kelas batch/i)).toBeInTheDocument()
 })
