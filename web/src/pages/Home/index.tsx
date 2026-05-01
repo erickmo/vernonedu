@@ -1,4 +1,5 @@
 import { Hero } from './Hero'
+import { AudienceChooser } from './AudienceChooser'
 import { CertBand } from './CertBand'
 import { PartnerList } from './PartnerList'
 import { CourseTicker } from './CourseTicker'
@@ -14,6 +15,7 @@ export function Home() {
   return (
     <>
       <Hero />
+      <AudienceChooser />
       <CertBand />
       <PartnerList />
       <CourseTicker />
