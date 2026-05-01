@@ -41,6 +41,8 @@ import DepartmentDetail from '@/portals/internal/pages/detail/DepartmentDetail'
 import TeamMemberDetail from '@/portals/internal/pages/detail/TeamMemberDetail'
 import ProposalDetail from '@/portals/internal/pages/detail/ProposalDetail'
 import PartnerDetail from '@/portals/internal/pages/detail/PartnerDetail'
+import PartnerCreatePage from '@/portals/internal/pages/PartnerCreatePage'
+import PartnerEditPage from '@/portals/internal/pages/PartnerEditPage'
 import FranchiseDetail from '@/portals/internal/pages/detail/FranchiseDetail'
 import VoucherDetail from '@/portals/internal/pages/detail/VoucherDetail'
 import PaymentDetail from '@/portals/internal/pages/detail/PaymentDetail'
@@ -114,6 +116,8 @@ export default function App() {
           <Route path="budget" element={<Budget />} />
           <Route path="profit-split" element={<ProfitSplit />} />
           <Route path="partners" element={<Partners />} />
+          <Route path="partners/new" element={<PartnerCreatePage />} />
+          <Route path="partners/:id/edit" element={<PartnerEditPage />} />
           <Route path="vouchers" element={<Vouchers />} />
           <Route path="calendar" element={<InternalCalendar />} />
           <Route path="franchises" element={<Franchises />} />
