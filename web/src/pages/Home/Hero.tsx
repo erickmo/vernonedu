@@ -15,30 +15,30 @@ export function Hero() {
       <div className="flex-1 max-w-[1200px] w-full mx-auto px-12 flex items-start py-12">
         {/* left */}
         <div style={{ maxWidth: '600px' }}>
-          <div className="inline-flex items-center gap-2 bg-brand-50 border border-brand-100 rounded-full px-4 py-1.5 text-[0.7rem] font-bold text-brand-500 tracking-[1.5px] uppercase mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full px-5 py-3.5 text-xs font-bold uppercase mb-7 backdrop-blur-lg" style={{ backgroundColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)', letterSpacing: '1.5px' }}>
             <span className="text-[0.55rem]">●</span>
             Lembaga Pendidikan Informal
           </div>
 
-          <h1 className="text-[clamp(2.75rem,5.5vw,4.25rem)] font-black leading-[1.0] tracking-[-2.5px] text-brand-900 mb-5">
+          <h1 className="text-[3.5rem] font-black leading-[1.05] tracking-tight text-white mb-6">
             Belajar Lebih.<br />
-            Raih <em className="italic text-brand-500 font-bold">Lebih.</em>
+            <em className="italic text-[#e0b7ff] font-bold">Raih Lebih.</em>
           </h1>
 
-          <p className="text-base text-slate-400 leading-[1.75] max-w-[420px] mb-8">
+          <p className="text-lg leading-relaxed max-w-[500px] mb-8" style={{ color: 'rgba(255,255,255,0.80)', fontWeight: '400' }}>
             Kursus berkualitas, kelas batch terjadwal, dan program kemitraan untuk individu dan institusi di seluruh Indonesia.
           </p>
 
-          <div className="flex items-center gap-4">
-            <a
-              href={LINKS.register}
-              className="bg-brand-500 text-white text-sm font-bold px-7 py-3 rounded-full hover:bg-brand-600 transition-colors"
+          <div className="flex items-center gap-5 flex-wrap">
+            <a href={LINKS.register}
+              className="bg-white text-brand-500 text-base font-bold px-8 py-4 rounded-full hover:bg-gray-100 transition-all hover:shadow-lg"
             >
               Mulai Belajar
             </a>
             <Link
               to="/batch"
-              className="border-[1.5px] border-brand-100 text-brand-600 text-sm font-semibold px-6 py-[0.75rem] rounded-full hover:border-brand-300 transition-colors"
+              className="text-white text-base font-semibold px-8 py-4 rounded-full transition-all"
+              style={{ border: '2px solid rgba(255,255,255,0.3)', backgroundColor: 'transparent' }}
             >
               Lihat Kelas Batch ↗
             </Link>
