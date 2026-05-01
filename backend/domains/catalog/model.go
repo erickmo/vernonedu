@@ -1,0 +1,116 @@
+package catalog
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
+)
+
+type CourseFormat string
+
+const (
+	FormatRegular          CourseFormat = "regular"
+	FormatPrivate          CourseFormat = "private"
+	FormatInhouseTraining  CourseFormat = "inhouse_training"
+	FormatInschoolProgram  CourseFormat = "inschool_program"
+)
+
+type BatchStatus string
+
+const (
+	BatchDraft   BatchStatus = "draft"
+	BatchOpen    BatchStatus = "open"
+	BatchOngoing BatchStatus = "ongoing"
+	BatchClosed  BatchStatus = "closed"
+)
+
+// IsValid reports whether s is a recognized BatchStatus value.
+func (s BatchStatus) IsValid() bool {
+	switch s {
+	case BatchDraft, BatchOpen, BatchOngoing, BatchClosed:
+		return true
+	}
+	return false
+}
+
+type DeliveryMode string
+
+const (
+	ModeOnline  DeliveryMode = "online"
+	ModeOffline DeliveryMode = "offline"
+)
+
+type Course struct {
+	ID                  uuid.UUID       `json:"id"`
+	Name                string          `json:"name"`
+	Code                string          `json:"code"`
+	Description         string          `json:"description"`
+	DurationDays        int             `json:"duration_days"`
+	Format              string          `json:"format"`
+	Status              string          `json:"status"`
+	DepartmentID        uuid.UUID       `json:"department_id"`
+	CourseCreatorID     uuid.UUID       `json:"course_creator_id"`
+	BasePrice           decimal.Decimal `json:"base_price"`
+	MinPrice            decimal.Decimal `json:"min_price"`
+	ProfitSplitOverride *map[string]any `json:"profit_split_override,omitempty"`
+	CreatedBy           uuid.UUID       `json:"created_by"`
+	CreatedAt           time.Time       `json:"created_at"`
+	UpdatedAt           time.Time       `json:"updated_at"`
+}
+
+type PaginatedCourses struct {
+	Data  []*Course `json:"data"`
+	Total int       `json:"total"`
+	Page  int       `json:"page"`
+	Limit int       `json:"limit"`
+}
+
+type CourseFormatConfig struct {
+	ID          uuid.UUID    `json:"id"`
+	CourseID    uuid.UUID    `json:"course_id"`
+	Format      CourseFormat `json:"format"`
+	IsEnabled   bool         `json:"is_enabled"`
+	MinStudents *int         `json:"min_students,omitempty"`
+	MaxStudents *int         `json:"max_students,omitempty"`
+	ModeOnline  bool         `json:"mode_online"`
+	ModeOffline bool         `json:"mode_offline"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+}
+
+type CourseBatch struct {
+	ID                   uuid.UUID       `json:"id"`
+	CourseID             uuid.UUID       `json:"course_id"`
+	Label                string          `json:"label"`
+	StartDate            time.Time       `json:"start_date"`
+	EndDate              time.Time       `json:"end_date"`
+	Price                decimal.Decimal `json:"price"`
+	BatchBulkPrice       *decimal.Decimal `json:"batch_bulk_price,omitempty"`
+	Status               BatchStatus     `json:"status"`
+	WebRegistrationOpen  bool            `json:"web_registration_open"`
+	RegistrationOpenAt   *time.Time      `json:"registration_open_at,omitempty"`
+	RegistrationCloseAt  *time.Time      `json:"registration_close_at,omitempty"`
+	CreatedBy            uuid.UUID       `json:"created_by"`
+	CreatedAt            time.Time       `json:"created_at"`
+	UpdatedAt            time.Time       `json:"updated_at"`
+}
+
+type Class struct {
+	ID             uuid.UUID    `json:"id"`
+	CourseBatchID  uuid.UUID    `json:"course_batch_id"`
+	Title          *string      `json:"title,omitempty"`
+	SessionDate    time.Time    `json:"session_date"`
+	StartTime      string       `json:"start_time"`
+	EndTime        string       `json:"end_time"`
+	Mode           DeliveryMode `json:"mode"`
+	Location       *string      `json:"location,omitempty"`
+	OnlineLink     *string      `json:"online_link,omitempty"`
+	InstructorID   uuid.UUID    `json:"instructor_id"`
+	InstructorType string       `json:"instructor_type"`
+	AssignedBy     string       `json:"assigned_by"`
+	CreatedAt      time.Time    `json:"created_at"`
+	UpdatedAt      time.Time    `json:"updated_at"`
+}
+
+
