@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Handshake } from 'lucide-react'
+import { Handshake, Pencil } from 'lucide-react'
 import DetailPageLayout, { BreadcrumbItem, DetailTab } from '@/components/layout/DetailPageLayout'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 import StatusBadge from '@/components/shared/StatusBadge'
+import Button from '@/components/ui/Button'
 import { usePartner } from '@/lib/api/partnerships'
 
 const TABS: DetailTab[] = [
@@ -54,6 +55,12 @@ export default function PartnerDetail() {
       title={partner.name}
       subtitle={`${partner.type} · ${partner.contact_email}`}
       status={<StatusBadge status={partner.status} />}
+      actions={
+        <Button variant="primary" onClick={() => navigate(`/internal/partners/${id}/edit`)}>
+          <Pencil className="w-4 h-4" />
+          Edit
+        </Button>
+      }
       tabs={TABS}
       activeTab={activeTab}
       onTabChange={setActiveTab}
