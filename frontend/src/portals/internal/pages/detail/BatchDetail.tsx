@@ -9,10 +9,10 @@ import Button from '@/components/ui/Button'
 import RoleGate from '@/components/shared/RoleGate'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import AssignFacilitatorDialog from '@/portals/internal/components/operations/AssignFacilitatorDialog'
+import SchedulesSection from '@/portals/internal/components/operations/SchedulesSection'
 import {
   useCourseBatch,
   useCourseBatchDetail,
-  useBatchSchedules,
   useUpdateCourseBatch,
 } from '@/lib/api/coursebatch'
 
@@ -38,7 +38,6 @@ export default function BatchDetail() {
   const navigate = useNavigate()
   const { data: batch, isLoading } = useCourseBatch(id)
   const { data: detail } = useCourseBatchDetail(id)
-  const { data: schedules } = useBatchSchedules(id)
   const update = useUpdateCourseBatch(id)
   const [tab, setTab] = useState('overview')
   const [showAssign, setShowAssign] = useState(false)
@@ -150,26 +149,8 @@ export default function BatchDetail() {
       )}
 
       {tab === 'schedule' && (
-        <div className="max-w-3xl bg-white rounded-xl border border-neutral-100 p-5">
-          {!schedules || schedules.length === 0 ? (
-            <p className="text-sm text-neutral-400">No schedules yet.</p>
-          ) : (
-            <ul className="divide-y divide-neutral-100">
-              {schedules.map((s) => (
-                <li key={s.id} className="py-3 flex items-center justify-between text-sm">
-                  <div>
-                    <div className="font-medium text-neutral-800">
-                      {formatDate(s.scheduled_at)} · {s.duration_minutes}min
-                    </div>
-                    <div className="text-xs text-neutral-500 font-mono">
-                      module: {s.module_id ?? '—'} · room: {s.room_id ?? '—'}
-                    </div>
-                  </div>
-                  <StatusBadge status={s.status} />
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className="max-w-4xl">
+          <SchedulesSection batch={batch} />
         </div>
       )}
 
