@@ -62,6 +62,10 @@ import BatchDetail from '@/portals/internal/pages/detail/BatchDetail'
 import AttendancePage from '@/portals/internal/pages/AttendancePage'
 import MySessions from '@/portals/internal/pages/MySessions'
 import Buildings from '@/portals/internal/pages/Buildings'
+import Leads from '@/portals/internal/pages/Leads'
+import LeadCreatePage from '@/portals/internal/pages/LeadCreatePage'
+import LeadEditPage from '@/portals/internal/pages/LeadEditPage'
+import LeadDetail from '@/portals/internal/pages/detail/LeadDetail'
 import BuildingCreatePage from '@/portals/internal/pages/BuildingCreatePage'
 import BuildingEditPage from '@/portals/internal/pages/BuildingEditPage'
 import BuildingDetail from '@/portals/internal/pages/detail/BuildingDetail'
@@ -161,6 +165,10 @@ export default function App() {
           <Route path="buildings/new" element={<BuildingCreatePage />} />
           <Route path="buildings/:id" element={<BuildingDetail />} />
           <Route path="buildings/:id/edit" element={<BuildingEditPage />} />
+          <Route path="leads" element={<Leads />} />
+          <Route path="leads/new" element={<LeadCreatePage />} />
+          <Route path="leads/:id" element={<LeadDetail />} />
+          <Route path="leads/:id/edit" element={<LeadEditPage />} />
           <Route path="vouchers" element={<Vouchers />} />
           <Route path="calendar" element={<InternalCalendar />} />
           <Route path="franchises" element={<Franchises />} />
