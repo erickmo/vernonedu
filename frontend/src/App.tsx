@@ -16,6 +16,9 @@ import StudentProfile from '@/portals/student/pages/Profile'
 import InternalDashboard from '@/portals/internal/pages/Dashboard'
 import Enrollments from '@/portals/internal/pages/Enrollments'
 import Payments from '@/portals/internal/pages/Payments'
+import Invoices from '@/portals/internal/pages/Invoices'
+import InvoiceCreatePage from '@/portals/internal/pages/InvoiceCreatePage'
+import InvoiceDetail from '@/portals/internal/pages/detail/InvoiceDetail'
 import Courses from '@/portals/internal/pages/Courses'
 import CourseCreatePage from '@/portals/internal/pages/CourseCreatePage'
 import CourseEditPage from '@/portals/internal/pages/CourseEditPage'
@@ -124,6 +127,9 @@ export default function App() {
           <Route index element={<InternalDashboard />} />
           <Route path="enrollments" element={<Enrollments />} />
           <Route path="payments" element={<Payments />} />
+          <Route path="invoices" element={<Invoices />} />
+          <Route path="invoices/new" element={<InvoiceCreatePage />} />
+          <Route path="invoices/:id" element={<InvoiceDetail />} />
           <Route path="courses" element={<Courses />} />
           <Route path="courses/new" element={<CourseCreatePage />} />
           <Route path="courses/:id/edit" element={<CourseEditPage />} />
