@@ -50,6 +50,17 @@ export function useMarketingPosts(filters: MarketingPostFilters = {}) {
   })
 }
 
+export function useMarketingPost(id: string | undefined) {
+  return useQuery({
+    queryKey: ['marketing-posts', 'detail', id],
+    queryFn: () =>
+      apiClient
+        .get<ListResponse<MarketingPost>>(`${MARKETING}/posts`, { params: { limit: 500 } })
+        .then((r) => (r.data.data ?? []).find((p) => p.id === id) ?? null),
+    enabled: !!id,
+  })
+}
+
 export function useCreateMarketingPost() {
   const qc = useQueryClient()
   return useMutation({
