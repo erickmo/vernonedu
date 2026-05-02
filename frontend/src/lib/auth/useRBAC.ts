@@ -1,19 +1,18 @@
 import { useAuth } from './useAuth'
-
-const ROLE_ADMIN = 'admin'
-const ROLE_CEO = 'ceo'
-const ROLE_STUDENT = 'student'
-const ROLE_FRANCHISEE = 'franchisee'
+import { ROLES, STAFF_ROLES, type Role } from './roles'
+import { canAccess as canAccessFn, type Action, type Resource } from './permissions'
 
 export function useRBAC() {
   const { user } = useAuth()
+  const role = (user?.role ?? null) as Role | null
 
   return {
-    hasRole: (...roles: string[]) => roles.includes(user?.role ?? ''),
-    isAdmin: () => user?.role === ROLE_ADMIN,
-    isCEO: () => user?.role === ROLE_CEO,
-    isStudent: () => user?.role === ROLE_STUDENT,
-    isFranchisee: () => user?.role === ROLE_FRANCHISEE,
-    role: user?.role ?? null,
+    role,
+    hasRole: (...roles: string[]) => roles.includes(role ?? ''),
+    isStaff: () => role !== null && STAFF_ROLES.includes(role),
+    isStudent: () => role === ROLES.STUDENT,
+    isFranchisee: () => role === ROLES.FRANCHISEE,
+    isDirector: () => role === ROLES.DIRECTOR || role === ROLES.CEO,
+    canAccess: (action: Action, resource: Resource) => canAccessFn(role, action, resource),
   }
 }
