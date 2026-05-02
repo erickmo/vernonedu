@@ -52,7 +52,7 @@ export default function EnrollmentModal({
     try {
       await enrollMutation.mutateAsync({
         student_id: user.id,
-        batch_id: selectedBatch.id,
+        course_batch_id: selectedBatch.id,
         voucher_code: voucherCode.trim() || undefined,
       })
       setEnrolledBatchLabel(selectedBatch.label)
