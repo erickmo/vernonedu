@@ -22,6 +22,7 @@ import type { InternshipConfig } from '@/types/internshipconfig'
 import type { UpsertInternshipConfigInput } from '@/schemas/internshipconfig'
 import type { CharacterTestConfig } from '@/types/charactertestconfig'
 import type { UpsertCharacterTestConfigInput } from '@/schemas/charactertestconfig'
+import type { ComponentFailureConfigInput } from '@/schemas/failureconfig'
 
 const BASE = '/curriculum/courses'
 
@@ -344,5 +345,22 @@ export function useUpsertCharacterTestConfig(versionId: string) {
       apiClient.put(VERSION_CHARACTER_TEST(versionId), input).then((r) => r.data),
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ['charactertestconfig', versionId] }),
+  })
+}
+
+const TYPE_FAILURE_CONFIG = (typeId: string) =>
+  `/api/v1/curriculum/types/${typeId}/failure-config`
+
+export function useUpdateFailureConfig(typeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: ComponentFailureConfigInput) =>
+      apiClient
+        .put(TYPE_FAILURE_CONFIG(typeId), { component_failure_config: input })
+        .then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['coursetypes', typeId] })
+      qc.invalidateQueries({ queryKey: ['coursetypes', 'list'] })
+    },
   })
 }

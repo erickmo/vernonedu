@@ -15,7 +15,9 @@ import {
   type CreateCourseTypeInput,
 } from '@/schemas/coursetype'
 import { useCreateCourseType, useUpdateCourseType } from '@/lib/api/curriculum'
+import { isProgramKarir } from '@/lib/utils/coursetype'
 import type { CourseType } from '@/types/coursetype'
+import FailureConfigForm from './FailureConfigForm'
 
 type Mode = { kind: 'create' } | { kind: 'edit'; variant: CourseType }
 
@@ -148,6 +150,13 @@ export default function VariantForm({ courseId, mode, onSuccess, onCancel }: Pro
         <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
         <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>Save</Button>
       </div>
+
+      {mode.kind === 'edit' && isProgramKarir(mode.variant.type_name) && (
+        <FailureConfigForm
+          typeId={mode.variant.id}
+          initial={mode.variant.component_failure_config ?? null}
+        />
+      )}
     </form>
   )
 }
