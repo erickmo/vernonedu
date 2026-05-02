@@ -67,7 +67,10 @@ import (
 	createmastercourse "github.com/vernonedu/entrepreneurship-api/internal/command/create_mastercourse"
 	deletecoursemodule "github.com/vernonedu/entrepreneurship-api/internal/command/delete_coursemodule"
 	deletemastercourse "github.com/vernonedu/entrepreneurship-api/internal/command/delete_mastercourse"
+	approvecourseversion "github.com/vernonedu/entrepreneurship-api/internal/command/approve_courseversion"
 	promotecourseversion "github.com/vernonedu/entrepreneurship-api/internal/command/promote_courseversion"
+	rejectcourseversion "github.com/vernonedu/entrepreneurship-api/internal/command/reject_courseversion"
+	submitcourseversion "github.com/vernonedu/entrepreneurship-api/internal/command/submit_courseversion"
 	submitresult "github.com/vernonedu/entrepreneurship-api/internal/command/submit_testresult"
 	togglecoursetype "github.com/vernonedu/entrepreneurship-api/internal/command/toggle_coursetype"
 	updatecoursetype "github.com/vernonedu/entrepreneurship-api/internal/command/update_coursetype"
@@ -198,6 +201,7 @@ import (
 	listcoursetype "github.com/vernonedu/entrepreneurship-api/internal/query/list_coursetype"
 	listcoursemodule "github.com/vernonedu/entrepreneurship-api/internal/query/list_coursemodule"
 	listcourseversion "github.com/vernonedu/entrepreneurship-api/internal/query/list_courseversion"
+	listpendingcourseversions "github.com/vernonedu/entrepreneurship-api/internal/query/list_pending_courseversions"
 	listmastercourse "github.com/vernonedu/entrepreneurship-api/internal/query/list_mastercourse"
 	listtalentpool "github.com/vernonedu/entrepreneurship-api/internal/query/list_talentpool"
 	// approval queries
@@ -1160,7 +1164,7 @@ func registerHandlers(p registerParams) error {
 		return err
 	}
 	if err := p.CmdBus.Register(&createcoursebatch.CreateCourseBatchCommand{},
-		createcoursebatch.NewHandler(p.CourseBatchRepo, p.EventBus, p.ApprovalRepo)); err != nil {
+		createcoursebatch.NewHandler(p.CourseBatchRepo, p.EventBus, p.ApprovalRepo, p.CourseVersionRepo)); err != nil {
 		return err
 	}
 	if err := p.CmdBus.Register(&updatecoursebatch.UpdateCourseBatchCommand{},
@@ -1325,6 +1329,24 @@ func registerHandlers(p registerParams) error {
 	}
 	listCVH := listcourseversion.NewHandler(p.CourseVersionRepo)
 	if err := p.QryBus.Register(&listcourseversion.ListCourseVersionQuery{}, adaptQueryHandler(listCVH.Handle)); err != nil {
+		return err
+	}
+
+	// CourseVersion approval workflow
+	if err := p.CmdBus.Register(&submitcourseversion.SubmitCourseVersionCommand{},
+		submitcourseversion.NewHandler(p.CourseVersionRepo, p.CourseVersionRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&approvecourseversion.ApproveCourseVersionCommand{},
+		approvecourseversion.NewHandler(p.CourseVersionRepo, p.CourseVersionRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&rejectcourseversion.RejectCourseVersionCommand{},
+		rejectcourseversion.NewHandler(p.CourseVersionRepo, p.CourseVersionRepo, p.EventBus)); err != nil {
+		return err
+	}
+	listPendingCVH := listpendingcourseversions.NewHandler(p.CourseVersionRepo)
+	if err := p.QryBus.Register(&listpendingcourseversions.ListPendingCourseVersionsQuery{}, adaptQueryHandler(listPendingCVH.Handle)); err != nil {
 		return err
 	}
 

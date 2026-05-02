@@ -10,8 +10,14 @@ import (
 
 	"github.com/vernonedu/entrepreneurship-api/internal/domain/approval"
 	"github.com/vernonedu/entrepreneurship-api/internal/domain/coursebatch"
+	"github.com/vernonedu/entrepreneurship-api/internal/domain/courseversion"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/eventbus"
+)
+
+const (
+	creatorRoleOpAdmin     = "operation_admin"
+	creatorRoleCourseOwner = "course_owner"
 )
 
 type CreateCourseBatchCommand struct {
@@ -30,26 +36,52 @@ type CreateCourseBatchCommand struct {
 	PaymentMethod   string
 	CreatorRole     string
 	InitiatorID     uuid.UUID
+	// CourseVersionID, jika diisi, divalidasi harus sudah approval_status='approved'.
+	CourseVersionID *uuid.UUID
 }
 
 type Handler struct {
-	courseBatchWriteRepo coursebatch.WriteRepository
-	eventBus             eventbus.EventBus
-	approvalWriteRepo    approval.WriteRepository // optional, nil = no approval
+	courseBatchWriteRepo  coursebatch.WriteRepository
+	eventBus              eventbus.EventBus
+	approvalWriteRepo     approval.WriteRepository           // optional, nil = no approval
+	courseVersionReadRepo courseversion.ReadRepository       // optional, nil = skip approval gate
 }
 
-func NewHandler(courseBatchWriteRepo coursebatch.WriteRepository, eventBus eventbus.EventBus, approvalWriteRepo approval.WriteRepository) *Handler {
+func NewHandler(courseBatchWriteRepo coursebatch.WriteRepository, eventBus eventbus.EventBus, approvalWriteRepo approval.WriteRepository, courseVersionReadRepo courseversion.ReadRepository) *Handler {
 	return &Handler{
-		courseBatchWriteRepo: courseBatchWriteRepo,
-		eventBus:             eventBus,
-		approvalWriteRepo:    approvalWriteRepo,
+		courseBatchWriteRepo:  courseBatchWriteRepo,
+		eventBus:              eventBus,
+		approvalWriteRepo:     approvalWriteRepo,
+		courseVersionReadRepo: courseVersionReadRepo,
 	}
+}
+
+// ensureCourseVersionApproved memvalidasi bahwa course version yang direferensi
+// sudah mencapai approval_status='approved'. Jika command tidak punya
+// CourseVersionID atau readRepo nil, validasi di-skip.
+func (h *Handler) ensureCourseVersionApproved(ctx context.Context, versionID *uuid.UUID) error {
+	if versionID == nil || h.courseVersionReadRepo == nil {
+		return nil
+	}
+	cv, err := h.courseVersionReadRepo.GetByID(ctx, *versionID)
+	if err != nil {
+		return fmt.Errorf("failed to load course version: %w", err)
+	}
+	if cv.ApprovalStatus != courseversion.ApprovalStatusApproved {
+		return courseversion.ErrCourseVersionNotApproved
+	}
+	return nil
 }
 
 func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 	createCmd, ok := cmd.(*CreateCourseBatchCommand)
 	if !ok {
 		return ErrInvalidCommand
+	}
+
+	if err := h.ensureCourseVersionApproved(ctx, createCmd.CourseVersionID); err != nil {
+		log.Warn().Err(err).Msg("course version approval gate failed for batch creation")
+		return err
 	}
 
 	newCourseBatch, err := coursebatch.NewCourseBatch(

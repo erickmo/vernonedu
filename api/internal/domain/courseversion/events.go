@@ -64,3 +64,37 @@ func (e *VersionArchived) EventName() string {
 func (e *VersionArchived) EventData() interface{} {
 	return e
 }
+
+// VersionSubmitted dipublikasikan ketika course owner mengirim versi untuk approval.
+type VersionSubmitted struct {
+	VersionID    uuid.UUID `json:"version_id"`
+	CourseTypeID uuid.UUID `json:"course_type_id"`
+	SubmittedBy  uuid.UUID `json:"submitted_by"`
+	Timestamp    int64     `json:"timestamp"`
+}
+
+func (e *VersionSubmitted) EventName() string  { return "VersionSubmitted" }
+func (e *VersionSubmitted) EventData() interface{} { return e }
+
+// VersionWorkflowApproved dipublikasikan ketika dept leader meng-approve workflow.
+type VersionWorkflowApproved struct {
+	VersionID    uuid.UUID `json:"version_id"`
+	CourseTypeID uuid.UUID `json:"course_type_id"`
+	ApprovedBy   uuid.UUID `json:"approved_by"`
+	Timestamp    int64     `json:"timestamp"`
+}
+
+func (e *VersionWorkflowApproved) EventName() string  { return "VersionWorkflowApproved" }
+func (e *VersionWorkflowApproved) EventData() interface{} { return e }
+
+// VersionWorkflowRejected dipublikasikan ketika dept leader menolak workflow.
+type VersionWorkflowRejected struct {
+	VersionID    uuid.UUID `json:"version_id"`
+	CourseTypeID uuid.UUID `json:"course_type_id"`
+	ApprovedBy   uuid.UUID `json:"approved_by"`
+	Reason       string    `json:"reason"`
+	Timestamp    int64     `json:"timestamp"`
+}
+
+func (e *VersionWorkflowRejected) EventName() string  { return "VersionWorkflowRejected" }
+func (e *VersionWorkflowRejected) EventData() interface{} { return e }
