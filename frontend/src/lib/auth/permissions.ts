@@ -63,17 +63,19 @@ const MATRIX: Matrix = {
   [ROLES.EDUCATION_LEADER]: {
     mastercourse: ALL, coursetype: ALL, courseversion: ALL, coursemodule: ALL,
     certificatetemplate: ALL, internshipconfig: ALL, charactertestconfig: ALL,
-    course: ALL, coursebatch: ALL, certificate: ALL, talentpool: ALL,
+    course: ALL, coursebatch: ALL, batchschedule: ALL,
+    certificate: ALL, talentpool: ALL,
   },
   [ROLES.ACADEMIC_LEADER]: {
     mastercourse: ALL, coursetype: ALL, courseversion: ALL, coursemodule: ALL,
-    course: ALL, coursebatch: ALL, talentpool: ALL,
+    course: ALL, coursebatch: ALL, batchschedule: ALL, talentpool: ALL,
   },
   [ROLES.DEPT_LEADER]: {
     mastercourse: ALL, coursetype: ALL, courseversion: ALL, coursemodule: ALL,
     internshipconfig: ALL, charactertestconfig: ALL,
     certificatetemplate: ['read', 'list'],
-    course: ALL, coursebatch: ALL, certificate: ['create', 'read', 'list', 'approve'],
+    course: ALL, coursebatch: ALL, batchschedule: ALL,
+    certificate: ['create', 'read', 'list', 'approve'],
     talentpool: ALL, approval: ['read', 'approve', 'list'],
   },
   [ROLES.COURSE_OWNER]: {
@@ -83,6 +85,7 @@ const MATRIX: Matrix = {
   },
   [ROLES.COURSE_CREATOR]: {
     course: ALL, coursebatch: ['create', 'read', 'list'],
+    batchschedule: ['create', 'read', 'list'],
     coursetype: ALL,
     courseversion: ['create', 'read', 'update', 'list'],
     coursemodule: ALL,
