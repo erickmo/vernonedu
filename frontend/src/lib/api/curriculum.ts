@@ -6,6 +6,8 @@ import type {
   PaginatedMasterCourses,
 } from '@/types/mastercourse'
 import type { CreateMasterCourseInput, UpdateMasterCourseInput } from '@/schemas/mastercourse'
+import type { CourseType } from '@/types/coursetype'
+import type { CreateCourseTypeInput, UpdateCourseTypeInput } from '@/schemas/coursetype'
 
 const BASE = '/curriculum/courses'
 
@@ -69,6 +71,79 @@ export function useArchiveMasterCourse() {
     onSuccess: (_d, id) => {
       qc.invalidateQueries({ queryKey: ['mastercourses', 'list'] })
       qc.invalidateQueries({ queryKey: ['mastercourses', id] })
+    },
+  })
+}
+
+// ── CourseType (variants under master course) ──────────────────────────────
+
+const TYPES_BASE = '/api/v1/curriculum/types'
+const COURSE_TYPES = (courseId: string) =>
+  `/api/v1/curriculum/courses/${courseId}/types`
+
+interface CourseTypeListResponse {
+  data: CourseType[]
+}
+
+interface CourseTypeSingleResponse {
+  data: CourseType
+}
+
+export function useCourseTypes(courseId: string | undefined) {
+  return useQuery({
+    queryKey: ['coursetypes', 'list', courseId],
+    queryFn: () =>
+      apiClient
+        .get<CourseTypeListResponse>(COURSE_TYPES(courseId!))
+        .then((r) => r.data.data),
+    enabled: !!courseId,
+  })
+}
+
+export function useCourseType(typeId: string | undefined) {
+  return useQuery({
+    queryKey: ['coursetypes', typeId],
+    queryFn: () =>
+      apiClient
+        .get<CourseTypeSingleResponse>(`${TYPES_BASE}/${typeId}`)
+        .then((r) => r.data.data),
+    enabled: !!typeId,
+  })
+}
+
+export function useCreateCourseType(courseId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreateCourseTypeInput) =>
+      apiClient
+        .post<CourseTypeSingleResponse>(COURSE_TYPES(courseId), input)
+        .then((r) => r.data.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['coursetypes', 'list', courseId] }),
+  })
+}
+
+export function useUpdateCourseType(typeId: string, courseId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: UpdateCourseTypeInput) =>
+      apiClient
+        .put<CourseTypeSingleResponse>(`${TYPES_BASE}/${typeId}`, input)
+        .then((r) => r.data.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['coursetypes', 'list', courseId] })
+      qc.invalidateQueries({ queryKey: ['coursetypes', typeId] })
+    },
+  })
+}
+
+export function useToggleCourseType(courseId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (typeId: string) =>
+      apiClient.post(`${TYPES_BASE}/${typeId}/toggle`).then((r) => r.data),
+    onSuccess: (_d, typeId) => {
+      qc.invalidateQueries({ queryKey: ['coursetypes', 'list', courseId] })
+      qc.invalidateQueries({ queryKey: ['coursetypes', typeId] })
     },
   })
 }
