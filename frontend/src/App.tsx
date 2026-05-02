@@ -83,6 +83,16 @@ import FranchiseEnrollments from '@/portals/franchise/pages/Enrollments'
 import FranchisePayments from '@/portals/franchise/pages/Payments'
 import FranchiseTeamMembers from '@/portals/franchise/pages/TeamMembers'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
+// BizDev pages
+import BMC from '@/portals/internal/pages/bizdev/BMC'
+import OKR from '@/portals/internal/pages/bizdev/OKR'
+import Investments from '@/portals/internal/pages/bizdev/Investments'
+import InvestmentCreatePage from '@/portals/internal/pages/bizdev/InvestmentCreatePage'
+import InvestmentEditPage from '@/portals/internal/pages/bizdev/InvestmentEditPage'
+import InvestmentDetail from '@/portals/internal/pages/bizdev/InvestmentDetail'
+import Delegations from '@/portals/internal/pages/bizdev/Delegations'
+import DelegationCreatePage from '@/portals/internal/pages/bizdev/DelegationCreatePage'
+import DelegationDetail from '@/portals/internal/pages/bizdev/DelegationDetail'
 // Admin pages
 import { AdminLayout } from '@/pages/admin/AdminLayout'
 import DepartmentListPage from '@/pages/admin/DepartmentListPage'
@@ -178,6 +188,16 @@ export default function App() {
           <Route path="franchises" element={<Franchises />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="settings/holidays" element={<Holidays />} />
+          {/* BizDev */}
+          <Route path="bmc" element={<BMC />} />
+          <Route path="okr" element={<OKR />} />
+          <Route path="investments" element={<Investments />} />
+          <Route path="investments/new" element={<InvestmentCreatePage />} />
+          <Route path="investments/:id" element={<InvestmentDetail />} />
+          <Route path="investments/:id/edit" element={<InvestmentEditPage />} />
+          <Route path="delegations" element={<Delegations />} />
+          <Route path="delegations/new" element={<DelegationCreatePage />} />
+          <Route path="delegations/:id" element={<DelegationDetail />} />
           {/* Domain overviews */}
           <Route path="academic" element={<AcademicOverview />} />
           <Route path="finance" element={<FinanceOverview />} />
