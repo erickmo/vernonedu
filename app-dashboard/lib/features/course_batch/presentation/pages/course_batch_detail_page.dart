@@ -10,6 +10,7 @@ import '../../../../core/utils/date_format_util.dart';
 import '../../domain/entities/course_batch_detail_entity.dart';
 import '../cubit/course_batch_detail_cubit.dart';
 import '../cubit/course_batch_detail_state.dart';
+import '../../../certificate/presentation/widgets/batch_certificates_tab.dart';
 
 class CourseBatchDetailPage extends StatelessWidget {
   final String batchId;
@@ -82,6 +83,50 @@ class _DetailContent extends StatelessWidget {
           _EnrollmentStats(detail: detail),
           const SizedBox(height: AppDimensions.lg),
           _EnrollmentTable(enrollments: detail.enrollments),
+          const SizedBox(height: AppDimensions.lg),
+          _CertificatesSection(batchId: detail.id),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Certificates Section ────────────────────────────────────────────────────
+
+class _CertificatesSection extends StatelessWidget {
+  final String batchId;
+
+  const _CertificatesSection({required this.batchId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppDimensions.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.workspace_premium_outlined,
+                  size: AppDimensions.iconMd, color: AppColors.primary),
+              const SizedBox(width: AppDimensions.sm),
+              Text(
+                'Sertifikat Batch',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppDimensions.md),
+          BatchCertificatesTab(batchId: batchId),
         ],
       ),
     );

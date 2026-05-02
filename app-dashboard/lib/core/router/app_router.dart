@@ -23,6 +23,10 @@ import '../../features/student/presentation/pages/student_page.dart';
 import '../../features/student/presentation/pages/student_dashboard_page.dart';
 import '../../features/student/presentation/pages/student_form_page.dart';
 import '../../features/certificate/presentation/pages/certificate_page.dart';
+import '../../features/certificate/presentation/pages/issue_participant_page.dart';
+import '../../features/certificate/presentation/pages/issue_competency_page.dart';
+import '../../features/certificate/presentation/pages/certificate_template_list_page.dart';
+import '../../features/certificate/presentation/pages/certificate_template_editor_page.dart';
 import '../../features/payment/presentation/pages/payment_page.dart';
 import '../../features/department/presentation/pages/department_page.dart';
 import '../../features/department/presentation/pages/department_dashboard_page.dart';
@@ -214,6 +218,42 @@ class AppRouter {
                 path: '/certificates',
                 pageBuilder: (_, __) =>
                     const NoTransitionPage(child: CertificatePage()),
+                routes: [
+                  GoRoute(
+                    path: 'issue/participant',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: IssueParticipantPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'issue/competency',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: IssueCompetencyPage(),
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: '/certificate-templates',
+                pageBuilder: (_, __) => const NoTransitionPage(
+                  child: CertificateTemplateListPage(),
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: CertificateTemplateEditorPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: ':id/edit',
+                    pageBuilder: (_, state) => NoTransitionPage(
+                      child: CertificateTemplateEditorPage(
+                        templateId: state.pathParameters['id'],
+                      ),
+                    ),
+                  ),
+                ],
               ),
               GoRoute(
                 path: '/payments',

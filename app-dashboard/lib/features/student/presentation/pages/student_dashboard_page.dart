@@ -15,6 +15,7 @@ import '../../domain/entities/student_crm_log_entity.dart';
 import '../../../talentpool/domain/entities/talentpool_entity.dart';
 import '../cubit/student_dashboard_cubit.dart';
 import '../cubit/student_dashboard_state.dart';
+import '../../../certificate/presentation/widgets/student_certificates_tab.dart';
 
 class StudentDashboardPage extends StatelessWidget {
   final String studentId;
@@ -159,6 +160,34 @@ class _StudentDashboardView extends StatelessWidget {
             crmLogs: state.crmLogs,
             isAdding: state.isAddingCrmLog,
           ),
+          const SizedBox(height: AppDimensions.lg),
+          _CertificatesSection(studentId: studentId),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Certificates Section ────────────────────────────────────────────────────
+
+class _CertificatesSection extends StatelessWidget {
+  final String studentId;
+
+  const _CertificatesSection({required this.studentId});
+
+  @override
+  Widget build(BuildContext context) {
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SectionHeader(
+            icon: Icons.workspace_premium_outlined,
+            title: 'Sertifikat',
+            subtitle: 'Daftar sertifikat siswa',
+          ),
+          const SizedBox(height: AppDimensions.md),
+          StudentCertificatesTab(studentId: studentId),
         ],
       ),
     );
