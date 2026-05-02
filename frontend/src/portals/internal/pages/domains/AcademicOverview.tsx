@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { BookOpen, Users, FileText, Calendar, GraduationCap } from 'lucide-react'
+import { BookOpen, Users, FileText, Calendar, GraduationCap, Award } from 'lucide-react'
 import { useCourses } from '@/lib/api/catalog'
 import { useEnrollments } from '@/lib/api/enrollment'
 import { useFacilitatorProposals } from '@/lib/api/identity'
@@ -10,6 +10,7 @@ const QUICK_ACCESS = [
   { label: 'Enrollments', to: '/internal/enrollments', icon: Users, description: 'Track student enrollments' },
   { label: 'Proposals', to: '/internal/proposals', icon: FileText, description: 'Review course proposals' },
   { label: 'Calendar', to: '/internal/calendar', icon: Calendar, description: 'Session schedule & events' },
+  { label: 'Certificate Templates', to: '/internal/certificate-templates', icon: Award, description: 'Global certificate templates' },
 ] as const
 
 export default function AcademicOverview() {
