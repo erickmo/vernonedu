@@ -80,6 +80,36 @@ class AccountingRepositoryImpl implements AccountingRepository {
   }
 
   @override
+  Future<Either<Failure, TransactionEntity>> updateTransaction({
+    required String id,
+    required String description,
+    String? category,
+  }) async {
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
+    try {
+      final body = <String, dynamic>{
+        'description': description,
+        if (category != null) 'category': category,
+      };
+      final result = await remoteDataSource.updateTransaction(id, body);
+      return Right(result.toEntity());
+    } on DioException catch (e) {
+      return Left(ServerFailure(_extractError(e, 'Gagal mengubah transaksi')));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteTransaction(String id) async {
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
+    try {
+      await remoteDataSource.deleteTransaction(id);
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(ServerFailure(_extractError(e, 'Gagal menghapus transaksi')));
+    }
+  }
+
+  @override
   Future<Either<Failure, List<InvoiceEntity>>> getInvoices({
     required int offset,
     required int limit,

@@ -26,6 +26,14 @@ abstract class AccountingRepository {
     required Map<String, dynamic> body,
   });
 
+  Future<Either<Failure, TransactionEntity>> updateTransaction({
+    required String id,
+    required String description,
+    String? category,
+  });
+
+  Future<Either<Failure, void>> deleteTransaction(String id);
+
   Future<Either<Failure, List<InvoiceEntity>>> getInvoices({
     required int offset,
     required int limit,

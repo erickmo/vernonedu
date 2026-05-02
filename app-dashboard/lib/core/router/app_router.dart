@@ -26,6 +26,7 @@ import '../../features/certificate/presentation/pages/certificate_page.dart';
 import '../../features/payment/presentation/pages/payment_page.dart';
 import '../../features/department/presentation/pages/department_page.dart';
 import '../../features/department/presentation/pages/department_dashboard_page.dart';
+import '../../features/accounting/domain/entities/transaction_entity.dart';
 import '../../features/finance/presentation/pages/finance_main_page.dart';
 import '../../features/finance/presentation/pages/finance_stub_pages.dart';
 import '../../features/hrm/presentation/pages/hrm_page.dart';
@@ -251,6 +252,16 @@ class AppRouter {
                         path: 'new',
                         pageBuilder: (_, __) =>
                             const NoTransitionPage(child: TransactionFormPage()),
+                      ),
+                      GoRoute(
+                        path: ':id/edit',
+                        pageBuilder: (_, state) => NoTransitionPage(
+                          child: TransactionFormPage(
+                            existing: state.extra is TransactionEntity
+                                ? state.extra as TransactionEntity
+                                : null,
+                          ),
+                        ),
                       ),
                     ],
                   ),

@@ -6,12 +6,14 @@ import '../../domain/entities/coa_entity.dart';
 import '../../domain/entities/invoice_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/usecases/create_transaction_usecase.dart';
+import '../../domain/usecases/delete_transaction_usecase.dart';
 import '../../domain/usecases/get_accounting_stats_usecase.dart';
 import '../../domain/usecases/get_budget_vs_actual_usecase.dart';
 import '../../domain/usecases/get_coa_usecase.dart';
 import '../../domain/usecases/get_invoices_usecase.dart';
 import '../../domain/usecases/get_transactions_usecase.dart';
 import '../../domain/usecases/update_invoice_status_usecase.dart';
+import '../../domain/usecases/update_transaction_usecase.dart';
 
 part 'accounting_state.dart';
 
@@ -19,6 +21,8 @@ class AccountingCubit extends Cubit<AccountingState> {
   final GetAccountingStatsUseCase getStatsUseCase;
   final GetTransactionsUseCase getTransactionsUseCase;
   final CreateTransactionUseCase createTransactionUseCase;
+  final UpdateTransactionUseCase updateTransactionUseCase;
+  final DeleteTransactionUseCase deleteTransactionUseCase;
   final GetInvoicesUseCase getInvoicesUseCase;
   final UpdateInvoiceStatusUseCase updateInvoiceStatusUseCase;
   final GetCoaUseCase getCoaUseCase;
@@ -28,6 +32,8 @@ class AccountingCubit extends Cubit<AccountingState> {
     required this.getStatsUseCase,
     required this.getTransactionsUseCase,
     required this.createTransactionUseCase,
+    required this.updateTransactionUseCase,
+    required this.deleteTransactionUseCase,
     required this.getInvoicesUseCase,
     required this.updateInvoiceStatusUseCase,
     required this.getCoaUseCase,
@@ -84,6 +90,42 @@ class AccountingCubit extends Cubit<AccountingState> {
 
   Future<bool> createTransaction({required Map<String, dynamic> body}) async {
     final result = await createTransactionUseCase(body: body);
+    return result.fold(
+      (failure) {
+        emit(AccountingError(failure.message));
+        return false;
+      },
+      (_) {
+        loadAll();
+        return true;
+      },
+    );
+  }
+
+  Future<bool> updateTransaction({
+    required String id,
+    required String description,
+    String? category,
+  }) async {
+    final result = await updateTransactionUseCase(
+      id: id,
+      description: description,
+      category: category,
+    );
+    return result.fold(
+      (failure) {
+        emit(AccountingError(failure.message));
+        return false;
+      },
+      (_) {
+        loadAll();
+        return true;
+      },
+    );
+  }
+
+  Future<bool> deleteTransaction(String id) async {
+    final result = await deleteTransactionUseCase(id);
     return result.fold(
       (failure) {
         emit(AccountingError(failure.message));

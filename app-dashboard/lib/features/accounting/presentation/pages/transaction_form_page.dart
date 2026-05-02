@@ -7,22 +7,25 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_dimensions.dart';
 import '../../../../../core/di/injection.dart';
 import '../../domain/entities/coa_entity.dart';
+import '../../domain/entities/transaction_entity.dart';
 import '../cubit/accounting_cubit.dart';
 
 class TransactionFormPage extends StatelessWidget {
-  const TransactionFormPage({super.key});
+  final TransactionEntity? existing;
+  const TransactionFormPage({super.key, this.existing});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => getIt<AccountingCubit>()..loadAll(),
-      child: const _TransactionFormView(),
+      child: _TransactionFormView(existing: existing),
     );
   }
 }
 
 class _TransactionFormView extends StatefulWidget {
-  const _TransactionFormView();
+  final TransactionEntity? existing;
+  const _TransactionFormView({this.existing});
 
   @override
   State<_TransactionFormView> createState() => _TransactionFormViewState();
@@ -37,13 +40,32 @@ class _TransactionFormViewState extends State<_TransactionFormView> {
   final _amountCtrl = TextEditingController();
   final _descriptionCtrl = TextEditingController();
   final _referenceCtrl = TextEditingController();
+  final _categoryCtrl = TextEditingController();
   bool _submitting = false;
+
+  bool get _isEdit => widget.existing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existing;
+    if (existing != null) {
+      _descriptionCtrl.text = existing.description;
+      _categoryCtrl.text = existing.category;
+      _transactionType = existing.transactionType;
+      final parsed = DateTime.tryParse(existing.transactionDate);
+      if (parsed != null) _selectedDate = parsed;
+      _amountCtrl.text = existing.amount.toStringAsFixed(0);
+      _referenceCtrl.text = existing.referenceNumber;
+    }
+  }
 
   @override
   void dispose() {
     _amountCtrl.dispose();
     _descriptionCtrl.dispose();
     _referenceCtrl.dispose();
+    _categoryCtrl.dispose();
     super.dispose();
   }
 
@@ -59,7 +81,7 @@ class _TransactionFormViewState extends State<_TransactionFormView> {
 
   Future<void> _submit(BuildContext context, List<CoaEntity> coa) async {
     if (!_formKey.currentState!.validate()) return;
-    if (_debitAccountId == null || _creditAccountId == null) {
+    if (!_isEdit && (_debitAccountId == null || _creditAccountId == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Pilih akun debit dan kredit'),
@@ -70,41 +92,55 @@ class _TransactionFormViewState extends State<_TransactionFormView> {
     }
 
     setState(() => _submitting = true);
-    final amount = double.tryParse(
-          _amountCtrl.text.replaceAll('.', '').replaceAll(',', '.'),
-        ) ??
-        0.0;
-
-    final body = {
-      'transaction_date': DateFormat('yyyy-MM-dd').format(_selectedDate),
-      'transaction_type': _transactionType,
-      'debit_account_id': _debitAccountId,
-      'credit_account_id': _creditAccountId,
-      'amount': amount,
-      'description': _descriptionCtrl.text.trim(),
-      'reference_number': _referenceCtrl.text.trim(),
-    };
 
     final cubit = context.read<AccountingCubit>();
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
-    final success = await cubit.createTransaction(body: body);
+    final bool success;
+
+    if (_isEdit) {
+      final categoryText = _categoryCtrl.text.trim();
+      success = await cubit.updateTransaction(
+        id: widget.existing!.id,
+        description: _descriptionCtrl.text.trim(),
+        category: categoryText.isEmpty ? null : categoryText,
+      );
+    } else {
+      final amount = double.tryParse(
+            _amountCtrl.text.replaceAll('.', '').replaceAll(',', '.'),
+          ) ??
+          0.0;
+      final body = {
+        'transaction_date': DateFormat('yyyy-MM-dd').format(_selectedDate),
+        'transaction_type': _transactionType,
+        'debit_account_id': _debitAccountId,
+        'credit_account_id': _creditAccountId,
+        'amount': amount,
+        'description': _descriptionCtrl.text.trim(),
+        'reference_number': _referenceCtrl.text.trim(),
+      };
+      success = await cubit.createTransaction(body: body);
+    }
 
     if (!mounted) return;
     setState(() => _submitting = false);
 
     if (success) {
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Transaksi berhasil disimpan'),
+        SnackBar(
+          content: Text(_isEdit
+              ? 'Perubahan transaksi disimpan'
+              : 'Transaksi berhasil disimpan'),
           backgroundColor: AppColors.success,
         ),
       );
       router.pop();
     } else {
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Gagal menyimpan transaksi'),
+        SnackBar(
+          content: Text(_isEdit
+              ? 'Gagal menyimpan perubahan'
+              : 'Gagal menyimpan transaksi'),
           backgroundColor: AppColors.error,
         ),
       );
@@ -146,14 +182,16 @@ class _TransactionFormViewState extends State<_TransactionFormView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Input Transaksi',
+              _isEdit ? 'Edit Transaksi' : 'Input Transaksi',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),
             ),
             Text(
-              'Buat transaksi keuangan baru',
+              _isEdit
+                  ? 'Ubah deskripsi & kategori transaksi'
+                  : 'Buat transaksi keuangan baru',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -181,67 +219,96 @@ class _TransactionFormViewState extends State<_TransactionFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildDateField(context),
-                  const SizedBox(height: AppDimensions.md),
-                  _buildTypeField(),
-                  const SizedBox(height: AppDimensions.md),
-                  _buildCoaDropdown(
-                    label: 'Akun Debit',
-                    value: _debitAccountId,
-                    coa: coa,
-                    onChanged: (v) => setState(() => _debitAccountId = v),
-                  ),
-                  const SizedBox(height: AppDimensions.md),
-                  _buildCoaDropdown(
-                    label: 'Akun Kredit',
-                    value: _creditAccountId,
-                    coa: coa,
-                    onChanged: (v) => setState(() => _creditAccountId = v),
-                  ),
-                  const SizedBox(height: AppDimensions.md),
-                  _buildTextField(
-                    controller: _amountCtrl,
-                    label: 'Jumlah',
-                    hint: '0',
-                    keyboardType: TextInputType.number,
-                    required: true,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return 'Jumlah wajib diisi';
-                      }
-                      final n = double.tryParse(
-                          v.replaceAll('.', '').replaceAll(',', '.'));
-                      if (n == null || n <= 0) return 'Jumlah tidak valid';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: AppDimensions.md),
-                  _buildTextField(
-                    controller: _descriptionCtrl,
-                    label: 'Deskripsi',
-                    hint: 'Keterangan transaksi',
-                    required: true,
-                    validator: (v) => v == null || v.trim().isEmpty
-                        ? 'Deskripsi wajib diisi'
-                        : null,
-                  ),
-                  const SizedBox(height: AppDimensions.md),
-                  _buildTextField(
-                    controller: _referenceCtrl,
-                    label: 'Referensi',
-                    hint: 'Nomor invoice, kode batch, dll (opsional)',
-                    required: false,
-                  ),
-                  const SizedBox(height: AppDimensions.xl),
-                  _buildActions(context, coa),
-                ],
+                children: _isEdit
+                    ? _buildEditFields(context, coa)
+                    : _buildCreateFields(context, coa),
               ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  List<Widget> _buildCreateFields(BuildContext context, List<CoaEntity> coa) {
+    return [
+      _buildDateField(context),
+      const SizedBox(height: AppDimensions.md),
+      _buildTypeField(),
+      const SizedBox(height: AppDimensions.md),
+      _buildCoaDropdown(
+        label: 'Akun Debit',
+        value: _debitAccountId,
+        coa: coa,
+        onChanged: (v) => setState(() => _debitAccountId = v),
+      ),
+      const SizedBox(height: AppDimensions.md),
+      _buildCoaDropdown(
+        label: 'Akun Kredit',
+        value: _creditAccountId,
+        coa: coa,
+        onChanged: (v) => setState(() => _creditAccountId = v),
+      ),
+      const SizedBox(height: AppDimensions.md),
+      _buildTextField(
+        controller: _amountCtrl,
+        label: 'Jumlah',
+        hint: '0',
+        keyboardType: TextInputType.number,
+        required: true,
+        validator: (v) {
+          if (v == null || v.trim().isEmpty) {
+            return 'Jumlah wajib diisi';
+          }
+          final n = double.tryParse(
+              v.replaceAll('.', '').replaceAll(',', '.'));
+          if (n == null || n <= 0) return 'Jumlah tidak valid';
+          return null;
+        },
+      ),
+      const SizedBox(height: AppDimensions.md),
+      _buildTextField(
+        controller: _descriptionCtrl,
+        label: 'Deskripsi',
+        hint: 'Keterangan transaksi',
+        required: true,
+        validator: (v) => v == null || v.trim().isEmpty
+            ? 'Deskripsi wajib diisi'
+            : null,
+      ),
+      const SizedBox(height: AppDimensions.md),
+      _buildTextField(
+        controller: _referenceCtrl,
+        label: 'Referensi',
+        hint: 'Nomor invoice, kode batch, dll (opsional)',
+        required: false,
+      ),
+      const SizedBox(height: AppDimensions.xl),
+      _buildActions(context, coa),
+    ];
+  }
+
+  List<Widget> _buildEditFields(BuildContext context, List<CoaEntity> coa) {
+    return [
+      _buildTextField(
+        controller: _descriptionCtrl,
+        label: 'Deskripsi',
+        hint: 'Keterangan transaksi',
+        required: true,
+        validator: (v) => v == null || v.trim().isEmpty
+            ? 'Deskripsi wajib diisi'
+            : null,
+      ),
+      const SizedBox(height: AppDimensions.md),
+      _buildTextField(
+        controller: _categoryCtrl,
+        label: 'Kategori',
+        hint: 'Kategori transaksi (opsional)',
+        required: false,
+      ),
+      const SizedBox(height: AppDimensions.xl),
+      _buildActions(context, coa),
+    ];
   }
 
   Widget _buildDateField(BuildContext context) {
@@ -443,7 +510,7 @@ class _TransactionFormViewState extends State<_TransactionFormView> {
                       strokeWidth: 2,
                       color: AppColors.textOnPrimary),
                 )
-              : const Text('Simpan'),
+              : Text(_isEdit ? 'Simpan Perubahan' : 'Simpan'),
         ),
       ],
     );

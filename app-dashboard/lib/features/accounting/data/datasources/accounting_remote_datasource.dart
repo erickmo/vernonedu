@@ -23,6 +23,13 @@ abstract class AccountingRemoteDataSource {
 
   Future<void> createTransaction({required Map<String, dynamic> body});
 
+  Future<TransactionModel> updateTransaction(
+    String id,
+    Map<String, dynamic> body,
+  );
+
+  Future<void> deleteTransaction(String id);
+
   Future<List<InvoiceModel>> getInvoices({
     required int offset,
     required int limit,
@@ -125,6 +132,26 @@ class AccountingRemoteDataSourceImpl implements AccountingRemoteDataSource {
   @override
   Future<void> createTransaction({required Map<String, dynamic> body}) async {
     await _dio.post('/accounting/transactions', data: body);
+  }
+
+  @override
+  Future<TransactionModel> updateTransaction(
+    String id,
+    Map<String, dynamic> body,
+  ) async {
+    final res = await _dio.put('/accounting/transactions/$id', data: body);
+    final raw = res.data;
+    final json = (raw is Map && raw['data'] is Map<String, dynamic>)
+        ? raw['data'] as Map<String, dynamic>
+        : raw is Map<String, dynamic>
+            ? raw
+            : <String, dynamic>{'id': id, ...body};
+    return TransactionModel.fromJson(json);
+  }
+
+  @override
+  Future<void> deleteTransaction(String id) async {
+    await _dio.delete('/accounting/transactions/$id');
   }
 
   @override

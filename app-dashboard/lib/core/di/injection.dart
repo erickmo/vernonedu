@@ -155,6 +155,8 @@ import '../../features/accounting/domain/repositories/accounting_repository.dart
 import '../../features/accounting/domain/usecases/get_accounting_stats_usecase.dart';
 import '../../features/accounting/domain/usecases/get_transactions_usecase.dart';
 import '../../features/accounting/domain/usecases/create_transaction_usecase.dart';
+import '../../features/accounting/domain/usecases/update_transaction_usecase.dart';
+import '../../features/accounting/domain/usecases/delete_transaction_usecase.dart';
 import '../../features/accounting/domain/usecases/get_invoices_usecase.dart';
 import '../../features/accounting/domain/usecases/update_invoice_status_usecase.dart';
 import '../../features/accounting/domain/usecases/get_coa_usecase.dart';
@@ -662,6 +664,8 @@ Future<void> configureDependencies() async {
   getIt.registerFactory(() => GetAccountingStatsUseCase(getIt<AccountingRepository>()));
   getIt.registerFactory(() => GetTransactionsUseCase(getIt<AccountingRepository>()));
   getIt.registerFactory(() => CreateTransactionUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => UpdateTransactionUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => DeleteTransactionUseCase(getIt<AccountingRepository>()));
   getIt.registerFactory(() => GetInvoicesUseCase(getIt<AccountingRepository>()));
   getIt.registerFactory(() => UpdateInvoiceStatusUseCase(getIt<AccountingRepository>()));
   getIt.registerFactory(() => GetCoaUseCase(getIt<AccountingRepository>()));
@@ -670,6 +674,8 @@ Future<void> configureDependencies() async {
     getStatsUseCase: getIt<GetAccountingStatsUseCase>(),
     getTransactionsUseCase: getIt<GetTransactionsUseCase>(),
     createTransactionUseCase: getIt<CreateTransactionUseCase>(),
+    updateTransactionUseCase: getIt<UpdateTransactionUseCase>(),
+    deleteTransactionUseCase: getIt<DeleteTransactionUseCase>(),
     getInvoicesUseCase: getIt<GetInvoicesUseCase>(),
     updateInvoiceStatusUseCase: getIt<UpdateInvoiceStatusUseCase>(),
     getCoaUseCase: getIt<GetCoaUseCase>(),
