@@ -111,6 +111,20 @@ import InvestmentDetail from '@/portals/internal/pages/bizdev/InvestmentDetail'
 import Delegations from '@/portals/internal/pages/bizdev/Delegations'
 import DelegationCreatePage from '@/portals/internal/pages/bizdev/DelegationCreatePage'
 import DelegationDetail from '@/portals/internal/pages/bizdev/DelegationDetail'
+// CMS pages
+import CmsPagesList from '@/portals/internal/pages/cms/Pages'
+import CmsArticles from '@/portals/internal/pages/cms/Articles'
+import CmsArticleCreatePage from '@/portals/internal/pages/cms/ArticleCreatePage'
+import CmsArticleEditPage from '@/portals/internal/pages/cms/ArticleEditPage'
+import CmsFAQ from '@/portals/internal/pages/cms/FAQ'
+import CmsTestimonials from '@/portals/internal/pages/cms/Testimonials'
+import CmsMedia from '@/portals/internal/pages/cms/Media'
+// Marketing pages
+import MarketingPostsList from '@/portals/internal/pages/marketing/MarketingPosts'
+import MarketingPostCreatePage from '@/portals/internal/pages/marketing/MarketingPostCreatePage'
+import MarketingPostEditPage from '@/portals/internal/pages/marketing/MarketingPostEditPage'
+import ClassDocPostsList from '@/portals/internal/pages/marketing/ClassDocPosts'
+import ReferralPartnersList from '@/portals/internal/pages/marketing/ReferralPartners'
 // Admin pages
 import { AdminLayout } from '@/pages/admin/AdminLayout'
 import DepartmentListPage from '@/pages/admin/DepartmentListPage'
@@ -159,7 +173,7 @@ export default function App() {
         </Route>
       </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={['ceo', 'admin', 'vernonedu_admin', 'finance', 'academic_leader', 'dept_leader', 'course_creator', 'facilitator']} />}>
+      <Route element={<ProtectedRoute allowedRoles={['ceo', 'admin', 'vernonedu_admin', 'finance', 'academic_leader', 'dept_leader', 'course_creator', 'facilitator', 'marketing', 'operation_leader', 'director', 'education_leader']} />}>
         <Route path="/internal" element={<InternalPortal />}>
           <Route index element={<InternalDashboard />} />
           <Route path="enrollments" element={<Enrollments />} />
@@ -252,6 +266,20 @@ export default function App() {
           <Route path="budget/:id" element={<BudgetDetail />} />
           <Route path="profit-split/:id" element={<ProfitSplitDetail />} />
           <Route path="notifications/:id" element={<NotificationDetail />} />
+          {/* CMS */}
+          <Route path="cms/pages" element={<CmsPagesList />} />
+          <Route path="cms/articles" element={<CmsArticles />} />
+          <Route path="cms/articles/new" element={<CmsArticleCreatePage />} />
+          <Route path="cms/articles/:slug/edit" element={<CmsArticleEditPage />} />
+          <Route path="cms/faq" element={<CmsFAQ />} />
+          <Route path="cms/testimonials" element={<CmsTestimonials />} />
+          <Route path="cms/media" element={<CmsMedia />} />
+          {/* Marketing */}
+          <Route path="marketing/posts" element={<MarketingPostsList />} />
+          <Route path="marketing/posts/new" element={<MarketingPostCreatePage />} />
+          <Route path="marketing/posts/:id/edit" element={<MarketingPostEditPage />} />
+          <Route path="marketing/class-docs" element={<ClassDocPostsList />} />
+          <Route path="marketing/referral-partners" element={<ReferralPartnersList />} />
         </Route>
       </Route>
 
