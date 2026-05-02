@@ -5,6 +5,7 @@ import RoleGate from '@/components/shared/RoleGate'
 import { useCourseVersion, usePromoteCourseVersion } from '@/lib/api/curriculum'
 import { useAuth } from '@/lib/auth/useAuth'
 import { formatDateTime } from '@/lib/utils/format'
+import ModulesSection from './ModulesSection'
 
 interface Props {
   versionId: string
@@ -98,6 +99,8 @@ export default function VersionDetailPanel({ versionId, typeId }: Props) {
 {v.changelog}
         </pre>
       </div>
+
+      <ModulesSection version={v} />
     </div>
   )
 }
