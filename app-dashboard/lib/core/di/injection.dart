@@ -76,6 +76,10 @@ import '../../features/course_version/domain/usecases/promote_course_version_use
 import '../../features/course_version/domain/usecases/get_internship_config_usecase.dart';
 import '../../features/course_version/domain/usecases/upsert_internship_config_usecase.dart';
 import '../../features/course_version/domain/usecases/get_character_test_config_usecase.dart';
+import '../../features/course_version/domain/usecases/approve_course_version_usecase.dart';
+import '../../features/course_version/domain/usecases/reject_course_version_usecase.dart';
+import '../../features/course_version/domain/usecases/get_pending_course_versions_usecase.dart';
+import '../../features/course_version/presentation/cubit/pending_approvals_cubit.dart';
 import '../../features/course_version/domain/usecases/upsert_character_test_config_usecase.dart';
 import '../../features/course_version/presentation/cubit/course_version_cubit.dart';
 import '../../features/course_module/data/datasources/course_module_remote_datasource.dart';
@@ -456,6 +460,9 @@ Future<void> configureDependencies() async {
   getIt.registerFactory(() => UpsertInternshipConfigUseCase(getIt<CourseVersionRepository>()));
   getIt.registerFactory(() => GetCharacterTestConfigUseCase(getIt<CourseVersionRepository>()));
   getIt.registerFactory(() => UpsertCharacterTestConfigUseCase(getIt<CourseVersionRepository>()));
+  getIt.registerFactory(() => ApproveCourseVersionUseCase(getIt<CourseVersionRepository>()));
+  getIt.registerFactory(() => RejectCourseVersionUseCase(getIt<CourseVersionRepository>()));
+  getIt.registerFactory(() => GetPendingCourseVersionsUseCase(getIt<CourseVersionRepository>()));
   getIt.registerFactory(() => CourseVersionCubit(
     getCourseVersionsUseCase: getIt<GetCourseVersionsUseCase>(),
     createCourseVersionUseCase: getIt<CreateCourseVersionUseCase>(),
@@ -464,6 +471,13 @@ Future<void> configureDependencies() async {
     upsertInternshipConfigUseCase: getIt<UpsertInternshipConfigUseCase>(),
     getCharacterTestConfigUseCase: getIt<GetCharacterTestConfigUseCase>(),
     upsertCharacterTestConfigUseCase: getIt<UpsertCharacterTestConfigUseCase>(),
+    approveCourseVersionUseCase: getIt<ApproveCourseVersionUseCase>(),
+    rejectCourseVersionUseCase: getIt<RejectCourseVersionUseCase>(),
+  ));
+  getIt.registerFactory(() => PendingApprovalsCubit(
+    getPendingUseCase: getIt<GetPendingCourseVersionsUseCase>(),
+    approveUseCase: getIt<ApproveCourseVersionUseCase>(),
+    rejectUseCase: getIt<RejectCourseVersionUseCase>(),
   ));
 
   // CourseModule

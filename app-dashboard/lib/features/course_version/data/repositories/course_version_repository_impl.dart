@@ -105,4 +105,37 @@ class CourseVersionRepositoryImpl implements CourseVersionRepository {
       return Left(ServerFailure(e.message ?? 'Gagal menyimpan konfigurasi tes karakter'));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> approveCourseVersion(String versionId) async {
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
+    try {
+      await remoteDataSource.approveCourseVersion(versionId);
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Gagal menyetujui versi'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> rejectCourseVersion(String versionId, String reason) async {
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
+    try {
+      await remoteDataSource.rejectCourseVersion(versionId, reason);
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Gagal menolak versi'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<CourseVersionEntity>>> getPendingVersions() async {
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
+    try {
+      final result = await remoteDataSource.getPendingVersions();
+      return Right(result.map((e) => e.toEntity()).toList());
+    } on DioException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Gagal memuat antrian persetujuan'));
+    }
+  }
 }

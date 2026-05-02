@@ -24,6 +24,15 @@ abstract class CourseVersionRemoteDataSource {
 
   // PUT /api/v1/curriculum/versions/{versionId}/character-test
   Future<void> upsertCharacterTestConfig(String versionId, Map<String, dynamic> data);
+
+  // POST /api/v1/curriculum/versions/{versionId}/approve  (dept_leader only)
+  Future<void> approveCourseVersion(String versionId);
+
+  // POST /api/v1/curriculum/versions/{versionId}/reject  body: {"reason": string}
+  Future<void> rejectCourseVersion(String versionId, String reason);
+
+  // GET /api/v1/curriculum/versions/pending  (dept_leader only)
+  Future<List<CourseVersionModel>> getPendingVersions();
 }
 
 // Implementasi datasource menggunakan Dio
@@ -112,5 +121,35 @@ class CourseVersionRemoteDataSourceImpl implements CourseVersionRemoteDataSource
   @override
   Future<void> upsertCharacterTestConfig(String versionId, Map<String, dynamic> data) async {
     await _dio.put('/curriculum/versions/$versionId/character-test', data: data);
+  }
+
+  // POST /api/v1/curriculum/versions/{versionId}/approve
+  @override
+  Future<void> approveCourseVersion(String versionId) async {
+    await _dio.post('/curriculum/versions/$versionId/approve');
+  }
+
+  // POST /api/v1/curriculum/versions/{versionId}/reject
+  @override
+  Future<void> rejectCourseVersion(String versionId, String reason) async {
+    await _dio.post(
+      '/curriculum/versions/$versionId/reject',
+      data: {'reason': reason},
+    );
+  }
+
+  // GET /api/v1/curriculum/versions/pending
+  @override
+  Future<List<CourseVersionModel>> getPendingVersions() async {
+    final res = await _dio.get('/curriculum/versions/pending');
+    final raw = res.data;
+    final list = (raw is Map && raw['data'] != null)
+        ? raw['data'] as List
+        : raw is List
+            ? raw
+            : <dynamic>[];
+    return list
+        .map((e) => CourseVersionModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

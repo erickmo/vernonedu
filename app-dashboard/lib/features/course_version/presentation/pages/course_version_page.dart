@@ -10,6 +10,9 @@ import '../../../../../core/utils/date_format_util.dart';
 import '../../domain/entities/course_version_entity.dart';
 import '../../domain/entities/internship_config_entity.dart';
 import '../../domain/entities/character_test_config_entity.dart';
+import '../../../auth/domain/entities/user_entity.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
+import '../../../auth/presentation/cubit/auth_state.dart';
 import '../cubit/course_version_cubit.dart';
 import '../cubit/course_version_state.dart';
 
@@ -589,7 +592,14 @@ class _VersionCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                // Action button based on status
+                // Approval workflow button — visible to dept_leader when version
+                // has approval_status = 'submitted'. Uses the new /approve endpoint.
+                _ApprovalDecisionButtons(
+                  version: version,
+                  typeId: typeId,
+                  typeName: typeName,
+                ),
+                // Action button based on lifecycle status (legacy promote flow)
                 _VersionActionButton(
                   version: version,
                   typeId: typeId,
@@ -1635,6 +1645,174 @@ class _ErrorView extends StatelessWidget {
           ElevatedButton(onPressed: onRetry, child: const Text('Coba Lagi')),
         ],
       ),
+    );
+  }
+}
+
+// ─── Approval Decision Buttons (dept_leader, approval_status = submitted) ───
+
+class _ApprovalDecisionButtons extends StatelessWidget {
+  final CourseVersionEntity version;
+  final String typeId;
+  final String? typeName;
+
+  const _ApprovalDecisionButtons({
+    required this.version,
+    required this.typeId,
+    this.typeName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!version.isApprovalSubmitted) return const SizedBox.shrink();
+
+    final authState = context.watch<AuthCubit>().state;
+    if (authState is! AuthAuthenticated) return const SizedBox.shrink();
+    if (!authState.user.hasRole(UserRole.deptLeader)) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(right: AppDimensions.xs),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          OutlinedButton(
+            key: const Key('approval-reject-btn'),
+            onPressed: () => _onReject(context),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.error,
+              side: BorderSide(color: AppColors.error.withOpacity(0.5)),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text('Tolak', style: TextStyle(fontSize: 12)),
+          ),
+          const SizedBox(width: AppDimensions.xs),
+          FilledButton(
+            key: const Key('approval-approve-btn'),
+            onPressed: () => _onApprove(context),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.success,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text('Setujui', style: TextStyle(fontSize: 12)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _onApprove(BuildContext context) async {
+    final cubit = context.read<CourseVersionCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Setujui Versi'),
+        content: Text(
+            'Setujui v${version.versionNumber}? Tindakan ini tidak dapat dibatalkan.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.success),
+            child: const Text('Setujui'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final ok = await cubit.approveVersion(version.id, typeId, typeName: typeName);
+    if (ok) {
+      messenger.showSnackBar(const SnackBar(
+        content: Text('Versi berhasil disetujui'),
+        backgroundColor: AppColors.success,
+      ));
+    }
+  }
+
+  Future<void> _onReject(BuildContext context) async {
+    final cubit = context.read<CourseVersionCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (_) => const _RejectReasonDialog(),
+    );
+    if (reason == null || reason.trim().isEmpty) return;
+    final ok = await cubit.rejectVersion(version.id, typeId,
+        reason: reason.trim(), typeName: typeName);
+    if (ok) {
+      messenger.showSnackBar(const SnackBar(
+        content: Text('Versi telah ditolak'),
+        backgroundColor: AppColors.warning,
+      ));
+    }
+  }
+}
+
+class _RejectReasonDialog extends StatefulWidget {
+  const _RejectReasonDialog();
+
+  @override
+  State<_RejectReasonDialog> createState() => _RejectReasonDialogState();
+}
+
+class _RejectReasonDialogState extends State<_RejectReasonDialog> {
+  final _ctrl = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final v = _ctrl.text.trim();
+    if (v.isEmpty) {
+      setState(() => _error = 'Alasan wajib diisi');
+      return;
+    }
+    Navigator.of(context).pop(v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Tolak Versi'),
+      content: SizedBox(
+        width: 420,
+        child: TextField(
+          controller: _ctrl,
+          maxLines: 3,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: 'Alasan penolakan',
+            errorText: _error,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+          child: const Text('Tolak'),
+        ),
+      ],
     );
   }
 }

@@ -71,6 +71,12 @@ final _navItems = <_NavItem>[
     hasAccess: (u) => u.canManageCourse || u.hasRole(UserRole.customerService),
   ),
   _NavItem(
+    label: 'Persetujuan Kurikulum',
+    icon: Icons.fact_check_outlined,
+    route: '/curriculum/approvals',
+    hasAccess: (u) => u.hasRole(UserRole.deptLeader),
+  ),
+  _NavItem(
     label: AppStrings.navDepartment,
     icon: Icons.corporate_fare_outlined,
     route: '/departments',

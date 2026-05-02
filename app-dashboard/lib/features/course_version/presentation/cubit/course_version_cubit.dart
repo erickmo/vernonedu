@@ -8,6 +8,8 @@ import '../../domain/usecases/get_internship_config_usecase.dart';
 import '../../domain/usecases/upsert_internship_config_usecase.dart';
 import '../../domain/usecases/get_character_test_config_usecase.dart';
 import '../../domain/usecases/upsert_character_test_config_usecase.dart';
+import '../../domain/usecases/approve_course_version_usecase.dart';
+import '../../domain/usecases/reject_course_version_usecase.dart';
 import 'course_version_state.dart';
 
 // Cubit for managing CourseVersion list state per course type.
@@ -20,6 +22,8 @@ class CourseVersionCubit extends Cubit<CourseVersionState> {
   final UpsertInternshipConfigUseCase upsertInternshipConfigUseCase;
   final GetCharacterTestConfigUseCase getCharacterTestConfigUseCase;
   final UpsertCharacterTestConfigUseCase upsertCharacterTestConfigUseCase;
+  final ApproveCourseVersionUseCase approveCourseVersionUseCase;
+  final RejectCourseVersionUseCase rejectCourseVersionUseCase;
 
   CourseVersionCubit({
     required this.getCourseVersionsUseCase,
@@ -29,6 +33,8 @@ class CourseVersionCubit extends Cubit<CourseVersionState> {
     required this.upsertInternshipConfigUseCase,
     required this.getCharacterTestConfigUseCase,
     required this.upsertCharacterTestConfigUseCase,
+    required this.approveCourseVersionUseCase,
+    required this.rejectCourseVersionUseCase,
   }) : super(const CourseVersionInitial());
 
   // Load all versions by type ID.
@@ -141,6 +147,42 @@ class CourseVersionCubit extends Cubit<CourseVersionState> {
             internshipConfig: configResult.fold((_) => null, (c) => c),
           ));
         }
+        return true;
+      },
+    );
+  }
+
+  // Approve a submitted version via the new approval workflow (dept_leader only).
+  // Reloads versions afterward so the page reflects the new approval_status.
+  Future<bool> approveVersion(String versionId, String typeId, {String? typeName}) async {
+    final result = await approveCourseVersionUseCase(versionId);
+    return result.fold(
+      (failure) {
+        emit(CourseVersionError(failure.message));
+        return false;
+      },
+      (_) {
+        loadVersions(typeId, typeName: typeName);
+        return true;
+      },
+    );
+  }
+
+  // Reject a submitted version with a required reason (dept_leader only).
+  Future<bool> rejectVersion(
+    String versionId,
+    String typeId, {
+    required String reason,
+    String? typeName,
+  }) async {
+    final result = await rejectCourseVersionUseCase(versionId, reason);
+    return result.fold(
+      (failure) {
+        emit(CourseVersionError(failure.message));
+        return false;
+      },
+      (_) {
+        loadVersions(typeId, typeName: typeName);
         return true;
       },
     );
