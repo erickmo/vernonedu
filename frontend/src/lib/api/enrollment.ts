@@ -72,9 +72,72 @@ export function useEnrollment(id: string) {
 export function useCreateEnrollment() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: { student_id: string; batch_id: string; voucher_code?: string }) =>
-      apiClient.post<Enrollment>('/enrollments', payload).then((r) => r.data),
+    // Backend (api/internal/delivery/http/enrollment_handler.go) requires
+    // student_id + course_batch_id. Extra fields (enrollment_date,
+    // payment_method, voucher_code) are accepted by the form for invoice
+    // automation; the API ignores unknown fields.
+    mutationFn: (payload: {
+      student_id: string
+      course_batch_id: string
+      enrollment_date?: string
+      payment_method?: string
+      voucher_code?: string
+    }) =>
+      apiClient
+        .post<{ id?: string; data?: Enrollment } | Enrollment>('/enrollments', payload)
+        .then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['enrollments'] }),
+  })
+}
+
+export function useUpdateEnrollmentStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      apiClient.put(`/enrollments/${id}/status`, { status }).then((r) => r.data),
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ['enrollments', vars.id] })
+      qc.invalidateQueries({ queryKey: ['enrollments'] })
+    },
+  })
+}
+
+export function useUpdateEnrollmentPaymentStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payment_status }: { id: string; payment_status: string }) =>
+      apiClient.put(`/enrollments/${id}/payment-status`, { payment_status }).then((r) => r.data),
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ['enrollments', vars.id] })
+      qc.invalidateQueries({ queryKey: ['enrollments'] })
+    },
+  })
+}
+
+// ── Student App Access ────────────────────────────────────────────────────
+// Backend endpoints planned but not yet implemented. Shape:
+// POST /api/v1/enrollments/{id}/access/grant
+// POST /api/v1/enrollments/{id}/access/revoke
+
+export function useGrantAppAccess() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiClient.post(`/enrollments/${id}/access/grant`).then((r) => r.data),
+    onSuccess: (_d, id) => {
+      qc.invalidateQueries({ queryKey: ['enrollments', id] })
+    },
+  })
+}
+
+export function useRevokeAppAccess() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiClient.post(`/enrollments/${id}/access/revoke`).then((r) => r.data),
+    onSuccess: (_d, id) => {
+      qc.invalidateQueries({ queryKey: ['enrollments', id] })
+    },
   })
 }
 
