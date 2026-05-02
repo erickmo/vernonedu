@@ -17,6 +17,8 @@ import (
 	// infrastructure
 	"github.com/vernonedu/entrepreneurship-api/infrastructure/config"
 	"github.com/vernonedu/entrepreneurship-api/infrastructure/database"
+	// workers
+	postscheduler "github.com/vernonedu/entrepreneurship-api/internal/worker/post_scheduler"
 	// pkg
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/eventbus"
@@ -572,6 +574,7 @@ func main() {
 		fx.Invoke(
 			registerHandlers,
 			startServer,
+			startPostScheduler,
 		),
 	)
 
@@ -2117,6 +2120,27 @@ func registerHandlers(p registerParams) error {
 	}
 
 	return nil
+}
+
+// startPostScheduler wires the marketing post scheduler worker into the FX
+// lifecycle. It runs in the background once the app starts and stops cleanly
+// when the app shuts down.
+func startPostScheduler(lc fx.Lifecycle, db *sqlx.DB) {
+	scheduler := postscheduler.New(db)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	lc.Append(fx.Hook{
+		OnStart: func(_ context.Context) error {
+			log.Info().Msg("starting post_scheduler worker")
+			go scheduler.Run(ctx)
+			return nil
+		},
+		OnStop: func(_ context.Context) error {
+			log.Info().Msg("stopping post_scheduler worker")
+			cancel()
+			return nil
+		},
+	})
 }
 
 func startServer(lc fx.Lifecycle, r *chi.Mux, cfg *config.Config) {
