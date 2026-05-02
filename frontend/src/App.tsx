@@ -13,6 +13,8 @@ import StudentCourseDetail from '@/portals/student/pages/CourseDetail'
 import MyEnrollments from '@/portals/student/pages/MyEnrollments'
 import Certificates from '@/portals/student/pages/Certificates'
 import StudentProfile from '@/portals/student/pages/Profile'
+import CanvasList from '@/portals/student/pages/CanvasList'
+import DesignThinkingList from '@/portals/student/pages/DesignThinkingList'
 import InternalDashboard from '@/portals/internal/pages/Dashboard'
 import Enrollments from '@/portals/internal/pages/Enrollments'
 import EnrollmentCreatePage from '@/portals/internal/pages/EnrollmentCreatePage'
@@ -88,6 +90,14 @@ import LeadEditPage from '@/portals/internal/pages/LeadEditPage'
 import LeadDetail from '@/portals/internal/pages/detail/LeadDetail'
 import BuildingCreatePage from '@/portals/internal/pages/BuildingCreatePage'
 import BuildingEditPage from '@/portals/internal/pages/BuildingEditPage'
+import Users from '@/portals/internal/pages/hr/Users'
+import UserCreatePage from '@/portals/internal/pages/hr/UserCreatePage'
+import UserEditPage from '@/portals/internal/pages/hr/UserEditPage'
+import TalentPoolPage from '@/portals/internal/pages/hr/TalentPoolPage'
+import InventoryPage from '@/portals/internal/pages/hr/Inventory'
+import FacilitatorLevelsPage from '@/portals/internal/pages/settings/FacilitatorLevels'
+import CommissionConfigPage from '@/portals/internal/pages/settings/CommissionConfigPage'
+import GeneralSettings from '@/portals/internal/pages/settings/GeneralSettings'
 import BuildingDetail from '@/portals/internal/pages/detail/BuildingDetail'
 import FranchiseDetail from '@/portals/internal/pages/detail/FranchiseDetail'
 import VoucherDetail from '@/portals/internal/pages/detail/VoucherDetail'
@@ -165,6 +175,8 @@ export default function App() {
           <Route path="enrollments" element={<MyEnrollments />} />
           <Route path="certificates" element={<Certificates />} />
           <Route path="profile" element={<StudentProfile />} />
+          <Route path="canvas" element={<CanvasList />} />
+          <Route path="design-thinking" element={<DesignThinkingList />} />
         </Route>
       </Route>
 
@@ -224,6 +236,8 @@ export default function App() {
           <Route path="calendar" element={<InternalCalendar />} />
           <Route path="franchises" element={<Franchises />} />
           <Route path="notifications" element={<Notifications />} />
+          <Route path="settings" element={<GeneralSettings />} />
+          <Route path="settings/general" element={<GeneralSettings />} />
           <Route path="settings/holidays" element={<Holidays />} />
           {/* BizDev */}
           <Route path="bmc" element={<BMC />} />
@@ -244,6 +258,14 @@ export default function App() {
           <Route path="projects/new" element={<ProjectCreatePage />} />
           <Route path="projects/:id" element={<ProjectDetail />} />
           <Route path="projects/:id/edit" element={<ProjectEditPage />} />
+          {/* HR & Settings */}
+          <Route path="settings/facilitator-levels" element={<FacilitatorLevelsPage />} />
+          <Route path="settings/commissions" element={<CommissionConfigPage />} />
+          <Route path="users" element={<Users />} />
+          <Route path="users/new" element={<UserCreatePage />} />
+          <Route path="users/:id/edit" element={<UserEditPage />} />
+          <Route path="talentpool" element={<TalentPoolPage />} />
+          <Route path="inventory" element={<InventoryPage />} />
           {/* Domain overviews */}
           <Route path="academic" element={<AcademicOverview />} />
           <Route path="finance" element={<FinanceOverview />} />

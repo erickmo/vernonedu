@@ -9,6 +9,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/student/catalog', label: 'Course Catalog' },
   { to: '/student/enrollments', label: 'My Enrollments' },
   { to: '/student/certificates', label: 'Certificates' },
+  { to: '/student/canvas', label: 'Canvas' },
+  { to: '/student/design-thinking', label: 'Design Thinking' },
   { to: '/student/profile', label: 'Profile' },
 ]
 
