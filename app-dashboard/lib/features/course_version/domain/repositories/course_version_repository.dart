@@ -14,4 +14,12 @@ abstract class CourseVersionRepository {
   Future<Either<Failure, void>> upsertInternshipConfig(String versionId, Map<String, dynamic> data);
   Future<Either<Failure, CharacterTestConfigEntity?>> getCharacterTestConfig(String versionId);
   Future<Either<Failure, void>> upsertCharacterTestConfig(String versionId, Map<String, dynamic> data);
+
+  // Approval workflow — dept_leader only.
+  // approveCourseVersion has no body; rejectCourseVersion requires a reason.
+  Future<Either<Failure, void>> approveCourseVersion(String versionId);
+  Future<Either<Failure, void>> rejectCourseVersion(String versionId, String reason);
+
+  // List versions waiting for approval (approval_status = 'submitted').
+  Future<Either<Failure, List<CourseVersionEntity>>> getPendingVersions();
 }

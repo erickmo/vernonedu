@@ -16,6 +16,7 @@ import '../../features/course_batch/presentation/pages/course_batch_detail_page.
 import '../../features/course_version/presentation/pages/course_version_page.dart';
 import '../../features/course_version/presentation/pages/course_module_page.dart';
 import '../../features/course_version/presentation/pages/propose_version_page.dart';
+import '../../features/course_version/presentation/pages/pending_approvals_page.dart';
 import '../../features/talentpool/presentation/pages/talentpool_page.dart';
 import '../../features/enrollment/presentation/pages/enrollment_page.dart';
 import '../../features/evaluation/presentation/pages/evaluation_page.dart';
@@ -114,6 +115,12 @@ class AppRouter {
                     path: 'propose-version',
                     pageBuilder: (_, __) =>
                         const NoTransitionPage(child: ProposeVersionPage()),
+                  ),
+                  GoRoute(
+                    path: 'approvals',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: PendingApprovalsPage(),
+                    ),
                   ),
                   GoRoute(
                     path: ':courseId',
