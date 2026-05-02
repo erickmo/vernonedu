@@ -13,6 +13,11 @@ import type {
   CreateCourseVersionInput,
   PromoteCourseVersionInput,
 } from '@/schemas/courseversion'
+import type { CourseModule } from '@/types/coursemodule'
+import type {
+  CreateCourseModuleInput,
+  UpdateCourseModuleInput,
+} from '@/schemas/coursemodule'
 
 const BASE = '/curriculum/courses'
 
@@ -208,5 +213,70 @@ export function usePromoteCourseVersion(typeId: string) {
       qc.invalidateQueries({ queryKey: ['courseversions', 'list', typeId] })
       qc.invalidateQueries({ queryKey: ['courseversions', versionId] })
     },
+  })
+}
+
+// ===== CourseModule =====
+
+const MODULES_BASE = '/api/v1/curriculum/modules'
+const VERSION_MODULES = (versionId: string) =>
+  `/api/v1/curriculum/versions/${versionId}/modules`
+
+interface CourseModuleListResponse { data: CourseModule[] }
+interface CourseModuleSingleResponse { data: CourseModule }
+
+export function useCourseModules(versionId: string | undefined) {
+  return useQuery({
+    queryKey: ['coursemodules', 'list', versionId],
+    queryFn: () =>
+      apiClient
+        .get<CourseModuleListResponse>(VERSION_MODULES(versionId!))
+        .then((r) => r.data.data),
+    enabled: !!versionId,
+  })
+}
+
+export function useCourseModule(moduleId: string | undefined) {
+  return useQuery({
+    queryKey: ['coursemodules', moduleId],
+    queryFn: () =>
+      apiClient
+        .get<CourseModuleSingleResponse>(`${MODULES_BASE}/${moduleId}`)
+        .then((r) => r.data.data),
+    enabled: !!moduleId,
+  })
+}
+
+export function useCreateCourseModule(versionId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreateCourseModuleInput) =>
+      apiClient.post(VERSION_MODULES(versionId), input).then((r) => r.data),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ['coursemodules', 'list', versionId] }),
+  })
+}
+
+export function useUpdateCourseModule(versionId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (args: { moduleId: string; input: UpdateCourseModuleInput }) =>
+      apiClient
+        .put(`${MODULES_BASE}/${args.moduleId}`, args.input)
+        .then((r) => r.data),
+    onSuccess: (_d, { moduleId }) => {
+      qc.invalidateQueries({ queryKey: ['coursemodules', 'list', versionId] })
+      qc.invalidateQueries({ queryKey: ['coursemodules', moduleId] })
+    },
+  })
+}
+
+export function useDeleteCourseModule(versionId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (moduleId: string) =>
+      apiClient.delete(`${MODULES_BASE}/${moduleId}`).then((r) => r.data),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ['coursemodules', 'list', versionId] }),
   })
 }
