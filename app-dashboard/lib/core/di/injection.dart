@@ -657,9 +657,11 @@ Future<void> configureDependencies() async {
       () => ListCertificatesByBatchUseCase(getIt<CertificateRepository>()));
   getIt.registerFactory(() => StudentCertificatesCubit(
         listByStudent: getIt<ListCertificatesByStudentUseCase>(),
+        revoke: getIt<RevokeCertificateUseCase>(),
       ));
   getIt.registerFactory(() => BatchCertificatesCubit(
         listByBatch: getIt<ListCertificatesByBatchUseCase>(),
+        revoke: getIt<RevokeCertificateUseCase>(),
       ));
   getIt.registerFactory(() => CertificateIssueCubit(
         issueParticipant: getIt<IssueParticipantCertificateUseCase>(),
