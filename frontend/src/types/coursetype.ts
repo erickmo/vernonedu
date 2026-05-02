@@ -1,3 +1,5 @@
+import type { ComponentFailureConfig } from './failureconfig'
+
 export type CourseTypeStatus = 'active' | 'inactive'
 
 export interface CourseType {
@@ -14,6 +16,7 @@ export interface CourseType {
   min_participants: number
   max_participants: number
   status: CourseTypeStatus
+  component_failure_config?: ComponentFailureConfig | null
   created_at: string
   updated_at: string
 }
