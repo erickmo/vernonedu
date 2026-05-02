@@ -148,6 +148,7 @@ import '../../features/certificate/domain/usecases/issue_certificate_usecase.dar
 import '../../features/certificate/domain/usecases/revoke_certificate_usecase.dart';
 import '../../features/certificate/domain/usecases/get_certificate_templates_usecase.dart';
 import '../../features/certificate/domain/usecases/create_certificate_template_usecase.dart';
+import '../../features/certificate/domain/usecases/update_certificate_template_usecase.dart';
 import '../../features/certificate/domain/usecases/issue_participant_certificate_usecase.dart';
 import '../../features/certificate/domain/usecases/issue_competency_certificate_usecase.dart';
 import '../../features/certificate/domain/usecases/list_certificates_by_student_usecase.dart';
@@ -156,6 +157,7 @@ import '../../features/certificate/presentation/cubit/certificate_cubit.dart';
 import '../../features/certificate/presentation/cubit/student_certificates_cubit.dart';
 import '../../features/certificate/presentation/cubit/batch_certificates_cubit.dart';
 import '../../features/certificate/presentation/cubit/certificate_issue_cubit.dart';
+import '../../features/certificate/presentation/cubit/certificate_template_cubit.dart';
 import '../../features/accounting/data/datasources/accounting_remote_datasource.dart';
 import '../../features/accounting/data/repositories/accounting_repository_impl.dart';
 import '../../features/accounting/domain/repositories/accounting_repository.dart';
@@ -640,6 +642,12 @@ Future<void> configureDependencies() async {
   getIt.registerFactory(() => RevokeCertificateUseCase(getIt<CertificateRepository>()));
   getIt.registerFactory(() => GetCertificateTemplatesUseCase(getIt<CertificateRepository>()));
   getIt.registerFactory(() => CreateCertificateTemplateUseCase(getIt<CertificateRepository>()));
+  getIt.registerFactory(() => UpdateCertificateTemplateUseCase(getIt<CertificateRepository>()));
+  getIt.registerFactory(() => CertificateTemplateCubit(
+        getTemplates: getIt<GetCertificateTemplatesUseCase>(),
+        create: getIt<CreateCertificateTemplateUseCase>(),
+        update: getIt<UpdateCertificateTemplateUseCase>(),
+      ));
   getIt.registerFactory(() => CertificateCubit(
     getCertificatesUseCase: getIt<GetCertificatesUseCase>(),
     getTemplatesUseCase: getIt<GetCertificateTemplatesUseCase>(),
