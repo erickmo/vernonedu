@@ -12,6 +12,7 @@ const _epCertificateTemplates = '/certificate-templates';
 String _epStudentCertificates(String id) => '/students/$id/certificates';
 String _epBatchCertificates(String id) => '/batches/$id/certificates';
 String _epRevoke(String id) => '/certificates/$id/revoke';
+String _epCertificateTemplate(String id) => '/certificate-templates/$id';
 
 abstract class CertificateRemoteDataSource {
   Future<List<CertificateModel>> getCertificates({
@@ -56,6 +57,11 @@ abstract class CertificateRemoteDataSource {
   Future<List<CertificateTemplateModel>> getCertificateTemplates();
 
   Future<void> createCertificateTemplate({required Map<String, dynamic> body});
+
+  Future<void> updateCertificateTemplate({
+    required String id,
+    required Map<String, dynamic> body,
+  });
 }
 
 class CertificateRemoteDataSourceImpl implements CertificateRemoteDataSource {
@@ -163,6 +169,14 @@ class CertificateRemoteDataSourceImpl implements CertificateRemoteDataSource {
     required Map<String, dynamic> body,
   }) async {
     await _dio.post(_epCertificateTemplates, data: body);
+  }
+
+  @override
+  Future<void> updateCertificateTemplate({
+    required String id,
+    required Map<String, dynamic> body,
+  }) async {
+    await _dio.put(_epCertificateTemplate(id), data: body);
   }
 }
 

@@ -65,4 +65,9 @@ abstract class CertificateRepository {
   Future<Either<Failure, void>> createCertificateTemplate({
     required Map<String, dynamic> body,
   });
+
+  Future<Either<Failure, void>> updateCertificateTemplate({
+    required String id,
+    required Map<String, dynamic> body,
+  });
 }

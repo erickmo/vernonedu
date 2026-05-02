@@ -150,6 +150,15 @@ class CertificateRepositoryImpl implements CertificateRepository {
         await _remote.createCertificateTemplate(body: body);
       });
 
+  @override
+  Future<Either<Failure, void>> updateCertificateTemplate({
+    required String id,
+    required Map<String, dynamic> body,
+  }) =>
+      _guard(() async {
+        await _remote.updateCertificateTemplate(id: id, body: body);
+      });
+
   /// Wraps a remote call with offline check + DioException → ServerFailure.
   Future<Either<Failure, T>> _guard<T>(Future<T> Function() op) async {
     if (!await _networkInfo.isConnected) {
