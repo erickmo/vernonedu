@@ -66,6 +66,15 @@ import ProposalDetail from '@/portals/internal/pages/detail/ProposalDetail'
 import PartnerDetail from '@/portals/internal/pages/detail/PartnerDetail'
 import PartnerCreatePage from '@/portals/internal/pages/PartnerCreatePage'
 import PartnerEditPage from '@/portals/internal/pages/PartnerEditPage'
+import Approvals from '@/portals/internal/pages/Approvals'
+import ApprovalDetail from '@/portals/internal/pages/ApprovalDetail'
+import Branches from '@/portals/internal/pages/Branches'
+import BranchCreatePage from '@/portals/internal/pages/BranchCreatePage'
+import BranchEditPage from '@/portals/internal/pages/BranchEditPage'
+import Projects from '@/portals/internal/pages/Projects'
+import ProjectCreatePage from '@/portals/internal/pages/ProjectCreatePage'
+import ProjectEditPage from '@/portals/internal/pages/ProjectEditPage'
+import ProjectDetail from '@/portals/internal/pages/detail/ProjectDetail'
 import Batches from '@/portals/internal/pages/Batches'
 import BatchCreatePage from '@/portals/internal/pages/BatchCreatePage'
 import BatchEditPage from '@/portals/internal/pages/BatchEditPage'
@@ -207,6 +216,15 @@ export default function App() {
           <Route path="delegations" element={<Delegations />} />
           <Route path="delegations/new" element={<DelegationCreatePage />} />
           <Route path="delegations/:id" element={<DelegationDetail />} />
+          <Route path="settings/branches" element={<Branches />} />
+          <Route path="settings/branches/new" element={<BranchCreatePage />} />
+          <Route path="settings/branches/:id/edit" element={<BranchEditPage />} />
+          <Route path="approvals" element={<Approvals />} />
+          <Route path="approvals/:id" element={<ApprovalDetail />} />
+          <Route path="projects" element={<Projects />} />
+          <Route path="projects/new" element={<ProjectCreatePage />} />
+          <Route path="projects/:id" element={<ProjectDetail />} />
+          <Route path="projects/:id/edit" element={<ProjectEditPage />} />
           {/* Domain overviews */}
           <Route path="academic" element={<AcademicOverview />} />
           <Route path="finance" element={<FinanceOverview />} />
