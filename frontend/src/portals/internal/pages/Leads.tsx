@@ -38,12 +38,14 @@ export default function Leads() {
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState('')
   const [source, setSource] = useState('')
+  const [interest, setInterest] = useState('')
 
   const { data, isLoading } = useLeads({
     page,
     limit: LIMIT,
     status: status || undefined,
     source: source || undefined,
+    interest: interest || undefined,
   })
 
   return (
@@ -85,6 +87,16 @@ export default function Leads() {
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
+          <input
+            type="text"
+            value={interest}
+            onChange={(e) => {
+              setInterest(e.target.value)
+              setPage(1)
+            }}
+            placeholder="Filter by interest"
+            className="px-3 py-2 text-sm border border-neutral-200 rounded-lg bg-white"
+          />
         </div>
       }
       columns={COLUMNS}
