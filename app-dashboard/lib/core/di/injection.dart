@@ -210,7 +210,8 @@ import '../../features/finance_invoices/domain/usecases/get_invoice_stats_usecas
 import '../../features/finance_invoices/domain/usecases/get_invoice_list_usecase.dart';
 import '../../features/finance_invoices/domain/usecases/get_invoice_detail_usecase.dart';
 import '../../features/finance_invoices/domain/usecases/mark_invoice_paid_usecase.dart';
-import '../../features/finance_invoices/domain/usecases/resend_invoice_usecase.dart';
+import '../../features/finance_invoices/domain/usecases/send_invoice_usecase.dart';
+import '../../features/finance_invoices/presentation/cubit/invoice_detail_cubit.dart';
 import '../../features/finance_invoices/domain/usecases/cancel_invoice_usecase.dart';
 import '../../features/finance_invoices/domain/usecases/create_manual_invoice_usecase.dart';
 import '../../features/finance_invoices/presentation/cubit/invoice_cubit.dart';
@@ -787,7 +788,7 @@ Future<void> configureDependencies() async {
   getIt.registerFactory(() => GetInvoiceListUseCase(getIt<InvoiceRepository>()));
   getIt.registerFactory(() => GetInvoiceDetailUseCase(getIt<InvoiceRepository>()));
   getIt.registerFactory(() => MarkInvoicePaidUseCase(getIt<InvoiceRepository>()));
-  getIt.registerFactory(() => ResendInvoiceUseCase(getIt<InvoiceRepository>()));
+  getIt.registerFactory(() => SendInvoiceUseCase(getIt<InvoiceRepository>()));
   getIt.registerFactory(() => CancelInvoiceUseCase(getIt<InvoiceRepository>()));
   getIt.registerFactory(
       () => CreateManualInvoiceUseCase(getIt<InvoiceRepository>()));
@@ -796,9 +797,15 @@ Future<void> configureDependencies() async {
         getInvoices: getIt<GetInvoiceListUseCase>(),
         getDetail: getIt<GetInvoiceDetailUseCase>(),
         markPaid: getIt<MarkInvoicePaidUseCase>(),
-        resend: getIt<ResendInvoiceUseCase>(),
+        send: getIt<SendInvoiceUseCase>(),
         cancel: getIt<CancelInvoiceUseCase>(),
         createManual: getIt<CreateManualInvoiceUseCase>(),
+      ));
+  getIt.registerFactory(() => InvoiceDetailCubit(
+        getDetail: getIt<GetInvoiceDetailUseCase>(),
+        markPaid: getIt<MarkInvoicePaidUseCase>(),
+        send: getIt<SendInvoiceUseCase>(),
+        cancel: getIt<CancelInvoiceUseCase>(),
       ));
 
   // Payable

@@ -30,7 +30,8 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       final result = await remoteDataSource.getStats();
       return Right(result.toEntity());
     } on DioException catch (e) {
-      return Left(ServerFailure(_extractError(e, 'Gagal memuat statistik invoice')));
+      return Left(
+          ServerFailure(_extractError(e, 'Gagal memuat statistik invoice')));
     }
   }
 
@@ -61,7 +62,8 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       );
       return Right(result.map((e) => e.toEntity()).toList());
     } on DioException catch (e) {
-      return Left(ServerFailure(_extractError(e, 'Gagal memuat daftar invoice')));
+      return Left(
+          ServerFailure(_extractError(e, 'Gagal memuat daftar invoice')));
     }
   }
 
@@ -73,7 +75,8 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       final result = await remoteDataSource.getInvoiceDetail(id);
       return Right(result.toEntity());
     } on DioException catch (e) {
-      return Left(ServerFailure(_extractError(e, 'Gagal memuat detail invoice')));
+      return Left(
+          ServerFailure(_extractError(e, 'Gagal memuat detail invoice')));
     }
   }
 
@@ -81,31 +84,34 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   Future<Either<Failure, void>> markAsPaid({
     required String id,
     required String paidAt,
-    required String method,
-    String? proofUrl,
+    double? paidAmount,
+    String? paymentProof,
+    String? accountCode,
   }) async {
     if (!await networkInfo.isConnected) return const Left(NetworkFailure());
     try {
       await remoteDataSource.markAsPaid(
         id: id,
         paidAt: paidAt,
-        method: method,
-        proofUrl: proofUrl,
+        paidAmount: paidAmount,
+        paymentProof: paymentProof,
+        accountCode: accountCode,
       );
       return const Right(null);
     } on DioException catch (e) {
-      return Left(ServerFailure(_extractError(e, 'Gagal menandai invoice sebagai lunas')));
+      return Left(ServerFailure(
+          _extractError(e, 'Gagal menandai invoice sebagai lunas')));
     }
   }
 
   @override
-  Future<Either<Failure, void>> resendInvoice(String id) async {
+  Future<Either<Failure, void>> sendInvoice(String id) async {
     if (!await networkInfo.isConnected) return const Left(NetworkFailure());
     try {
-      await remoteDataSource.resendInvoice(id);
+      await remoteDataSource.sendInvoice(id);
       return const Right(null);
     } on DioException catch (e) {
-      return Left(ServerFailure(_extractError(e, 'Gagal mengirim ulang invoice')));
+      return Left(ServerFailure(_extractError(e, 'Gagal mengirim invoice')));
     }
   }
 
@@ -119,7 +125,8 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       await remoteDataSource.cancelInvoice(id: id, reason: reason);
       return const Right(null);
     } on DioException catch (e) {
-      return Left(ServerFailure(_extractError(e, 'Gagal membatalkan invoice')));
+      return Left(
+          ServerFailure(_extractError(e, 'Gagal membatalkan invoice')));
     }
   }
 
@@ -131,7 +138,8 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       await remoteDataSource.createManualInvoice(body);
       return const Right(null);
     } on DioException catch (e) {
-      return Left(ServerFailure(_extractError(e, 'Gagal membuat invoice manual')));
+      return Left(
+          ServerFailure(_extractError(e, 'Gagal membuat invoice manual')));
     }
   }
 }

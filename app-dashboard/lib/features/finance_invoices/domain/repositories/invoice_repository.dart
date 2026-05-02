@@ -23,11 +23,12 @@ abstract class InvoiceRepository {
   Future<Either<Failure, void>> markAsPaid({
     required String id,
     required String paidAt,
-    required String method,
-    String? proofUrl,
+    double? paidAmount,
+    String? paymentProof,
+    String? accountCode,
   });
 
-  Future<Either<Failure, void>> resendInvoice(String id);
+  Future<Either<Failure, void>> sendInvoice(String id);
 
   Future<Either<Failure, void>> cancelInvoice({
     required String id,

@@ -5,7 +5,7 @@ import '../../domain/usecases/get_invoice_detail_usecase.dart';
 import '../../domain/usecases/get_invoice_list_usecase.dart';
 import '../../domain/usecases/get_invoice_stats_usecase.dart';
 import '../../domain/usecases/mark_invoice_paid_usecase.dart';
-import '../../domain/usecases/resend_invoice_usecase.dart';
+import '../../domain/usecases/send_invoice_usecase.dart';
 import 'invoice_state.dart';
 
 class InvoiceCubit extends Cubit<InvoiceState> {
@@ -13,7 +13,7 @@ class InvoiceCubit extends Cubit<InvoiceState> {
   final GetInvoiceListUseCase getInvoices;
   final GetInvoiceDetailUseCase getDetail;
   final MarkInvoicePaidUseCase markPaid;
-  final ResendInvoiceUseCase resend;
+  final SendInvoiceUseCase send;
   final CancelInvoiceUseCase cancel;
   final CreateManualInvoiceUseCase createManual;
 
@@ -24,7 +24,7 @@ class InvoiceCubit extends Cubit<InvoiceState> {
     required this.getInvoices,
     required this.getDetail,
     required this.markPaid,
-    required this.resend,
+    required this.send,
     required this.cancel,
     required this.createManual,
   }) : super(const InvoiceInitial());
@@ -126,8 +126,9 @@ class InvoiceCubit extends Cubit<InvoiceState> {
   Future<void> markAsPaid({
     required String id,
     required String paidAt,
-    required String method,
-    String? proofUrl,
+    double? paidAmount,
+    String? paymentProof,
+    String? accountCode,
   }) async {
     final current = state;
     if (current is! InvoiceLoaded) return;
@@ -135,8 +136,9 @@ class InvoiceCubit extends Cubit<InvoiceState> {
     final result = await markPaid(
       id: id,
       paidAt: paidAt,
-      method: method,
-      proofUrl: proofUrl,
+      paidAmount: paidAmount,
+      paymentProof: paymentProof,
+      accountCode: accountCode,
     );
 
     result.fold(
@@ -151,18 +153,21 @@ class InvoiceCubit extends Cubit<InvoiceState> {
     );
   }
 
-  Future<void> resendInvoice(String id) async {
+  Future<void> sendInvoice(String id) async {
     final current = state;
     if (current is! InvoiceLoaded) return;
 
-    final result = await resend(id);
+    final result = await send(id);
 
     result.fold(
       (failure) => emit(InvoiceError(failure.message)),
-      (_) => emit(InvoiceActionSuccess(
-        message: 'Invoice berhasil dikirim ulang',
-        previous: current,
-      )),
+      (_) async {
+        emit(InvoiceActionSuccess(
+          message: 'Invoice berhasil dikirim',
+          previous: current,
+        ));
+        await loadAll(filter: current.filter);
+      },
     );
   }
 

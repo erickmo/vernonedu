@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
@@ -1106,7 +1107,9 @@ class _InvoiceRowState extends State<_InvoiceRow> {
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: AnimatedContainer(
+      child: GestureDetector(
+        onTap: () => context.go('/finance/invoices/${inv.id}'),
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
         color: _hovered ? AppColors.primarySurface : AppColors.surface,
         child: Column(
@@ -1223,13 +1226,14 @@ class _InvoiceRowState extends State<_InvoiceRow> {
                             showInvoiceDetailModal(context, inv),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.email_outlined,
+                        icon: const Icon(Icons.send_outlined,
                             size: AppDimensions.iconMd,
                             color: AppColors.textSecondary),
-                        tooltip: 'Kirim Ulang',
-                        onPressed: inv.status != 'cancelled'
+                        tooltip: 'Kirim Invoice',
+                        onPressed: (inv.status == 'draft' ||
+                                inv.status == 'overdue')
                             ? () =>
-                                context.read<InvoiceCubit>().resendInvoice(inv.id)
+                                context.read<InvoiceCubit>().sendInvoice(inv.id)
                             : null,
                       ),
                     ],
@@ -1240,6 +1244,7 @@ class _InvoiceRowState extends State<_InvoiceRow> {
             const Divider(height: 1, color: AppColors.border),
           ],
         ),
+      ),
       ),
     );
   }
