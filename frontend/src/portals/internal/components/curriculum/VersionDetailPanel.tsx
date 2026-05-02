@@ -6,10 +6,12 @@ import { useCourseVersion, usePromoteCourseVersion } from '@/lib/api/curriculum'
 import { useAuth } from '@/lib/auth/useAuth'
 import { formatDateTime } from '@/lib/utils/format'
 import ModulesSection from './ModulesSection'
+import ProgramKarirSection from './ProgramKarirSection'
 
 interface Props {
   versionId: string
   typeId: string
+  courseTypeName?: string | null
 }
 
 function fmtDateTime(s?: string | number | null) {
@@ -17,7 +19,7 @@ function fmtDateTime(s?: string | number | null) {
   return formatDateTime(s)
 }
 
-export default function VersionDetailPanel({ versionId, typeId }: Props) {
+export default function VersionDetailPanel({ versionId, typeId, courseTypeName }: Props) {
   const { data: version, isLoading } = useCourseVersion(versionId)
   const promote = usePromoteCourseVersion(typeId)
   const { user } = useAuth()
@@ -101,6 +103,7 @@ export default function VersionDetailPanel({ versionId, typeId }: Props) {
       </div>
 
       <ModulesSection version={v} />
+      <ProgramKarirSection version={v} courseTypeName={courseTypeName} />
     </div>
   )
 }
