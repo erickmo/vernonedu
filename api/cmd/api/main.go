@@ -139,6 +139,9 @@ import (
 	updatemou "github.com/vernonedu/entrepreneurship-api/internal/command/update_mou"
 	deletemou "github.com/vernonedu/entrepreneurship-api/internal/command/delete_mou"
 	createbranch "github.com/vernonedu/entrepreneurship-api/internal/command/create_branch"
+	createokrkeyresult "github.com/vernonedu/entrepreneurship-api/internal/command/create_okr_keyresult"
+	deleteokrkeyresult "github.com/vernonedu/entrepreneurship-api/internal/command/delete_okr_keyresult"
+	updateokrkeyresult "github.com/vernonedu/entrepreneurship-api/internal/command/update_okr_keyresult"
 	createokrobjective "github.com/vernonedu/entrepreneurship-api/internal/command/create_okr_objective"
 	createinvestmentplan "github.com/vernonedu/entrepreneurship-api/internal/command/create_investment_plan"
 	updateinvestmentplan "github.com/vernonedu/entrepreneurship-api/internal/command/update_investment_plan"
@@ -237,6 +240,7 @@ import (
 	listbranches "github.com/vernonedu/entrepreneurship-api/internal/query/list_branches"
 	listokr "github.com/vernonedu/entrepreneurship-api/internal/query/list_okr"
 	getinvestmentplan "github.com/vernonedu/entrepreneurship-api/internal/query/get_investment_plan"
+	getokrobjective "github.com/vernonedu/entrepreneurship-api/internal/query/get_okr_objective"
 	listinvestments "github.com/vernonedu/entrepreneurship-api/internal/query/list_investment_plans"
 	getdelegation   "github.com/vernonedu/entrepreneurship-api/internal/query/get_delegation"
 	listdelegations  "github.com/vernonedu/entrepreneurship-api/internal/query/list_delegations"
@@ -1527,6 +1531,22 @@ func registerHandlers(p registerParams) error {
 	}
 	listOkrH := listokr.NewHandler(p.OkrRepo)
 	if err := p.QryBus.Register(&listokr.ListOkrQuery{}, adaptQueryHandler(listOkrH.Handle)); err != nil {
+		return err
+	}
+	getOkrObjectiveH := getokrobjective.NewHandler(p.OkrRepo)
+	if err := p.QryBus.Register(&getokrobjective.GetOkrObjectiveQuery{}, adaptQueryHandler(getOkrObjectiveH.Handle)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createokrkeyresult.CreateOkrKeyResultCommand{},
+		createokrkeyresult.NewHandler(p.OkrRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updateokrkeyresult.UpdateOkrKeyResultCommand{},
+		updateokrkeyresult.NewHandler(p.OkrRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deleteokrkeyresult.DeleteOkrKeyResultCommand{},
+		deleteokrkeyresult.NewHandler(p.OkrRepo, p.EventBus)); err != nil {
 		return err
 	}
 

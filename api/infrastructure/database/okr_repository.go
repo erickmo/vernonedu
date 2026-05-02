@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -91,6 +93,97 @@ func (r *OkrRepository) UpdateKeyResultProgress(ctx context.Context, id uuid.UUI
 		return fmt.Errorf("failed to update key result progress: %w", err)
 	}
 	return nil
+}
+
+func (r *OkrRepository) UpdateKeyResult(ctx context.Context, kr *okr.KeyResult) error {
+	res, err := r.db.ExecContext(ctx,
+		`UPDATE okr_key_results SET title=$1, progress=$2, updated_at=$3 WHERE id=$4`,
+		kr.Title, kr.Progress, time.Now(), kr.ID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update key result: %w", err)
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return okr.ErrKeyResultNotFound
+	}
+	return nil
+}
+
+func (r *OkrRepository) DeleteKeyResult(ctx context.Context, id uuid.UUID) error {
+	res, err := r.db.ExecContext(ctx, `DELETE FROM okr_key_results WHERE id=$1`, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete key result: %w", err)
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return okr.ErrKeyResultNotFound
+	}
+	return nil
+}
+
+func (r *OkrRepository) GetKeyResult(ctx context.Context, id uuid.UUID) (*okr.KeyResult, error) {
+	var rec okrKeyResultRecord
+	err := r.db.GetContext(ctx, &rec,
+		`SELECT id, objective_id, title, progress, created_at, updated_at FROM okr_key_results WHERE id=$1`, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, okr.ErrKeyResultNotFound
+		}
+		return nil, fmt.Errorf("failed to get key result: %w", err)
+	}
+	return &okr.KeyResult{
+		ID:          rec.ID,
+		ObjectiveID: rec.ObjectiveID,
+		Title:       rec.Title,
+		Progress:    rec.Progress,
+		CreatedAt:   rec.CreatedAt,
+		UpdatedAt:   rec.UpdatedAt,
+	}, nil
+}
+
+func (r *OkrRepository) GetByID(ctx context.Context, id uuid.UUID) (*okr.Objective, error) {
+	var rec okrObjectiveRecord
+	err := r.db.GetContext(ctx, &rec,
+		`SELECT id, title, owner_id, owner_name, period, level, status, progress, created_at, updated_at FROM okr_objectives WHERE id=$1`, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, okr.ErrObjectiveNotFound
+		}
+		return nil, fmt.Errorf("failed to get okr objective: %w", err)
+	}
+
+	obj := &okr.Objective{
+		ID:        rec.ID,
+		Title:     rec.Title,
+		OwnerID:   rec.OwnerID,
+		OwnerName: rec.OwnerName,
+		Period:    rec.Period,
+		Level:     rec.Level,
+		Status:    rec.Status,
+		Progress:  rec.Progress,
+		CreatedAt: rec.CreatedAt,
+		UpdatedAt: rec.UpdatedAt,
+	}
+
+	var krRecs []okrKeyResultRecord
+	if err := r.db.SelectContext(ctx, &krRecs,
+		`SELECT id, objective_id, title, progress, created_at, updated_at FROM okr_key_results WHERE objective_id=$1 ORDER BY created_at ASC`, id); err != nil {
+		return nil, fmt.Errorf("failed to list key results: %w", err)
+	}
+	krs := make([]*okr.KeyResult, len(krRecs))
+	for j, kr := range krRecs {
+		krs[j] = &okr.KeyResult{
+			ID:          kr.ID,
+			ObjectiveID: kr.ObjectiveID,
+			Title:       kr.Title,
+			Progress:    kr.Progress,
+			CreatedAt:   kr.CreatedAt,
+			UpdatedAt:   kr.UpdatedAt,
+		}
+	}
+	obj.KeyResults = krs
+	return obj, nil
 }
 
 func (r *OkrRepository) List(ctx context.Context, level string) ([]*okr.Objective, error) {

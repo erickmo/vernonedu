@@ -8,7 +8,10 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrObjectiveNotFound = errors.New("okr objective not found")
+var (
+	ErrObjectiveNotFound = errors.New("okr objective not found")
+	ErrKeyResultNotFound = errors.New("okr key result not found")
+)
 
 type Objective struct {
 	ID         uuid.UUID
@@ -38,8 +41,12 @@ type WriteRepository interface {
 	Update(ctx context.Context, o *Objective) error
 	SaveKeyResult(ctx context.Context, kr *KeyResult) error
 	UpdateKeyResultProgress(ctx context.Context, id uuid.UUID, progress int) error
+	UpdateKeyResult(ctx context.Context, kr *KeyResult) error
+	DeleteKeyResult(ctx context.Context, id uuid.UUID) error
+	GetKeyResult(ctx context.Context, id uuid.UUID) (*KeyResult, error)
 }
 
 type ReadRepository interface {
 	List(ctx context.Context, level string) ([]*Objective, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*Objective, error)
 }
