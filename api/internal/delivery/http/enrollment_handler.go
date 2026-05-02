@@ -10,6 +10,8 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/vernonedu/entrepreneurship-api/internal/command/create_enrollment"
+	grantappaccess "github.com/vernonedu/entrepreneurship-api/internal/command/grant_app_access"
+	revokeappaccess "github.com/vernonedu/entrepreneurship-api/internal/command/revoke_app_access"
 	updateenrollmentpayment "github.com/vernonedu/entrepreneurship-api/internal/command/update_enrollment_payment_status"
 	updateenrollmentstatus "github.com/vernonedu/entrepreneurship-api/internal/command/update_enrollment_status"
 	"github.com/vernonedu/entrepreneurship-api/internal/query/get_enrollment"
@@ -168,6 +170,105 @@ func (h *EnrollmentHandler) UpdatePaymentStatus(w http.ResponseWriter, r *http.R
 	writeJSON(w, http.StatusOK, map[string]string{"message": "enrollment payment status updated"})
 }
 
+// resolveEnrollment looks up an enrollment and returns its student and batch IDs.
+func (h *EnrollmentHandler) resolveEnrollment(r *http.Request, enrollmentID uuid.UUID) (*get_enrollment.EnrollmentReadModel, error) {
+	result, err := h.qryBus.Execute(r.Context(), &get_enrollment.GetEnrollmentQuery{EnrollmentID: enrollmentID})
+	if err != nil {
+		return nil, err
+	}
+	model, ok := result.(*get_enrollment.EnrollmentReadModel)
+	if !ok {
+		return nil, http.ErrAbortHandler
+	}
+	return model, nil
+}
+
+type GrantAppAccessRequest struct {
+	AppName string `json:"app_name"`
+}
+
+func (h *EnrollmentHandler) GrantAppAccess(w http.ResponseWriter, r *http.Request) {
+	enrollmentIDStr := chi.URLParam(r, "id")
+	enrollmentID, err := uuid.Parse(enrollmentIDStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid enrollment id")
+		return
+	}
+
+	var req GrantAppAccessRequest
+	if r.ContentLength > 0 {
+		_ = json.NewDecoder(r.Body).Decode(&req)
+	}
+
+	model, err := h.resolveEnrollment(r, enrollmentID)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to resolve enrollment for grant app access")
+		writeError(w, http.StatusNotFound, "enrollment not found")
+		return
+	}
+
+	appName := req.AppName
+	if appName == "" {
+		appName = "app-student"
+	}
+
+	cmd := &grantappaccess.GrantAppAccessCommand{
+		StudentID: model.StudentID,
+		AppName:   appName,
+		BatchID:   model.CourseBatchID,
+	}
+	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
+		log.Error().Err(err).Msg("failed to grant app access")
+		writeError(w, http.StatusInternalServerError, "failed to grant app access")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"message": "app access granted"})
+}
+
+type RevokeAppAccessRequest struct {
+	Reason string `json:"reason"`
+}
+
+func (h *EnrollmentHandler) RevokeAppAccess(w http.ResponseWriter, r *http.Request) {
+	enrollmentIDStr := chi.URLParam(r, "id")
+	enrollmentID, err := uuid.Parse(enrollmentIDStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid enrollment id")
+		return
+	}
+
+	var req RevokeAppAccessRequest
+	if r.ContentLength > 0 {
+		_ = json.NewDecoder(r.Body).Decode(&req)
+	}
+
+	model, err := h.resolveEnrollment(r, enrollmentID)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to resolve enrollment for revoke app access")
+		writeError(w, http.StatusNotFound, "enrollment not found")
+		return
+	}
+
+	reason := req.Reason
+	if reason == "" {
+		reason = "manual_revoke"
+	}
+
+	cmd := &revokeappaccess.RevokeAppAccessCommand{
+		StudentID: model.StudentID,
+		BatchID:   model.CourseBatchID,
+		Reason:    reason,
+	}
+	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
+		log.Error().Err(err).Msg("failed to revoke app access")
+		writeError(w, http.StatusInternalServerError, "failed to revoke app access")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"message": "app access revoked"})
+}
+
 func RegisterEnrollmentRoutes(h *EnrollmentHandler, r chi.Router) {
 	r.Post("/api/v1/enrollments", h.EnrollStudent)
 	r.Get("/api/v1/enrollments/summary", h.ListBatchSummary)
@@ -175,4 +276,6 @@ func RegisterEnrollmentRoutes(h *EnrollmentHandler, r chi.Router) {
 	r.Get("/api/v1/enrollments/{id}", h.GetByID)
 	r.Put("/api/v1/enrollments/{id}/status", h.UpdateStatus)
 	r.Put("/api/v1/enrollments/{id}/payment-status", h.UpdatePaymentStatus)
+	r.Post("/api/v1/enrollments/{id}/access/grant", h.GrantAppAccess)
+	r.Post("/api/v1/enrollments/{id}/access/revoke", h.RevokeAppAccess)
 }
