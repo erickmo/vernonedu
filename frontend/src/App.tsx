@@ -19,6 +19,9 @@ import Payments from '@/portals/internal/pages/Payments'
 import Courses from '@/portals/internal/pages/Courses'
 import CourseCreatePage from '@/portals/internal/pages/CourseCreatePage'
 import CourseEditPage from '@/portals/internal/pages/CourseEditPage'
+import CertificateTemplates from '@/portals/internal/pages/CertificateTemplates'
+import CertificateTemplateCreatePage from '@/portals/internal/pages/CertificateTemplateCreatePage'
+import CertificateTemplateEditPage from '@/portals/internal/pages/CertificateTemplateEditPage'
 import Students from '@/portals/internal/pages/Students'
 import Departments from '@/portals/internal/pages/Departments'
 import TeamMembers from '@/portals/internal/pages/TeamMembers'
@@ -113,6 +116,9 @@ export default function App() {
           <Route path="courses" element={<Courses />} />
           <Route path="courses/new" element={<CourseCreatePage />} />
           <Route path="courses/:id/edit" element={<CourseEditPage />} />
+          <Route path="certificate-templates" element={<CertificateTemplates />} />
+          <Route path="certificate-templates/new" element={<CertificateTemplateCreatePage />} />
+          <Route path="certificate-templates/:id/edit" element={<CertificateTemplateEditPage />} />
           <Route path="students" element={<Students />} />
           <Route path="departments" element={<Departments />} />
           <Route path="team-members" element={<TeamMembers />} />
