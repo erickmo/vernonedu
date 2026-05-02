@@ -24,6 +24,7 @@ interface ListPageTemplateProps<T> {
 
   search?: SearchConfig
   filterTabs?: FilterTabsConfig
+  filters?: ReactNode
 
   columns: Column<T>[]
   data: T[]
@@ -40,6 +41,7 @@ export default function ListPageTemplate<T>({
   actions,
   search,
   filterTabs,
+  filters,
   columns,
   data,
   loading,
@@ -48,7 +50,7 @@ export default function ListPageTemplate<T>({
   rowKey,
   onRowClick,
 }: ListPageTemplateProps<T>) {
-  const hasFilters = search || filterTabs
+  const hasFilters = search || filterTabs || filters
 
   return (
     <div className="space-y-5">
@@ -71,6 +73,7 @@ export default function ListPageTemplate<T>({
               onChange={filterTabs.onChange}
             />
           )}
+          {filters}
         </div>
       )}
 

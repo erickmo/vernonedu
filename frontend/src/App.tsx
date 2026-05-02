@@ -17,6 +17,8 @@ import InternalDashboard from '@/portals/internal/pages/Dashboard'
 import Enrollments from '@/portals/internal/pages/Enrollments'
 import Payments from '@/portals/internal/pages/Payments'
 import Courses from '@/portals/internal/pages/Courses'
+import CourseCreatePage from '@/portals/internal/pages/CourseCreatePage'
+import CourseEditPage from '@/portals/internal/pages/CourseEditPage'
 import Students from '@/portals/internal/pages/Students'
 import Departments from '@/portals/internal/pages/Departments'
 import TeamMembers from '@/portals/internal/pages/TeamMembers'
@@ -109,6 +111,8 @@ export default function App() {
           <Route path="enrollments" element={<Enrollments />} />
           <Route path="payments" element={<Payments />} />
           <Route path="courses" element={<Courses />} />
+          <Route path="courses/new" element={<CourseCreatePage />} />
+          <Route path="courses/:id/edit" element={<CourseEditPage />} />
           <Route path="students" element={<Students />} />
           <Route path="departments" element={<Departments />} />
           <Route path="team-members" element={<TeamMembers />} />

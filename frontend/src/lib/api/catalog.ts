@@ -3,6 +3,10 @@ import { apiClient } from './client'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
+/**
+ * @deprecated For admin views, use `MasterCourse` from `@/types/mastercourse` and hooks from `@/lib/api/curriculum`.
+ * Retained for student catalog (composite view) until Iter 1B.
+ */
 export interface Course {
   id: string
   name: string
@@ -82,6 +86,7 @@ export interface PaginatedResponse<T> {
 
 // ── Course hooks ───────────────────────────────────────────────────────────
 
+/** @deprecated Use `useMasterCourses` from `@/lib/api/curriculum` for admin views. */
 export function useCourses(filters: CourseFilters = {}) {
   return useQuery({
     queryKey: ['courses', filters],
@@ -90,6 +95,7 @@ export function useCourses(filters: CourseFilters = {}) {
   })
 }
 
+/** @deprecated Use `useMasterCourse` from `@/lib/api/curriculum` for admin views. */
 export function useCourse(id: string) {
   return useQuery({
     queryKey: ['courses', id],
