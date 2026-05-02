@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { BookOpen, Edit } from 'lucide-react'
 import DetailPageLayout, { type DetailTab, type BreadcrumbItem } from '@/components/layout/DetailPageLayout'
+import VariantsTab from '@/portals/internal/components/curriculum/VariantsTab'
 import StatusBadge from '@/components/shared/StatusBadge'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 import Button from '@/components/ui/Button'
@@ -31,8 +32,8 @@ export default function CourseDetail() {
   ]
 
   function handleTabChange(v: string) {
-    if (v !== 'overview') return
-    setTab(v)
+    if (v === 'overview' || v === 'variants') setTab(v)
+    // versions/cert/settings remain disabled until iter 1C/1D/1E
   }
 
   return (
@@ -97,6 +98,7 @@ export default function CourseDetail() {
           </section>
         </div>
       )}
+      {tab === 'variants' && <VariantsTab courseId={id} />}
     </DetailPageLayout>
   )
 }
