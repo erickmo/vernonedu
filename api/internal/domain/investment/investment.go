@@ -31,6 +31,7 @@ type WriteRepository interface {
 }
 
 type ReadRepository interface {
+	GetByID(ctx context.Context, id uuid.UUID) (*InvestmentPlan, error)
 	List(ctx context.Context, offset, limit int, status string) ([]*InvestmentPlan, int, error)
 	Stats(ctx context.Context) (*InvestmentStats, error)
 }
