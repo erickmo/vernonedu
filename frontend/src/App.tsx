@@ -16,6 +16,9 @@ import StudentProfile from '@/portals/student/pages/Profile'
 import InternalDashboard from '@/portals/internal/pages/Dashboard'
 import Enrollments from '@/portals/internal/pages/Enrollments'
 import Payments from '@/portals/internal/pages/Payments'
+import Invoices from '@/portals/internal/pages/Invoices'
+import InvoiceCreatePage from '@/portals/internal/pages/InvoiceCreatePage'
+import InvoiceDetail from '@/portals/internal/pages/detail/InvoiceDetail'
 import Courses from '@/portals/internal/pages/Courses'
 import CourseCreatePage from '@/portals/internal/pages/CourseCreatePage'
 import CourseEditPage from '@/portals/internal/pages/CourseEditPage'
@@ -23,6 +26,9 @@ import CertificateTemplates from '@/portals/internal/pages/CertificateTemplates'
 import Holidays from '@/portals/internal/pages/Holidays'
 import CertificateTemplateCreatePage from '@/portals/internal/pages/CertificateTemplateCreatePage'
 import CertificateTemplateEditPage from '@/portals/internal/pages/CertificateTemplateEditPage'
+import InternalCertificates from '@/portals/internal/pages/Certificates'
+import CertificateIssuePage from '@/portals/internal/pages/CertificateIssuePage'
+import CertificateDetail from '@/portals/internal/pages/detail/CertificateDetail'
 import Students from '@/portals/internal/pages/Students'
 import Departments from '@/portals/internal/pages/Departments'
 import TeamMembers from '@/portals/internal/pages/TeamMembers'
@@ -124,12 +130,18 @@ export default function App() {
           <Route index element={<InternalDashboard />} />
           <Route path="enrollments" element={<Enrollments />} />
           <Route path="payments" element={<Payments />} />
+          <Route path="invoices" element={<Invoices />} />
+          <Route path="invoices/new" element={<InvoiceCreatePage />} />
+          <Route path="invoices/:id" element={<InvoiceDetail />} />
           <Route path="courses" element={<Courses />} />
           <Route path="courses/new" element={<CourseCreatePage />} />
           <Route path="courses/:id/edit" element={<CourseEditPage />} />
           <Route path="certificate-templates" element={<CertificateTemplates />} />
           <Route path="certificate-templates/new" element={<CertificateTemplateCreatePage />} />
           <Route path="certificate-templates/:id/edit" element={<CertificateTemplateEditPage />} />
+          <Route path="certificates" element={<InternalCertificates />} />
+          <Route path="certificates/new" element={<CertificateIssuePage />} />
+          <Route path="certificates/:id" element={<CertificateDetail />} />
           <Route path="students" element={<Students />} />
           <Route path="departments" element={<Departments />} />
           <Route path="team-members" element={<TeamMembers />} />
