@@ -5,6 +5,7 @@ import DetailPageLayout, { BreadcrumbItem, DetailTab } from '@/components/layout
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 import StatusBadge from '@/components/shared/StatusBadge'
 import { useEnrollment } from '@/lib/api/enrollment'
+import AppAccessActions from '@/portals/internal/components/enrollment/AppAccessActions'
 
 const TABS: DetailTab[] = [
   { value: 'overview', label: 'Overview' },
@@ -57,22 +58,34 @@ export default function EnrollmentDetail() {
       onTabChange={setActiveTab}
     >
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-neutral-100 p-4">
-            <p className="text-xs text-neutral-400 mb-1">Student ID</p>
-            <p className="text-xs font-mono text-neutral-700 break-all">{enrollment.student_id}</p>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap bg-white rounded-xl border border-neutral-100 p-4">
+            <AppAccessActions enrollmentId={id} />
+            <button
+              type="button"
+              onClick={() => navigate(`/internal/enrollments/${id}/edit`)}
+              className="text-sm px-3 py-1.5 rounded-md border border-neutral-200 hover:bg-neutral-50 text-neutral-700"
+            >
+              Edit Enrollment
+            </button>
           </div>
-          <div className="bg-white rounded-xl border border-neutral-100 p-4">
-            <p className="text-xs text-neutral-400 mb-1">Batch ID</p>
-            <p className="text-xs font-mono text-neutral-700 break-all">{enrollment.batch_id}</p>
-          </div>
-          <div className="bg-white rounded-xl border border-neutral-100 p-4">
-            <p className="text-xs text-neutral-400 mb-1">Status</p>
-            <StatusBadge status={enrollment.status} />
-          </div>
-          <div className="bg-white rounded-xl border border-neutral-100 p-4">
-            <p className="text-xs text-neutral-400 mb-1">Completion</p>
-            <p className="text-xl font-bold text-neutral-900">{enrollment.completion_percent}%</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl border border-neutral-100 p-4">
+              <p className="text-xs text-neutral-400 mb-1">Student ID</p>
+              <p className="text-xs font-mono text-neutral-700 break-all">{enrollment.student_id}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-neutral-100 p-4">
+              <p className="text-xs text-neutral-400 mb-1">Batch ID</p>
+              <p className="text-xs font-mono text-neutral-700 break-all">{enrollment.batch_id}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-neutral-100 p-4">
+              <p className="text-xs text-neutral-400 mb-1">Status</p>
+              <StatusBadge status={enrollment.status} />
+            </div>
+            <div className="bg-white rounded-xl border border-neutral-100 p-4">
+              <p className="text-xs text-neutral-400 mb-1">Completion</p>
+              <p className="text-xl font-bold text-neutral-900">{enrollment.completion_percent}%</p>
+            </div>
           </div>
         </div>
       )}

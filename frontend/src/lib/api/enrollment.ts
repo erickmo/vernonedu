@@ -74,8 +74,8 @@ export function useCreateEnrollment() {
   return useMutation({
     // Backend (api/internal/delivery/http/enrollment_handler.go) requires
     // student_id + course_batch_id. Extra fields (enrollment_date,
-    // payment_method, voucher_code) are accepted by the frontend form for
-    // future expansion + invoice automation; the API ignores unknowns.
+    // payment_method, voucher_code) are accepted by the form for invoice
+    // automation; the API ignores unknown fields.
     mutationFn: (payload: {
       student_id: string
       course_batch_id: string
@@ -84,7 +84,7 @@ export function useCreateEnrollment() {
       voucher_code?: string
     }) =>
       apiClient
-        .post<{ id?: string; data?: Enrollment }>('/enrollments', payload)
+        .post<{ id?: string; data?: Enrollment } | Enrollment>('/enrollments', payload)
         .then((r) => r.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['enrollments'] }),
   })
@@ -115,8 +115,9 @@ export function useUpdateEnrollmentPaymentStatus() {
 }
 
 // ── Student App Access ────────────────────────────────────────────────────
-// Backend endpoints not yet implemented — placeholders matching the planned
-// shape: POST /enrollments/{id}/access/grant, /access/revoke.
+// Backend endpoints planned but not yet implemented. Shape:
+// POST /api/v1/enrollments/{id}/access/grant
+// POST /api/v1/enrollments/{id}/access/revoke
 
 export function useGrantAppAccess() {
   const qc = useQueryClient()
