@@ -77,10 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
     apiClient
-      .get<User>('/auth/me')
+      .get<{ data: User } | User>('/auth/me')
       .then((res) => {
-        setUser(res.data)
-        localStorage.setItem(USER_KEY, JSON.stringify(res.data))
+        const u = (res.data as { data?: User }).data ?? (res.data as User)
+        setUser(u)
+        localStorage.setItem(USER_KEY, JSON.stringify(u))
       })
       .catch(() => clear())
       .finally(() => setIsLoading(false))
