@@ -5,6 +5,7 @@ import '../models/invoice_model.dart';
 import '../models/coa_model.dart';
 import '../models/budget_item_model.dart';
 import '../models/bank_account_model.dart';
+import '../models/coa_tree_node_model.dart';
 
 abstract class AccountingRemoteDataSource {
   Future<AccountingStatsModel> getStats({
@@ -57,6 +58,8 @@ abstract class AccountingRemoteDataSource {
   });
 
   Future<void> deleteBankAccount(String id);
+
+  Future<List<CoaTreeNodeModel>> getCoaTree();
 }
 
 class AccountingRemoteDataSourceImpl implements AccountingRemoteDataSource {
@@ -278,5 +281,21 @@ class AccountingRemoteDataSourceImpl implements AccountingRemoteDataSource {
   @override
   Future<void> deleteBankAccount(String id) async {
     await _dio.delete('/accounting/bank-accounts/$id');
+  }
+
+  // -------- Chart of Accounts (Tree) --------
+
+  @override
+  Future<List<CoaTreeNodeModel>> getCoaTree() async {
+    final res = await _dio.get('/accounting/coa/tree');
+    final raw = res.data;
+    final list = (raw is Map && raw['data'] is List)
+        ? raw['data'] as List
+        : raw is List
+            ? raw
+            : <dynamic>[];
+    return list
+        .map((e) => CoaTreeNodeModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

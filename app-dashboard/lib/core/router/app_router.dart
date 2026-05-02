@@ -270,6 +270,11 @@ class AppRouter {
                         const NoTransitionPage(child: BankAccountsPage()),
                   ),
                   GoRoute(
+                    path: 'coa-tree',
+                    pageBuilder: (_, __) =>
+                        const NoTransitionPage(child: CoaTreePage()),
+                  ),
+                  GoRoute(
                     path: 'invoices',
                     pageBuilder: (_, __) =>
                         const NoTransitionPage(child: InvoicePage()),

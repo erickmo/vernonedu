@@ -6,6 +6,7 @@ import '../entities/invoice_entity.dart';
 import '../entities/coa_entity.dart';
 import '../entities/budget_item_entity.dart';
 import '../entities/bank_account_entity.dart';
+import '../entities/coa_tree_node_entity.dart';
 
 abstract class AccountingRepository {
   Future<Either<Failure, AccountingStatsEntity>> getStats({
@@ -59,4 +60,8 @@ abstract class AccountingRepository {
   Future<Either<Failure, void>> updateBankAccount(BankAccountEntity account);
 
   Future<Either<Failure, void>> deleteBankAccount(String id);
+
+  // -------- Chart of Accounts (Tree) --------
+
+  Future<Either<Failure, List<CoaTreeNodeEntity>>> getCoaTree();
 }

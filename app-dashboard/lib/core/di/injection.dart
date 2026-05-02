@@ -164,8 +164,10 @@ import '../../features/accounting/domain/usecases/get_bank_account_usecase.dart'
 import '../../features/accounting/domain/usecases/create_bank_account_usecase.dart';
 import '../../features/accounting/domain/usecases/update_bank_account_usecase.dart';
 import '../../features/accounting/domain/usecases/delete_bank_account_usecase.dart';
+import '../../features/accounting/domain/usecases/get_coa_tree_usecase.dart';
 import '../../features/accounting/presentation/cubit/accounting_cubit.dart';
 import '../../features/accounting/presentation/cubit/bank_account_cubit.dart';
+import '../../features/accounting/presentation/cubit/coa_tree_cubit.dart';
 import '../../features/finance/presentation/cubit/finance_dashboard_cubit.dart';
 import '../../features/finance_reports/data/datasources/finance_reports_remote_datasource.dart';
 import '../../features/finance_reports/data/repositories/finance_reports_repository_impl.dart';
@@ -685,6 +687,12 @@ Future<void> configureDependencies() async {
         createUseCase: getIt<CreateBankAccountUseCase>(),
         updateUseCase: getIt<UpdateBankAccountUseCase>(),
         deleteUseCase: getIt<DeleteBankAccountUseCase>(),
+      ));
+
+  // Accounting — COA Tree
+  getIt.registerLazySingleton(() => GetCoaTreeUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => CoaTreeCubit(
+        getCoaTreeUseCase: getIt<GetCoaTreeUseCase>(),
       ));
   // Marketing
   getIt.registerSingleton<MarketingRemoteDataSource>(

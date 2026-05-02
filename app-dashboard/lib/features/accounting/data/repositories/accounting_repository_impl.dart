@@ -8,6 +8,7 @@ import '../../domain/entities/invoice_entity.dart';
 import '../../domain/entities/coa_entity.dart';
 import '../../domain/entities/budget_item_entity.dart';
 import '../../domain/entities/bank_account_entity.dart';
+import '../../domain/entities/coa_tree_node_entity.dart';
 import '../../domain/repositories/accounting_repository.dart';
 import '../datasources/accounting_remote_datasource.dart';
 import '../models/bank_account_model.dart';
@@ -218,6 +219,19 @@ class AccountingRepositoryImpl implements AccountingRepository {
       return const Right(null);
     } on DioException catch (e) {
       return Left(ServerFailure(_extractError(e, 'Gagal menghapus rekening bank')));
+    }
+  }
+
+  // -------- Chart of Accounts (Tree) --------
+
+  @override
+  Future<Either<Failure, List<CoaTreeNodeEntity>>> getCoaTree() async {
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
+    try {
+      final result = await remoteDataSource.getCoaTree();
+      return Right(result.map((e) => e.toEntity()).toList());
+    } on DioException catch (e) {
+      return Left(ServerFailure(_extractError(e, 'Gagal memuat pohon akun')));
     }
   }
 }
