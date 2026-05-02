@@ -22,7 +22,6 @@ export interface CoaAccount {
   updated_at?: string
 }
 
-// Tree node — server may return flat list or pre-built tree.
 export interface CoaTreeNode extends CoaAccount {
   children?: CoaTreeNode[]
 }

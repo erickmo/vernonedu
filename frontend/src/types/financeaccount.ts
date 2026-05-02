@@ -9,8 +9,6 @@ export const FINANCE_ACCOUNT_KINDS = ['bank', 'cash'] as const
 export type FinanceAccountKind = (typeof FINANCE_ACCOUNT_KINDS)[number]
 
 export interface FinanceAccount extends CoaAccount {
-  // FinanceAccount is a CoA row scoped to bank/cash usage. Backend keeps
-  // the same shape as CoaAccount; this alias documents intent.
   kind?: FinanceAccountKind
 }
 

@@ -101,6 +101,11 @@ import FranchiseEnrollments from '@/portals/franchise/pages/Enrollments'
 import FranchisePayments from '@/portals/franchise/pages/Payments'
 import FranchiseTeamMembers from '@/portals/franchise/pages/TeamMembers'
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
+// Accounting pages
+import CoaTree from '@/portals/internal/pages/finance/CoaTree'
+import FinanceAccounts from '@/portals/internal/pages/finance/FinanceAccounts'
+import Transactions from '@/portals/internal/pages/finance/Transactions'
+import Payables from '@/portals/internal/pages/finance/Payables'
 // BizDev pages
 import BMC from '@/portals/internal/pages/bizdev/BMC'
 import OKR from '@/portals/internal/pages/bizdev/OKR'
@@ -242,6 +247,10 @@ export default function App() {
           {/* Domain overviews */}
           <Route path="academic" element={<AcademicOverview />} />
           <Route path="finance" element={<FinanceOverview />} />
+          <Route path="finance/coa" element={<CoaTree />} />
+          <Route path="finance/accounts" element={<FinanceAccounts />} />
+          <Route path="finance/transactions" element={<Transactions />} />
+          <Route path="finance/payables" element={<Payables />} />
           <Route path="finance/reports/balance-sheet" element={<BalanceSheet />} />
           <Route path="finance/reports/profit-loss" element={<ProfitLoss />} />
           <Route path="finance/reports/cash-flow" element={<CashFlow />} />
