@@ -4,6 +4,7 @@ import '../models/transaction_model.dart';
 import '../models/invoice_model.dart';
 import '../models/coa_model.dart';
 import '../models/budget_item_model.dart';
+import '../models/bank_account_model.dart';
 
 abstract class AccountingRemoteDataSource {
   Future<AccountingStatsModel> getStats({
@@ -40,6 +41,22 @@ abstract class AccountingRemoteDataSource {
     required int month,
     required int year,
   });
+
+  Future<List<BankAccountModel>> listBankAccounts({
+    String? branchId,
+    bool includeInactive = false,
+  });
+
+  Future<void> createBankAccount({required Map<String, dynamic> body});
+
+  Future<BankAccountModel> getBankAccount(String id);
+
+  Future<void> updateBankAccount({
+    required String id,
+    required Map<String, dynamic> body,
+  });
+
+  Future<void> deleteBankAccount(String id);
 }
 
 class AccountingRemoteDataSourceImpl implements AccountingRemoteDataSource {
@@ -207,5 +224,59 @@ class AccountingRemoteDataSourceImpl implements AccountingRemoteDataSource {
     return list
         .map((e) => BudgetItemModel.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  // -------- Bank Accounts --------
+
+  @override
+  Future<List<BankAccountModel>> listBankAccounts({
+    String? branchId,
+    bool includeInactive = false,
+  }) async {
+    final params = <String, dynamic>{};
+    if (branchId != null && branchId.isNotEmpty) params['branch_id'] = branchId;
+    if (includeInactive) params['include_inactive'] = 'true';
+
+    final res = await _dio.get(
+      '/accounting/bank-accounts',
+      queryParameters: params.isEmpty ? null : params,
+    );
+    final raw = res.data;
+    final list = (raw is Map && raw['data'] is List)
+        ? raw['data'] as List
+        : raw is List
+            ? raw
+            : <dynamic>[];
+    return list
+        .map((e) => BankAccountModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<void> createBankAccount({required Map<String, dynamic> body}) async {
+    await _dio.post('/accounting/bank-accounts', data: body);
+  }
+
+  @override
+  Future<BankAccountModel> getBankAccount(String id) async {
+    final res = await _dio.get('/accounting/bank-accounts/$id');
+    final raw = res.data;
+    final json = (raw is Map && raw['data'] != null)
+        ? raw['data'] as Map<String, dynamic>
+        : raw as Map<String, dynamic>;
+    return BankAccountModel.fromJson(json);
+  }
+
+  @override
+  Future<void> updateBankAccount({
+    required String id,
+    required Map<String, dynamic> body,
+  }) async {
+    await _dio.put('/accounting/bank-accounts/$id', data: body);
+  }
+
+  @override
+  Future<void> deleteBankAccount(String id) async {
+    await _dio.delete('/accounting/bank-accounts/$id');
   }
 }

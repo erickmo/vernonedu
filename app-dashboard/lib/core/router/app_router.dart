@@ -265,6 +265,11 @@ class AppRouter {
                         const NoTransitionPage(child: ChartOfAccountsPage()),
                   ),
                   GoRoute(
+                    path: 'bank-accounts',
+                    pageBuilder: (_, __) =>
+                        const NoTransitionPage(child: BankAccountsPage()),
+                  ),
+                  GoRoute(
                     path: 'invoices',
                     pageBuilder: (_, __) =>
                         const NoTransitionPage(child: InvoicePage()),

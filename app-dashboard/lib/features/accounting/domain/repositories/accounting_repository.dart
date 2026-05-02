@@ -5,6 +5,7 @@ import '../entities/transaction_entity.dart';
 import '../entities/invoice_entity.dart';
 import '../entities/coa_entity.dart';
 import '../entities/budget_item_entity.dart';
+import '../entities/bank_account_entity.dart';
 
 abstract class AccountingRepository {
   Future<Either<Failure, AccountingStatsEntity>> getStats({
@@ -43,4 +44,19 @@ abstract class AccountingRepository {
     required int month,
     required int year,
   });
+
+  // -------- Bank Accounts --------
+
+  Future<Either<Failure, List<BankAccountEntity>>> listBankAccounts({
+    String? branchId,
+    bool includeInactive,
+  });
+
+  Future<Either<Failure, BankAccountEntity>> getBankAccount(String id);
+
+  Future<Either<Failure, void>> createBankAccount(BankAccountEntity account);
+
+  Future<Either<Failure, void>> updateBankAccount(BankAccountEntity account);
+
+  Future<Either<Failure, void>> deleteBankAccount(String id);
 }

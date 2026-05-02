@@ -159,7 +159,13 @@ import '../../features/accounting/domain/usecases/get_invoices_usecase.dart';
 import '../../features/accounting/domain/usecases/update_invoice_status_usecase.dart';
 import '../../features/accounting/domain/usecases/get_coa_usecase.dart';
 import '../../features/accounting/domain/usecases/get_budget_vs_actual_usecase.dart';
+import '../../features/accounting/domain/usecases/list_bank_accounts_usecase.dart';
+import '../../features/accounting/domain/usecases/get_bank_account_usecase.dart';
+import '../../features/accounting/domain/usecases/create_bank_account_usecase.dart';
+import '../../features/accounting/domain/usecases/update_bank_account_usecase.dart';
+import '../../features/accounting/domain/usecases/delete_bank_account_usecase.dart';
 import '../../features/accounting/presentation/cubit/accounting_cubit.dart';
+import '../../features/accounting/presentation/cubit/bank_account_cubit.dart';
 import '../../features/finance/presentation/cubit/finance_dashboard_cubit.dart';
 import '../../features/finance_reports/data/datasources/finance_reports_remote_datasource.dart';
 import '../../features/finance_reports/data/repositories/finance_reports_repository_impl.dart';
@@ -667,6 +673,19 @@ Future<void> configureDependencies() async {
     getCoaUseCase: getIt<GetCoaUseCase>(),
     getBudgetVsActualUseCase: getIt<GetBudgetVsActualUseCase>(),
   ));
+
+  // Accounting — Bank Accounts
+  getIt.registerLazySingleton(() => ListBankAccountsUseCase(getIt<AccountingRepository>()));
+  getIt.registerLazySingleton(() => GetBankAccountUseCase(getIt<AccountingRepository>()));
+  getIt.registerLazySingleton(() => CreateBankAccountUseCase(getIt<AccountingRepository>()));
+  getIt.registerLazySingleton(() => UpdateBankAccountUseCase(getIt<AccountingRepository>()));
+  getIt.registerLazySingleton(() => DeleteBankAccountUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => BankAccountCubit(
+        listUseCase: getIt<ListBankAccountsUseCase>(),
+        createUseCase: getIt<CreateBankAccountUseCase>(),
+        updateUseCase: getIt<UpdateBankAccountUseCase>(),
+        deleteUseCase: getIt<DeleteBankAccountUseCase>(),
+      ));
   // Marketing
   getIt.registerSingleton<MarketingRemoteDataSource>(
     MarketingRemoteDataSourceImpl(getIt<ApiClient>().dio),
