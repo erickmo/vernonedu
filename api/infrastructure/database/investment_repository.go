@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -88,6 +90,18 @@ func (r *InvestmentRepository) Update(ctx context.Context, p *investment.Investm
 		return fmt.Errorf("failed to update investment plan: %w", err)
 	}
 	return nil
+}
+
+func (r *InvestmentRepository) GetByID(ctx context.Context, id uuid.UUID) (*investment.InvestmentPlan, error) {
+	var rec investmentRecord
+	query := `SELECT id, title, category, proposed_by, amount, expected_roi, actual_spend, status, approved_by, notes, created_at, updated_at FROM investment_plans WHERE id = $1`
+	if err := r.db.GetContext(ctx, &rec, query, id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, investment.ErrInvestmentNotFound
+		}
+		return nil, fmt.Errorf("failed to get investment plan: %w", err)
+	}
+	return rec.toDomain(), nil
 }
 
 func (r *InvestmentRepository) List(ctx context.Context, offset, limit int, status string) ([]*investment.InvestmentPlan, int, error) {
