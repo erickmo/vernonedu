@@ -4,15 +4,16 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner'
 import RoleGate from '@/components/shared/RoleGate'
 import { useCourseVersion, usePromoteCourseVersion } from '@/lib/api/curriculum'
 import { useAuth } from '@/lib/auth/useAuth'
+import { formatDateTime } from '@/lib/utils/format'
 
 interface Props {
   versionId: string
   typeId: string
 }
 
-function fmtDateTime(s?: string | null) {
-  if (!s) return '—'
-  return new Date(s).toLocaleString('id-ID')
+function fmtDateTime(s?: string | number | null) {
+  if (s == null || s === '') return '—'
+  return formatDateTime(s)
 }
 
 export default function VersionDetailPanel({ versionId, typeId }: Props) {

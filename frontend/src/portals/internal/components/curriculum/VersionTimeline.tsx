@@ -1,14 +1,11 @@
 import { cn } from '@/lib/utils/cn'
+import { formatDate } from '@/lib/utils/format'
 import type { CourseVersion } from '@/types/courseversion'
 
 interface Props {
   versions: CourseVersion[]
   selectedId?: string
   onSelect: (id: string) => void
-}
-
-function fmtDate(s: string) {
-  return new Date(s).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
 function statusClass(status: CourseVersion['status']) {
@@ -48,7 +45,7 @@ export default function VersionTimeline({ versions, selectedId, onSelect }: Prop
                 {v.status}
               </span>
             </div>
-            <div className="text-xs text-neutral-500 mt-1">{fmtDate(v.created_at)}</div>
+            <div className="text-xs text-neutral-500 mt-1">{formatDate(v.created_at)}</div>
             <div className="text-xs text-neutral-400 capitalize">{v.change_type}</div>
           </button>
         )

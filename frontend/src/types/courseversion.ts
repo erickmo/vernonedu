@@ -10,8 +10,8 @@ export interface CourseVersion {
   changelog: string
   created_by?: string | null
   approved_by?: string | null
-  created_at: string
-  updated_at: string
-  approved_at?: string | null
-  archived_at?: string | null
+  created_at: string | number
+  updated_at: string | number
+  approved_at?: string | number | null
+  archived_at?: string | number | null
 }

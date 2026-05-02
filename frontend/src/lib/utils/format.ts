@@ -20,14 +20,22 @@ export function formatCurrency(amount: number, currency = 'IDR'): string {
   }).format(amount)
 }
 
-export function formatDate(date: string | Date): string {
-  const d = typeof date === 'string' ? parseISO(date) : date
-  return format(d, 'dd MMM yyyy', { locale: id })
+function toDate(date: string | number | Date): Date {
+  if (date instanceof Date) return date
+  if (typeof date === 'number') return new Date(date < 1e12 ? date * 1000 : date)
+  if (/^\d+$/.test(date)) {
+    const n = Number(date)
+    return new Date(n < 1e12 ? n * 1000 : n)
+  }
+  return parseISO(date)
 }
 
-export function formatDateTime(date: string | Date): string {
-  const d = typeof date === 'string' ? parseISO(date) : date
-  return format(d, 'dd MMM yyyy HH:mm', { locale: id })
+export function formatDate(date: string | number | Date): string {
+  return format(toDate(date), 'dd MMM yyyy', { locale: id })
+}
+
+export function formatDateTime(date: string | number | Date): string {
+  return format(toDate(date), 'dd MMM yyyy HH:mm', { locale: id })
 }
 
 export function formatPercent(value: number): string {
