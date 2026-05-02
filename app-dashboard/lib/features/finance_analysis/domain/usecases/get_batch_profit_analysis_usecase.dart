@@ -7,14 +7,16 @@ class GetBatchProfitAnalysisUseCase {
   final FinanceAnalysisRepository repository;
   GetBatchProfitAnalysisUseCase(this.repository);
 
-  Future<Either<Failure, BatchProfitAnalysisEntity>> call({
+  Future<Either<Failure, BatchProfitEntity>> call({
     String period = 'monthly',
     String? branchId,
+    String sort = 'top',
     int limit = 10,
   }) =>
       repository.getBatchProfit(
         period: period,
         branchId: branchId,
+        sort: sort,
         limit: limit,
       );
 }

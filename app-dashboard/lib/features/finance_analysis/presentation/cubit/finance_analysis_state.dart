@@ -8,21 +8,22 @@ abstract class FinanceAnalysisState extends Equatable {
   List<Object?> get props => [];
 }
 
-class FinanceAnalysisInitial extends FinanceAnalysisState {}
+class FinanceAnalysisInitial extends FinanceAnalysisState {
+  const FinanceAnalysisInitial();
+}
 
-class FinanceAnalysisLoading extends FinanceAnalysisState {}
+class FinanceAnalysisLoading extends FinanceAnalysisState {
+  const FinanceAnalysisLoading();
+}
 
 class FinanceAnalysisLoaded extends FinanceAnalysisState {
-  final FinancialRatioEntity ratios;
+  final FinancialRatiosEntity ratios;
   final RevenueAnalysisEntity revenue;
   final CostAnalysisEntity costs;
-  final BatchProfitAnalysisEntity batchProfit;
+  final BatchProfitEntity batchProfit;
   final CashForecastEntity cashForecast;
-  final List<FinanceAlertEntity> alerts;
-  final List<FinanceAlertEntity> suggestions;
-  final String selectedPeriod;
-  final String? selectedBranchId;
-  final String selectedComparison;
+  final List<FinancialAlert> alerts;
+  final List<FinancialSuggestion> suggestions;
 
   const FinanceAnalysisLoaded({
     required this.ratios,
@@ -32,24 +33,11 @@ class FinanceAnalysisLoaded extends FinanceAnalysisState {
     required this.cashForecast,
     required this.alerts,
     required this.suggestions,
-    required this.selectedPeriod,
-    this.selectedBranchId,
-    required this.selectedComparison,
   });
 
   @override
-  List<Object?> get props => [
-        ratios,
-        revenue,
-        costs,
-        batchProfit,
-        cashForecast,
-        alerts,
-        suggestions,
-        selectedPeriod,
-        selectedBranchId,
-        selectedComparison,
-      ];
+  List<Object?> get props =>
+      [ratios, revenue, costs, batchProfit, cashForecast, alerts, suggestions];
 }
 
 class FinanceAnalysisError extends FinanceAnalysisState {
