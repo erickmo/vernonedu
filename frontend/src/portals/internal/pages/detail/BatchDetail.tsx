@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button'
 import RoleGate from '@/components/shared/RoleGate'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import AssignFacilitatorDialog from '@/portals/internal/components/operations/AssignFacilitatorDialog'
+import SessionsList from '@/portals/internal/components/operations/SessionsList'
 import {
   useCourseBatch,
   useCourseBatchDetail,
@@ -174,8 +175,8 @@ export default function BatchDetail() {
       )}
 
       {tab === 'sessions' && (
-        <div className="max-w-3xl bg-white rounded-xl border border-neutral-100 p-5 text-sm text-neutral-500">
-          Sessions tab coming soon.
+        <div className="max-w-4xl">
+          <SessionsList batchId={id} />
         </div>
       )}
 
