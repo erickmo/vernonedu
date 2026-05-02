@@ -48,6 +48,10 @@ import ProposalDetail from '@/portals/internal/pages/detail/ProposalDetail'
 import PartnerDetail from '@/portals/internal/pages/detail/PartnerDetail'
 import PartnerCreatePage from '@/portals/internal/pages/PartnerCreatePage'
 import PartnerEditPage from '@/portals/internal/pages/PartnerEditPage'
+import Batches from '@/portals/internal/pages/Batches'
+import BatchCreatePage from '@/portals/internal/pages/BatchCreatePage'
+import BatchEditPage from '@/portals/internal/pages/BatchEditPage'
+import BatchDetail from '@/portals/internal/pages/detail/BatchDetail'
 import Buildings from '@/portals/internal/pages/Buildings'
 import BuildingCreatePage from '@/portals/internal/pages/BuildingCreatePage'
 import BuildingEditPage from '@/portals/internal/pages/BuildingEditPage'
@@ -132,6 +136,10 @@ export default function App() {
           <Route path="partners" element={<Partners />} />
           <Route path="partners/new" element={<PartnerCreatePage />} />
           <Route path="partners/:id/edit" element={<PartnerEditPage />} />
+          <Route path="batches" element={<Batches />} />
+          <Route path="batches/new" element={<BatchCreatePage />} />
+          <Route path="batches/:id" element={<BatchDetail />} />
+          <Route path="batches/:id/edit" element={<BatchEditPage />} />
           <Route path="buildings" element={<Buildings />} />
           <Route path="buildings/new" element={<BuildingCreatePage />} />
           <Route path="buildings/:id" element={<BuildingDetail />} />
