@@ -18,6 +18,8 @@ type Transaction struct {
 	Category          string
 	RelatedEntityType string
 	RelatedEntityID   *uuid.UUID
+	BranchID          *uuid.UUID
+	BankAccountID     *uuid.UUID
 	TransactionDate   time.Time
 	Status            string // draft, completed, cancelled
 	CreatedBy         *uuid.UUID
@@ -41,8 +43,17 @@ type BudgetItem struct {
 	Realisasi    float64
 }
 
+// TransactionUpdate carries mutable fields for update_transaction.
+type TransactionUpdate struct {
+	ID          uuid.UUID
+	Description string
+	Category    string
+}
+
 type TransactionWriteRepository interface {
 	Create(ctx context.Context, t *Transaction) error
+	Update(ctx context.Context, u *TransactionUpdate) error
+	SoftDelete(ctx context.Context, id uuid.UUID) error
 }
 
 type TransactionReadRepository interface {

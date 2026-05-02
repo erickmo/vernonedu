@@ -61,6 +61,12 @@ func (m *mockTxWriteRepo) Create(_ context.Context, t *accounting.Transaction) e
 	return nil
 }
 
+func (m *mockTxWriteRepo) Update(_ context.Context, _ *accounting.TransactionUpdate) error {
+	return nil
+}
+
+func (m *mockTxWriteRepo) SoftDelete(_ context.Context, _ uuid.UUID) error { return nil }
+
 // --- Tests ---
 
 func TestCreateInvoiceHandler_SuccessfulCreation(t *testing.T) {

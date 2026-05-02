@@ -110,7 +110,12 @@ import (
 	// event handlers
 	"github.com/vernonedu/entrepreneurship-api/internal/eventhandler"
 	// accounting commands
+	createbankaccount "github.com/vernonedu/entrepreneurship-api/internal/command/create_bank_account"
 	createtransaction "github.com/vernonedu/entrepreneurship-api/internal/command/create_transaction"
+	deletebankaccount "github.com/vernonedu/entrepreneurship-api/internal/command/delete_bank_account"
+	deletetransaction "github.com/vernonedu/entrepreneurship-api/internal/command/delete_transaction"
+	updatebankaccount "github.com/vernonedu/entrepreneurship-api/internal/command/update_bank_account"
+	updatetransaction "github.com/vernonedu/entrepreneurship-api/internal/command/update_transaction"
 	cancelinvoice   "github.com/vernonedu/entrepreneurship-api/internal/command/cancel_invoice"
 	createinvoice   "github.com/vernonedu/entrepreneurship-api/internal/command/create_invoice"
 	markpaid        "github.com/vernonedu/entrepreneurship-api/internal/command/mark_invoice_paid"
@@ -225,7 +230,11 @@ import (
 	getfinancialratios "github.com/vernonedu/entrepreneurship-api/internal/query/get_financial_ratios"
 	getfinancialsuggestions "github.com/vernonedu/entrepreneurship-api/internal/query/get_financial_suggestions"
 	getrevenueanalysis "github.com/vernonedu/entrepreneurship-api/internal/query/get_revenue_analysis"
+	getbalancebyaccount "github.com/vernonedu/entrepreneurship-api/internal/query/get_balance_by_account"
+	getbankaccount "github.com/vernonedu/entrepreneurship-api/internal/query/get_bank_account"
+	listbankaccounts "github.com/vernonedu/entrepreneurship-api/internal/query/list_bank_accounts"
 	listcoa "github.com/vernonedu/entrepreneurship-api/internal/query/list_coa"
+	listcoatree "github.com/vernonedu/entrepreneurship-api/internal/query/list_coa_tree"
 	listinvoices "github.com/vernonedu/entrepreneurship-api/internal/query/list_invoices"
 	listtransactions "github.com/vernonedu/entrepreneurship-api/internal/query/list_transactions"
 	// finance queries
@@ -463,6 +472,9 @@ func main() {
 			},
 			func(db *sqlx.DB) *database.AccountingAnalysisRepository {
 				return database.NewAccountingAnalysisRepository(db)
+			},
+			func(db *sqlx.DB) *database.BankAccountRepository {
+				return database.NewBankAccountRepository(db)
 			},
 			// Finance repositories
 			func(db *sqlx.DB) *database.FinanceAccountRepository {
@@ -848,6 +860,7 @@ func newRouter(
 		httphandler.RegisterPayableRoutes(payableHandler, r)
 		// Accounting routes
 		httphandler.RegisterAccountingRoutes(accountingHandler, r)
+		httphandler.RegisterAccountingBankRoutes(accountingHandler, r)
 		// BizDev routes
 		httphandler.RegisterPartnerRoutes(partnerHandler, r)
 		httphandler.RegisterBranchRoutes(branchHandler, r)
@@ -921,6 +934,7 @@ type registerParams struct {
 	AccountingInvoiceRepo     *database.AccountingInvoiceRepository
 	CoaRepo                   *database.CoaRepository
 	AccountingAnalysisRepo    *database.AccountingAnalysisRepository
+	BankAccountRepo           *database.BankAccountRepository
 	// Finance repositories
 	FinanceAccountRepo     *database.FinanceAccountRepository
 	FinanceTransactionRepo *database.FinanceTransactionRepository
@@ -1676,6 +1690,44 @@ func registerHandlers(p registerParams) error {
 	}
 	getBudgetH := getbudgetvsactual.NewHandler(p.AccountingTransactionRepo)
 	if err := p.QryBus.Register(&getbudgetvsactual.GetBudgetVsActualQuery{}, adaptQueryHandler(getBudgetH.Handle)); err != nil {
+		return err
+	}
+
+	// Bank accounts (accounting domain)
+	if err := p.CmdBus.Register(&createbankaccount.CreateBankAccountCommand{},
+		createbankaccount.NewHandler(p.BankAccountRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatebankaccount.UpdateBankAccountCommand{},
+		updatebankaccount.NewHandler(p.BankAccountRepo, p.BankAccountRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletebankaccount.DeleteBankAccountCommand{},
+		deletebankaccount.NewHandler(p.BankAccountRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatetransaction.UpdateTransactionCommand{},
+		updatetransaction.NewHandler(p.AccountingTransactionRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletetransaction.DeleteTransactionCommand{},
+		deletetransaction.NewHandler(p.AccountingTransactionRepo)); err != nil {
+		return err
+	}
+	listBankH := listbankaccounts.NewHandler(p.BankAccountRepo)
+	if err := p.QryBus.Register(&listbankaccounts.ListBankAccountsQuery{}, adaptQueryHandler(listBankH.Handle)); err != nil {
+		return err
+	}
+	getBankH := getbankaccount.NewHandler(p.BankAccountRepo)
+	if err := p.QryBus.Register(&getbankaccount.GetBankAccountQuery{}, adaptQueryHandler(getBankH.Handle)); err != nil {
+		return err
+	}
+	getBalH := getbalancebyaccount.NewHandler(p.CoaRepo)
+	if err := p.QryBus.Register(&getbalancebyaccount.GetBalanceByAccountQuery{}, adaptQueryHandler(getBalH.Handle)); err != nil {
+		return err
+	}
+	listCoaTreeH := listcoatree.NewHandler(p.CoaRepo)
+	if err := p.QryBus.Register(&listcoatree.ListCoaTreeQuery{}, adaptQueryHandler(listCoaTreeH.Handle)); err != nil {
 		return err
 	}
 

@@ -59,6 +59,34 @@ func (r *AccountingTransactionRepository) Create(ctx context.Context, t *account
 	return nil
 }
 
+func (r *AccountingTransactionRepository) Update(ctx context.Context, u *accounting.TransactionUpdate) error {
+	const q = `UPDATE accounting_transactions
+	             SET description=$2, category=$3, updated_at=NOW()
+	             WHERE id=$1`
+	res, err := r.db.ExecContext(ctx, q, u.ID, u.Description, u.Category)
+	if err != nil {
+		return fmt.Errorf("failed to update transaction: %w", err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("transaction %s not found", u.ID)
+	}
+	return nil
+}
+
+func (r *AccountingTransactionRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
+	const q = `UPDATE accounting_transactions SET status='cancelled', updated_at=NOW() WHERE id=$1`
+	res, err := r.db.ExecContext(ctx, q, id)
+	if err != nil {
+		return fmt.Errorf("failed to soft-delete transaction: %w", err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("transaction %s not found", id)
+	}
+	return nil
+}
+
 func (r *AccountingTransactionRepository) List(ctx context.Context, offset, limit, month, year int, txType string) ([]*accounting.Transaction, int, error) {
 	var total int
 	countQuery := `
