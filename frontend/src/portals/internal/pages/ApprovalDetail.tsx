@@ -1,24 +1,16 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { CheckCircle2, ShieldCheck, XCircle, Ban } from 'lucide-react'
-import { toast } from 'sonner'
 import DetailPageLayout, { type BreadcrumbItem, type DetailTab } from '@/components/layout/DetailPageLayout'
 
 const TABS: DetailTab[] = [{ value: 'overview', label: 'Overview' }]
 import LoadingSpinner from '@/components/shared/LoadingSpinner'
 import StatusBadge from '@/components/shared/StatusBadge'
 import Button from '@/components/ui/Button'
-import Textarea from '@/components/ui/Textarea'
 import RoleGate from '@/components/shared/RoleGate'
-import {
-  useApproval,
-  useApproveApproval,
-  useRejectApproval,
-  useCancelApproval,
-} from '@/lib/api/approval'
+import { useApproval } from '@/lib/api/approval'
 import { useAuth } from '@/lib/auth/useAuth'
-
-type DecisionAction = 'approve' | 'reject' | 'cancel' | null
+import ApprovalWizard, { type WizardMode } from '../components/approvals/ApprovalWizard'
 
 export default function ApprovalDetail() {
   const { id = '' } = useParams<{ id: string }>()
@@ -26,12 +18,7 @@ export default function ApprovalDetail() {
   const { user } = useAuth()
   const { data, isLoading } = useApproval(id)
 
-  const approve = useApproveApproval(id)
-  const reject = useRejectApproval(id)
-  const cancel = useCancelApproval(id)
-
-  const [openAction, setOpenAction] = useState<DecisionAction>(null)
-  const [reason, setReason] = useState('')
+  const [wizardMode, setWizardMode] = useState<WizardMode | null>(null)
 
   if (isLoading || !data) return <LoadingSpinner size="lg" />
 
@@ -45,23 +32,6 @@ export default function ApprovalDetail() {
   const isApprover = !!user?.id && user.id === data.approver_id
   const isRequester = !!user?.id && user.id === data.requested_by_id
 
-  function closeModal() {
-    setOpenAction(null)
-    setReason('')
-  }
-
-  async function submitDecision() {
-    if (!openAction) return
-    const mutator = openAction === 'approve' ? approve : openAction === 'reject' ? reject : cancel
-    try {
-      await mutator.mutateAsync({ reason })
-      toast.success(`Approval ${openAction}ed`)
-      closeModal()
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message ?? `Failed to ${openAction}`)
-    }
-  }
-
   return (
     <DetailPageLayout
       breadcrumbs={breadcrumbs}
@@ -74,19 +44,19 @@ export default function ApprovalDetail() {
           {isPending && isApprover && (
             <>
               <RoleGate action="approve" resource="approval">
-                <Button variant="primary" onClick={() => setOpenAction('approve')}>
+                <Button variant="primary" onClick={() => setWizardMode('approve')}>
                   <CheckCircle2 className="w-4 h-4" /> Approve
                 </Button>
               </RoleGate>
               <RoleGate action="approve" resource="approval">
-                <Button variant="danger" onClick={() => setOpenAction('reject')}>
+                <Button variant="danger" onClick={() => setWizardMode('reject')}>
                   <XCircle className="w-4 h-4" /> Reject
                 </Button>
               </RoleGate>
             </>
           )}
           {isPending && isRequester && (
-            <Button variant="secondary" onClick={() => setOpenAction('cancel')}>
+            <Button variant="secondary" onClick={() => setWizardMode('cancel')}>
               <Ban className="w-4 h-4" /> Cancel
             </Button>
           )}
@@ -134,37 +104,13 @@ export default function ApprovalDetail() {
         </section>
       </div>
 
-      {openAction && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-white rounded-xl max-w-md w-full p-6 space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-lg font-semibold capitalize">{openAction} approval</h2>
-            <p className="text-sm text-neutral-500">
-              Optionally add a comment for your decision.
-            </p>
-            <Textarea
-              rows={4}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Reason / comment (optional)"
-            />
-            <div className="flex gap-2 justify-end">
-              <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-              <Button
-                variant={openAction === 'approve' ? 'primary' : 'danger'}
-                onClick={submitDecision}
-                loading={approve.isPending || reject.isPending || cancel.isPending}
-              >
-                Confirm
-              </Button>
-            </div>
-          </div>
-        </div>
+      {wizardMode && (
+        <ApprovalWizard
+          approval={data}
+          mode={wizardMode}
+          open
+          onClose={() => setWizardMode(null)}
+        />
       )}
 
       <button
