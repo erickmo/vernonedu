@@ -75,12 +75,13 @@ const MATRIX: Matrix = {
     talentpool: ALL, approval: ['read', 'approve', 'list'],
   },
   [ROLES.COURSE_OWNER]: {
-    course: ALL, coursebatch: ALL, courseversion: ['read', 'list'],
-    coursemodule: ['read', 'list'], enrollment: ['read', 'list'],
+    course: ALL, coursebatch: ALL, coursetype: ['read', 'list'],
+    courseversion: ['read', 'list'], coursemodule: ['read', 'list'],
+    enrollment: ['read', 'list'],
   },
   [ROLES.COURSE_CREATOR]: {
     course: ALL, coursebatch: ['create', 'read', 'list'],
-    courseversion: ALL, coursemodule: ALL,
+    coursetype: ALL, courseversion: ALL, coursemodule: ALL,
   },
   [ROLES.FACILITATOR]: {
     coursebatch: ['read', 'list'], attendance: ['create', 'read', 'update', 'list'],
