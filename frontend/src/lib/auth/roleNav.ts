@@ -71,6 +71,11 @@ const INTERNAL_DOMAINS: DomainGroup[] = [
         allowedRoles: ['ceo', 'admin', 'vernonedu_admin'],
       },
       {
+        to: '/internal/leads',
+        label: 'Leads',
+        allowedRoles: ['ceo', 'admin', 'vernonedu_admin'],
+      },
+      {
         to: '/internal/notifications',
         label: 'Notifications',
         allowedRoles: ['admin', 'vernonedu_admin'],
