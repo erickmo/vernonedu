@@ -75,6 +75,7 @@ import (
 	updatefailureconfig "github.com/vernonedu/entrepreneurship-api/internal/command/update_failureconfig"
 	updatemastercourse "github.com/vernonedu/entrepreneurship-api/internal/command/update_mastercourse"
 	upsertchartest "github.com/vernonedu/entrepreneurship-api/internal/command/upsert_character_test_config"
+	upsertbmc "github.com/vernonedu/entrepreneurship-api/internal/command/upsert_bmc"
 	upsertinternship "github.com/vernonedu/entrepreneurship-api/internal/command/upsert_internship_config"
 	updatetalentpool "github.com/vernonedu/entrepreneurship-api/internal/command/update_talentpool_status"
 	// batch schedule commands
@@ -190,6 +191,7 @@ import (
 	getcoursetype "github.com/vernonedu/entrepreneurship-api/internal/query/get_coursetype"
 	getcoursemodule "github.com/vernonedu/entrepreneurship-api/internal/query/get_coursemodule"
 	getcourseversion "github.com/vernonedu/entrepreneurship-api/internal/query/get_courseversion"
+	getbmc "github.com/vernonedu/entrepreneurship-api/internal/query/get_bmc"
 	getinternship "github.com/vernonedu/entrepreneurship-api/internal/query/get_internship_config"
 	getmastercourse "github.com/vernonedu/entrepreneurship-api/internal/query/get_mastercourse"
 	gettalentpool "github.com/vernonedu/entrepreneurship-api/internal/query/get_talentpool"
@@ -410,6 +412,9 @@ func main() {
 			func(db *sqlx.DB) *database.InternshipConfigRepository {
 				return database.NewInternshipConfigRepository(db)
 			},
+			func(db *sqlx.DB) *database.BmcRepository {
+				return database.NewBmcRepository(db)
+			},
 			func(db *sqlx.DB) *database.CharacterTestConfigRepository {
 				return database.NewCharacterTestConfigRepository(db)
 			},
@@ -556,6 +561,7 @@ func main() {
 			newCourseModuleHTTPHandler,
 			newProgramKarirHTTPHandler,
 			newTalentPoolHTTPHandler,
+			newBmcHTTPHandler,
 
 			// Certificate HTTP handler
 			newCertificateHTTPHandler,
@@ -674,6 +680,10 @@ func newTalentPoolHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.Quer
 	return httphandler.NewTalentPoolHandler(cmdBus, qryBus)
 }
 
+func newBmcHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.BmcHandler {
+	return httphandler.NewBmcHandler(cmdBus, qryBus)
+}
+
 func newLeadHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.LeadHandler {
 	return httphandler.NewLeadHandler(cmdBus, qryBus)
 }
@@ -764,6 +774,7 @@ func newRouter(
 	courseModuleHandler *httphandler.CourseModuleHandler,
 	programKarirHandler *httphandler.ProgramKarirHandler,
 	talentPoolHandler *httphandler.TalentPoolHandler,
+	bmcHandler *httphandler.BmcHandler,
 	leadHandler *httphandler.LeadHandler,
 	locationHandler *httphandler.LocationHandler,
 	partnerHandler *httphandler.PartnerHandler,
@@ -823,6 +834,8 @@ func newRouter(
 		httphandler.RegisterCourseModuleRoutes(courseModuleHandler, r)
 		httphandler.RegisterProgramKarirRoutes(programKarirHandler, r)
 		httphandler.RegisterTalentPoolRoutes(talentPoolHandler, r)
+		// BMC routes
+		httphandler.RegisterBmcRoutes(bmcHandler, r)
 		// Lead routes
 		httphandler.RegisterLeadRoutes(leadHandler, r)
 		// Approval routes
@@ -885,6 +898,7 @@ type registerParams struct {
 	CourseVersionRepo     *database.CourseVersionRepository
 	CourseModuleRepo      *database.CourseModuleRepository
 	InternshipConfigRepo  *database.InternshipConfigRepository
+	BmcRepo               *database.BmcRepository
 	CharTestConfigRepo    *database.CharacterTestConfigRepository
 	TalentPoolRepo        *database.TalentPoolRepository
 	// BatchSchedule repository
@@ -1341,6 +1355,16 @@ func registerHandlers(p registerParams) error {
 	}
 	getInternH := getinternship.NewHandler(p.InternshipConfigRepo)
 	if err := p.QryBus.Register(&getinternship.GetInternshipConfigQuery{}, adaptQueryHandler(getInternH.Handle)); err != nil {
+		return err
+	}
+
+	// Business Model Canvas (BMC)
+	if err := p.CmdBus.Register(&upsertbmc.UpsertBmcCommand{},
+		upsertbmc.NewHandler(p.BmcRepo, p.BmcRepo)); err != nil {
+		return err
+	}
+	getBmcH := getbmc.NewHandler(p.BmcRepo)
+	if err := p.QryBus.Register(&getbmc.GetBmcQuery{}, adaptQueryHandler(getBmcH.Handle)); err != nil {
 		return err
 	}
 
