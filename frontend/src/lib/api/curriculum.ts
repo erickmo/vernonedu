@@ -8,6 +8,11 @@ import type {
 import type { CreateMasterCourseInput, UpdateMasterCourseInput } from '@/schemas/mastercourse'
 import type { CourseType } from '@/types/coursetype'
 import type { CreateCourseTypeInput, UpdateCourseTypeInput } from '@/schemas/coursetype'
+import type { CourseVersion } from '@/types/courseversion'
+import type {
+  CreateCourseVersionInput,
+  PromoteCourseVersionInput,
+} from '@/schemas/courseversion'
 
 const BASE = '/curriculum/courses'
 
@@ -144,6 +149,64 @@ export function useToggleCourseType(courseId: string) {
     onSuccess: (_d, typeId) => {
       qc.invalidateQueries({ queryKey: ['coursetypes', 'list', courseId] })
       qc.invalidateQueries({ queryKey: ['coursetypes', typeId] })
+    },
+  })
+}
+
+// ===== CourseVersion =====
+
+const VERSIONS_BASE = '/api/v1/curriculum/versions'
+const TYPE_VERSIONS = (typeId: string) => `/api/v1/curriculum/types/${typeId}/versions`
+
+interface CourseVersionListResponse {
+  data: CourseVersion[]
+}
+interface CourseVersionSingleResponse {
+  data: CourseVersion
+}
+
+export function useCourseVersions(typeId: string | undefined) {
+  return useQuery({
+    queryKey: ['courseversions', 'list', typeId],
+    queryFn: () =>
+      apiClient
+        .get<CourseVersionListResponse>(TYPE_VERSIONS(typeId!))
+        .then((r) => r.data.data),
+    enabled: !!typeId,
+  })
+}
+
+export function useCourseVersion(versionId: string | undefined) {
+  return useQuery({
+    queryKey: ['courseversions', versionId],
+    queryFn: () =>
+      apiClient
+        .get<CourseVersionSingleResponse>(`${VERSIONS_BASE}/${versionId}`)
+        .then((r) => r.data.data),
+    enabled: !!versionId,
+  })
+}
+
+export function useCreateCourseVersion(typeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreateCourseVersionInput) =>
+      apiClient.post(TYPE_VERSIONS(typeId), input).then((r) => r.data),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ['courseversions', 'list', typeId] }),
+  })
+}
+
+export function usePromoteCourseVersion(typeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (args: { versionId: string; input: PromoteCourseVersionInput }) =>
+      apiClient
+        .post(`${VERSIONS_BASE}/${args.versionId}/promote`, args.input)
+        .then((r) => r.data),
+    onSuccess: (_d, { versionId }) => {
+      qc.invalidateQueries({ queryKey: ['courseversions', 'list', typeId] })
+      qc.invalidateQueries({ queryKey: ['courseversions', versionId] })
     },
   })
 }

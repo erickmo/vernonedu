@@ -81,7 +81,9 @@ const MATRIX: Matrix = {
   },
   [ROLES.COURSE_CREATOR]: {
     course: ALL, coursebatch: ['create', 'read', 'list'],
-    coursetype: ALL, courseversion: ALL, coursemodule: ALL,
+    coursetype: ALL,
+    courseversion: ['create', 'read', 'update', 'list'],
+    coursemodule: ALL,
   },
   [ROLES.FACILITATOR]: {
     coursebatch: ['read', 'list'], attendance: ['create', 'read', 'update', 'list'],
