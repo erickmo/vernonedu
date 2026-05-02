@@ -13,14 +13,25 @@ import (
 
 // Sentinel error untuk validasi dan transisi status CourseVersion
 var (
-	ErrAlreadyApproved   = errors.New("versi sudah berstatus approved")
-	ErrInvalidTransition = errors.New("transisi status tidak valid")
-	ErrVersionNotFound   = errors.New("versi tidak ditemukan")
-	ErrInvalidChangeType = errors.New("tipe perubahan tidak valid: harus major, minor, atau patch")
+	ErrAlreadyApproved          = errors.New("versi sudah berstatus approved")
+	ErrInvalidTransition        = errors.New("transisi status tidak valid")
+	ErrVersionNotFound          = errors.New("versi tidak ditemukan")
+	ErrInvalidChangeType        = errors.New("tipe perubahan tidak valid: harus major, minor, atau patch")
+	ErrInvalidApprovalState     = errors.New("transisi approval workflow tidak valid")
+	ErrEmptyRejectionReason     = errors.New("alasan penolakan wajib diisi")
+	ErrCourseVersionNotApproved = errors.New("course version belum di-approve")
 )
 
 // ValidChangeTypes adalah daftar tipe perubahan versi yang diperbolehkan.
 var ValidChangeTypes = []string{"major", "minor", "patch"}
+
+// Approval workflow states (independent dari Status lifecycle).
+const (
+	ApprovalStatusDraft     = "draft"
+	ApprovalStatusSubmitted = "submitted"
+	ApprovalStatusApproved  = "approved"
+	ApprovalStatusRejected  = "rejected"
+)
 
 // CourseVersion merepresentasikan satu versi kurikulum dari sebuah CourseType.
 // Menggunakan semantic versioning: vMAJOR.MINOR.PATCH
@@ -38,6 +49,14 @@ type CourseVersion struct {
 	UpdatedAt     time.Time
 	ApprovedAt    *time.Time
 	ArchivedAt    *time.Time
+
+	// Approval workflow (orthogonal terhadap Status lifecycle).
+	ApprovalStatus       string
+	SubmittedAt          *time.Time
+	SubmittedBy          *uuid.UUID
+	ApprovalApprovedBy   *uuid.UUID
+	ApprovalApprovedAt   *time.Time
+	RejectionReason      string
 }
 
 // NewCourseVersion membuat entitas CourseVersion baru.
@@ -54,16 +73,62 @@ func NewCourseVersion(courseTypeID uuid.UUID, versionNumber, changeType, changel
 		return nil, ErrInvalidChangeType
 	}
 	return &CourseVersion{
-		ID:            uuid.New(),
-		CourseTypeID:  courseTypeID,
-		VersionNumber: versionNumber,
-		Status:        "draft",
-		ChangeType:    changeType,
-		Changelog:     changelog,
-		CreatedBy:     createdBy,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+		ID:             uuid.New(),
+		CourseTypeID:   courseTypeID,
+		VersionNumber:  versionNumber,
+		Status:         "draft",
+		ChangeType:     changeType,
+		Changelog:      changelog,
+		CreatedBy:      createdBy,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+		ApprovalStatus: ApprovalStatusDraft,
 	}, nil
+}
+
+// Submit memindahkan approval workflow dari draft ke submitted.
+// Hanya boleh dilakukan saat ApprovalStatus == draft (atau rejected, untuk re-submit).
+func (cv *CourseVersion) Submit(submittedBy uuid.UUID) error {
+	if cv.ApprovalStatus != ApprovalStatusDraft && cv.ApprovalStatus != ApprovalStatusRejected {
+		return ErrInvalidApprovalState
+	}
+	now := time.Now()
+	cv.ApprovalStatus = ApprovalStatusSubmitted
+	cv.SubmittedAt = &now
+	cv.SubmittedBy = &submittedBy
+	cv.RejectionReason = ""
+	cv.UpdatedAt = now
+	return nil
+}
+
+// ApproveWorkflow memindahkan approval dari submitted ke approved.
+func (cv *CourseVersion) ApproveWorkflow(approvedBy uuid.UUID) error {
+	if cv.ApprovalStatus != ApprovalStatusSubmitted {
+		return ErrInvalidApprovalState
+	}
+	now := time.Now()
+	cv.ApprovalStatus = ApprovalStatusApproved
+	cv.ApprovalApprovedBy = &approvedBy
+	cv.ApprovalApprovedAt = &now
+	cv.UpdatedAt = now
+	return nil
+}
+
+// RejectWorkflow memindahkan approval dari submitted ke rejected.
+func (cv *CourseVersion) RejectWorkflow(approvedBy uuid.UUID, reason string) error {
+	if cv.ApprovalStatus != ApprovalStatusSubmitted {
+		return ErrInvalidApprovalState
+	}
+	if strings.TrimSpace(reason) == "" {
+		return ErrEmptyRejectionReason
+	}
+	now := time.Now()
+	cv.ApprovalStatus = ApprovalStatusRejected
+	cv.ApprovalApprovedBy = &approvedBy
+	cv.ApprovalApprovedAt = &now
+	cv.RejectionReason = reason
+	cv.UpdatedAt = now
+	return nil
 }
 
 // PromoteToReview memindahkan status versi dari draft ke review.
@@ -143,6 +208,8 @@ type WriteRepository interface {
 	// ArchiveAllApproved mengarsipkan semua versi approved untuk satu CourseType.
 	// Dipanggil saat versi baru di-approve agar hanya ada satu versi aktif.
 	ArchiveAllApproved(ctx context.Context, courseTypeID uuid.UUID) error
+	// UpdateApprovalWorkflow memperbarui kolom approval workflow saja.
+	UpdateApprovalWorkflow(ctx context.Context, cv *CourseVersion) error
 }
 
 // ReadRepository mendefinisikan operasi baca untuk CourseVersion.
@@ -152,4 +219,7 @@ type ReadRepository interface {
 	ListByType(ctx context.Context, courseTypeID uuid.UUID) ([]*CourseVersion, error)
 	// GetApproved mengembalikan versi yang sedang aktif (status approved) untuk satu CourseType.
 	GetApproved(ctx context.Context, courseTypeID uuid.UUID) (*CourseVersion, error)
+	// ListPending mengembalikan versi dengan ApprovalStatus = submitted.
+	// Jika departmentID != nil, filter melalui course_types -> master_courses.department_id.
+	ListPending(ctx context.Context, departmentID *uuid.UUID) ([]*CourseVersion, error)
 }
