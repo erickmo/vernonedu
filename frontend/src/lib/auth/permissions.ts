@@ -71,6 +71,7 @@ const MATRIX: Matrix = {
   },
   [ROLES.DEPT_LEADER]: {
     mastercourse: ALL, coursetype: ALL, courseversion: ALL, coursemodule: ALL,
+    internshipconfig: ALL, charactertestconfig: ALL,
     course: ALL, coursebatch: ALL, certificate: ['create', 'read', 'list', 'approve'],
     talentpool: ALL, approval: ['read', 'approve', 'list'],
   },
@@ -84,6 +85,7 @@ const MATRIX: Matrix = {
     coursetype: ALL,
     courseversion: ['create', 'read', 'update', 'list'],
     coursemodule: ALL,
+    internshipconfig: ALL, charactertestconfig: ALL,
   },
   [ROLES.FACILITATOR]: {
     coursebatch: ['read', 'list'], attendance: ['create', 'read', 'update', 'list'],

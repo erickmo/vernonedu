@@ -33,6 +33,7 @@ export default function VersionsTab({ courseId }: Props) {
   const [typeId, setTypeId] = useState<string>('')
 
   const effectiveTypeId = typeId || types?.[0]?.id || ''
+  const effectiveType = types?.find((t) => t.id === effectiveTypeId)
   const { data: rawVersions, isLoading: versionsLoading } = useCourseVersions(effectiveTypeId || undefined)
   const versions = useMemo(() => sortVersions(rawVersions ?? []), [rawVersions])
 
@@ -98,7 +99,11 @@ export default function VersionsTab({ courseId }: Props) {
               onCancel={() => setCreating(false)}
             />
           ) : selectedVersionId ? (
-            <VersionDetailPanel versionId={selectedVersionId} typeId={effectiveTypeId} />
+            <VersionDetailPanel
+              versionId={selectedVersionId}
+              typeId={effectiveTypeId}
+              courseTypeName={effectiveType?.type_name}
+            />
           ) : (
             <div className="text-sm text-neutral-500 p-8 text-center">
               {versions.length === 0

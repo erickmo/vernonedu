@@ -18,6 +18,10 @@ import type {
   CreateCourseModuleInput,
   UpdateCourseModuleInput,
 } from '@/schemas/coursemodule'
+import type { InternshipConfig } from '@/types/internshipconfig'
+import type { UpsertInternshipConfigInput } from '@/schemas/internshipconfig'
+import type { CharacterTestConfig } from '@/types/charactertestconfig'
+import type { UpsertCharacterTestConfigInput } from '@/schemas/charactertestconfig'
 
 const BASE = '/curriculum/courses'
 
@@ -278,5 +282,67 @@ export function useDeleteCourseModule(versionId: string) {
       apiClient.delete(`${MODULES_BASE}/${moduleId}`).then((r) => r.data),
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ['coursemodules', 'list', versionId] }),
+  })
+}
+
+// ===== Program Karir Configs =====
+
+const VERSION_INTERNSHIP = (versionId: string) =>
+  `/api/v1/curriculum/versions/${versionId}/internship`
+const VERSION_CHARACTER_TEST = (versionId: string) =>
+  `/api/v1/curriculum/versions/${versionId}/character-test`
+
+interface InternshipConfigResponse { data: InternshipConfig }
+interface CharacterTestConfigResponse { data: CharacterTestConfig }
+
+export function useInternshipConfig(versionId: string | undefined) {
+  return useQuery({
+    queryKey: ['internshipconfig', versionId],
+    queryFn: async () => {
+      try {
+        const r = await apiClient.get<InternshipConfigResponse>(VERSION_INTERNSHIP(versionId!))
+        return r.data.data
+      } catch (e: any) {
+        if (e?.response?.status === 404) return null
+        throw e
+      }
+    },
+    enabled: !!versionId,
+  })
+}
+
+export function useUpsertInternshipConfig(versionId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: UpsertInternshipConfigInput) =>
+      apiClient.put(VERSION_INTERNSHIP(versionId), input).then((r) => r.data),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ['internshipconfig', versionId] }),
+  })
+}
+
+export function useCharacterTestConfig(versionId: string | undefined) {
+  return useQuery({
+    queryKey: ['charactertestconfig', versionId],
+    queryFn: async () => {
+      try {
+        const r = await apiClient.get<CharacterTestConfigResponse>(VERSION_CHARACTER_TEST(versionId!))
+        return r.data.data
+      } catch (e: any) {
+        if (e?.response?.status === 404) return null
+        throw e
+      }
+    },
+    enabled: !!versionId,
+  })
+}
+
+export function useUpsertCharacterTestConfig(versionId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: UpsertCharacterTestConfigInput) =>
+      apiClient.put(VERSION_CHARACTER_TEST(versionId), input).then((r) => r.data),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ['charactertestconfig', versionId] }),
   })
 }
