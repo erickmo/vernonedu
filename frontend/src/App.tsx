@@ -45,6 +45,15 @@ import Notifications from '@/portals/internal/pages/Notifications'
 // Domain overviews
 import AcademicOverview from '@/portals/internal/pages/domains/AcademicOverview'
 import FinanceOverview from '@/portals/internal/pages/domains/FinanceOverview'
+// Finance reports + analysis
+import BalanceSheet from '@/portals/internal/pages/finance/reports/BalanceSheet'
+import ProfitLoss from '@/portals/internal/pages/finance/reports/ProfitLoss'
+import CashFlow from '@/portals/internal/pages/finance/reports/CashFlow'
+import GeneralLedger from '@/portals/internal/pages/finance/reports/GeneralLedger'
+import TrialBalance from '@/portals/internal/pages/finance/reports/TrialBalance'
+import FinanceAnalysis from '@/portals/internal/pages/finance/Analysis'
+import FinanceCommissions from '@/portals/internal/pages/finance/Commissions'
+import FinanceBudgetVsActual from '@/portals/internal/pages/finance/BudgetVsActual'
 import OperationsOverview from '@/portals/internal/pages/domains/OperationsOverview'
 import HROverview from '@/portals/internal/pages/domains/HROverview'
 // Entity detail pages
@@ -181,6 +190,14 @@ export default function App() {
           {/* Domain overviews */}
           <Route path="academic" element={<AcademicOverview />} />
           <Route path="finance" element={<FinanceOverview />} />
+          <Route path="finance/reports/balance-sheet" element={<BalanceSheet />} />
+          <Route path="finance/reports/profit-loss" element={<ProfitLoss />} />
+          <Route path="finance/reports/cash-flow" element={<CashFlow />} />
+          <Route path="finance/reports/ledger" element={<GeneralLedger />} />
+          <Route path="finance/reports/trial-balance" element={<TrialBalance />} />
+          <Route path="finance/analysis" element={<FinanceAnalysis />} />
+          <Route path="finance/commissions" element={<FinanceCommissions />} />
+          <Route path="finance/budget" element={<FinanceBudgetVsActual />} />
           <Route path="operations" element={<OperationsOverview />} />
           <Route path="hr" element={<HROverview />} />
           {/* Entity detail pages */}
