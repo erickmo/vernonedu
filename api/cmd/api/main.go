@@ -561,6 +561,9 @@ func main() {
 			// Finance Report HTTP handler
 			newFinanceReportHTTPHandler,
 
+			// Settings HTTP handler
+			newSettingsHTTPHandler,
+
 			// Router
 			newRouter,
 		),
