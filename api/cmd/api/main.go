@@ -858,6 +858,7 @@ func newRouter(
 		httphandler.RegisterSettingsRoutes(settingsHandler, r)
 		// Certificate routes (protected)
 		httphandler.RegisterCertificateRoutes(certHandler, r)
+		httphandler.RegisterCertificateExtraRoutes(certHandler, r)
 		// CMS routes
 		httphandler.RegisterCmsRoutes(cmsHandler, r)
 		// Finance Report routes
@@ -870,6 +871,7 @@ func newRouter(
 
 	// Certificate public routes (no auth)
 	httphandler.RegisterCertificatePublicRoutes(certHandler, r)
+	httphandler.RegisterCertificatePublicVerifyAlias(certHandler, r)
 
 	// Public routes (no auth — consumed by app-website)
 	httphandler.RegisterPublicRoutes(publicHandler, r)
