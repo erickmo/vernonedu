@@ -43,42 +43,66 @@ func (r *ReportRepository) accountBalances(
 	accountTypeFilter string, // "" = all types
 	periodOnly bool, // true = use from/to range; false = from beginning until to
 ) ([]accountBalance, error) {
-	fromClause := `'0001-01-01'::date`
-	if periodOnly {
-		fromClause = `$3::date`
-	}
-
-	typeClause := `AND c.account_type = $4`
-	if accountTypeFilter == "" {
-		typeClause = `AND ($4 = '' OR c.account_type = $4)`
-	}
-
-	query := fmt.Sprintf(`
-		SELECT
-			c.code,
-			c.name,
-			c.account_type,
-			COALESCE(c.parent_code, '') AS parent_code,
-			COALESCE(SUM(CASE WHEN t.debit_account_code = c.code  THEN t.amount ELSE 0 END), 0) AS total_debit,
-			COALESCE(SUM(CASE WHEN t.credit_account_code = c.code THEN t.amount ELSE 0 END), 0) AS total_credit
-		FROM chart_of_accounts c
-		LEFT JOIN accounting_transactions t
-			ON (t.debit_account_code = c.code OR t.credit_account_code = c.code)
-			AND t.status = 'completed'
-			AND t.transaction_date >= %s
-			AND t.transaction_date <= $2::date
-		WHERE c.is_active = true
-		%s
-		GROUP BY c.code, c.name, c.account_type, c.parent_code
-		ORDER BY c.code
-	`, fromClause, typeClause)
-
+	var fromClause, typeClause, query string
 	var rows []accountBalance
 	var err error
+
 	if periodOnly {
-		err = r.db.SelectContext(ctx, &rows, query, to, to, from, accountTypeFilter)
+		// Args: $1 = to, $2 = from, $3 = accountTypeFilter
+		fromClause = `$2::date`
+		if accountTypeFilter == "" {
+			typeClause = `AND ($3 = '' OR c.account_type = $3)`
+		} else {
+			typeClause = `AND c.account_type = $3`
+		}
+		query = fmt.Sprintf(`
+			SELECT
+				c.code,
+				c.name,
+				c.account_type,
+				COALESCE(c.parent_code, '') AS parent_code,
+				COALESCE(SUM(CASE WHEN t.debit_account_code = c.code  THEN t.amount ELSE 0 END), 0) AS total_debit,
+				COALESCE(SUM(CASE WHEN t.credit_account_code = c.code THEN t.amount ELSE 0 END), 0) AS total_credit
+			FROM chart_of_accounts c
+			LEFT JOIN accounting_transactions t
+				ON (t.debit_account_code = c.code OR t.credit_account_code = c.code)
+				AND t.status = 'completed'
+				AND t.transaction_date >= %s
+				AND t.transaction_date <= $1::date
+			WHERE c.is_active = true
+			%s
+			GROUP BY c.code, c.name, c.account_type, c.parent_code
+			ORDER BY c.code
+		`, fromClause, typeClause)
+		err = r.db.SelectContext(ctx, &rows, query, to, from, accountTypeFilter)
 	} else {
-		err = r.db.SelectContext(ctx, &rows, query, to, to, accountTypeFilter)
+		// Args: $1 = to, $2 = accountTypeFilter
+		fromClause = `'0001-01-01'::date`
+		if accountTypeFilter == "" {
+			typeClause = `AND ($2 = '' OR c.account_type = $2)`
+		} else {
+			typeClause = `AND c.account_type = $2`
+		}
+		query = fmt.Sprintf(`
+			SELECT
+				c.code,
+				c.name,
+				c.account_type,
+				COALESCE(c.parent_code, '') AS parent_code,
+				COALESCE(SUM(CASE WHEN t.debit_account_code = c.code  THEN t.amount ELSE 0 END), 0) AS total_debit,
+				COALESCE(SUM(CASE WHEN t.credit_account_code = c.code THEN t.amount ELSE 0 END), 0) AS total_credit
+			FROM chart_of_accounts c
+			LEFT JOIN accounting_transactions t
+				ON (t.debit_account_code = c.code OR t.credit_account_code = c.code)
+				AND t.status = 'completed'
+				AND t.transaction_date >= %s
+				AND t.transaction_date <= $1::date
+			WHERE c.is_active = true
+			%s
+			GROUP BY c.code, c.name, c.account_type, c.parent_code
+			ORDER BY c.code
+		`, fromClause, typeClause)
+		err = r.db.SelectContext(ctx, &rows, query, to, accountTypeFilter)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("accountBalances query failed: %w", err)
