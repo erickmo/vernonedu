@@ -160,6 +160,17 @@ export function useReferrals(partnerId: string | undefined) {
 
 // ─── PR ───────────────────────────────────────────────────────────────────────
 
+export function useMarketingPrDetail(id: string | undefined) {
+  return useQuery({
+    queryKey: ['marketing-pr', 'detail', id],
+    queryFn: () =>
+      apiClient
+        .get<ListResponse<MarketingPr>>(`${MARKETING}/pr`, { params: { limit: 500 } })
+        .then((r) => (r.data.data ?? []).find((p) => p.id === id) ?? null),
+    enabled: !!id,
+  })
+}
+
 export function useMarketingPr(filters: MarketingPrFilters = {}) {
   const limit = filters.limit ?? DEFAULT_LIMIT
   const offset = toOffset(filters.page, limit)

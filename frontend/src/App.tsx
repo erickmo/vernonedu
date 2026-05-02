@@ -140,6 +140,9 @@ import MarketingPostCreatePage from '@/portals/internal/pages/marketing/Marketin
 import MarketingPostEditPage from '@/portals/internal/pages/marketing/MarketingPostEditPage'
 import ClassDocPostsList from '@/portals/internal/pages/marketing/ClassDocPosts'
 import ReferralPartnersList from '@/portals/internal/pages/marketing/ReferralPartners'
+import MarketingPRList from '@/portals/internal/pages/marketing/MarketingPR'
+import MarketingPRCreatePage from '@/portals/internal/pages/marketing/MarketingPRCreatePage'
+import MarketingPREditPage from '@/portals/internal/pages/marketing/MarketingPREditPage'
 // Admin pages
 import { AdminLayout } from '@/pages/admin/AdminLayout'
 import DepartmentListPage from '@/pages/admin/DepartmentListPage'
@@ -311,6 +314,9 @@ export default function App() {
           <Route path="marketing/posts/:id/edit" element={<MarketingPostEditPage />} />
           <Route path="marketing/class-docs" element={<ClassDocPostsList />} />
           <Route path="marketing/referral-partners" element={<ReferralPartnersList />} />
+          <Route path="marketing/pr" element={<MarketingPRList />} />
+          <Route path="marketing/pr/new" element={<MarketingPRCreatePage />} />
+          <Route path="marketing/pr/:id/edit" element={<MarketingPREditPage />} />
         </Route>
       </Route>
 
