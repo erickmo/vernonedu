@@ -155,11 +155,21 @@ import '../../features/accounting/domain/repositories/accounting_repository.dart
 import '../../features/accounting/domain/usecases/get_accounting_stats_usecase.dart';
 import '../../features/accounting/domain/usecases/get_transactions_usecase.dart';
 import '../../features/accounting/domain/usecases/create_transaction_usecase.dart';
+import '../../features/accounting/domain/usecases/update_transaction_usecase.dart';
+import '../../features/accounting/domain/usecases/delete_transaction_usecase.dart';
 import '../../features/accounting/domain/usecases/get_invoices_usecase.dart';
 import '../../features/accounting/domain/usecases/update_invoice_status_usecase.dart';
 import '../../features/accounting/domain/usecases/get_coa_usecase.dart';
 import '../../features/accounting/domain/usecases/get_budget_vs_actual_usecase.dart';
+import '../../features/accounting/domain/usecases/list_bank_accounts_usecase.dart';
+import '../../features/accounting/domain/usecases/get_bank_account_usecase.dart';
+import '../../features/accounting/domain/usecases/create_bank_account_usecase.dart';
+import '../../features/accounting/domain/usecases/update_bank_account_usecase.dart';
+import '../../features/accounting/domain/usecases/delete_bank_account_usecase.dart';
+import '../../features/accounting/domain/usecases/get_coa_tree_usecase.dart';
 import '../../features/accounting/presentation/cubit/accounting_cubit.dart';
+import '../../features/accounting/presentation/cubit/bank_account_cubit.dart';
+import '../../features/accounting/presentation/cubit/coa_tree_cubit.dart';
 import '../../features/finance/presentation/cubit/finance_dashboard_cubit.dart';
 import '../../features/finance_reports/data/datasources/finance_reports_remote_datasource.dart';
 import '../../features/finance_reports/data/repositories/finance_reports_repository_impl.dart';
@@ -200,7 +210,8 @@ import '../../features/finance_invoices/domain/usecases/get_invoice_stats_usecas
 import '../../features/finance_invoices/domain/usecases/get_invoice_list_usecase.dart';
 import '../../features/finance_invoices/domain/usecases/get_invoice_detail_usecase.dart';
 import '../../features/finance_invoices/domain/usecases/mark_invoice_paid_usecase.dart';
-import '../../features/finance_invoices/domain/usecases/resend_invoice_usecase.dart';
+import '../../features/finance_invoices/domain/usecases/send_invoice_usecase.dart';
+import '../../features/finance_invoices/presentation/cubit/invoice_detail_cubit.dart';
 import '../../features/finance_invoices/domain/usecases/cancel_invoice_usecase.dart';
 import '../../features/finance_invoices/domain/usecases/create_manual_invoice_usecase.dart';
 import '../../features/finance_invoices/presentation/cubit/invoice_cubit.dart';
@@ -654,6 +665,8 @@ Future<void> configureDependencies() async {
   getIt.registerFactory(() => GetAccountingStatsUseCase(getIt<AccountingRepository>()));
   getIt.registerFactory(() => GetTransactionsUseCase(getIt<AccountingRepository>()));
   getIt.registerFactory(() => CreateTransactionUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => UpdateTransactionUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => DeleteTransactionUseCase(getIt<AccountingRepository>()));
   getIt.registerFactory(() => GetInvoicesUseCase(getIt<AccountingRepository>()));
   getIt.registerFactory(() => UpdateInvoiceStatusUseCase(getIt<AccountingRepository>()));
   getIt.registerFactory(() => GetCoaUseCase(getIt<AccountingRepository>()));
@@ -662,11 +675,32 @@ Future<void> configureDependencies() async {
     getStatsUseCase: getIt<GetAccountingStatsUseCase>(),
     getTransactionsUseCase: getIt<GetTransactionsUseCase>(),
     createTransactionUseCase: getIt<CreateTransactionUseCase>(),
+    updateTransactionUseCase: getIt<UpdateTransactionUseCase>(),
+    deleteTransactionUseCase: getIt<DeleteTransactionUseCase>(),
     getInvoicesUseCase: getIt<GetInvoicesUseCase>(),
     updateInvoiceStatusUseCase: getIt<UpdateInvoiceStatusUseCase>(),
     getCoaUseCase: getIt<GetCoaUseCase>(),
     getBudgetVsActualUseCase: getIt<GetBudgetVsActualUseCase>(),
   ));
+
+  // Accounting — Bank Accounts
+  getIt.registerLazySingleton(() => ListBankAccountsUseCase(getIt<AccountingRepository>()));
+  getIt.registerLazySingleton(() => GetBankAccountUseCase(getIt<AccountingRepository>()));
+  getIt.registerLazySingleton(() => CreateBankAccountUseCase(getIt<AccountingRepository>()));
+  getIt.registerLazySingleton(() => UpdateBankAccountUseCase(getIt<AccountingRepository>()));
+  getIt.registerLazySingleton(() => DeleteBankAccountUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => BankAccountCubit(
+        listUseCase: getIt<ListBankAccountsUseCase>(),
+        createUseCase: getIt<CreateBankAccountUseCase>(),
+        updateUseCase: getIt<UpdateBankAccountUseCase>(),
+        deleteUseCase: getIt<DeleteBankAccountUseCase>(),
+      ));
+
+  // Accounting — COA Tree
+  getIt.registerLazySingleton(() => GetCoaTreeUseCase(getIt<AccountingRepository>()));
+  getIt.registerFactory(() => CoaTreeCubit(
+        getCoaTreeUseCase: getIt<GetCoaTreeUseCase>(),
+      ));
   // Marketing
   getIt.registerSingleton<MarketingRemoteDataSource>(
     MarketingRemoteDataSourceImpl(getIt<ApiClient>().dio),
@@ -754,7 +788,7 @@ Future<void> configureDependencies() async {
   getIt.registerFactory(() => GetInvoiceListUseCase(getIt<InvoiceRepository>()));
   getIt.registerFactory(() => GetInvoiceDetailUseCase(getIt<InvoiceRepository>()));
   getIt.registerFactory(() => MarkInvoicePaidUseCase(getIt<InvoiceRepository>()));
-  getIt.registerFactory(() => ResendInvoiceUseCase(getIt<InvoiceRepository>()));
+  getIt.registerFactory(() => SendInvoiceUseCase(getIt<InvoiceRepository>()));
   getIt.registerFactory(() => CancelInvoiceUseCase(getIt<InvoiceRepository>()));
   getIt.registerFactory(
       () => CreateManualInvoiceUseCase(getIt<InvoiceRepository>()));
@@ -763,9 +797,15 @@ Future<void> configureDependencies() async {
         getInvoices: getIt<GetInvoiceListUseCase>(),
         getDetail: getIt<GetInvoiceDetailUseCase>(),
         markPaid: getIt<MarkInvoicePaidUseCase>(),
-        resend: getIt<ResendInvoiceUseCase>(),
+        send: getIt<SendInvoiceUseCase>(),
         cancel: getIt<CancelInvoiceUseCase>(),
         createManual: getIt<CreateManualInvoiceUseCase>(),
+      ));
+  getIt.registerFactory(() => InvoiceDetailCubit(
+        getDetail: getIt<GetInvoiceDetailUseCase>(),
+        markPaid: getIt<MarkInvoicePaidUseCase>(),
+        send: getIt<SendInvoiceUseCase>(),
+        cancel: getIt<CancelInvoiceUseCase>(),
       ));
 
   // Payable

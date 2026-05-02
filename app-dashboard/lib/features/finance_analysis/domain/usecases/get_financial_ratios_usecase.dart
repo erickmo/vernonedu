@@ -7,10 +7,10 @@ class GetFinancialRatiosUseCase {
   final FinanceAnalysisRepository repository;
   GetFinancialRatiosUseCase(this.repository);
 
-  Future<Either<Failure, FinancialRatioEntity>> call({
+  Future<Either<Failure, FinancialRatiosEntity>> call({
     String period = 'monthly',
     String? branchId,
-    String comparison = 'vs_last_month',
+    String comparison = 'prev_month',
   }) =>
       repository.getRatios(
         period: period,

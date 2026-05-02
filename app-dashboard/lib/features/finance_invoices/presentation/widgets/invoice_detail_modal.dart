@@ -473,10 +473,10 @@ class _ActionButtons extends StatelessWidget {
               );
             },
           ),
-        if (invoice.status != 'cancelled')
+        if (invoice.status == 'draft' || invoice.status == 'overdue')
           OutlinedButton.icon(
-            icon: const Icon(Icons.email_outlined, size: 16),
-            label: const Text('Kirim Ulang'),
+            icon: const Icon(Icons.send_outlined, size: 16),
+            label: const Text('Kirim Invoice'),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.info,
               side: const BorderSide(color: AppColors.info),
@@ -485,7 +485,7 @@ class _ActionButtons extends StatelessWidget {
             ),
             onPressed: () {
               Navigator.of(context).pop();
-              cubit.resendInvoice(invoice.id);
+              cubit.sendInvoice(invoice.id);
             },
           ),
         if (invoice.status != 'cancelled' && invoice.status != 'paid')
@@ -635,11 +635,11 @@ class _MarkPaidDialogState extends State<_MarkPaidDialog> {
                   setState(() => _loading = true);
                   await context.read<InvoiceCubit>().markAsPaid(
                         id: widget.invoiceId,
-                        paidAt: _paidAt.toIso8601String(),
-                        method: _method,
-                        proofUrl: _proofController.text.trim().isEmpty
+                        paidAt: DateFormat('yyyy-MM-dd').format(_paidAt),
+                        paymentProof: _proofController.text.trim().isEmpty
                             ? null
                             : _proofController.text.trim(),
+                        accountCode: _method == 'cash' ? '1101' : null,
                       );
                   if (context.mounted) Navigator.of(context).pop();
                 },

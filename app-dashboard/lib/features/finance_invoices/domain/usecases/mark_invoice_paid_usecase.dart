@@ -9,13 +9,15 @@ class MarkInvoicePaidUseCase {
   Future<Either<Failure, void>> call({
     required String id,
     required String paidAt,
-    required String method,
-    String? proofUrl,
+    double? paidAmount,
+    String? paymentProof,
+    String? accountCode,
   }) =>
       _repository.markAsPaid(
         id: id,
         paidAt: paidAt,
-        method: method,
-        proofUrl: proofUrl,
+        paidAmount: paidAmount,
+        paymentProof: paymentProof,
+        accountCode: accountCode,
       );
 }

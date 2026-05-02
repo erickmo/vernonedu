@@ -1,436 +1,471 @@
 import '../../domain/entities/finance_analysis_entity.dart';
 
-class FinancialRatioModel {
-  final double profitMargin;
-  final double profitMarginTrend;
-  final double opexRatio;
-  final double opexRatioTrend;
-  final double revenuePerStudent;
-  final double revenuePerStudentTrend;
-  final double costPerStudent;
-  final double costPerStudentTrend;
-  final double avgBatchProfitability;
-  final double avgBatchProfitabilityTrend;
-  final double collectionRate;
-  final double collectionRateTrend;
-  final double dso;
-  final double dsoTrend;
-  final double revenueGrowthRate;
-  final double revenueGrowthRateTrend;
+double _toDouble(dynamic v) => (v as num?)?.toDouble() ?? 0.0;
+int _toInt(dynamic v) => (v as num?)?.toInt() ?? 0;
+String _toStr(dynamic v) => v?.toString() ?? '';
 
-  const FinancialRatioModel({
-    required this.profitMargin,
-    required this.profitMarginTrend,
-    required this.opexRatio,
-    required this.opexRatioTrend,
-    required this.revenuePerStudent,
-    required this.revenuePerStudentTrend,
-    required this.costPerStudent,
-    required this.costPerStudentTrend,
-    required this.avgBatchProfitability,
-    required this.avgBatchProfitabilityTrend,
-    required this.collectionRate,
-    required this.collectionRateTrend,
-    required this.dso,
-    required this.dsoTrend,
-    required this.revenueGrowthRate,
-    required this.revenueGrowthRateTrend,
+// --- Financial Ratios -------------------------------------------------------
+
+class RatioMetricModel {
+  final double current;
+  final double previous;
+  final double change;
+  final double changePct;
+  final String trend;
+
+  const RatioMetricModel({
+    required this.current,
+    required this.previous,
+    required this.change,
+    required this.changePct,
+    required this.trend,
   });
 
-  factory FinancialRatioModel.fromJson(Map<String, dynamic> json) {
-    return FinancialRatioModel(
-      profitMargin: (json['profit_margin'] as num?)?.toDouble() ?? 0.0,
-      profitMarginTrend: (json['profit_margin_trend'] as num?)?.toDouble() ?? 0.0,
-      opexRatio: (json['opex_ratio'] as num?)?.toDouble() ?? 0.0,
-      opexRatioTrend: (json['opex_ratio_trend'] as num?)?.toDouble() ?? 0.0,
-      revenuePerStudent: (json['revenue_per_student'] as num?)?.toDouble() ?? 0.0,
-      revenuePerStudentTrend: (json['revenue_per_student_trend'] as num?)?.toDouble() ?? 0.0,
-      costPerStudent: (json['cost_per_student'] as num?)?.toDouble() ?? 0.0,
-      costPerStudentTrend: (json['cost_per_student_trend'] as num?)?.toDouble() ?? 0.0,
-      avgBatchProfitability: (json['avg_batch_profitability'] as num?)?.toDouble() ?? 0.0,
-      avgBatchProfitabilityTrend: (json['avg_batch_profitability_trend'] as num?)?.toDouble() ?? 0.0,
-      collectionRate: (json['collection_rate'] as num?)?.toDouble() ?? 0.0,
-      collectionRateTrend: (json['collection_rate_trend'] as num?)?.toDouble() ?? 0.0,
-      dso: (json['dso'] as num?)?.toDouble() ?? 0.0,
-      dsoTrend: (json['dso_trend'] as num?)?.toDouble() ?? 0.0,
-      revenueGrowthRate: (json['revenue_growth_rate'] as num?)?.toDouble() ?? 0.0,
-      revenueGrowthRateTrend: (json['revenue_growth_rate_trend'] as num?)?.toDouble() ?? 0.0,
+  factory RatioMetricModel.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return const RatioMetricModel(
+        current: 0,
+        previous: 0,
+        change: 0,
+        changePct: 0,
+        trend: 'flat',
+      );
+    }
+    return RatioMetricModel(
+      current: _toDouble(json['current']),
+      previous: _toDouble(json['previous']),
+      change: _toDouble(json['change']),
+      changePct: _toDouble(json['change_pct']),
+      trend: _toStr(json['trend']).isEmpty ? 'flat' : _toStr(json['trend']),
     );
   }
 
-  FinancialRatioEntity toEntity() => FinancialRatioEntity(
-        profitMargin: profitMargin,
-        profitMarginTrend: profitMarginTrend,
-        opexRatio: opexRatio,
-        opexRatioTrend: opexRatioTrend,
-        revenuePerStudent: revenuePerStudent,
-        revenuePerStudentTrend: revenuePerStudentTrend,
-        costPerStudent: costPerStudent,
-        costPerStudentTrend: costPerStudentTrend,
-        avgBatchProfitability: avgBatchProfitability,
-        avgBatchProfitabilityTrend: avgBatchProfitabilityTrend,
-        collectionRate: collectionRate,
-        collectionRateTrend: collectionRateTrend,
-        dso: dso,
-        dsoTrend: dsoTrend,
-        revenueGrowthRate: revenueGrowthRate,
-        revenueGrowthRateTrend: revenueGrowthRateTrend,
+  RatioMetric toEntity() => RatioMetric(
+        current: current,
+        previous: previous,
+        change: change,
+        changePct: changePct,
+        trend: trend,
       );
 }
 
-class RevenueTrendPointModel {
+class FinancialRatiosModel {
+  final RatioMetricModel profitMargin;
+  final RatioMetricModel expenseRatio;
+  final RatioMetricModel revenuePerStudent;
+  final RatioMetricModel costPerStudent;
+  final RatioMetricModel avgBatchProfitability;
+  final RatioMetricModel collectionRate;
+  final RatioMetricModel daysSalesOutstanding;
+  final RatioMetricModel revenueGrowthRate;
+
+  const FinancialRatiosModel({
+    required this.profitMargin,
+    required this.expenseRatio,
+    required this.revenuePerStudent,
+    required this.costPerStudent,
+    required this.avgBatchProfitability,
+    required this.collectionRate,
+    required this.daysSalesOutstanding,
+    required this.revenueGrowthRate,
+  });
+
+  factory FinancialRatiosModel.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic>? sub(String k) =>
+        json[k] is Map<String, dynamic> ? json[k] as Map<String, dynamic> : null;
+    return FinancialRatiosModel(
+      profitMargin: RatioMetricModel.fromJson(sub('profit_margin')),
+      expenseRatio: RatioMetricModel.fromJson(sub('expense_ratio')),
+      revenuePerStudent: RatioMetricModel.fromJson(sub('revenue_per_student')),
+      costPerStudent: RatioMetricModel.fromJson(sub('cost_per_student')),
+      avgBatchProfitability:
+          RatioMetricModel.fromJson(sub('avg_batch_profitability')),
+      collectionRate: RatioMetricModel.fromJson(sub('collection_rate')),
+      daysSalesOutstanding:
+          RatioMetricModel.fromJson(sub('days_sales_outstanding')),
+      revenueGrowthRate:
+          RatioMetricModel.fromJson(sub('revenue_growth_rate')),
+    );
+  }
+
+  FinancialRatiosEntity toEntity() => FinancialRatiosEntity(
+        profitMargin: profitMargin.toEntity(),
+        expenseRatio: expenseRatio.toEntity(),
+        revenuePerStudent: revenuePerStudent.toEntity(),
+        costPerStudent: costPerStudent.toEntity(),
+        avgBatchProfitability: avgBatchProfitability.toEntity(),
+        collectionRate: collectionRate.toEntity(),
+        daysSalesOutstanding: daysSalesOutstanding.toEntity(),
+        revenueGrowthRate: revenueGrowthRate.toEntity(),
+      );
+}
+
+// --- Revenue ----------------------------------------------------------------
+
+class MonthlyRevenuePointModel {
   final String month;
   final double total;
-  final double reguler;
-  final double programKarir;
+  final double regular;
+  final double career;
   final double inhouse;
-  final double kolaborasi;
-  final double sertifikasi;
+  final double collab;
+  final double cert;
 
-  const RevenueTrendPointModel({
+  const MonthlyRevenuePointModel({
     required this.month,
     required this.total,
-    required this.reguler,
-    required this.programKarir,
+    required this.regular,
+    required this.career,
     required this.inhouse,
-    required this.kolaborasi,
-    required this.sertifikasi,
+    required this.collab,
+    required this.cert,
   });
 
-  factory RevenueTrendPointModel.fromJson(Map<String, dynamic> json) {
-    return RevenueTrendPointModel(
-      month: json['month']?.toString() ?? '',
-      total: (json['total'] as num?)?.toDouble() ?? 0.0,
-      reguler: (json['reguler'] as num?)?.toDouble() ?? 0.0,
-      programKarir: (json['program_karir'] as num?)?.toDouble() ?? 0.0,
-      inhouse: (json['inhouse'] as num?)?.toDouble() ?? 0.0,
-      kolaborasi: (json['kolaborasi'] as num?)?.toDouble() ?? 0.0,
-      sertifikasi: (json['sertifikasi'] as num?)?.toDouble() ?? 0.0,
+  factory MonthlyRevenuePointModel.fromJson(Map<String, dynamic> json) {
+    return MonthlyRevenuePointModel(
+      month: _toStr(json['month']),
+      total: _toDouble(json['total']),
+      regular: _toDouble(json['regular']),
+      career: _toDouble(json['career']),
+      inhouse: _toDouble(json['inhouse']),
+      collab: _toDouble(json['collab']),
+      cert: _toDouble(json['cert']),
     );
   }
 
-  RevenueTrendPoint toEntity() => RevenueTrendPoint(
+  MonthlyRevenuePoint toEntity() => MonthlyRevenuePoint(
         month: month,
         total: total,
-        reguler: reguler,
-        programKarir: programKarir,
+        regular: regular,
+        career: career,
         inhouse: inhouse,
-        kolaborasi: kolaborasi,
-        sertifikasi: sertifikasi,
+        collab: collab,
+        cert: cert,
       );
 }
 
-class RevenueByTypeModel {
-  final String typeName;
-  final double amount;
-  final double percentage;
+class RevenueByGroupModel {
+  final String groupKey;
+  final double revenue;
+  final double pctOfTotal;
   final int batchCount;
   final double avgPerBatch;
-  final double trend;
+  final String trend;
 
-  const RevenueByTypeModel({
-    required this.typeName,
-    required this.amount,
-    required this.percentage,
+  const RevenueByGroupModel({
+    required this.groupKey,
+    required this.revenue,
+    required this.pctOfTotal,
     required this.batchCount,
     required this.avgPerBatch,
     required this.trend,
   });
 
-  factory RevenueByTypeModel.fromJson(Map<String, dynamic> json) {
-    return RevenueByTypeModel(
-      typeName: json['type_name']?.toString() ?? '',
-      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
-      percentage: (json['percentage'] as num?)?.toDouble() ?? 0.0,
-      batchCount: (json['batch_count'] as num?)?.toInt() ?? 0,
-      avgPerBatch: (json['avg_per_batch'] as num?)?.toDouble() ?? 0.0,
-      trend: (json['trend'] as num?)?.toDouble() ?? 0.0,
+  factory RevenueByGroupModel.fromJson(Map<String, dynamic> json) {
+    return RevenueByGroupModel(
+      groupKey: _toStr(json['group_key']),
+      revenue: _toDouble(json['revenue']),
+      pctOfTotal: _toDouble(json['pct_of_total']),
+      batchCount: _toInt(json['batch_count']),
+      avgPerBatch: _toDouble(json['avg_per_batch']),
+      trend: _toStr(json['trend']),
     );
   }
 
-  RevenueByTypeEntity toEntity() => RevenueByTypeEntity(
-        typeName: typeName,
-        amount: amount,
-        percentage: percentage,
+  RevenueByGroup toEntity() => RevenueByGroup(
+        groupKey: groupKey,
+        revenue: revenue,
+        pctOfTotal: pctOfTotal,
         batchCount: batchCount,
         avgPerBatch: avgPerBatch,
         trend: trend,
       );
 }
 
-class RevenueByBranchModel {
-  final String branchName;
-  final double amount;
-
-  const RevenueByBranchModel({required this.branchName, required this.amount});
-
-  factory RevenueByBranchModel.fromJson(Map<String, dynamic> json) {
-    return RevenueByBranchModel(
-      branchName: json['branch_name']?.toString() ?? '',
-      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
-    );
-  }
-
-  RevenueByBranchEntity toEntity() =>
-      RevenueByBranchEntity(branchName: branchName, amount: amount);
-}
-
 class RevenueAnalysisModel {
-  final List<RevenueTrendPointModel> trend;
-  final List<RevenueByTypeModel> byType;
-  final List<RevenueByBranchModel> byBranch;
+  final List<MonthlyRevenuePointModel> monthlyTrend;
+  final List<RevenueByGroupModel> byGroup;
+  final double totalRevenue;
+  final String groupBy;
 
   const RevenueAnalysisModel({
-    required this.trend,
-    required this.byType,
-    required this.byBranch,
+    required this.monthlyTrend,
+    required this.byGroup,
+    required this.totalRevenue,
+    required this.groupBy,
   });
 
   factory RevenueAnalysisModel.fromJson(Map<String, dynamic> json) {
-    final trendList = json['trend'] is List ? json['trend'] as List : [];
-    final byTypeList = json['by_type'] is List ? json['by_type'] as List : [];
-    final byBranchList = json['by_branch'] is List ? json['by_branch'] as List : [];
-
+    final mt = json['monthly_trend'];
+    final bg = json['by_group'];
     return RevenueAnalysisModel(
-      trend: trendList
-          .map((e) => RevenueTrendPointModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      byType: byTypeList
-          .map((e) => RevenueByTypeModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      byBranch: byBranchList
-          .map((e) => RevenueByBranchModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      monthlyTrend: (mt is List)
+          ? mt
+              .map((e) =>
+                  MonthlyRevenuePointModel.fromJson(e as Map<String, dynamic>))
+              .toList()
+          : <MonthlyRevenuePointModel>[],
+      byGroup: (bg is List)
+          ? bg
+              .map((e) =>
+                  RevenueByGroupModel.fromJson(e as Map<String, dynamic>))
+              .toList()
+          : <RevenueByGroupModel>[],
+      totalRevenue: _toDouble(json['total_revenue']),
+      groupBy: _toStr(json['group_by']),
     );
   }
 
   RevenueAnalysisEntity toEntity() => RevenueAnalysisEntity(
-        trend: trend.map((e) => e.toEntity()).toList(),
-        byType: byType.map((e) => e.toEntity()).toList(),
-        byBranch: byBranch.map((e) => e.toEntity()).toList(),
+        monthlyTrend: monthlyTrend.map((e) => e.toEntity()).toList(),
+        byGroup: byGroup.map((e) => e.toEntity()).toList(),
+        totalRevenue: totalRevenue,
+        groupBy: groupBy,
       );
 }
 
-class CostTrendPointModel {
+// --- Cost -------------------------------------------------------------------
+
+class MonthlyCostPointModel {
   final String month;
+  final double total;
   final double facilitator;
   final double commission;
   final double operational;
   final double marketing;
-  final double investment;
-  final double total;
+  final double other;
 
-  const CostTrendPointModel({
+  const MonthlyCostPointModel({
     required this.month,
+    required this.total,
     required this.facilitator,
     required this.commission,
     required this.operational,
     required this.marketing,
-    required this.investment,
-    required this.total,
+    required this.other,
   });
 
-  factory CostTrendPointModel.fromJson(Map<String, dynamic> json) {
-    return CostTrendPointModel(
-      month: json['month']?.toString() ?? '',
-      facilitator: (json['facilitator'] as num?)?.toDouble() ?? 0.0,
-      commission: (json['commission'] as num?)?.toDouble() ?? 0.0,
-      operational: (json['operational'] as num?)?.toDouble() ?? 0.0,
-      marketing: (json['marketing'] as num?)?.toDouble() ?? 0.0,
-      investment: (json['investment'] as num?)?.toDouble() ?? 0.0,
-      total: (json['total'] as num?)?.toDouble() ?? 0.0,
+  factory MonthlyCostPointModel.fromJson(Map<String, dynamic> json) {
+    return MonthlyCostPointModel(
+      month: _toStr(json['month']),
+      total: _toDouble(json['total']),
+      facilitator: _toDouble(json['facilitator']),
+      commission: _toDouble(json['commission']),
+      operational: _toDouble(json['operational']),
+      marketing: _toDouble(json['marketing']),
+      other: _toDouble(json['other']),
     );
   }
 
-  CostTrendPoint toEntity() => CostTrendPoint(
+  MonthlyCostPoint toEntity() => MonthlyCostPoint(
         month: month,
+        total: total,
         facilitator: facilitator,
         commission: commission,
         operational: operational,
         marketing: marketing,
-        investment: investment,
-        total: total,
+        other: other,
       );
 }
 
 class CostByCategoryModel {
   final String category;
   final double amount;
-  final double percentage;
-  final double vsLastMonth;
-  final double trend;
+  final double pctOfTotal;
+  final double vsPrevious;
+  final String trend;
 
   const CostByCategoryModel({
     required this.category,
     required this.amount,
-    required this.percentage,
-    required this.vsLastMonth,
+    required this.pctOfTotal,
+    required this.vsPrevious,
     required this.trend,
   });
 
   factory CostByCategoryModel.fromJson(Map<String, dynamic> json) {
     return CostByCategoryModel(
-      category: json['category']?.toString() ?? '',
-      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
-      percentage: (json['percentage'] as num?)?.toDouble() ?? 0.0,
-      vsLastMonth: (json['vs_last_month'] as num?)?.toDouble() ?? 0.0,
-      trend: (json['trend'] as num?)?.toDouble() ?? 0.0,
+      category: _toStr(json['category']),
+      amount: _toDouble(json['amount']),
+      pctOfTotal: _toDouble(json['pct_of_total']),
+      vsPrevious: _toDouble(json['vs_previous']),
+      trend: _toStr(json['trend']),
     );
   }
 
   CostByCategory toEntity() => CostByCategory(
         category: category,
         amount: amount,
-        percentage: percentage,
-        vsLastMonth: vsLastMonth,
+        pctOfTotal: pctOfTotal,
+        vsPrevious: vsPrevious,
         trend: trend,
       );
 }
 
 class CostAnalysisModel {
-  final List<CostTrendPointModel> trend;
+  final List<MonthlyCostPointModel> monthlyTrend;
   final List<CostByCategoryModel> byCategory;
+  final double totalCost;
 
-  const CostAnalysisModel({required this.trend, required this.byCategory});
+  const CostAnalysisModel({
+    required this.monthlyTrend,
+    required this.byCategory,
+    required this.totalCost,
+  });
 
   factory CostAnalysisModel.fromJson(Map<String, dynamic> json) {
-    final trendList = json['trend'] is List ? json['trend'] as List : [];
-    final byCategoryList =
-        json['by_category'] is List ? json['by_category'] as List : [];
-
+    final mt = json['monthly_trend'];
+    final bc = json['by_category'];
     return CostAnalysisModel(
-      trend: trendList
-          .map((e) => CostTrendPointModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      byCategory: byCategoryList
-          .map((e) => CostByCategoryModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      monthlyTrend: (mt is List)
+          ? mt
+              .map((e) =>
+                  MonthlyCostPointModel.fromJson(e as Map<String, dynamic>))
+              .toList()
+          : <MonthlyCostPointModel>[],
+      byCategory: (bc is List)
+          ? bc
+              .map((e) =>
+                  CostByCategoryModel.fromJson(e as Map<String, dynamic>))
+              .toList()
+          : <CostByCategoryModel>[],
+      totalCost: _toDouble(json['total_cost']),
     );
   }
 
   CostAnalysisEntity toEntity() => CostAnalysisEntity(
-        trend: trend.map((e) => e.toEntity()).toList(),
+        monthlyTrend: monthlyTrend.map((e) => e.toEntity()).toList(),
         byCategory: byCategory.map((e) => e.toEntity()).toList(),
+        totalCost: totalCost,
+      );
+}
+
+// --- Batch Profit -----------------------------------------------------------
+
+class BatchProfitItemModel {
+  final String batchId;
+  final String batchCode;
+  final String courseName;
+  final double revenue;
+  final double expense;
+  final double commission;
+  final double profit;
+  final double marginPct;
+
+  const BatchProfitItemModel({
+    required this.batchId,
+    required this.batchCode,
+    required this.courseName,
+    required this.revenue,
+    required this.expense,
+    required this.commission,
+    required this.profit,
+    required this.marginPct,
+  });
+
+  factory BatchProfitItemModel.fromJson(Map<String, dynamic> json) {
+    return BatchProfitItemModel(
+      batchId: _toStr(json['batch_id']),
+      batchCode: _toStr(json['batch_code']),
+      courseName: _toStr(json['course_name']),
+      revenue: _toDouble(json['revenue']),
+      expense: _toDouble(json['expense']),
+      commission: _toDouble(json['commission']),
+      profit: _toDouble(json['profit']),
+      marginPct: _toDouble(json['margin_pct']),
+    );
+  }
+
+  BatchProfitItem toEntity() => BatchProfitItem(
+        batchId: batchId,
+        batchCode: batchCode,
+        courseName: courseName,
+        revenue: revenue,
+        expense: expense,
+        commission: commission,
+        profit: profit,
+        marginPct: marginPct,
       );
 }
 
 class BatchProfitModel {
-  final String batchCode;
-  final String courseName;
-  final double revenue;
-  final double expenditure;
-  final double commission;
-  final double profit;
-  final double marginPercent;
+  final List<BatchProfitItemModel> items;
+  final double avgMargin;
+  final String sort;
 
   const BatchProfitModel({
-    required this.batchCode,
-    required this.courseName,
-    required this.revenue,
-    required this.expenditure,
-    required this.commission,
-    required this.profit,
-    required this.marginPercent,
+    required this.items,
+    required this.avgMargin,
+    required this.sort,
   });
 
   factory BatchProfitModel.fromJson(Map<String, dynamic> json) {
+    final raw = json['items'];
     return BatchProfitModel(
-      batchCode: json['batch_code']?.toString() ?? '',
-      courseName: json['course_name']?.toString() ?? '',
-      revenue: (json['revenue'] as num?)?.toDouble() ?? 0.0,
-      expenditure: (json['expenditure'] as num?)?.toDouble() ?? 0.0,
-      commission: (json['commission'] as num?)?.toDouble() ?? 0.0,
-      profit: (json['profit'] as num?)?.toDouble() ?? 0.0,
-      marginPercent: (json['margin_percent'] as num?)?.toDouble() ?? 0.0,
+      items: (raw is List)
+          ? raw
+              .map((e) =>
+                  BatchProfitItemModel.fromJson(e as Map<String, dynamic>))
+              .toList()
+          : <BatchProfitItemModel>[],
+      avgMargin: _toDouble(json['avg_margin']),
+      sort: _toStr(json['sort']),
     );
   }
 
   BatchProfitEntity toEntity() => BatchProfitEntity(
-        batchCode: batchCode,
-        courseName: courseName,
-        revenue: revenue,
-        expenditure: expenditure,
-        commission: commission,
-        profit: profit,
-        marginPercent: marginPercent,
+        items: items.map((e) => e.toEntity()).toList(),
+        avgMargin: avgMargin,
+        sort: sort,
       );
 }
 
-class HistogramBucketModel {
-  final String rangeLabel;
-  final int count;
+// --- Cash Forecast ----------------------------------------------------------
 
-  const HistogramBucketModel({required this.rangeLabel, required this.count});
-
-  factory HistogramBucketModel.fromJson(Map<String, dynamic> json) {
-    return HistogramBucketModel(
-      rangeLabel: json['range_label']?.toString() ?? '',
-      count: (json['count'] as num?)?.toInt() ?? 0,
-    );
-  }
-
-  HistogramBucket toEntity() =>
-      HistogramBucket(rangeLabel: rangeLabel, count: count);
-}
-
-class BatchProfitAnalysisModel {
-  final List<BatchProfitModel> topBatches;
-  final List<BatchProfitModel> bottomBatches;
-  final List<HistogramBucketModel> histogram;
-
-  const BatchProfitAnalysisModel({
-    required this.topBatches,
-    required this.bottomBatches,
-    required this.histogram,
-  });
-
-  BatchProfitAnalysisEntity toEntity() => BatchProfitAnalysisEntity(
-        topBatches: topBatches.map((e) => e.toEntity()).toList(),
-        bottomBatches: bottomBatches.map((e) => e.toEntity()).toList(),
-        histogram: histogram.map((e) => e.toEntity()).toList(),
-      );
-}
-
-class CashForecastPointModel {
+class CashForecastMonthModel {
   final String month;
-  final double projectedCash;
-  final double projectedInflow;
-  final double projectedOutflow;
+  final double openingCash;
+  final double inflow;
+  final double outflow;
+  final double closingCash;
 
-  const CashForecastPointModel({
+  const CashForecastMonthModel({
     required this.month,
-    required this.projectedCash,
-    required this.projectedInflow,
-    required this.projectedOutflow,
+    required this.openingCash,
+    required this.inflow,
+    required this.outflow,
+    required this.closingCash,
   });
 
-  factory CashForecastPointModel.fromJson(Map<String, dynamic> json) {
-    return CashForecastPointModel(
-      month: json['month']?.toString() ?? '',
-      projectedCash: (json['projected_cash'] as num?)?.toDouble() ?? 0.0,
-      projectedInflow: (json['projected_inflow'] as num?)?.toDouble() ?? 0.0,
-      projectedOutflow: (json['projected_outflow'] as num?)?.toDouble() ?? 0.0,
+  factory CashForecastMonthModel.fromJson(Map<String, dynamic> json) {
+    return CashForecastMonthModel(
+      month: _toStr(json['month']),
+      openingCash: _toDouble(json['opening_cash']),
+      inflow: _toDouble(json['inflow']),
+      outflow: _toDouble(json['outflow']),
+      closingCash: _toDouble(json['closing_cash']),
     );
   }
 
-  CashForecastPoint toEntity() => CashForecastPoint(
+  CashForecastMonth toEntity() => CashForecastMonth(
         month: month,
-        projectedCash: projectedCash,
-        projectedInflow: projectedInflow,
-        projectedOutflow: projectedOutflow,
+        openingCash: openingCash,
+        inflow: inflow,
+        outflow: outflow,
+        closingCash: closingCash,
       );
 }
 
 class CashEventModel {
   final String date;
-  final String type;
+  final String eventType;
   final String description;
   final double amount;
   final String status;
 
   const CashEventModel({
     required this.date,
-    required this.type,
+    required this.eventType,
     required this.description,
     required this.amount,
     required this.status,
@@ -438,17 +473,17 @@ class CashEventModel {
 
   factory CashEventModel.fromJson(Map<String, dynamic> json) {
     return CashEventModel(
-      date: json['date']?.toString() ?? '',
-      type: json['type']?.toString() ?? '',
-      description: json['description']?.toString() ?? '',
-      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
-      status: json['status']?.toString() ?? '',
+      date: _toStr(json['date']),
+      eventType: _toStr(json['event_type']),
+      description: _toStr(json['description']),
+      amount: _toDouble(json['amount']),
+      status: _toStr(json['status']),
     );
   }
 
-  CashEventEntity toEntity() => CashEventEntity(
+  CashEvent toEntity() => CashEvent(
         date: date,
-        type: type,
+        eventType: eventType,
         description: description,
         amount: amount,
         status: status,
@@ -456,48 +491,106 @@ class CashEventModel {
 }
 
 class CashForecastModel {
-  final List<CashForecastPointModel> projection;
+  final double currentCash;
+  final List<CashForecastMonthModel> months;
   final List<CashEventModel> upcomingEvents;
 
   const CashForecastModel({
-    required this.projection,
+    required this.currentCash,
+    required this.months,
     required this.upcomingEvents,
   });
 
   factory CashForecastModel.fromJson(Map<String, dynamic> json) {
-    final projList = json['projection'] is List ? json['projection'] as List : [];
-    final eventList =
-        json['upcoming_events'] is List ? json['upcoming_events'] as List : [];
-
+    final m = json['months'];
+    final ev = json['upcoming_events'];
     return CashForecastModel(
-      projection: projList
-          .map((e) => CashForecastPointModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      upcomingEvents: eventList
-          .map((e) => CashEventModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      currentCash: _toDouble(json['current_cash']),
+      months: (m is List)
+          ? m
+              .map((e) =>
+                  CashForecastMonthModel.fromJson(e as Map<String, dynamic>))
+              .toList()
+          : <CashForecastMonthModel>[],
+      upcomingEvents: (ev is List)
+          ? ev
+              .map((e) => CashEventModel.fromJson(e as Map<String, dynamic>))
+              .toList()
+          : <CashEventModel>[],
     );
   }
 
   CashForecastEntity toEntity() => CashForecastEntity(
-        projection: projection.map((e) => e.toEntity()).toList(),
+        currentCash: currentCash,
+        months: months.map((e) => e.toEntity()).toList(),
         upcomingEvents: upcomingEvents.map((e) => e.toEntity()).toList(),
       );
 }
 
-class FinanceAlertModel {
-  final String type;
+// --- Alerts -----------------------------------------------------------------
+
+class FinancialAlertModel {
+  final String level;
+  final String code;
   final String message;
+  final int count;
+  final double amount;
 
-  const FinanceAlertModel({required this.type, required this.message});
+  const FinancialAlertModel({
+    required this.level,
+    required this.code,
+    required this.message,
+    this.count = 0,
+    this.amount = 0,
+  });
 
-  factory FinanceAlertModel.fromJson(Map<String, dynamic> json) {
-    return FinanceAlertModel(
-      type: json['type']?.toString() ?? 'info',
-      message: json['message']?.toString() ?? '',
+  factory FinancialAlertModel.fromJson(Map<String, dynamic> json) {
+    return FinancialAlertModel(
+      level: _toStr(json['level']).isEmpty ? 'info' : _toStr(json['level']),
+      code: _toStr(json['code']),
+      message: _toStr(json['message']),
+      count: _toInt(json['count']),
+      amount: _toDouble(json['amount']),
     );
   }
 
-  FinanceAlertEntity toEntity() =>
-      FinanceAlertEntity(type: type, message: message);
+  FinancialAlert toEntity() => FinancialAlert(
+        level: level,
+        code: code,
+        message: message,
+        count: count,
+        amount: amount,
+      );
+}
+
+// --- Suggestions ------------------------------------------------------------
+
+class FinancialSuggestionModel {
+  final String icon;
+  final String message;
+  final double amount;
+  final String detail;
+
+  const FinancialSuggestionModel({
+    required this.icon,
+    required this.message,
+    this.amount = 0,
+    this.detail = '',
+  });
+
+  factory FinancialSuggestionModel.fromJson(Map<String, dynamic> json) {
+    return FinancialSuggestionModel(
+      icon: _toStr(json['icon']),
+      message: _toStr(json['message']),
+      amount: _toDouble(json['amount']),
+      detail: _toStr(json['detail']),
+    );
+  }
+
+  FinancialSuggestion toEntity() => FinancialSuggestion(
+        icon: icon,
+        message: message,
+        amount: amount,
+        detail: detail,
+      );
 }

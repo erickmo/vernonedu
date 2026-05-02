@@ -286,6 +286,7 @@ class _TransactionViewState extends State<_TransactionView> {
           DataColumn2(label: Text('Debit'), numeric: true, size: ColumnSize.M),
           DataColumn2(label: Text('Kredit'), numeric: true, size: ColumnSize.M),
           DataColumn2(label: Text('Sumber'), size: ColumnSize.S),
+          DataColumn2(label: Text('Aksi'), size: ColumnSize.S),
         ],
         rows: items.map((t) {
           final date = DateTime.tryParse(t.transactionDate);
@@ -330,9 +331,72 @@ class _TransactionViewState extends State<_TransactionView> {
                       style: TextStyle(
                           fontSize: 13, color: AppColors.textHint))),
               DataCell(_SourcePill(source: t.status)),
+              DataCell(_RowActions(
+                tx: t,
+                onEdit: () => _onEdit(context, t),
+                onDelete: () => _onDelete(context, t),
+              )),
             ],
           );
         }).toList(),
+      ),
+    );
+  }
+
+  void _onEdit(BuildContext context, TransactionEntity tx) {
+    context.push('/finance/transactions/${tx.id}/edit', extra: tx);
+  }
+
+  Future<void> _onDelete(BuildContext context, TransactionEntity tx) async {
+    final cubit = context.read<AccountingCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus transaksi?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(tx.description,
+                style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary)),
+            const SizedBox(height: 4),
+            Text(
+              _currencyFmt.format(tx.amount),
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: AppDimensions.sm),
+            const Text(
+              'Tindakan ini tidak dapat dibatalkan.',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: AppColors.textOnPrimary,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final ok = await cubit.deleteTransaction(tx.id);
+    if (!mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(ok ? 'Transaksi dihapus' : 'Gagal menghapus transaksi'),
+        backgroundColor: ok ? AppColors.success : AppColors.error,
       ),
     );
   }
@@ -401,6 +465,42 @@ class _FilterDropdown extends StatelessWidget {
           isDense: true,
         ),
       ),
+    );
+  }
+}
+
+class _RowActions extends StatelessWidget {
+  final TransactionEntity tx;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  const _RowActions({
+    required this.tx,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          tooltip: 'Edit',
+          icon: const Icon(Icons.edit_outlined,
+              size: AppDimensions.iconSm, color: AppColors.primary),
+          onPressed: onEdit,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+        ),
+        IconButton(
+          tooltip: 'Hapus',
+          icon: const Icon(Icons.delete_outline,
+              size: AppDimensions.iconSm, color: AppColors.error),
+          onPressed: onDelete,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+        ),
+      ],
     );
   }
 }

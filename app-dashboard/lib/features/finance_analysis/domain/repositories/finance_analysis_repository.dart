@@ -3,7 +3,7 @@ import '../../../../core/errors/failures.dart';
 import '../entities/finance_analysis_entity.dart';
 
 abstract class FinanceAnalysisRepository {
-  Future<Either<Failure, FinancialRatioEntity>> getRatios({
+  Future<Either<Failure, FinancialRatiosEntity>> getRatios({
     String period,
     String? branchId,
     String comparison,
@@ -21,9 +21,10 @@ abstract class FinanceAnalysisRepository {
     String groupBy,
   });
 
-  Future<Either<Failure, BatchProfitAnalysisEntity>> getBatchProfit({
+  Future<Either<Failure, BatchProfitEntity>> getBatchProfit({
     String period,
     String? branchId,
+    String sort,
     int limit,
   });
 
@@ -32,6 +33,6 @@ abstract class FinanceAnalysisRepository {
     String? branchId,
   });
 
-  Future<Either<Failure, List<FinanceAlertEntity>>> getAlerts();
-  Future<Either<Failure, List<FinanceAlertEntity>>> getSuggestions();
+  Future<Either<Failure, List<FinancialAlert>>> getAlerts();
+  Future<Either<Failure, List<FinancialSuggestion>>> getSuggestions();
 }

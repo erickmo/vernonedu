@@ -9,6 +9,10 @@ export '../../../accounting/presentation/pages/transaction_form_page.dart'
     show TransactionFormPage;
 export '../../../accounting/presentation/pages/chart_of_accounts_page.dart'
     show ChartOfAccountsPage;
+export '../../../accounting/presentation/pages/bank_accounts_page.dart'
+    show BankAccountsPage;
+export '../../../accounting/presentation/pages/coa_tree_page.dart'
+    show CoaTreePage;
 export '../../../accounting/presentation/pages/journal_page.dart'
     show JournalPage;
 

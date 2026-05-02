@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import '../models/finance_analysis_model.dart';
 
 abstract class FinanceAnalysisRemoteDataSource {
-  Future<FinancialRatioModel> fetchRatios({
+  Future<FinancialRatiosModel> fetchRatios({
     String period,
     String? branchId,
     String comparison,
@@ -20,9 +20,10 @@ abstract class FinanceAnalysisRemoteDataSource {
     String groupBy,
   });
 
-  Future<BatchProfitAnalysisModel> fetchBatchProfit({
+  Future<BatchProfitModel> fetchBatchProfit({
     String period,
     String? branchId,
+    String sort,
     int limit,
   });
 
@@ -31,8 +32,8 @@ abstract class FinanceAnalysisRemoteDataSource {
     String? branchId,
   });
 
-  Future<List<FinanceAlertModel>> fetchAlerts();
-  Future<List<FinanceAlertModel>> fetchSuggestions();
+  Future<List<FinancialAlertModel>> fetchAlerts();
+  Future<List<FinancialSuggestionModel>> fetchSuggestions();
 }
 
 class FinanceAnalysisRemoteDataSourceImpl
@@ -40,27 +41,30 @@ class FinanceAnalysisRemoteDataSourceImpl
   final Dio _dio;
   const FinanceAnalysisRemoteDataSourceImpl(this._dio);
 
+  Map<String, dynamic> _objJson(dynamic raw) {
+    if (raw is Map && raw['data'] is Map) {
+      return Map<String, dynamic>.from(raw['data'] as Map);
+    }
+    if (raw is Map) return Map<String, dynamic>.from(raw);
+    return <String, dynamic>{};
+  }
+
+  List<dynamic> _listJson(dynamic raw) {
+    if (raw is Map && raw['data'] is List) return List<dynamic>.from(raw['data'] as List);
+    if (raw is List) return List<dynamic>.from(raw);
+    return <dynamic>[];
+  }
+
   @override
-  Future<FinancialRatioModel> fetchRatios({
+  Future<FinancialRatiosModel> fetchRatios({
     String period = 'monthly',
     String? branchId,
-    String comparison = 'vs_last_month',
+    String comparison = 'prev_month',
   }) async {
-    final params = <String, dynamic>{
-      'period': period,
-      'comparison': comparison,
-    };
+    final params = <String, dynamic>{'period': period, 'comparison': comparison};
     if (branchId != null && branchId.isNotEmpty) params['branch_id'] = branchId;
-
-    final res = await _dio.get(
-      '/finance/analysis/ratios',
-      queryParameters: params,
-    );
-    final raw = res.data;
-    final json = (raw is Map && raw['data'] != null)
-        ? raw['data'] as Map<String, dynamic>
-        : raw as Map<String, dynamic>;
-    return FinancialRatioModel.fromJson(json);
+    final res = await _dio.get('/finance/analysis/ratios', queryParameters: params);
+    return FinancialRatiosModel.fromJson(_objJson(res.data));
   }
 
   @override
@@ -69,98 +73,35 @@ class FinanceAnalysisRemoteDataSourceImpl
     String? branchId,
     String groupBy = 'month',
   }) async {
-    final params = <String, dynamic>{
-      'period': period,
-      'group_by': groupBy,
-    };
+    final params = <String, dynamic>{'period': period, 'group_by': groupBy};
     if (branchId != null && branchId.isNotEmpty) params['branch_id'] = branchId;
-
-    final res = await _dio.get(
-      '/finance/analysis/revenue',
-      queryParameters: params,
-    );
-    final raw = res.data;
-    final json = (raw is Map && raw['data'] != null)
-        ? raw['data'] as Map<String, dynamic>
-        : raw as Map<String, dynamic>;
-    return RevenueAnalysisModel.fromJson(json);
+    final res = await _dio.get('/finance/analysis/revenue', queryParameters: params);
+    return RevenueAnalysisModel.fromJson(_objJson(res.data));
   }
 
   @override
   Future<CostAnalysisModel> fetchCosts({
     String period = 'monthly',
     String? branchId,
-    String groupBy = 'month',
+    String groupBy = 'category',
   }) async {
-    final params = <String, dynamic>{
-      'period': period,
-      'group_by': groupBy,
-    };
+    final params = <String, dynamic>{'period': period, 'group_by': groupBy};
     if (branchId != null && branchId.isNotEmpty) params['branch_id'] = branchId;
-
-    final res = await _dio.get(
-      '/finance/analysis/costs',
-      queryParameters: params,
-    );
-    final raw = res.data;
-    final json = (raw is Map && raw['data'] != null)
-        ? raw['data'] as Map<String, dynamic>
-        : raw as Map<String, dynamic>;
-    return CostAnalysisModel.fromJson(json);
+    final res = await _dio.get('/finance/analysis/costs', queryParameters: params);
+    return CostAnalysisModel.fromJson(_objJson(res.data));
   }
 
   @override
-  Future<BatchProfitAnalysisModel> fetchBatchProfit({
+  Future<BatchProfitModel> fetchBatchProfit({
     String period = 'monthly',
     String? branchId,
+    String sort = 'top',
     int limit = 10,
   }) async {
-    final params = <String, dynamic>{
-      'period': period,
-      'limit': limit,
-    };
+    final params = <String, dynamic>{'period': period, 'sort': sort, 'limit': limit};
     if (branchId != null && branchId.isNotEmpty) params['branch_id'] = branchId;
-
-    final topParams = Map<String, dynamic>.from(params)..['sort'] = 'top';
-    final bottomParams = Map<String, dynamic>.from(params)..['sort'] = 'bottom';
-
-    final results = await Future.wait([
-      _dio.get('/finance/analysis/batch-profit', queryParameters: topParams),
-      _dio.get('/finance/analysis/batch-profit', queryParameters: bottomParams),
-    ]);
-
-    List<BatchProfitModel> parseList(dynamic res) {
-      final raw = (res as Response).data;
-      List list;
-      if (raw is Map && raw['data'] != null) {
-        final inner = raw['data'];
-        list = inner is List ? inner : [];
-      } else if (raw is List) {
-        list = raw;
-      } else {
-        list = [];
-      }
-      return list
-          .map((e) => BatchProfitModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    }
-
-    // Parse histogram from top response if available
-    final topRaw = results[0].data;
-    List<HistogramBucketModel> histogram = [];
-    if (topRaw is Map && topRaw['histogram'] != null) {
-      final histList = topRaw['histogram'] as List;
-      histogram = histList
-          .map((e) =>
-              HistogramBucketModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    }
-
-    return BatchProfitAnalysisModel(
-      topBatches: parseList(results[0]),
-      bottomBatches: parseList(results[1]),
-      histogram: histogram,
-    );
+    final res = await _dio.get('/finance/analysis/batch-profit', queryParameters: params);
+    return BatchProfitModel.fromJson(_objJson(res.data));
   }
 
   @override
@@ -170,43 +111,23 @@ class FinanceAnalysisRemoteDataSourceImpl
   }) async {
     final params = <String, dynamic>{'months': months};
     if (branchId != null && branchId.isNotEmpty) params['branch_id'] = branchId;
-
-    final res = await _dio.get(
-      '/finance/analysis/cash-forecast',
-      queryParameters: params,
-    );
-    final raw = res.data;
-    final json = (raw is Map && raw['data'] != null)
-        ? raw['data'] as Map<String, dynamic>
-        : raw as Map<String, dynamic>;
-    return CashForecastModel.fromJson(json);
+    final res = await _dio.get('/finance/analysis/cash-forecast', queryParameters: params);
+    return CashForecastModel.fromJson(_objJson(res.data));
   }
 
   @override
-  Future<List<FinanceAlertModel>> fetchAlerts() async {
+  Future<List<FinancialAlertModel>> fetchAlerts() async {
     final res = await _dio.get('/finance/analysis/alerts');
-    final raw = res.data;
-    final list = (raw is Map && raw['data'] != null)
-        ? raw['data'] as List
-        : raw is List
-            ? raw
-            : <dynamic>[];
-    return list
-        .map((e) => FinanceAlertModel.fromJson(e as Map<String, dynamic>))
+    return _listJson(res.data)
+        .map((e) => FinancialAlertModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
   @override
-  Future<List<FinanceAlertModel>> fetchSuggestions() async {
+  Future<List<FinancialSuggestionModel>> fetchSuggestions() async {
     final res = await _dio.get('/finance/analysis/suggestions');
-    final raw = res.data;
-    final list = (raw is Map && raw['data'] != null)
-        ? raw['data'] as List
-        : raw is List
-            ? raw
-            : <dynamic>[];
-    return list
-        .map((e) => FinanceAlertModel.fromJson(e as Map<String, dynamic>))
+    return _listJson(res.data)
+        .map((e) => FinancialSuggestionModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 }

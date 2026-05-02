@@ -7,6 +7,5 @@ class GetFinanceAlertsUseCase {
   final FinanceAnalysisRepository repository;
   GetFinanceAlertsUseCase(this.repository);
 
-  Future<Either<Failure, List<FinanceAlertEntity>>> call() =>
-      repository.getAlerts();
+  Future<Either<Failure, List<FinancialAlert>>> call() => repository.getAlerts();
 }

@@ -22,11 +22,12 @@ abstract class InvoiceRemoteDataSource {
   Future<void> markAsPaid({
     required String id,
     required String paidAt,
-    required String method,
-    String? proofUrl,
+    double? paidAmount,
+    String? paymentProof,
+    String? accountCode,
   });
 
-  Future<void> resendInvoice(String id);
+  Future<void> sendInvoice(String id);
 
   Future<void> cancelInvoice({
     required String id,
@@ -42,16 +43,12 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
 
   @override
   Future<InvoiceStatsModel> getStats() async {
-    try {
-      final res = await _dio.get('/finance/invoices/stats');
-      final raw = res.data;
-      final json = (raw is Map && raw['data'] != null)
-          ? raw['data'] as Map<String, dynamic>
-          : raw as Map<String, dynamic>;
-      return InvoiceStatsModel.fromJson(json);
-    } on DioException {
-      return InvoiceStatsModel.mock();
-    }
+    final res = await _dio.get('/finance/invoices/stats');
+    final raw = res.data;
+    final json = (raw is Map && raw['data'] != null)
+        ? raw['data'] as Map<String, dynamic>
+        : raw as Map<String, dynamic>;
+    return InvoiceStatsModel.fromJson(json);
   }
 
   @override
@@ -66,85 +63,69 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
     String? fromDate,
     String? toDate,
   }) async {
-    try {
-      final params = <String, dynamic>{
-        'offset': offset,
-        'limit': limit,
-      };
-      if (invoiceNumber != null && invoiceNumber.isNotEmpty) {
-        params['invoice_number'] = invoiceNumber;
-      }
-      if (studentName != null && studentName.isNotEmpty) {
-        params['student_name'] = studentName;
-      }
-      if (status != null && status.isNotEmpty) params['status'] = status;
-      if (batchId != null && batchId.isNotEmpty) params['batch_id'] = batchId;
-      if (paymentMethod != null && paymentMethod.isNotEmpty) {
-        params['payment_method'] = paymentMethod;
-      }
-      if (fromDate != null && fromDate.isNotEmpty) params['from_date'] = fromDate;
-      if (toDate != null && toDate.isNotEmpty) params['to_date'] = toDate;
-
-      final res = await _dio.get('/finance/invoices', queryParameters: params);
-      final raw = res.data;
-      final list = (raw is Map && raw['data'] != null)
-          ? raw['data'] as List
-          : raw is List
-              ? raw
-              : <dynamic>[];
-
-      return list
-          .map((e) => InvoiceDetailModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } on DioException {
-      return InvoiceDetailModel.mockList();
+    final params = <String, dynamic>{
+      'offset': offset,
+      'limit': limit,
+    };
+    if (invoiceNumber != null && invoiceNumber.isNotEmpty) {
+      params['invoice_number'] = invoiceNumber;
     }
+    if (studentName != null && studentName.isNotEmpty) {
+      params['student_name'] = studentName;
+    }
+    if (status != null && status.isNotEmpty) params['status'] = status;
+    if (batchId != null && batchId.isNotEmpty) params['batch_id'] = batchId;
+    if (paymentMethod != null && paymentMethod.isNotEmpty) {
+      params['payment_method'] = paymentMethod;
+    }
+    if (fromDate != null && fromDate.isNotEmpty) params['date_from'] = fromDate;
+    if (toDate != null && toDate.isNotEmpty) params['date_to'] = toDate;
+
+    final res = await _dio.get('/finance/invoices', queryParameters: params);
+    final raw = res.data;
+    final list = (raw is Map && raw['data'] != null)
+        ? raw['data'] as List
+        : raw is List
+            ? raw
+            : <dynamic>[];
+
+    return list
+        .map((e) => InvoiceDetailModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override
   Future<InvoiceDetailModel> getInvoiceDetail(String id) async {
-    try {
-      final res = await _dio.get('/finance/invoices/$id');
-      final raw = res.data;
-      final json = (raw is Map && raw['data'] != null)
-          ? raw['data'] as Map<String, dynamic>
-          : raw as Map<String, dynamic>;
-      return InvoiceDetailModel.fromJson(json);
-    } on DioException {
-      final mockItems = InvoiceDetailModel.mockList();
-      return mockItems.firstWhere(
-        (e) => e.id == id,
-        orElse: () => mockItems.first,
-      );
-    }
+    final res = await _dio.get('/finance/invoices/$id');
+    final raw = res.data;
+    final json = (raw is Map && raw['data'] != null)
+        ? raw['data'] as Map<String, dynamic>
+        : raw as Map<String, dynamic>;
+    return InvoiceDetailModel.fromJson(json);
   }
 
   @override
   Future<void> markAsPaid({
     required String id,
     required String paidAt,
-    required String method,
-    String? proofUrl,
+    double? paidAmount,
+    String? paymentProof,
+    String? accountCode,
   }) async {
-    try {
-      final body = <String, dynamic>{
-        'paid_at': paidAt,
-        'method': method,
-      };
-      if (proofUrl != null && proofUrl.isNotEmpty) body['proof_url'] = proofUrl;
-      await _dio.put('/finance/invoices/$id/pay', data: body);
-    } on DioException {
-      // Fallback: silently succeed for mock
+    final body = <String, dynamic>{'paid_at': paidAt};
+    if (paidAmount != null) body['paid_amount'] = paidAmount;
+    if (paymentProof != null && paymentProof.isNotEmpty) {
+      body['payment_proof'] = paymentProof;
     }
+    if (accountCode != null && accountCode.isNotEmpty) {
+      body['account_code'] = accountCode;
+    }
+    await _dio.put('/finance/invoices/$id/pay', data: body);
   }
 
   @override
-  Future<void> resendInvoice(String id) async {
-    try {
-      await _dio.post('/finance/invoices/$id/resend');
-    } on DioException {
-      // Fallback: silently succeed for mock
-    }
+  Future<void> sendInvoice(String id) async {
+    await _dio.put('/finance/invoices/$id/send');
   }
 
   @override
@@ -152,20 +133,11 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
     required String id,
     required String reason,
   }) async {
-    try {
-      await _dio.put('/finance/invoices/$id/cancel',
-          data: {'reason': reason});
-    } on DioException {
-      // Fallback: silently succeed for mock
-    }
+    await _dio.put('/finance/invoices/$id/cancel', data: {'reason': reason});
   }
 
   @override
   Future<void> createManualInvoice(Map<String, dynamic> body) async {
-    try {
-      await _dio.post('/finance/invoices', data: body);
-    } on DioException {
-      // Fallback: silently succeed for mock
-    }
+    await _dio.post('/finance/invoices', data: body);
   }
 }
