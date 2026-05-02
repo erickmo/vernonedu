@@ -81,6 +81,15 @@ describe('addCrmLogSchema', () => {
     expect(r.success).toBe(false)
   })
 
+  it('rejects response longer than 2000 chars', () => {
+    const r = addCrmLogSchema.safeParse({
+      contacted_by_id: '11111111-1111-1111-1111-111111111111',
+      contact_method: 'call',
+      response: 'x'.repeat(2001),
+    })
+    expect(r.success).toBe(false)
+  })
+
   it('rejects invalid contact_method', () => {
     const r = addCrmLogSchema.safeParse({
       contacted_by_id: '11111111-1111-1111-1111-111111111111',
