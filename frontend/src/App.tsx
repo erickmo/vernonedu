@@ -20,6 +20,7 @@ import Courses from '@/portals/internal/pages/Courses'
 import CourseCreatePage from '@/portals/internal/pages/CourseCreatePage'
 import CourseEditPage from '@/portals/internal/pages/CourseEditPage'
 import CertificateTemplates from '@/portals/internal/pages/CertificateTemplates'
+import Holidays from '@/portals/internal/pages/Holidays'
 import CertificateTemplateCreatePage from '@/portals/internal/pages/CertificateTemplateCreatePage'
 import CertificateTemplateEditPage from '@/portals/internal/pages/CertificateTemplateEditPage'
 import Students from '@/portals/internal/pages/Students'
@@ -148,6 +149,7 @@ export default function App() {
           <Route path="calendar" element={<InternalCalendar />} />
           <Route path="franchises" element={<Franchises />} />
           <Route path="notifications" element={<Notifications />} />
+          <Route path="settings/holidays" element={<Holidays />} />
           {/* Domain overviews */}
           <Route path="academic" element={<AcademicOverview />} />
           <Route path="finance" element={<FinanceOverview />} />
