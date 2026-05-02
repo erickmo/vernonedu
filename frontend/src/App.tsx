@@ -45,6 +45,10 @@ import ProposalDetail from '@/portals/internal/pages/detail/ProposalDetail'
 import PartnerDetail from '@/portals/internal/pages/detail/PartnerDetail'
 import PartnerCreatePage from '@/portals/internal/pages/PartnerCreatePage'
 import PartnerEditPage from '@/portals/internal/pages/PartnerEditPage'
+import Buildings from '@/portals/internal/pages/Buildings'
+import BuildingCreatePage from '@/portals/internal/pages/BuildingCreatePage'
+import BuildingEditPage from '@/portals/internal/pages/BuildingEditPage'
+import BuildingDetail from '@/portals/internal/pages/detail/BuildingDetail'
 import FranchiseDetail from '@/portals/internal/pages/detail/FranchiseDetail'
 import VoucherDetail from '@/portals/internal/pages/detail/VoucherDetail'
 import PaymentDetail from '@/portals/internal/pages/detail/PaymentDetail'
@@ -122,6 +126,10 @@ export default function App() {
           <Route path="partners" element={<Partners />} />
           <Route path="partners/new" element={<PartnerCreatePage />} />
           <Route path="partners/:id/edit" element={<PartnerEditPage />} />
+          <Route path="buildings" element={<Buildings />} />
+          <Route path="buildings/new" element={<BuildingCreatePage />} />
+          <Route path="buildings/:id" element={<BuildingDetail />} />
+          <Route path="buildings/:id/edit" element={<BuildingEditPage />} />
           <Route path="vouchers" element={<Vouchers />} />
           <Route path="calendar" element={<InternalCalendar />} />
           <Route path="franchises" element={<Franchises />} />
