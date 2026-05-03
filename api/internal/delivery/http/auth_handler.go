@@ -60,6 +60,17 @@ type RegisterRequest struct {
 	Password string `json:"password"`
 }
 
+// Register godoc
+// @Summary      Register a new user
+// @Description  Creates a new user account
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body  RegisterRequest  true  "Registration data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -99,6 +110,17 @@ type LoginResponse struct {
 	User         LoginUserInfo `json:"user"`
 }
 
+// Login godoc
+// @Summary      Login user
+// @Description  Authenticates user and returns JWT token pair with user profile
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body  LoginRequest  true  "Login credentials"
+// @Success      200  {object}  LoginResponse
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Router       /auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -152,6 +174,15 @@ type MeResponse struct {
 	IsActive       bool      `json:"is_active"`
 }
 
+// Me godoc
+// @Summary      Get current user profile
+// @Description  Returns the authenticated user's profile and roles
+// @Tags         auth
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      401  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /auth/me [get]
 func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 	userIDStr := pkgmiddleware.GetUserIDFromContext(r.Context())
 	if userIDStr == "" {
