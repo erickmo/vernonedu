@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Check, X } from 'lucide-react'
+import { Check, FileText, X } from 'lucide-react'
 import { toast } from 'sonner'
+import DetailPageLayout, { type BreadcrumbItem } from '@/components/layout/DetailPageLayout'
 import {
   useFinanceInvoice,
   usePayFinanceInvoice,
@@ -27,6 +28,14 @@ export default function InvoiceDetail() {
     return <div className="p-6 text-sm text-neutral-500">Invoice not found.</div>
   }
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Finance', to: '/internal/finance' },
+    { label: 'Invoices', to: '/internal/invoices' },
+    { label: invoice.number },
+  ]
+
+  const canAct = invoice.status !== 'paid' && invoice.status !== 'cancelled'
+
   const handleConfirm = async () => {
     try {
       if (confirmAction === 'pay') {
@@ -42,17 +51,8 @@ export default function InvoiceDetail() {
     }
   }
 
-  const canAct = invoice.status !== 'paid' && invoice.status !== 'cancelled'
-
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4">
-      <button
-        onClick={() => navigate('/internal/invoices')}
-        className="mb-4 text-sm text-neutral-500 hover:text-neutral-700"
-      >
-        ← Back to invoices
-      </button>
-
+    <DetailPageLayout breadcrumbs={breadcrumbs} icon={<FileText className="w-5 h-5" />} title={invoice.number}>
       <div className="bg-white border border-neutral-200 rounded-xl p-6">
         <div className="flex items-start justify-between mb-6">
           <div>
@@ -137,7 +137,7 @@ export default function InvoiceDetail() {
         onConfirm={handleConfirm}
         onCancel={() => setConfirmAction(null)}
       />
-    </div>
+    </DetailPageLayout>
   )
 }
 
