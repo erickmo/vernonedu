@@ -56,6 +56,7 @@ import TrialBalance from '@/portals/internal/pages/finance/reports/TrialBalance'
 import FinanceAnalysis from '@/portals/internal/pages/finance/Analysis'
 import FinanceCommissions from '@/portals/internal/pages/finance/Commissions'
 import FinanceBudgetVsActual from '@/portals/internal/pages/finance/BudgetVsActual'
+import FinanceReportsPage from '@/portals/internal/pages/finance/ReportsPage'
 import OperationsOverview from '@/portals/internal/pages/domains/OperationsOverview'
 import HROverview from '@/portals/internal/pages/domains/HROverview'
 // Entity detail pages
@@ -282,7 +283,7 @@ export default function App() {
           <Route path="finance/reports/ledger" element={<GeneralLedger />} />
           <Route path="finance/reports/trial-balance" element={<TrialBalance />} />
           <Route path="finance/analysis" element={<FinanceAnalysis />} />
-          <Route path="finance/commissions" element={<FinanceCommissions />} />
+          <Route path="finance/reports" element={<FinanceReportsPage />} />
           <Route path="finance/budget" element={<FinanceBudgetVsActual />} />
           <Route path="operations" element={<OperationsOverview />} />
           <Route path="hr" element={<HROverview />} />
