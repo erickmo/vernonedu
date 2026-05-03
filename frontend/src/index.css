@@ -26,6 +26,22 @@
     --radius: 0.5rem;
     --nav-height: 3.5rem;
     --subnav-height: 2.75rem;
+    /* New semantic tokens */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    --surface: 0 0% 100%;
+    --surface-elevated: 0 0% 98%;
+    --sidebar: 284 15% 97%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --chart-1: 284 30% 52%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 43 74% 66%;
+    --chart-4: 24 95% 53%;
+    --chart-5: 197 71% 52%;
   }
 
   .dark {
@@ -48,6 +64,21 @@
     --border: 284 20% 18%;
     --input: 284 20% 18%;
     --ring: 284 35% 65%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    --surface: 222.2 84% 6%;
+    --surface-elevated: 222.2 84% 9%;
+    --sidebar: 222.2 84% 6%;
+    --sidebar-foreground: 210 40% 98%;
+    --chart-1: 284 35% 65%;
+    --chart-2: 173 58% 55%;
+    --chart-3: 43 74% 70%;
+    --chart-4: 24 95% 60%;
+    --chart-5: 197 71% 60%;
   }
 }
 
