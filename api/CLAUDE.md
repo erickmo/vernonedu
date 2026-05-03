@@ -513,6 +513,7 @@ make build               make dev                make test
 make test-race           make test-integration   make lint
 make migrate-up          make migrate-down       make migrate-create name=xxx
 make infra-up            make infra-down         make tidy
+make docs                make docs-validate
 ```
 
 ## Monitoring
@@ -529,10 +530,42 @@ make infra-up            make infra-down         make tidy
 
 | Doc | Path | Content |
 |---|---|---|
+| OpenAPI 3.0 Spec | `docs/swagger/swagger.yaml` | Full API contract (190 paths, 285 ops) |
 | Curriculum System | `docs/curriculum-system.md` | Hierarchy, versioning, program karir flow |
 | Entrepreneurship PRD | `docs/requirements/prd-entrepreneurship-api.md` | Original PRD |
 | API Audit | `docs/audit/` | Code quality audits |
 
 ---
 
-**Last Updated:** Maret 2026
+## API Documentation (OpenAPI 3.0)
+
+**Spec location:** `api/docs/swagger/swagger.yaml`
+
+### Commands
+- `make docs` — regenerate spec from handler annotations
+- `make docs-validate` — validate spec
+
+### Annotation Pattern
+Every handler method MUST have swaggo annotations:
+```go
+// MethodName godoc
+// @Summary      Short description
+// @Description  Detailed description
+// @Tags         domain-name
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Resource ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /path [method]
+```
+
+### When Adding New Endpoints
+1. Add handler method with swaggo annotations
+2. Run `make docs` to regenerate spec
+3. Commit both handler changes and regenerated spec
+
+---
+
+**Last Updated:** Mei 2026
