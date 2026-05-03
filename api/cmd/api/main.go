@@ -1,3 +1,17 @@
+// @title        VernonEdu API
+// @version      1.0.0
+// @description  Platform pendidikan — kurikulum, kelas, enrollment, sertifikat, accounting.
+// @description  Base URL: http://localhost:8081/api/v1
+//
+// @contact.name   VernonEdu Dev Team
+//
+// @host      localhost:8081
+// @BasePath  /api/v1
+//
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 package main
 
 import (
