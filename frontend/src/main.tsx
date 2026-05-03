@@ -7,6 +7,8 @@ import { Toaster } from 'sonner'
 import App from './App'
 import { AuthProvider } from './lib/auth/AuthContext'
 import './index.css'
+import { initTheme } from './hooks/useTheme'
+initTheme()
 
 const queryClient = new QueryClient({
   defaultOptions: {
