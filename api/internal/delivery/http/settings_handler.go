@@ -52,6 +52,16 @@ func RegisterSettingsRoutes(h *SettingsHandler, r chi.Router) {
 
 // ─── Commission ───────────────────────────────────────────────────────────────
 
+// GetCommission godoc
+// @Summary      Get commission config
+// @Description  Get the current commission configuration for operation leader, department leader, and course creator
+// @Tags         settings
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /settings/commission [get]
 func (h *SettingsHandler) GetCommission(w http.ResponseWriter, r *http.Request) {
 	result, err := h.qryBus.Execute(r.Context(), &getcommission.GetCommissionConfigQuery{})
 	if err != nil {
@@ -62,6 +72,17 @@ func (h *SettingsHandler) GetCommission(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// UpdateCommission godoc
+// @Summary      Update commission config
+// @Description  Update commission percentages and basis for operation leader, department leader, and course creator
+// @Tags         settings
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Commission config (op_leader_pct, op_leader_basis, dept_leader_pct, dept_leader_basis, course_creator_pct, course_creator_basis)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /settings/commission [put]
 func (h *SettingsHandler) UpdateCommission(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		OpLeaderPct        float64 `json:"op_leader_pct"`
@@ -94,6 +115,16 @@ func (h *SettingsHandler) UpdateCommission(w http.ResponseWriter, r *http.Reques
 
 // ─── Facilitator Levels ───────────────────────────────────────────────────────
 
+// GetFacilitatorLevels godoc
+// @Summary      Get facilitator levels
+// @Description  Get all facilitator levels with their fee per session
+// @Tags         settings
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /settings/facilitator-levels [get]
 func (h *SettingsHandler) GetFacilitatorLevels(w http.ResponseWriter, r *http.Request) {
 	result, err := h.qryBus.Execute(r.Context(), &getlevels.GetFacilitatorLevelsQuery{})
 	if err != nil {
@@ -104,6 +135,17 @@ func (h *SettingsHandler) GetFacilitatorLevels(w http.ResponseWriter, r *http.Re
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// UpsertFacilitatorLevels godoc
+// @Summary      Upsert facilitator levels
+// @Description  Create or update facilitator levels with their fee per session
+// @Tags         settings
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Levels array with level, name, fee_per_session"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /settings/facilitator-levels [put]
 func (h *SettingsHandler) UpsertFacilitatorLevels(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Levels []struct {
@@ -137,6 +179,18 @@ func (h *SettingsHandler) UpsertFacilitatorLevels(w http.ResponseWriter, r *http
 
 // ─── Branches ─────────────────────────────────────────────────────────────────
 
+// ListBranches godoc
+// @Summary      List branches
+// @Description  Get paginated list of branches
+// @Tags         settings
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int  false  "Pagination offset"
+// @Param        limit   query  int  false  "Pagination limit (default 20)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /settings/branches [get]
 func (h *SettingsHandler) ListBranches(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -155,6 +209,17 @@ func (h *SettingsHandler) ListBranches(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// CreateBranch godoc
+// @Summary      Create branch
+// @Description  Create a new branch with address, contact info, and status
+// @Tags         settings
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Branch data (name, address, city, region, contact_name, contact_phone, status)"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /settings/branches [post]
 func (h *SettingsHandler) CreateBranch(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Name         string `json:"name"`
@@ -187,6 +252,18 @@ func (h *SettingsHandler) CreateBranch(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "branch created"})
 }
 
+// UpdateBranch godoc
+// @Summary      Update branch
+// @Description  Update an existing branch's details
+// @Tags         settings
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Branch ID"
+// @Param        body  body  object  true  "Branch data (name, address, city, region, contact_name, contact_phone, status)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /settings/branches/{id} [put]
 func (h *SettingsHandler) UpdateBranch(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -229,6 +306,17 @@ func (h *SettingsHandler) UpdateBranch(w http.ResponseWriter, r *http.Request) {
 
 // ─── Holidays ────────────────────────────────────────────────────────────────
 
+// ListHolidays godoc
+// @Summary      List holidays
+// @Description  Get all holidays for a given year
+// @Tags         settings
+// @Accept       json
+// @Produce      json
+// @Param        year  query  int  false  "Year (defaults to current year)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /settings/holidays [get]
 func (h *SettingsHandler) ListHolidays(w http.ResponseWriter, r *http.Request) {
 	yearStr := r.URL.Query().Get("year")
 	year, _ := strconv.Atoi(yearStr)
@@ -245,6 +333,17 @@ func (h *SettingsHandler) ListHolidays(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// CreateHoliday godoc
+// @Summary      Create holiday
+// @Description  Create a new holiday entry
+// @Tags         settings
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Holiday data (date, name)"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /settings/holidays [post]
 func (h *SettingsHandler) CreateHoliday(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Date string `json:"date"`
@@ -264,6 +363,18 @@ func (h *SettingsHandler) CreateHoliday(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "holiday created"})
 }
 
+// DeleteHoliday godoc
+// @Summary      Delete holiday
+// @Description  Delete a holiday entry by ID
+// @Tags         settings
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Holiday ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /settings/holidays/{id} [delete]
 func (h *SettingsHandler) DeleteHoliday(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)

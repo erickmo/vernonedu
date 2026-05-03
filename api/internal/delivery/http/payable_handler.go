@@ -38,6 +38,24 @@ func RegisterPayableRoutes(h *PayableHandler, r chi.Router) {
 	r.Put("/api/v1/finance/payables/{id}/cancel", h.Cancel)
 }
 
+// List godoc
+// @Summary      List payables
+// @Description  Get paginated list of payables with optional filters
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        offset         query  int     false  "Pagination offset"
+// @Param        limit          query  int     false  "Pagination limit (default 20)"
+// @Param        type           query  string  false  "Filter by payable type"
+// @Param        status         query  string  false  "Filter by status"
+// @Param        batch_id       query  string  false  "Filter by batch ID"
+// @Param        recipient_id   query  string  false  "Filter by recipient ID"
+// @Param        date_from      query  string  false  "Filter from date"
+// @Param        date_to        query  string  false  "Filter to date"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/payables [get]
 func (h *PayableHandler) List(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	offset, _ := strconv.Atoi(q.Get("offset"))
@@ -63,6 +81,16 @@ func (h *PayableHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Stats godoc
+// @Summary      Get payable statistics
+// @Description  Get aggregated payable statistics
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/payables/stats [get]
 func (h *PayableHandler) Stats(w http.ResponseWriter, r *http.Request) {
 	result, err := h.qryBus.Execute(r.Context(), &getpayablestats.GetPayableStatsQuery{})
 	if err != nil {
@@ -72,6 +100,18 @@ func (h *PayableHandler) Stats(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Get godoc
+// @Summary      Get payable by ID
+// @Description  Get a single payable by its ID
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Payable ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/payables/{id} [get]
 func (h *PayableHandler) Get(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -88,6 +128,17 @@ func (h *PayableHandler) Get(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Create godoc
+// @Summary      Create payable
+// @Description  Create a new payable record
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Payable data (type, recipient_id, recipient_name, amount, batch_id?, branch_id?, notes)"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/payables [post]
 func (h *PayableHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Type          string  `json:"type"`
@@ -141,6 +192,17 @@ func (h *PayableHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "payable created"})
 }
 
+// Approve godoc
+// @Summary      Approve payable
+// @Description  Approve a pending payable
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Payable ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/payables/{id}/approve [put]
 func (h *PayableHandler) Approve(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -156,6 +218,18 @@ func (h *PayableHandler) Approve(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "payable approved"})
 }
 
+// Pay godoc
+// @Summary      Mark payable as paid
+// @Description  Mark a payable as paid with payment proof and account code
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Payable ID"
+// @Param        body  body  object  true  "Payment data (payment_proof, account_code)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/payables/{id}/pay [put]
 func (h *PayableHandler) Pay(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -184,6 +258,17 @@ func (h *PayableHandler) Pay(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "payable marked as paid"})
 }
 
+// Cancel godoc
+// @Summary      Cancel payable
+// @Description  Cancel a payable
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Payable ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/payables/{id}/cancel [put]
 func (h *PayableHandler) Cancel(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)

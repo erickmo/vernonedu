@@ -47,6 +47,18 @@ type UpdateTransactionRequest struct {
 	Category    string `json:"category"`
 }
 
+// createBankAccount godoc
+// @Summary      Create bank account
+// @Description  Create a new bank account linked to a branch
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateBankAccountRequest  true  "Bank account data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/bank-accounts [post]
 func (h *AccountingHandler) createBankAccount(w http.ResponseWriter, r *http.Request) {
 	var req CreateBankAccountRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -79,6 +91,19 @@ func (h *AccountingHandler) createBankAccount(w http.ResponseWriter, r *http.Req
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "bank account created"})
 }
 
+// updateBankAccount godoc
+// @Summary      Update bank account
+// @Description  Update an existing bank account
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                      true  "Bank account ID"
+// @Param        body  body  UpdateBankAccountRequest    true  "Updated bank account data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/bank-accounts/{id} [put]
 func (h *AccountingHandler) updateBankAccount(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -107,6 +132,18 @@ func (h *AccountingHandler) updateBankAccount(w http.ResponseWriter, r *http.Req
 	writeJSON(w, http.StatusOK, map[string]string{"message": "bank account updated"})
 }
 
+// deleteBankAccount godoc
+// @Summary      Delete bank account
+// @Description  Deactivate (soft delete) a bank account
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Bank account ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/bank-accounts/{id} [delete]
 func (h *AccountingHandler) deleteBankAccount(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -122,6 +159,18 @@ func (h *AccountingHandler) deleteBankAccount(w http.ResponseWriter, r *http.Req
 	writeJSON(w, http.StatusOK, map[string]string{"message": "bank account deactivated"})
 }
 
+// listBankAccounts godoc
+// @Summary      List bank accounts
+// @Description  Get all bank accounts, optionally filtered by branch and inactive status
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        branch_id          query  string  false  "Filter by branch ID"
+// @Param        include_inactive   query  bool    false  "Include inactive accounts"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/bank-accounts [get]
 func (h *AccountingHandler) listBankAccounts(w http.ResponseWriter, r *http.Request) {
 	q := &listbankaccounts.ListBankAccountsQuery{}
 	if v := r.URL.Query().Get("branch_id"); v != "" {
@@ -140,6 +189,18 @@ func (h *AccountingHandler) listBankAccounts(w http.ResponseWriter, r *http.Requ
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getBankAccount godoc
+// @Summary      Get bank account by ID
+// @Description  Get a single bank account by its ID
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Bank account ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/bank-accounts/{id} [get]
 func (h *AccountingHandler) getBankAccount(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -155,6 +216,19 @@ func (h *AccountingHandler) getBankAccount(w http.ResponseWriter, r *http.Reques
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// updateTransaction godoc
+// @Summary      Update transaction
+// @Description  Update description and category of an existing accounting transaction
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                     true  "Transaction ID"
+// @Param        body  body  UpdateTransactionRequest   true  "Updated transaction data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/transactions/{id} [put]
 func (h *AccountingHandler) updateTransaction(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -178,6 +252,18 @@ func (h *AccountingHandler) updateTransaction(w http.ResponseWriter, r *http.Req
 	writeJSON(w, http.StatusOK, map[string]string{"message": "transaction updated"})
 }
 
+// deleteTransaction godoc
+// @Summary      Delete transaction
+// @Description  Cancel (soft delete) an accounting transaction
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Transaction ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/transactions/{id} [delete]
 func (h *AccountingHandler) deleteTransaction(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -192,6 +278,20 @@ func (h *AccountingHandler) deleteTransaction(w http.ResponseWriter, r *http.Req
 	writeJSON(w, http.StatusOK, map[string]string{"message": "transaction cancelled"})
 }
 
+// getBalanceByAccount godoc
+// @Summary      Get balance by account
+// @Description  Get current balance for a specific chart of account code
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        coa_code    query  string  true   "Chart of Account code"
+// @Param        branch_id   query  string  false  "Filter by branch ID"
+// @Param        date_to     query  string  false  "Balance as of date (YYYY-MM-DD)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/balance [get]
 func (h *AccountingHandler) getBalanceByAccount(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("coa_code")
 	if code == "" {
@@ -217,6 +317,16 @@ func (h *AccountingHandler) getBalanceByAccount(w http.ResponseWriter, r *http.R
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// listCoaTree godoc
+// @Summary      List COA tree
+// @Description  Get the chart of accounts in a hierarchical tree structure
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/coa/tree [get]
 func (h *AccountingHandler) listCoaTree(w http.ResponseWriter, r *http.Request) {
 	q := &listcoatree.ListCoaTreeQuery{}
 	result, err := h.qryBus.Execute(r.Context(), q)

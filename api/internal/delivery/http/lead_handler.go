@@ -62,6 +62,18 @@ type AddCrmLogRequest struct {
 	FollowUpDate  *string `json:"follow_up_date"`
 }
 
+// Create godoc
+// @Summary      Create lead
+// @Description  Create a new lead/prospect
+// @Tags         leads
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateLeadRequest  true  "Lead data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /leads [post]
 func (h *LeadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req CreateLeadRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -97,6 +109,18 @@ func (h *LeadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "lead created successfully"})
 }
 
+// GetByID godoc
+// @Summary      Get lead by ID
+// @Description  Get a single lead by its ID
+// @Tags         leads
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Lead ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /leads/{id} [get]
 func (h *LeadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	leadIDStr := chi.URLParam(r, "id")
 	leadID, err := uuid.Parse(leadIDStr)
@@ -116,6 +140,21 @@ func (h *LeadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// List godoc
+// @Summary      List leads
+// @Description  Get paginated list of leads with optional filters
+// @Tags         leads
+// @Accept       json
+// @Produce      json
+// @Param        offset    query  int     false  "Pagination offset"
+// @Param        limit     query  int     false  "Pagination limit (default 10)"
+// @Param        status    query  string  false  "Filter by status"
+// @Param        source    query  string  false  "Filter by source"
+// @Param        interest  query  string  false  "Filter by interest"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /leads [get]
 func (h *LeadHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -143,6 +182,19 @@ func (h *LeadHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Update godoc
+// @Summary      Update lead
+// @Description  Update an existing lead's information
+// @Tags         leads
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string              true  "Lead ID"
+// @Param        body  body  UpdateLeadRequest   true  "Updated lead data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /leads/{id} [put]
 func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
 	leadIDStr := chi.URLParam(r, "id")
 	leadID, err := uuid.Parse(leadIDStr)
@@ -187,6 +239,18 @@ func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "lead updated successfully"})
 }
 
+// Delete godoc
+// @Summary      Delete lead
+// @Description  Delete a lead by ID
+// @Tags         leads
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Lead ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /leads/{id} [delete]
 func (h *LeadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	leadIDStr := chi.URLParam(r, "id")
 	leadID, err := uuid.Parse(leadIDStr)
@@ -205,6 +269,19 @@ func (h *LeadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "lead deleted successfully"})
 }
 
+// AddCrmLog godoc
+// @Summary      Add CRM log to lead
+// @Description  Add a CRM contact log entry for a specific lead
+// @Tags         leads
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string            true  "Lead ID"
+// @Param        body  body  AddCrmLogRequest  true  "CRM log data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /leads/{id}/crm-logs [post]
 func (h *LeadHandler) AddCrmLog(w http.ResponseWriter, r *http.Request) {
 	leadIDStr := chi.URLParam(r, "id")
 	leadID, err := uuid.Parse(leadIDStr)
@@ -251,6 +328,18 @@ func (h *LeadHandler) AddCrmLog(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "crm log added successfully"})
 }
 
+// ListCrmLogs godoc
+// @Summary      List CRM logs for lead
+// @Description  Get all CRM contact logs for a specific lead
+// @Tags         leads
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Lead ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /leads/{id}/crm-logs [get]
 func (h *LeadHandler) ListCrmLogs(w http.ResponseWriter, r *http.Request) {
 	leadIDStr := chi.URLParam(r, "id")
 	leadID, err := uuid.Parse(leadIDStr)
@@ -270,6 +359,18 @@ func (h *LeadHandler) ListCrmLogs(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// ConvertLead godoc
+// @Summary      Convert lead to student
+// @Description  Convert a lead into a registered student
+// @Tags         leads
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Lead ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /leads/{id}/convert [post]
 func (h *LeadHandler) ConvertLead(w http.ResponseWriter, r *http.Request) {
 	leadIDStr := chi.URLParam(r, "id")
 	leadID, err := uuid.Parse(leadIDStr)

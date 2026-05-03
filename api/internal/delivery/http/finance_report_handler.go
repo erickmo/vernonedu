@@ -22,6 +22,19 @@ func NewFinanceReportHandler(qryBus querybus.QueryBus) *FinanceReportHandler {
 	return &FinanceReportHandler{qryBus: qryBus}
 }
 
+// getBalanceSheet godoc
+// @Summary      Get balance sheet
+// @Description  Generate balance sheet report for a given date range and branch
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        from        query  string  false  "Start date (YYYY-MM-DD)"
+// @Param        to          query  string  false  "End date (YYYY-MM-DD)"
+// @Param        branch_id   query  string  false  "Filter by branch ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/reports/balance-sheet [get]
 func (h *FinanceReportHandler) getBalanceSheet(w http.ResponseWriter, r *http.Request) {
 	query := &getbalancesheet.GetBalanceSheetQuery{
 		From:     r.URL.Query().Get("from"),
@@ -37,6 +50,19 @@ func (h *FinanceReportHandler) getBalanceSheet(w http.ResponseWriter, r *http.Re
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getProfitLoss godoc
+// @Summary      Get profit & loss report
+// @Description  Generate profit and loss report for a given date range and branch
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        from        query  string  false  "Start date (YYYY-MM-DD)"
+// @Param        to          query  string  false  "End date (YYYY-MM-DD)"
+// @Param        branch_id   query  string  false  "Filter by branch ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/reports/profit-loss [get]
 func (h *FinanceReportHandler) getProfitLoss(w http.ResponseWriter, r *http.Request) {
 	query := &getprofitloss.GetProfitLossQuery{
 		From:     r.URL.Query().Get("from"),
@@ -52,6 +78,19 @@ func (h *FinanceReportHandler) getProfitLoss(w http.ResponseWriter, r *http.Requ
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getCashFlow godoc
+// @Summary      Get cash flow report
+// @Description  Generate cash flow report for a given date range and branch
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        from        query  string  false  "Start date (YYYY-MM-DD)"
+// @Param        to          query  string  false  "End date (YYYY-MM-DD)"
+// @Param        branch_id   query  string  false  "Filter by branch ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/reports/cash-flow [get]
 func (h *FinanceReportHandler) getCashFlow(w http.ResponseWriter, r *http.Request) {
 	query := &getcashflow.GetCashFlowQuery{
 		From:     r.URL.Query().Get("from"),
@@ -67,6 +106,21 @@ func (h *FinanceReportHandler) getCashFlow(w http.ResponseWriter, r *http.Reques
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getGeneralLedger godoc
+// @Summary      Get general ledger
+// @Description  Generate general ledger report for a specific account, date range, and branch
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        account     query  string  true   "Account code"
+// @Param        from        query  string  false  "Start date (YYYY-MM-DD)"
+// @Param        to          query  string  false  "End date (YYYY-MM-DD)"
+// @Param        branch_id   query  string  false  "Filter by branch ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/reports/ledger [get]
 func (h *FinanceReportHandler) getGeneralLedger(w http.ResponseWriter, r *http.Request) {
 	account := r.URL.Query().Get("account")
 	if account == "" {
@@ -88,6 +142,19 @@ func (h *FinanceReportHandler) getGeneralLedger(w http.ResponseWriter, r *http.R
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getTrialBalance godoc
+// @Summary      Get trial balance
+// @Description  Generate trial balance report for a given date range and branch
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        from        query  string  false  "Start date (YYYY-MM-DD)"
+// @Param        to          query  string  false  "End date (YYYY-MM-DD)"
+// @Param        branch_id   query  string  false  "Filter by branch ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/reports/trial-balance [get]
 func (h *FinanceReportHandler) getTrialBalance(w http.ResponseWriter, r *http.Request) {
 	query := &gettrialbalance.GetTrialBalanceQuery{
 		From:     r.URL.Query().Get("from"),

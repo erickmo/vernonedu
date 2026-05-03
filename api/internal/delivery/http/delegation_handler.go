@@ -40,7 +40,22 @@ func RegisterDelegationRoutes(h *DelegationHTTPHandler, r chi.Router) {
 	r.Post("/api/v1/delegations/{id}/cancel", h.Cancel)
 }
 
-// List handles GET /api/v1/delegations
+// List godoc
+// @Summary      List delegations
+// @Description  Get paginated list of delegations with optional filters
+// @Tags         delegations
+// @Accept       json
+// @Produce      json
+// @Param        offset           query  int     false  "Pagination offset"
+// @Param        limit            query  int     false  "Pagination limit (default 20)"
+// @Param        status           query  string  false  "Filter by status"
+// @Param        type             query  string  false  "Filter by delegation type"
+// @Param        assigned_to_id   query  string  false  "Filter by assigned user ID"
+// @Param        requested_by_id  query  string  false  "Filter by requester ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /delegations [get]
 func (h *DelegationHTTPHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -64,7 +79,19 @@ func (h *DelegationHTTPHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
-// GetByID handles GET /api/v1/delegations/{id}
+// GetByID godoc
+// @Summary      Get delegation by ID
+// @Description  Get a single delegation by its ID
+// @Tags         delegations
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Delegation ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /delegations/{id} [get]
 func (h *DelegationHTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -86,7 +113,18 @@ func (h *DelegationHTTPHandler) GetByID(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// Create handles POST /api/v1/delegations
+// Create godoc
+// @Summary      Create delegation
+// @Description  Create a new delegation task
+// @Tags         delegations
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Delegation data (title, type, description, requestedById, assignedToId, dueDate, priority, linkedEntityType, linkedEntityId, notes)"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /delegations [post]
 func (h *DelegationHTTPHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Title            string `json:"title"`
@@ -131,7 +169,20 @@ func (h *DelegationHTTPHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "delegation created"})
 }
 
-// Update handles PUT /api/v1/delegations/{id}
+// Update godoc
+// @Summary      Update delegation
+// @Description  Update an existing delegation's details
+// @Tags         delegations
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Delegation ID"
+// @Param        body  body  object  true  "Updated delegation data (title, description, dueDate, priority, notes)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /delegations/{id} [put]
 func (h *DelegationHTTPHandler) Update(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -172,7 +223,20 @@ func (h *DelegationHTTPHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "delegation updated"})
 }
 
-// Accept handles POST /api/v1/delegations/{id}/accept
+// Accept godoc
+// @Summary      Accept delegation
+// @Description  Accept a pending delegation task
+// @Tags         delegations
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Delegation ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      409  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /delegations/{id}/accept [post]
 func (h *DelegationHTTPHandler) Accept(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -198,7 +262,21 @@ func (h *DelegationHTTPHandler) Accept(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "delegation accepted"})
 }
 
-// Complete handles POST /api/v1/delegations/{id}/complete
+// Complete godoc
+// @Summary      Complete delegation
+// @Description  Mark a delegation as completed with optional notes
+// @Tags         delegations
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Delegation ID"
+// @Param        body  body  object  true  "Completion notes"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      409  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /delegations/{id}/complete [post]
 func (h *DelegationHTTPHandler) Complete(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -232,7 +310,21 @@ func (h *DelegationHTTPHandler) Complete(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusOK, map[string]string{"message": "delegation completed"})
 }
 
-// Cancel handles POST /api/v1/delegations/{id}/cancel
+// Cancel godoc
+// @Summary      Cancel delegation
+// @Description  Cancel a delegation with optional notes
+// @Tags         delegations
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Delegation ID"
+// @Param        body  body  object  true  "Cancellation notes"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      409  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /delegations/{id}/cancel [post]
 func (h *DelegationHTTPHandler) Cancel(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)

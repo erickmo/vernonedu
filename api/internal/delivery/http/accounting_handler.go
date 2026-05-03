@@ -110,6 +110,18 @@ func parseMonthYear(r *http.Request) (int, int) {
 	return month, year
 }
 
+// getStats godoc
+// @Summary      Get accounting statistics
+// @Description  Get accounting statistics for a given month and year
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        month  query  int  false  "Month (1-12, defaults to current)"
+// @Param        year   query  int  false  "Year (defaults to current)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/stats [get]
 func (h *AccountingHandler) getStats(w http.ResponseWriter, r *http.Request) {
 	month, year := parseMonthYear(r)
 
@@ -124,6 +136,21 @@ func (h *AccountingHandler) getStats(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// listTransactions godoc
+// @Summary      List accounting transactions
+// @Description  Get paginated list of accounting transactions with optional filters
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int     false  "Pagination offset"
+// @Param        limit   query  int     false  "Pagination limit (default 20)"
+// @Param        month   query  int     false  "Month (1-12, defaults to current)"
+// @Param        year    query  int     false  "Year (defaults to current)"
+// @Param        type    query  string  false  "Filter by transaction type"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/transactions [get]
 func (h *AccountingHandler) listTransactions(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -150,6 +177,18 @@ func (h *AccountingHandler) listTransactions(w http.ResponseWriter, r *http.Requ
 	writeJSON(w, http.StatusOK, result)
 }
 
+// createTransaction godoc
+// @Summary      Create accounting transaction
+// @Description  Create a new accounting transaction
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateTransactionRequest  true  "Transaction data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/transactions [post]
 func (h *AccountingHandler) createTransaction(w http.ResponseWriter, r *http.Request) {
 	var req CreateTransactionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -176,6 +215,21 @@ func (h *AccountingHandler) createTransaction(w http.ResponseWriter, r *http.Req
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "transaction created successfully"})
 }
 
+// listInvoices godoc
+// @Summary      List invoices (legacy)
+// @Description  Get paginated list of invoices with optional filters
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int     false  "Pagination offset"
+// @Param        limit   query  int     false  "Pagination limit (default 20)"
+// @Param        month   query  int     false  "Month (1-12, defaults to current)"
+// @Param        year    query  int     false  "Year (defaults to current)"
+// @Param        status  query  string  false  "Filter by invoice status"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/invoices [get]
 func (h *AccountingHandler) listInvoices(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -202,6 +256,19 @@ func (h *AccountingHandler) listInvoices(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusOK, result)
 }
 
+// updateInvoiceStatus godoc
+// @Summary      Update invoice status
+// @Description  Update the status of an existing invoice
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                      true  "Invoice ID"
+// @Param        body  body  UpdateInvoiceStatusRequest  true  "New status"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/invoices/{id}/status [put]
 func (h *AccountingHandler) updateInvoiceStatus(w http.ResponseWriter, r *http.Request) {
 	invoiceIDStr := chi.URLParam(r, "id")
 	invoiceID, err := uuid.Parse(invoiceIDStr)
@@ -229,6 +296,16 @@ func (h *AccountingHandler) updateInvoiceStatus(w http.ResponseWriter, r *http.R
 	writeJSON(w, http.StatusOK, map[string]string{"message": "invoice status updated successfully"})
 }
 
+// listCoa godoc
+// @Summary      List chart of accounts
+// @Description  Get the full chart of accounts
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/coa [get]
 func (h *AccountingHandler) listCoa(w http.ResponseWriter, r *http.Request) {
 	query := &listcoa.ListCoaQuery{}
 	result, err := h.qryBus.Execute(r.Context(), query)
@@ -241,6 +318,18 @@ func (h *AccountingHandler) listCoa(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getBudgetVsActual godoc
+// @Summary      Get budget vs actual
+// @Description  Compare budgeted amounts with actual spending for a given month and year
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        month  query  int  false  "Month (1-12, defaults to current)"
+// @Param        year   query  int  false  "Year (defaults to current)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /accounting/budget-vs-actual [get]
 func (h *AccountingHandler) getBudgetVsActual(w http.ResponseWriter, r *http.Request) {
 	month, year := parseMonthYear(r)
 
@@ -255,6 +344,21 @@ func (h *AccountingHandler) getBudgetVsActual(w http.ResponseWriter, r *http.Req
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getFinancialRatios godoc
+// @Summary      Get financial ratios
+// @Description  Get financial ratio analysis with optional period, branch, and comparison filters
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        period      query  string  false  "Period type"
+// @Param        month       query  int     false  "Month (1-12, defaults to current)"
+// @Param        year        query  int     false  "Year (defaults to current)"
+// @Param        branch_id   query  string  false  "Filter by branch ID"
+// @Param        comparison  query  string  false  "Comparison type"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/analysis/ratios [get]
 func (h *AccountingHandler) getFinancialRatios(w http.ResponseWriter, r *http.Request) {
 	month, year := parseMonthYear(r)
 	period := r.URL.Query().Get("period")
@@ -277,6 +381,21 @@ func (h *AccountingHandler) getFinancialRatios(w http.ResponseWriter, r *http.Re
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getRevenueAnalysis godoc
+// @Summary      Get revenue analysis
+// @Description  Get revenue analysis with optional period, branch, and group-by filters
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        period      query  string  false  "Period type"
+// @Param        month       query  int     false  "Month (1-12, defaults to current)"
+// @Param        year        query  int     false  "Year (defaults to current)"
+// @Param        branch_id   query  string  false  "Filter by branch ID"
+// @Param        group_by    query  string  false  "Group by dimension"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/analysis/revenue [get]
 func (h *AccountingHandler) getRevenueAnalysis(w http.ResponseWriter, r *http.Request) {
 	month, year := parseMonthYear(r)
 	period := r.URL.Query().Get("period")
@@ -299,6 +418,21 @@ func (h *AccountingHandler) getRevenueAnalysis(w http.ResponseWriter, r *http.Re
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getCostAnalysis godoc
+// @Summary      Get cost analysis
+// @Description  Get cost analysis with optional period, branch, and group-by filters
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        period      query  string  false  "Period type"
+// @Param        month       query  int     false  "Month (1-12, defaults to current)"
+// @Param        year        query  int     false  "Year (defaults to current)"
+// @Param        branch_id   query  string  false  "Filter by branch ID"
+// @Param        group_by    query  string  false  "Group by dimension"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/analysis/costs [get]
 func (h *AccountingHandler) getCostAnalysis(w http.ResponseWriter, r *http.Request) {
 	month, year := parseMonthYear(r)
 	period := r.URL.Query().Get("period")
@@ -321,6 +455,22 @@ func (h *AccountingHandler) getCostAnalysis(w http.ResponseWriter, r *http.Reque
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getBatchProfitability godoc
+// @Summary      Get batch profitability
+// @Description  Get batch profitability analysis with optional period, branch, sort, and limit filters
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        period      query  string  false  "Period type"
+// @Param        month       query  int     false  "Month (1-12, defaults to current)"
+// @Param        year        query  int     false  "Year (defaults to current)"
+// @Param        branch_id   query  string  false  "Filter by branch ID"
+// @Param        sort        query  string  false  "Sort order"
+// @Param        limit       query  int     false  "Max results"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/analysis/batch-profit [get]
 func (h *AccountingHandler) getBatchProfitability(w http.ResponseWriter, r *http.Request) {
 	month, year := parseMonthYear(r)
 	period := r.URL.Query().Get("period")
@@ -345,6 +495,18 @@ func (h *AccountingHandler) getBatchProfitability(w http.ResponseWriter, r *http
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getCashForecast godoc
+// @Summary      Get cash forecast
+// @Description  Get cash flow forecast for a given number of months ahead
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        months      query  int     false  "Number of months to forecast"
+// @Param        branch_id   query  string  false  "Filter by branch ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/analysis/cash-forecast [get]
 func (h *AccountingHandler) getCashForecast(w http.ResponseWriter, r *http.Request) {
 	months, _ := strconv.Atoi(r.URL.Query().Get("months"))
 	branchID := r.URL.Query().Get("branch_id")
@@ -362,6 +524,16 @@ func (h *AccountingHandler) getCashForecast(w http.ResponseWriter, r *http.Reque
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getAlerts godoc
+// @Summary      Get financial alerts
+// @Description  Get current financial alerts and warnings
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/analysis/alerts [get]
 func (h *AccountingHandler) getAlerts(w http.ResponseWriter, r *http.Request) {
 	query := &getfinancialalerts.GetFinancialAlertsQuery{}
 	result, err := h.qryBus.Execute(r.Context(), query)
@@ -373,6 +545,16 @@ func (h *AccountingHandler) getAlerts(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getSuggestions godoc
+// @Summary      Get financial suggestions
+// @Description  Get AI-generated financial suggestions and recommendations
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/analysis/suggestions [get]
 func (h *AccountingHandler) getSuggestions(w http.ResponseWriter, r *http.Request) {
 	query := &getfinancialsuggestions.GetFinancialSuggestionsQuery{}
 	result, err := h.qryBus.Execute(r.Context(), query)
@@ -398,6 +580,18 @@ func currentUserIDFromCtx(r *http.Request) uuid.UUID {
 	return uuid.Nil
 }
 
+// createInvoice godoc
+// @Summary      Create invoice
+// @Description  Create a new invoice for a batch enrollment
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateInvoiceRequest  true  "Invoice data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/invoices [post]
 func (h *AccountingHandler) createInvoice(w http.ResponseWriter, r *http.Request) {
 	var req CreateInvoiceRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -454,6 +648,18 @@ func (h *AccountingHandler) createInvoice(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "invoice created successfully"})
 }
 
+// getInvoice godoc
+// @Summary      Get invoice by ID
+// @Description  Get a single invoice by its ID
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Invoice ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/invoices/{id} [get]
 func (h *AccountingHandler) getInvoice(w http.ResponseWriter, r *http.Request) {
 	invoiceIDStr := chi.URLParam(r, "id")
 	invoiceID, err := uuid.Parse(invoiceIDStr)
@@ -473,6 +679,19 @@ func (h *AccountingHandler) getInvoice(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// markInvoicePaid godoc
+// @Summary      Mark invoice as paid
+// @Description  Mark an invoice as paid with payment details
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                 true  "Invoice ID"
+// @Param        body  body  MarkInvoicePaidRequest  true  "Payment data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/invoices/{id}/pay [put]
 func (h *AccountingHandler) markInvoicePaid(w http.ResponseWriter, r *http.Request) {
 	invoiceIDStr := chi.URLParam(r, "id")
 	invoiceID, err := uuid.Parse(invoiceIDStr)
@@ -513,6 +732,19 @@ func (h *AccountingHandler) markInvoicePaid(w http.ResponseWriter, r *http.Reque
 	writeJSON(w, http.StatusOK, map[string]string{"message": "invoice marked as paid"})
 }
 
+// cancelInvoice godoc
+// @Summary      Cancel invoice
+// @Description  Cancel an invoice with a reason
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                  true  "Invoice ID"
+// @Param        body  body  CancelInvoiceRequest    true  "Cancellation data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/invoices/{id}/cancel [put]
 func (h *AccountingHandler) cancelInvoice(w http.ResponseWriter, r *http.Request) {
 	invoiceIDStr := chi.URLParam(r, "id")
 	invoiceID, err := uuid.Parse(invoiceIDStr)
@@ -543,6 +775,18 @@ func (h *AccountingHandler) cancelInvoice(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusOK, map[string]string{"message": "invoice cancelled"})
 }
 
+// sendInvoice godoc
+// @Summary      Send invoice
+// @Description  Send an invoice to the client
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Invoice ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/invoices/{id}/send [put]
 func (h *AccountingHandler) sendInvoice(w http.ResponseWriter, r *http.Request) {
 	invoiceIDStr := chi.URLParam(r, "id")
 	invoiceID, err := uuid.Parse(invoiceIDStr)
@@ -566,6 +810,19 @@ func (h *AccountingHandler) sendInvoice(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, map[string]string{"message": "invoice sent"})
 }
 
+// getInvoiceStats godoc
+// @Summary      Get invoice statistics
+// @Description  Get aggregated invoice statistics with optional branch and date filters
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        branch_id  query  string  false  "Filter by branch ID"
+// @Param        month      query  int     false  "Month (1-12)"
+// @Param        year       query  int     false  "Year"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/invoices/stats [get]
 func (h *AccountingHandler) getInvoiceStats(w http.ResponseWriter, r *http.Request) {
 	query := &getinvoicestats.GetInvoiceStatsQuery{}
 
@@ -591,6 +848,26 @@ func (h *AccountingHandler) getInvoiceStats(w http.ResponseWriter, r *http.Reque
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// listInvoicesEnriched godoc
+// @Summary      List invoices (enriched)
+// @Description  Get paginated list of invoices with extended filters including batch, student, date range, and payment method
+// @Tags         accounting
+// @Accept       json
+// @Produce      json
+// @Param        offset          query  int     false  "Pagination offset"
+// @Param        limit           query  int     false  "Pagination limit (default 20)"
+// @Param        month           query  int     false  "Month (1-12, defaults to current)"
+// @Param        year            query  int     false  "Year (defaults to current)"
+// @Param        status          query  string  false  "Filter by invoice status"
+// @Param        payment_method  query  string  false  "Filter by payment method"
+// @Param        batch_id        query  string  false  "Filter by batch ID"
+// @Param        student_id      query  string  false  "Filter by student ID"
+// @Param        date_from       query  string  false  "Filter from date (YYYY-MM-DD)"
+// @Param        date_to         query  string  false  "Filter to date (YYYY-MM-DD)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/invoices [get]
 func (h *AccountingHandler) listInvoicesEnriched(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))

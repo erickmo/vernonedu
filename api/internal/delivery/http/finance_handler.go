@@ -46,6 +46,17 @@ type UpdateFinanceAccountRequest struct {
 	IsActive bool   `json:"is_active"`
 }
 
+// listAccounts godoc
+// @Summary      List finance accounts
+// @Description  Get all finance chart of accounts, optionally filtered by branch
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        branch_id  query  string  false  "Filter by branch ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/coa [get]
 func (h *FinanceHandler) listAccounts(w http.ResponseWriter, r *http.Request) {
 	var branchID *uuid.UUID
 	if s := r.URL.Query().Get("branch_id"); s != "" {
@@ -62,6 +73,18 @@ func (h *FinanceHandler) listAccounts(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// getAccount godoc
+// @Summary      Get finance account
+// @Description  Get a single finance account by ID
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Account ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/coa/{id} [get]
 func (h *FinanceHandler) getAccount(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -76,6 +99,18 @@ func (h *FinanceHandler) getAccount(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// createAccount godoc
+// @Summary      Create finance account
+// @Description  Create a new chart of accounts entry
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateFinanceAccountRequest  true  "Account data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/coa [post]
 func (h *FinanceHandler) createAccount(w http.ResponseWriter, r *http.Request) {
 	var req CreateFinanceAccountRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -105,6 +140,19 @@ func (h *FinanceHandler) createAccount(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "account created"})
 }
 
+// updateAccount godoc
+// @Summary      Update finance account
+// @Description  Update name and active status of a finance account
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                      true  "Account ID"
+// @Param        body  body  UpdateFinanceAccountRequest  true  "Update data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/coa/{id} [put]
 func (h *FinanceHandler) updateAccount(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -141,6 +189,23 @@ type CreateFinanceTransactionRequest struct {
 	AttachmentURL   string  `json:"attachment_url"`
 }
 
+// listTransactions godoc
+// @Summary      List finance transactions
+// @Description  Get paginated list of finance transactions with optional filters
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        offset      query  int     false  "Pagination offset"
+// @Param        limit       query  int     false  "Pagination limit (default 25)"
+// @Param        source      query  string  false  "Filter by source"
+// @Param        account_id  query  string  false  "Filter by account ID"
+// @Param        branch_id   query  string  false  "Filter by branch ID"
+// @Param        date_from   query  string  false  "Filter from date (YYYY-MM-DD)"
+// @Param        date_to     query  string  false  "Filter to date (YYYY-MM-DD)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/transactions [get]
 func (h *FinanceHandler) listTransactions(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -183,6 +248,18 @@ func (h *FinanceHandler) listTransactions(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusOK, result)
 }
 
+// createTransaction godoc
+// @Summary      Create finance transaction
+// @Description  Create a new double-entry finance transaction
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateFinanceTransactionRequest  true  "Transaction data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/transactions [post]
 func (h *FinanceHandler) createTransaction(w http.ResponseWriter, r *http.Request) {
 	var req CreateFinanceTransactionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -247,6 +324,22 @@ type CreateJournalEntryRequest struct {
 	Source        string  `json:"source"`
 }
 
+// listJournal godoc
+// @Summary      List journal entries
+// @Description  Get paginated list of journal entries with optional filters
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        offset      query  int     false  "Pagination offset"
+// @Param        limit       query  int     false  "Pagination limit (default 25)"
+// @Param        source      query  string  false  "Filter by source"
+// @Param        account_id  query  string  false  "Filter by account ID"
+// @Param        date_from   query  string  false  "Filter from date (YYYY-MM-DD)"
+// @Param        date_to     query  string  false  "Filter to date (YYYY-MM-DD)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/journal [get]
 func (h *FinanceHandler) listJournal(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -284,6 +377,18 @@ func (h *FinanceHandler) listJournal(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// createJournalEntry godoc
+// @Summary      Create journal entry
+// @Description  Create a new journal entry for a transaction
+// @Tags         finance
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateJournalEntryRequest  true  "Journal entry data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /finance/journal [post]
 func (h *FinanceHandler) createJournalEntry(w http.ResponseWriter, r *http.Request) {
 	var req CreateJournalEntryRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
