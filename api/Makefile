@@ -1,4 +1,4 @@
-.PHONY: build dev test test-race lint migrate-up migrate-down migrate-create infra-up infra-down help tidy
+.PHONY: build dev test test-race lint migrate-up migrate-down migrate-create infra-up infra-down help tidy docs docs-validate
 
 SERVICE=entrepreneurship-api
 MAIN=./cmd/api
@@ -82,5 +82,15 @@ infra-down:
 tidy:
 	@echo "Tidying Go modules..."
 	@go mod tidy
+
+docs:
+	@echo "Generating API docs..."
+	@mkdir -p docs/swagger
+	swag init -g cmd/api/main.go -o docs/swagger --outputTypes yaml --parseDependency --parseInternal
+
+docs-validate:
+	@echo "Validating API docs..."
+	swag fmt -g cmd/api/main.go -o docs/swagger --outputTypes yaml --parseDependency --parseInternal
+	@echo "Docs generated. Validate at https://editor.swagger.io"
 
 .DEFAULT_GOAL := help
