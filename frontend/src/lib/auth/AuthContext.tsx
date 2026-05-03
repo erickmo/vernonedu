@@ -4,8 +4,10 @@ import { apiClient } from '@/lib/api/client'
 export interface User {
   id: string
   email: string
-  role: string
   name: string
+  roles: string[]
+  // Legacy single role for backward compatibility
+  role?: string
 }
 
 export interface AuthContextType {
@@ -24,7 +26,13 @@ const USER_KEY = 'vernonedu_user'
 
 interface LoginResponse {
   access_token: string
-  user: User
+  refresh_token: string
+  user: {
+    id: string
+    email: string
+    name: string
+    roles: string[]
+  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -57,8 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true
           try {
-            const res = await apiClient.post<{ access_token: string; user: User }>('/auth/refresh')
-            persist(res.data.access_token, res.data.user)
+            const res = await apiClient.post<{ access_token: string; user: { id: string; email: string; name: string; roles: string[] } }>('/auth/refresh')
+            const u: User = {
+              id: res.data.user.id,
+              email: res.data.user.email,
+              name: res.data.user.name,
+              roles: res.data.user.roles,
+              role: res.data.user.roles[0],
+            }
+            persist(res.data.access_token, u)
             originalRequest.headers['Authorization'] = `Bearer ${res.data.access_token}`
             return apiClient(originalRequest)
           } catch {
@@ -77,9 +92,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
     apiClient
-      .get<{ data: User } | User>('/auth/me')
+      .get<{ data: { id: string; email: string; name: string; roles: string[] } }>('/auth/me')
       .then((res) => {
-        const u = (res.data as { data?: User }).data ?? (res.data as User)
+        const raw = res.data.data
+        const u: User = {
+          id: raw.id,
+          email: raw.email,
+          name: raw.name,
+          roles: raw.roles,
+          role: raw.roles[0],
+        }
         setUser(u)
         localStorage.setItem(USER_KEY, JSON.stringify(u))
       })
@@ -90,7 +112,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (email: string, password: string) => {
       const res = await apiClient.post<LoginResponse>('/auth/login', { email, password })
-      persist(res.data.access_token, res.data.user)
+      // Transform API response (roles array) to frontend format (role string)
+      const user: User = {
+        id: res.data.user.id,
+        email: res.data.user.email,
+        name: res.data.user.name,
+        roles: res.data.user.roles,
+        role: res.data.user.roles[0], // Primary role
+      }
+      persist(res.data.access_token, user)
     },
     [persist]
   )
