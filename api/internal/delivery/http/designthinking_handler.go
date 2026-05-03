@@ -35,6 +35,18 @@ type CreateDesignThinkingRequest struct {
 	Name string `json:"name" validate:"required,min=1"`
 }
 
+// Create godoc
+// @Summary      Create design thinking canvas
+// @Description  Create a new design thinking canvas with a name
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Design thinking creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /design-thinkings [post]
 func (h *DesignThinkingHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req CreateDesignThinkingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -52,6 +64,18 @@ func (h *DesignThinkingHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "design thinking created successfully"})
 }
 
+// GetByID godoc
+// @Summary      Get design thinking by ID
+// @Description  Retrieve a single design thinking canvas by its ID
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Design thinking ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /design-thinkings/{id} [get]
 func (h *DesignThinkingHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	dtIDStr := chi.URLParam(r, "id")
 	dtID, err := uuid.Parse(dtIDStr)
@@ -71,6 +95,18 @@ func (h *DesignThinkingHandler) GetByID(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// List godoc
+// @Summary      List design thinking canvases
+// @Description  Retrieve paginated list of design thinking canvases
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int  false  "Pagination offset"
+// @Param        limit   query  int  false  "Pagination limit (default 10)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /design-thinkings [get]
 func (h *DesignThinkingHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -89,6 +125,19 @@ func (h *DesignThinkingHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// Search godoc
+// @Summary      Search design thinking canvases
+// @Description  Search design thinking canvases by name with pagination
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        name    query  string  false  "Name search query"
+// @Param        offset  query  int     false  "Pagination offset"
+// @Param        limit   query  int     false  "Pagination limit (default 10)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /design-thinkings/search [get]
 func (h *DesignThinkingHandler) Search(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
@@ -112,6 +161,19 @@ type UpdateDesignThinkingRequest struct {
 	Name string `json:"name" validate:"required,min=1"`
 }
 
+// Update godoc
+// @Summary      Update design thinking canvas
+// @Description  Update an existing design thinking canvas by ID
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Design thinking ID"
+// @Param        body  body  object  true  "Design thinking update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /design-thinkings/{id} [put]
 func (h *DesignThinkingHandler) Update(w http.ResponseWriter, r *http.Request) {
 	dtIDStr := chi.URLParam(r, "id")
 	dtID, err := uuid.Parse(dtIDStr)
@@ -136,6 +198,18 @@ func (h *DesignThinkingHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "design thinking updated successfully"})
 }
 
+// Delete godoc
+// @Summary      Delete design thinking canvas
+// @Description  Delete a design thinking canvas by ID
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Design thinking ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /design-thinkings/{id} [delete]
 func (h *DesignThinkingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	dtIDStr := chi.URLParam(r, "id")
 	dtID, err := uuid.Parse(dtIDStr)

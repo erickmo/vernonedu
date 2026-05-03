@@ -37,6 +37,18 @@ type CreateItemRequest struct {
 	Note       string    `json:"note"`
 }
 
+// Create godoc
+// @Summary      Create item
+// @Description  Create a new canvas item (business ID, canvas type, section, text, note)
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Item creation payload"
+// @Success      201  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /items [post]
 func (h *ItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req CreateItemRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -70,6 +82,18 @@ func (h *ItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}})
 }
 
+// GetByID godoc
+// @Summary      Get item by ID
+// @Description  Retrieve a single canvas item by its ID
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Item ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /items/{id} [get]
 func (h *ItemHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	itemIDStr := chi.URLParam(r, "id")
 	itemID, err := uuid.Parse(itemIDStr)
@@ -89,6 +113,19 @@ func (h *ItemHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// List godoc
+// @Summary      List items by canvas
+// @Description  Retrieve items filtered by business ID and optional canvas type
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        business_id   query  string  true   "Business ID (required)"
+// @Param        canvas_type   query  string  false  "Filter by canvas type"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /items [get]
 func (h *ItemHandler) List(w http.ResponseWriter, r *http.Request) {
 	businessIDStr := r.URL.Query().Get("business_id")
 	if businessIDStr == "" {
@@ -122,6 +159,19 @@ type UpdateItemRequest struct {
 	Note string `json:"note"`
 }
 
+// Update godoc
+// @Summary      Update item
+// @Description  Update an existing canvas item by ID (text and note)
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Item ID"
+// @Param        body  body  object  true  "Item update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /items/{id} [put]
 func (h *ItemHandler) Update(w http.ResponseWriter, r *http.Request) {
 	itemIDStr := chi.URLParam(r, "id")
 	itemID, err := uuid.Parse(itemIDStr)
@@ -146,6 +196,18 @@ func (h *ItemHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "item updated successfully"})
 }
 
+// Delete godoc
+// @Summary      Delete item
+// @Description  Delete a canvas item by ID
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Item ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /items/{id} [delete]
 func (h *ItemHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	itemIDStr := chi.URLParam(r, "id")
 	itemID, err := uuid.Parse(itemIDStr)

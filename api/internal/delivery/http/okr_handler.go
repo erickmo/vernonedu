@@ -37,6 +37,17 @@ func RegisterOkrRoutes(h *OkrHandler, r chi.Router) {
 	r.Delete("/api/v1/okr/keyresults/{id}", h.DeleteKeyResult)
 }
 
+// List godoc
+// @Summary      List OKR objectives
+// @Description  Retrieve list of OKR objectives with optional level filter
+// @Tags         okr
+// @Accept       json
+// @Produce      json
+// @Param        level  query  string  false  "Filter by level (company, department, team, individual)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /okr [get]
 func (h *OkrHandler) List(w http.ResponseWriter, r *http.Request) {
 	level := r.URL.Query().Get("level")
 
@@ -49,6 +60,18 @@ func (h *OkrHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Create godoc
+// @Summary      Create OKR objective
+// @Description  Create a new OKR objective with title, owner, period, level, and status
+// @Tags         okr
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Objective creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /okr [post]
 func (h *OkrHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Title     string `json:"title"`
@@ -78,6 +101,18 @@ func (h *OkrHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "okr objective created"})
 }
 
+// GetObjective godoc
+// @Summary      Get OKR objective by ID
+// @Description  Retrieve a single OKR objective with its key results
+// @Tags         okr
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Objective ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /okr/objectives/{id} [get]
 func (h *OkrHandler) GetObjective(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	result, err := h.qryBus.Execute(r.Context(), &getokrobjective.GetOkrObjectiveQuery{ID: id})
@@ -93,6 +128,19 @@ func (h *OkrHandler) GetObjective(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// CreateKeyResult godoc
+// @Summary      Create key result for an objective
+// @Description  Add a new key result to an existing OKR objective
+// @Tags         okr
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Objective ID"
+// @Param        body  body  object  true  "Key result creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /okr/objectives/{id}/keyresults [post]
 func (h *OkrHandler) CreateKeyResult(w http.ResponseWriter, r *http.Request) {
 	objectiveID := chi.URLParam(r, "id")
 	var body struct {
@@ -116,6 +164,20 @@ func (h *OkrHandler) CreateKeyResult(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "okr key result created"})
 }
 
+// UpdateKeyResult godoc
+// @Summary      Update key result
+// @Description  Update an existing key result by ID (title and/or progress)
+// @Tags         okr
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Key result ID"
+// @Param        body  body  object  true  "Key result update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /okr/keyresults/{id} [put]
 func (h *OkrHandler) UpdateKeyResult(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	var body struct {
@@ -143,6 +205,18 @@ func (h *OkrHandler) UpdateKeyResult(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "okr key result updated"})
 }
 
+// DeleteKeyResult godoc
+// @Summary      Delete key result
+// @Description  Delete a key result by ID
+// @Tags         okr
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Key result ID"
+// @Success      200  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /okr/keyresults/{id} [delete]
 func (h *OkrHandler) DeleteKeyResult(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	cmd := &delete_okr_keyresult.DeleteOkrKeyResultCommand{ID: id}

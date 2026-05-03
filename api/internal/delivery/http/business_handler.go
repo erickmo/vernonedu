@@ -36,6 +36,19 @@ type CreateBusinessRequest struct {
 	Name string `json:"name" validate:"required,min=1"`
 }
 
+// Create godoc
+// @Summary      Create business
+// @Description  Create a new business for the authenticated user
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Business creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /businesses [post]
 func (h *BusinessHandler) Create(w http.ResponseWriter, r *http.Request) {
 	userIDStr := pkgmiddleware.GetUserIDFromContext(r.Context())
 	if userIDStr == "" {
@@ -64,6 +77,18 @@ func (h *BusinessHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "business created successfully"})
 }
 
+// GetByID godoc
+// @Summary      Get business by ID
+// @Description  Retrieve a single business by its ID
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Business ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /businesses/{id} [get]
 func (h *BusinessHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	businessIDStr := chi.URLParam(r, "id")
 	businessID, err := uuid.Parse(businessIDStr)
@@ -83,6 +108,19 @@ func (h *BusinessHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// List godoc
+// @Summary      List businesses
+// @Description  Retrieve paginated list of businesses for the authenticated user
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int  false  "Pagination offset"
+// @Param        limit   query  int  false  "Pagination limit (default 10)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /businesses [get]
 func (h *BusinessHandler) List(w http.ResponseWriter, r *http.Request) {
 	userIDStr := pkgmiddleware.GetUserIDFromContext(r.Context())
 	if userIDStr == "" {
@@ -112,6 +150,20 @@ func (h *BusinessHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// Search godoc
+// @Summary      Search businesses
+// @Description  Search businesses by name for the authenticated user
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        name    query  string  false  "Business name search query"
+// @Param        offset  query  int     false  "Pagination offset"
+// @Param        limit   query  int     false  "Pagination limit (default 10)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /businesses/search [get]
 func (h *BusinessHandler) Search(w http.ResponseWriter, r *http.Request) {
 	userIDStr := pkgmiddleware.GetUserIDFromContext(r.Context())
 	if userIDStr == "" {
@@ -146,6 +198,19 @@ type UpdateBusinessRequest struct {
 	Name string `json:"name" validate:"required,min=1"`
 }
 
+// Update godoc
+// @Summary      Update business
+// @Description  Update an existing business by ID
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Business ID"
+// @Param        body  body  object  true  "Business update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /businesses/{id} [put]
 func (h *BusinessHandler) Update(w http.ResponseWriter, r *http.Request) {
 	businessIDStr := chi.URLParam(r, "id")
 	businessID, err := uuid.Parse(businessIDStr)
@@ -170,6 +235,18 @@ func (h *BusinessHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "business updated successfully"})
 }
 
+// Delete godoc
+// @Summary      Delete business
+// @Description  Delete a business by ID
+// @Tags         entrepreneurship
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Business ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /businesses/{id} [delete]
 func (h *BusinessHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	businessIDStr := chi.URLParam(r, "id")
 	businessID, err := uuid.Parse(businessIDStr)

@@ -50,6 +50,16 @@ func RegisterPublicRoutes(h *PublicHandler, r chi.Router) {
 
 // ─── PAGES ────────────────────────────────────────────────────────────────────
 
+// GetPage godoc
+// @Summary      Get public page by slug
+// @Description  Retrieve a CMS page by slug (public, no auth required)
+// @Tags         public
+// @Accept       json
+// @Produce      json
+// @Param        slug  path  string  true  "Page slug"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      404  {object}  map[string]string
+// @Router       /public/pages/{slug} [get]
 func (h *PublicHandler) GetPage(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 	result, err := h.qryBus.Execute(r.Context(), &getcmspagepub.GetCmsPageQuery{Slug: slug})
@@ -63,6 +73,18 @@ func (h *PublicHandler) GetPage(w http.ResponseWriter, r *http.Request) {
 
 // ─── ARTICLES ─────────────────────────────────────────────────────────────────
 
+// ListArticles godoc
+// @Summary      List public articles
+// @Description  Retrieve paginated list of published articles (public, no auth required)
+// @Tags         public
+// @Accept       json
+// @Produce      json
+// @Param        category  query  string  false  "Filter by category"
+// @Param        offset    query  int     false  "Pagination offset"
+// @Param        limit     query  int     false  "Pagination limit (default 20)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Router       /public/articles [get]
 func (h *PublicHandler) ListArticles(w http.ResponseWriter, r *http.Request) {
 	category := r.URL.Query().Get("category")
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
@@ -85,6 +107,16 @@ func (h *PublicHandler) ListArticles(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// GetArticle godoc
+// @Summary      Get public article by slug
+// @Description  Retrieve a single published article by slug (public, no auth required)
+// @Tags         public
+// @Accept       json
+// @Produce      json
+// @Param        slug  path  string  true  "Article slug"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      404  {object}  map[string]string
+// @Router       /public/articles/{slug} [get]
 func (h *PublicHandler) GetArticle(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 	result, err := h.qryBus.Execute(r.Context(), &getcmsarticlepub.GetCmsArticleQuery{Slug: slug})
@@ -98,6 +130,17 @@ func (h *PublicHandler) GetArticle(w http.ResponseWriter, r *http.Request) {
 
 // ─── TESTIMONIALS ─────────────────────────────────────────────────────────────
 
+// ListTestimonials godoc
+// @Summary      List public testimonials
+// @Description  Retrieve testimonials with optional course and featured filters (public, no auth required)
+// @Tags         public
+// @Accept       json
+// @Produce      json
+// @Param        course_id    query  string  false  "Filter by course ID"
+// @Param        is_featured  query  bool    false  "Filter by featured status"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Router       /public/testimonials [get]
 func (h *PublicHandler) ListTestimonials(w http.ResponseWriter, r *http.Request) {
 	courseID := r.URL.Query().Get("course_id")
 	isFeaturedStr := r.URL.Query().Get("is_featured")
@@ -122,6 +165,17 @@ func (h *PublicHandler) ListTestimonials(w http.ResponseWriter, r *http.Request)
 
 // ─── FAQ ──────────────────────────────────────────────────────────────────────
 
+// ListFaq godoc
+// @Summary      List public FAQ entries
+// @Description  Retrieve FAQ entries with optional category and page slug filters (public, no auth required)
+// @Tags         public
+// @Accept       json
+// @Produce      json
+// @Param        category    query  string  false  "Filter by category"
+// @Param        page_slug   query  string  false  "Filter by page slug"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Router       /public/faq [get]
 func (h *PublicHandler) ListFaq(w http.ResponseWriter, r *http.Request) {
 	category := r.URL.Query().Get("category")
 	pageSlug := r.URL.Query().Get("page_slug")
@@ -140,6 +194,14 @@ func (h *PublicHandler) ListFaq(w http.ResponseWriter, r *http.Request) {
 
 // ─── STATS ────────────────────────────────────────────────────────────────────
 
+// GetStats godoc
+// @Summary      Get public statistics
+// @Description  Retrieve aggregate public statistics (students, courses, partners, branches)
+// @Tags         public
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Router       /public/stats [get]
 func (h *PublicHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 	// TODO: replace with real aggregate queries when analytics are wired
 	writeJSON(w, http.StatusOK, map[string]interface{}{
@@ -154,6 +216,17 @@ func (h *PublicHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 
 // ─── COURSES ──────────────────────────────────────────────────────────────────
 
+// ListCourses godoc
+// @Summary      List public courses
+// @Description  Retrieve paginated list of visible courses (public, no auth required)
+// @Tags         public
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int  false  "Pagination offset"
+// @Param        limit   query  int  false  "Pagination limit (default 20)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Router       /public/courses [get]
 func (h *PublicHandler) ListCourses(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -174,6 +247,17 @@ func (h *PublicHandler) ListCourses(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// GetCourse godoc
+// @Summary      Get public course by ID
+// @Description  Retrieve a single course by ID (public, no auth required)
+// @Tags         public
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Course ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Router       /public/courses/{id} [get]
 func (h *PublicHandler) GetCourse(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -191,6 +275,17 @@ func (h *PublicHandler) GetCourse(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// GetBatch godoc
+// @Summary      Get public batch by ID
+// @Description  Retrieve a single course batch by ID (public, no auth required)
+// @Tags         public
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Batch ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Router       /public/batches/{id} [get]
 func (h *PublicHandler) GetBatch(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -218,6 +313,17 @@ type publicEnrollmentRequest struct {
 	Notes         string `json:"notes"`
 }
 
+// PublicEnrollment godoc
+// @Summary      Public enrollment submission
+// @Description  Submit a public enrollment request (creates student and enrollment, no auth required)
+// @Tags         public
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Enrollment request payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /public/enrollment [post]
 func (h *PublicHandler) PublicEnrollment(w http.ResponseWriter, r *http.Request) {
 	var body publicEnrollmentRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -269,6 +375,17 @@ type contactRequest struct {
 	Message string `json:"message"`
 }
 
+// Contact godoc
+// @Summary      Submit contact form
+// @Description  Submit a contact form (creates a lead, no auth required)
+// @Tags         public
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Contact form payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /public/contact [post]
 func (h *PublicHandler) Contact(w http.ResponseWriter, r *http.Request) {
 	var body contactRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -293,6 +410,16 @@ func (h *PublicHandler) Contact(w http.ResponseWriter, r *http.Request) {
 
 // ─── CERTIFICATE VERIFICATION ─────────────────────────────────────────────────
 
+// VerifyCertificate godoc
+// @Summary      Verify certificate by code
+// @Description  Verify a certificate by its verification code (public, no auth required)
+// @Tags         public
+// @Accept       json
+// @Produce      json
+// @Param        code  path  string  true  "Certificate verification code"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      501  {object}  map[string]string
+// @Router       /public/certificates/{code} [get]
 func (h *PublicHandler) VerifyCertificate(w http.ResponseWriter, r *http.Request) {
 	// TODO: implement certificate verification when certificate domain is wired
 	writeError(w, http.StatusNotImplemented, "certificate verification not yet implemented")

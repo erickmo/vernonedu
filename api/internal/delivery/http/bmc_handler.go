@@ -42,6 +42,18 @@ type UpsertBmcRequest struct {
 
 // Get returns the BMC for a branch. When no canvas exists yet, an empty
 // canvas (all blocks as []) is returned with HTTP 200 to simplify the client.
+// Get godoc
+// @Summary      Get BMC for a branch
+// @Description  Retrieve the Business Model Canvas (9 strategic blocks) for a given branch
+// @Tags         bmc
+// @Accept       json
+// @Produce      json
+// @Param        branch_id  path  string  true  "Branch ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /bmc/{branch_id} [get]
 func (h *BmcHandler) Get(w http.ResponseWriter, r *http.Request) {
 	branchIDStr := chi.URLParam(r, "branch_id")
 	branchID, err := uuid.Parse(branchIDStr)
@@ -63,6 +75,19 @@ func (h *BmcHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 // Upsert creates or replaces the BMC for a branch. All 9 blocks are stored as
 // provided; missing blocks are treated as empty.
+// Upsert godoc
+// @Summary      Upsert BMC for a branch
+// @Description  Create or replace the Business Model Canvas (9 strategic blocks) for a given branch
+// @Tags         bmc
+// @Accept       json
+// @Produce      json
+// @Param        branch_id  path  string  true  "Branch ID"
+// @Param        body       body  object  true  "BMC upsert payload (9 blocks as string arrays)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /bmc/{branch_id} [put]
 func (h *BmcHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 	branchIDStr := chi.URLParam(r, "branch_id")
 	branchID, err := uuid.Parse(branchIDStr)

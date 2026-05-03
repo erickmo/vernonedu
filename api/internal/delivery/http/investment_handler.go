@@ -34,6 +34,19 @@ func RegisterInvestmentRoutes(h *InvestmentHandler, r chi.Router) {
 	r.Put("/api/v1/investments/{id}", h.Update)
 }
 
+// List godoc
+// @Summary      List investment plans
+// @Description  Retrieve paginated list of investment plans with optional status filter
+// @Tags         investment
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int     false  "Pagination offset"
+// @Param        limit   query  int     false  "Pagination limit (default 20)"
+// @Param        status  query  string  false  "Filter by status"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /investments [get]
 func (h *InvestmentHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -53,6 +66,18 @@ func (h *InvestmentHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Create godoc
+// @Summary      Create investment plan
+// @Description  Create a new investment plan with title, category, amount, expected ROI, etc.
+// @Tags         investment
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Investment plan creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /investments [post]
 func (h *InvestmentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Title       string  `json:"title"`
@@ -84,6 +109,19 @@ func (h *InvestmentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "investment plan created"})
 }
 
+// Get godoc
+// @Summary      Get investment plan by ID
+// @Description  Retrieve a single investment plan by its ID
+// @Tags         investment
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Investment plan ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /investments/{id} [get]
 func (h *InvestmentHandler) Get(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	result, err := h.qryBus.Execute(r.Context(), &getinvestment.GetInvestmentPlanQuery{ID: id})
@@ -103,6 +141,20 @@ func (h *InvestmentHandler) Get(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Update godoc
+// @Summary      Update investment plan
+// @Description  Update an existing investment plan by ID
+// @Tags         investment
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Investment plan ID"
+// @Param        body  body  object  true  "Investment plan update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /investments/{id} [put]
 func (h *InvestmentHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	var body struct {

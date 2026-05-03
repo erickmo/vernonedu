@@ -65,6 +65,21 @@ func RegisterMarketingRoutes(h *MarketingHandler, r chi.Router) {
 
 // ---- Social Media Posts ----
 
+// ListPosts godoc
+// @Summary      List social media posts
+// @Description  Retrieve paginated list of social media marketing posts with optional filters
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        offset    query  int     false  "Pagination offset"
+// @Param        limit     query  int     false  "Pagination limit (default 20)"
+// @Param        platform  query  string  false  "Filter by platform"
+// @Param        status    query  string  false  "Filter by status"
+// @Param        month     query  string  false  "Filter by month"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/posts [get]
 func (h *MarketingHandler) ListPosts(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -98,6 +113,18 @@ type createPostRequest struct {
 	BatchID     *uuid.UUID `json:"batch_id"`
 }
 
+// CreatePost godoc
+// @Summary      Create social media post
+// @Description  Schedule a new social media marketing post
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Post creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/posts [post]
 func (h *MarketingHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	var req createPostRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -133,6 +160,19 @@ type updatePostRequest struct {
 	Status      string     `json:"status"`
 }
 
+// UpdatePost godoc
+// @Summary      Update social media post
+// @Description  Update an existing social media marketing post by ID
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Post ID"
+// @Param        body  body  object  true  "Post update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/posts/{id} [put]
 func (h *MarketingHandler) UpdatePost(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -170,6 +210,19 @@ type submitPostUrlRequest struct {
 	PostURL string `json:"post_url"`
 }
 
+// SubmitPostUrl godoc
+// @Summary      Submit post URL
+// @Description  Submit the published URL for a social media post after it goes live
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Post ID"
+// @Param        body  body  object  true  "Post URL payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/posts/{id}/submit-url [put]
 func (h *MarketingHandler) SubmitPostUrl(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -197,6 +250,18 @@ func (h *MarketingHandler) SubmitPostUrl(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusOK, map[string]string{"message": "post url submitted successfully"})
 }
 
+// DeletePost godoc
+// @Summary      Delete social media post
+// @Description  Delete a social media marketing post by ID
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Post ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/posts/{id} [delete]
 func (h *MarketingHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -216,6 +281,19 @@ func (h *MarketingHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 
 // ---- Class Docs ----
 
+// ListClassDocs godoc
+// @Summary      List class documentation posts
+// @Description  Retrieve paginated list of auto-generated class documentation posts
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int     false  "Pagination offset"
+// @Param        limit   query  int     false  "Pagination limit (default 20)"
+// @Param        status  query  string  false  "Filter by status"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/class-docs [get]
 func (h *MarketingHandler) ListClassDocs(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -240,6 +318,20 @@ func (h *MarketingHandler) ListClassDocs(w http.ResponseWriter, r *http.Request)
 
 // ---- PR Schedules ----
 
+// ListPr godoc
+// @Summary      List PR schedules
+// @Description  Retrieve paginated list of PR schedule entries with optional filters
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int     false  "Pagination offset"
+// @Param        limit   query  int     false  "Pagination limit (default 20)"
+// @Param        status  query  string  false  "Filter by status"
+// @Param        type    query  string  false  "Filter by type"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/pr [get]
 func (h *MarketingHandler) ListPr(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -273,6 +365,18 @@ type createPrRequest struct {
 	Notes       string     `json:"notes"`
 }
 
+// CreatePr godoc
+// @Summary      Create PR schedule
+// @Description  Create a new PR schedule entry with title, type, date, media venue, PIC
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "PR schedule creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/pr [post]
 func (h *MarketingHandler) CreatePr(w http.ResponseWriter, r *http.Request) {
 	var req createPrRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -309,6 +413,19 @@ type updatePrRequest struct {
 	Notes       string     `json:"notes"`
 }
 
+// UpdatePr godoc
+// @Summary      Update PR schedule
+// @Description  Update an existing PR schedule entry by ID
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "PR schedule ID"
+// @Param        body  body  object  true  "PR schedule update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/pr/{id} [put]
 func (h *MarketingHandler) UpdatePr(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -343,6 +460,18 @@ func (h *MarketingHandler) UpdatePr(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "pr schedule updated successfully"})
 }
 
+// DeletePr godoc
+// @Summary      Delete PR schedule
+// @Description  Delete a PR schedule entry by ID
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "PR schedule ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/pr/{id} [delete]
 func (h *MarketingHandler) DeletePr(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -362,6 +491,19 @@ func (h *MarketingHandler) DeletePr(w http.ResponseWriter, r *http.Request) {
 
 // ---- Referral Partners ----
 
+// ListReferralPartners godoc
+// @Summary      List referral partners
+// @Description  Retrieve paginated list of referral partners with optional active filter
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        offset     query  int     false  "Pagination offset"
+// @Param        limit      query  int     false  "Pagination limit (default 20)"
+// @Param        is_active  query  bool    false  "Filter by active status"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/referral-partners [get]
 func (h *MarketingHandler) ListReferralPartners(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -400,6 +542,18 @@ type createReferralPartnerRequest struct {
 	CommissionValue float64 `json:"commission_value"`
 }
 
+// CreateReferralPartner godoc
+// @Summary      Create referral partner
+// @Description  Create a new referral partner with name, email, code, and commission config
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Referral partner creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/referral-partners [post]
 func (h *MarketingHandler) CreateReferralPartner(w http.ResponseWriter, r *http.Request) {
 	var req createReferralPartnerRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -431,6 +585,19 @@ type updateReferralPartnerRequest struct {
 	IsActive        *bool   `json:"is_active"`
 }
 
+// UpdateReferralPartner godoc
+// @Summary      Update referral partner
+// @Description  Update an existing referral partner by ID
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Referral partner ID"
+// @Param        body  body  object  true  "Referral partner update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/referral-partners/{id} [put]
 func (h *MarketingHandler) UpdateReferralPartner(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -462,6 +629,17 @@ func (h *MarketingHandler) UpdateReferralPartner(w http.ResponseWriter, r *http.
 	writeJSON(w, http.StatusOK, map[string]string{"message": "referral partner updated successfully"})
 }
 
+// ListReferrals godoc
+// @Summary      List referrals for a partner
+// @Description  Retrieve all referrals for a specific referral partner
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Referral partner ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/referral-partners/{id}/referrals [get]
 func (h *MarketingHandler) ListReferrals(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 
@@ -480,6 +658,16 @@ func (h *MarketingHandler) ListReferrals(w http.ResponseWriter, r *http.Request)
 
 // ---- Stats ----
 
+// GetStats godoc
+// @Summary      Get marketing statistics
+// @Description  Retrieve aggregate marketing statistics
+// @Tags         marketing
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /marketing/stats [get]
 func (h *MarketingHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 	q := &getmarketingstats.GetMarketingStatsQuery{}
 	result, err := h.qryBus.Execute(r.Context(), q)

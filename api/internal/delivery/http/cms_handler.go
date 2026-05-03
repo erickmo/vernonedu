@@ -74,6 +74,16 @@ func RegisterCmsRoutes(h *CmsHandler, r chi.Router) {
 
 // ─── PAGES ────────────────────────────────────────────────────────────────────
 
+// ListPages godoc
+// @Summary      List CMS pages
+// @Description  Retrieve all CMS pages
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/pages [get]
 func (h *CmsHandler) ListPages(w http.ResponseWriter, r *http.Request) {
 	result, err := h.qryBus.Execute(r.Context(), &listcmspages.ListCmsPagesQuery{})
 	if err != nil {
@@ -84,6 +94,17 @@ func (h *CmsHandler) ListPages(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// GetPage godoc
+// @Summary      Get CMS page by slug
+// @Description  Retrieve a single CMS page by its slug
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        slug  path  string  true  "Page slug"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      404  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/pages/{slug} [get]
 func (h *CmsHandler) GetPage(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 	result, err := h.qryBus.Execute(r.Context(), &getcmspage.GetCmsPageQuery{Slug: slug})
@@ -95,6 +116,19 @@ func (h *CmsHandler) GetPage(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// UpdatePage godoc
+// @Summary      Update CMS page
+// @Description  Update a CMS page by slug (title, subtitle, content, hero image, SEO)
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        slug  path  string  true  "Page slug"
+// @Param        body  body  object  true  "Page update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/pages/{slug} [put]
 func (h *CmsHandler) UpdatePage(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 	updatedBy := pkgmiddleware.GetUserIDFromContext(r.Context())
@@ -130,6 +164,20 @@ func (h *CmsHandler) UpdatePage(w http.ResponseWriter, r *http.Request) {
 
 // ─── ARTICLES ─────────────────────────────────────────────────────────────────
 
+// ListArticles godoc
+// @Summary      List CMS articles
+// @Description  Retrieve paginated list of CMS articles with optional filters
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        category  query  string  false  "Filter by category"
+// @Param        status    query  string  false  "Filter by status"
+// @Param        offset    query  int     false  "Pagination offset"
+// @Param        limit     query  int     false  "Pagination limit (default 20)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/articles [get]
 func (h *CmsHandler) ListArticles(w http.ResponseWriter, r *http.Request) {
 	category := r.URL.Query().Get("category")
 	status := r.URL.Query().Get("status")
@@ -153,6 +201,18 @@ func (h *CmsHandler) ListArticles(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// CreateArticle godoc
+// @Summary      Create CMS article
+// @Description  Create a new CMS article with title, category, content, image, and status
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Article creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/articles [post]
 func (h *CmsHandler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 	authorID := pkgmiddleware.GetUserIDFromContext(r.Context())
 
@@ -184,6 +244,17 @@ func (h *CmsHandler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "article created"})
 }
 
+// GetArticle godoc
+// @Summary      Get CMS article by slug
+// @Description  Retrieve a single CMS article by its slug
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        slug  path  string  true  "Article slug"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      404  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/articles/{slug} [get]
 func (h *CmsHandler) GetArticle(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 	result, err := h.qryBus.Execute(r.Context(), &getcmsarticle.GetCmsArticleQuery{Slug: slug})
@@ -195,6 +266,19 @@ func (h *CmsHandler) GetArticle(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// UpdateArticle godoc
+// @Summary      Update CMS article
+// @Description  Update an existing CMS article by ID
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Article ID"
+// @Param        body  body  object  true  "Article update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/articles/{id} [put]
 func (h *CmsHandler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -228,6 +312,17 @@ func (h *CmsHandler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "article updated"})
 }
 
+// DeleteArticle godoc
+// @Summary      Delete CMS article
+// @Description  Delete a CMS article by ID
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Article ID"
+// @Success      200  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/articles/{id} [delete]
 func (h *CmsHandler) DeleteArticle(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	cmd := &deletecmsarticle.DeleteCmsArticleCommand{ID: id}
@@ -241,6 +336,18 @@ func (h *CmsHandler) DeleteArticle(w http.ResponseWriter, r *http.Request) {
 
 // ─── TESTIMONIALS ─────────────────────────────────────────────────────────────
 
+// ListTestimonials godoc
+// @Summary      List CMS testimonials
+// @Description  Retrieve CMS testimonials with optional course and featured filters
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        course_id    query  string  false  "Filter by course ID"
+// @Param        is_featured  query  bool    false  "Filter by featured status"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/testimonials [get]
 func (h *CmsHandler) ListTestimonials(w http.ResponseWriter, r *http.Request) {
 	courseID := r.URL.Query().Get("course_id")
 	isFeaturedStr := r.URL.Query().Get("is_featured")
@@ -263,6 +370,18 @@ func (h *CmsHandler) ListTestimonials(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// CreateTestimonial godoc
+// @Summary      Create CMS testimonial
+// @Description  Create a new CMS testimonial with student name, quote, rating, etc.
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Testimonial creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/testimonials [post]
 func (h *CmsHandler) CreateTestimonial(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		StudentName string `json:"student_name"`
@@ -293,6 +412,19 @@ func (h *CmsHandler) CreateTestimonial(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "testimonial created"})
 }
 
+// UpdateTestimonial godoc
+// @Summary      Update CMS testimonial
+// @Description  Update an existing CMS testimonial by ID
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Testimonial ID"
+// @Param        body  body  object  true  "Testimonial update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/testimonials/{id} [put]
 func (h *CmsHandler) UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -326,6 +458,17 @@ func (h *CmsHandler) UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "testimonial updated"})
 }
 
+// DeleteTestimonial godoc
+// @Summary      Delete CMS testimonial
+// @Description  Delete a CMS testimonial by ID
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Testimonial ID"
+// @Success      200  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/testimonials/{id} [delete]
 func (h *CmsHandler) DeleteTestimonial(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	cmd := &deletecmstestimonial.DeleteCmsTestimonialCommand{ID: id}
@@ -339,6 +482,18 @@ func (h *CmsHandler) DeleteTestimonial(w http.ResponseWriter, r *http.Request) {
 
 // ─── FAQ ──────────────────────────────────────────────────────────────────────
 
+// ListFaq godoc
+// @Summary      List CMS FAQ entries
+// @Description  Retrieve CMS FAQ entries with optional category and page slug filters
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        category    query  string  false  "Filter by category"
+// @Param        page_slug   query  string  false  "Filter by page slug"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/faq [get]
 func (h *CmsHandler) ListFaq(w http.ResponseWriter, r *http.Request) {
 	category := r.URL.Query().Get("category")
 	pageSlug := r.URL.Query().Get("page_slug")
@@ -355,6 +510,18 @@ func (h *CmsHandler) ListFaq(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// CreateFaq godoc
+// @Summary      Create CMS FAQ entry
+// @Description  Create a new CMS FAQ with question, answer, category, page slugs, and sort order
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "FAQ creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/faq [post]
 func (h *CmsHandler) CreateFaq(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Question  string   `json:"question"`
@@ -383,6 +550,19 @@ func (h *CmsHandler) CreateFaq(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "faq created"})
 }
 
+// UpdateFaq godoc
+// @Summary      Update CMS FAQ entry
+// @Description  Update an existing CMS FAQ by ID
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "FAQ ID"
+// @Param        body  body  object  true  "FAQ update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/faq/{id} [put]
 func (h *CmsHandler) UpdateFaq(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -414,6 +594,17 @@ func (h *CmsHandler) UpdateFaq(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "faq updated"})
 }
 
+// DeleteFaq godoc
+// @Summary      Delete CMS FAQ entry
+// @Description  Delete a CMS FAQ by ID
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "FAQ ID"
+// @Success      200  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/faq/{id} [delete]
 func (h *CmsHandler) DeleteFaq(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	cmd := &deletecmsfaq.DeleteCmsFaqCommand{ID: id}
@@ -427,6 +618,18 @@ func (h *CmsHandler) DeleteFaq(w http.ResponseWriter, r *http.Request) {
 
 // ─── MEDIA ────────────────────────────────────────────────────────────────────
 
+// ListMedia godoc
+// @Summary      List CMS media
+// @Description  Retrieve paginated list of CMS media entries
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int  false  "Pagination offset"
+// @Param        limit   query  int  false  "Pagination limit (default 20)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/media [get]
 func (h *CmsHandler) ListMedia(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -446,6 +649,18 @@ func (h *CmsHandler) ListMedia(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// UploadMedia godoc
+// @Summary      Upload CMS media
+// @Description  Upload a new media entry to CMS (URL, file name, type, size)
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Media upload payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/media [post]
 func (h *CmsHandler) UploadMedia(w http.ResponseWriter, r *http.Request) {
 	uploadedBy := pkgmiddleware.GetUserIDFromContext(r.Context())
 
@@ -475,6 +690,17 @@ func (h *CmsHandler) UploadMedia(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "media uploaded"})
 }
 
+// DeleteMedia godoc
+// @Summary      Delete CMS media
+// @Description  Delete a CMS media entry by ID
+// @Tags         cms
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Media ID"
+// @Success      200  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /cms/media/{id} [delete]
 func (h *CmsHandler) DeleteMedia(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	cmd := &deletecmsmedia.DeleteCmsMediaCommand{ID: id}

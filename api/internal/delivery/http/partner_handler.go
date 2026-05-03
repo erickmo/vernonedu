@@ -61,6 +61,19 @@ func RegisterPartnerRoutes(h *PartnerHandler, r chi.Router) {
 // Partner handlers
 // ────────────────────────────────────────────────────────────────
 
+// List godoc
+// @Summary      List partners
+// @Description  Retrieve paginated list of partners with optional status filter
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int     false  "Pagination offset"
+// @Param        limit   query  int     false  "Pagination limit (default 20)"
+// @Param        status  query  string  false  "Filter by status"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /partners [get]
 func (h *PartnerHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -80,6 +93,17 @@ func (h *PartnerHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// GetByID godoc
+// @Summary      Get partner by ID
+// @Description  Retrieve a single partner by its ID
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Partner ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      404  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /partners/{id} [get]
 func (h *PartnerHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	result, err := h.qryBus.Execute(r.Context(), &getpartnerqry.GetPartnerQuery{ID: id})
@@ -91,6 +115,18 @@ func (h *PartnerHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// Create godoc
+// @Summary      Create partner
+// @Description  Create a new partner with contact details and metadata
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Partner creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /partners [post]
 func (h *PartnerHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Name          string `json:"name"`
@@ -126,6 +162,19 @@ func (h *PartnerHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "partner created"})
 }
 
+// Update godoc
+// @Summary      Update partner
+// @Description  Update an existing partner by ID
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Partner ID"
+// @Param        body  body  object  true  "Partner update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /partners/{id} [put]
 func (h *PartnerHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	var body struct {
@@ -165,6 +214,17 @@ func (h *PartnerHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "partner updated"})
 }
 
+// Delete godoc
+// @Summary      Delete partner
+// @Description  Delete a partner by ID
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Partner ID"
+// @Success      200  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /partners/{id} [delete]
 func (h *PartnerHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	cmd := &deletepartnercmd.DeletePartnerCommand{ID: id}
@@ -180,6 +240,19 @@ func (h *PartnerHandler) Delete(w http.ResponseWriter, r *http.Request) {
 // MOU handlers
 // ────────────────────────────────────────────────────────────────
 
+// AddMOU godoc
+// @Summary      Add MOU to partner
+// @Description  Create a new MOU under a specific partner
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Partner ID"
+// @Param        body  body  object  true  "MOU creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /partners/{id}/mou [post]
 func (h *PartnerHandler) AddMOU(w http.ResponseWriter, r *http.Request) {
 	partnerID := chi.URLParam(r, "id")
 	var body struct {
@@ -213,6 +286,17 @@ func (h *PartnerHandler) AddMOU(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "mou added"})
 }
 
+// ListMOUs godoc
+// @Summary      List MOUs for a partner
+// @Description  Retrieve all MOUs belonging to a specific partner
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Partner ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /partners/{id}/mous [get]
 func (h *PartnerHandler) ListMOUs(w http.ResponseWriter, r *http.Request) {
 	partnerID := chi.URLParam(r, "id")
 	result, err := h.qryBus.Execute(r.Context(), &listmousqry.ListMOUsQuery{PartnerIDStr: partnerID})
@@ -224,6 +308,19 @@ func (h *PartnerHandler) ListMOUs(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// UpdateMOU godoc
+// @Summary      Update MOU
+// @Description  Update an existing MOU by ID
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "MOU ID"
+// @Param        body  body  object  true  "MOU update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /mous/{id} [put]
 func (h *PartnerHandler) UpdateMOU(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	var body struct {
@@ -257,6 +354,17 @@ func (h *PartnerHandler) UpdateMOU(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "mou updated"})
 }
 
+// DeleteMOU godoc
+// @Summary      Delete MOU
+// @Description  Delete an MOU by ID
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "MOU ID"
+// @Success      200  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /mous/{id} [delete]
 func (h *PartnerHandler) DeleteMOU(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	cmd := &deletemoucmd.DeleteMOUCommand{ID: id}
@@ -268,6 +376,17 @@ func (h *PartnerHandler) DeleteMOU(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "mou deleted"})
 }
 
+// ListExpiringMOUs godoc
+// @Summary      List expiring MOUs
+// @Description  Retrieve MOUs that are expiring within a given number of months
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Param        within_months  query  int  false  "Months ahead to check for expiring MOUs"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /mous/expiring [get]
 func (h *PartnerHandler) ListExpiringMOUs(w http.ResponseWriter, r *http.Request) {
 	withinMonths, _ := strconv.Atoi(r.URL.Query().Get("within_months"))
 	result, err := h.qryBus.Execute(r.Context(), &listexpiringmousqry.ListExpiringMOUsQuery{WithinMonths: withinMonths})
@@ -283,6 +402,16 @@ func (h *PartnerHandler) ListExpiringMOUs(w http.ResponseWriter, r *http.Request
 // Partner group handlers
 // ────────────────────────────────────────────────────────────────
 
+// ListGroups godoc
+// @Summary      List partner groups
+// @Description  Retrieve all partner groups
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /partner-groups [get]
 func (h *PartnerHandler) ListGroups(w http.ResponseWriter, r *http.Request) {
 	result, err := h.qryBus.Execute(r.Context(), &listpartnergroupsqry.ListPartnerGroupsQuery{})
 	if err != nil {
@@ -293,6 +422,18 @@ func (h *PartnerHandler) ListGroups(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// CreateGroup godoc
+// @Summary      Create partner group
+// @Description  Create a new partner group with name and description
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Partner group creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /partner-groups [post]
 func (h *PartnerHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Name        string `json:"name"`
@@ -314,6 +455,19 @@ func (h *PartnerHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "partner group created"})
 }
 
+// UpdateGroup godoc
+// @Summary      Update partner group
+// @Description  Update an existing partner group by ID
+// @Tags         partners
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Partner group ID"
+// @Param        body  body  object  true  "Partner group update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /partner-groups/{id} [put]
 func (h *PartnerHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	var body struct {
