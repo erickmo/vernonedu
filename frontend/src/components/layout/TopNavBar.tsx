@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import { NavLink, Link, useLocation } from 'react-router-dom'
-import { Bell, ChevronDown, GraduationCap, LogOut, Menu, X } from 'lucide-react'
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { Bell, ChevronDown, GraduationCap, LogOut, Menu, X, Sun, Moon } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/DropdownMenu'
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/Tooltip'
+import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/lib/utils/cn'
+import { fadeInDown } from '@/lib/utils/motion'
 import type { DomainGroup } from '@/lib/auth/roleNav'
 
 export interface NavItem {
@@ -32,6 +36,7 @@ export default function TopNavBar({
 }: TopNavBarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
+  const { theme, setTheme, resolved } = useTheme()
   const initial = user?.name?.charAt(0).toUpperCase() ?? '?'
 
   return (
@@ -104,15 +109,41 @@ export default function TopNavBar({
 
         {/* Right side */}
         <div className="flex items-center gap-1 ml-auto">
-          <button className="relative p-2 rounded-lg hover:bg-neutral-100 transition-colors">
-            <Bell className="w-5 h-5 text-neutral-500" />
-            {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
-            )}
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button className="relative p-2 rounded-lg hover:bg-neutral-100 transition-colors">
+                  <Bell className="w-5 h-5 text-neutral-500" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Notifications</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-neutral-100 transition-colors outline-none">
+          {/* Theme toggle */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setTheme(resolved === 'dark' ? 'light' : 'dark')}
+                  className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                >
+                  {resolved === 'dark' ? (
+                    <Sun className="w-5 h-5 text-neutral-500" />
+                  ) : (
+                    <Moon className="w-5 h-5 text-neutral-500" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{resolved === 'dark' ? 'Light mode' : 'Dark mode'}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-neutral-100 transition-colors outline-none">
               <div
                 className={cn(
                   'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0',
@@ -126,29 +157,23 @@ export default function TopNavBar({
                 <p className="text-[11px] text-neutral-500 capitalize">{user?.role}</p>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-neutral-400 hidden sm:block" />
-            </DropdownMenu.Trigger>
+            </DropdownMenuTrigger>
 
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content
-                align="end"
-                sideOffset={6}
-                className="z-50 min-w-[200px] bg-white rounded-xl shadow-lg border border-neutral-100 p-1.5 animate-in fade-in-0 zoom-in-95 duration-100"
+            <DropdownMenuContent align="end">
+              <div className="px-3 py-2">
+                <p className="text-xs font-semibold text-neutral-800">{user?.name}</p>
+                <p className="text-[11px] text-neutral-500 truncate">{user?.email}</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={onLogout}
+                className="text-red-600 hover:bg-red-50"
               >
-                <div className="px-3 py-2">
-                  <p className="text-xs font-semibold text-neutral-800">{user?.name}</p>
-                  <p className="text-[11px] text-neutral-500 truncate">{user?.email}</p>
-                </div>
-                <DropdownMenu.Separator className="my-1 -mx-1.5 border-t border-neutral-100" />
-                <DropdownMenu.Item
-                  onClick={onLogout}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 rounded-lg cursor-pointer hover:bg-red-50 outline-none"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sign out
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
+                <LogOut className="w-4 h-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Mobile hamburger */}
           <button
@@ -165,14 +190,61 @@ export default function TopNavBar({
       </header>
 
       {/* Mobile nav drawer */}
-      {mobileOpen && (
-        <div className="md:hidden fixed inset-x-0 top-14 z-50 bg-white border-b border-neutral-100 shadow-lg px-4 py-3 space-y-0.5">
-          {domainNav ? (
-            <>
-              {dashboardTo && (
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            variants={fadeInDown}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="md:hidden fixed inset-x-0 top-14 z-50 bg-white border-b border-neutral-100 shadow-lg px-4 py-3 space-y-0.5"
+          >
+            {domainNav ? (
+              <>
+                {dashboardTo && (
+                  <NavLink
+                    to={dashboardTo}
+                    end
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                        isActive
+                          ? 'bg-brand-50 text-brand-700'
+                          : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
+                      )
+                    }
+                  >
+                    Dashboard
+                  </NavLink>
+                )}
+                {domainNav.map(domain => {
+                  const isDomainActive =
+                    location.pathname === domain.to ||
+                    domain.items.some(item => location.pathname.startsWith(item.to))
+                  return (
+                    <Link
+                      key={domain.to}
+                      to={domain.to}
+                      onClick={() => setMobileOpen(false)}
+                      className={cn(
+                        'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                        isDomainActive
+                          ? 'bg-brand-50 text-brand-700'
+                          : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
+                      )}
+                    >
+                      {domain.label}
+                    </Link>
+                  )
+                })}
+              </>
+            ) : (
+              (mainNav ?? []).map((item) => (
                 <NavLink
-                  to={dashboardTo}
-                  end
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) =>
                     cn(
@@ -183,52 +255,13 @@ export default function TopNavBar({
                     )
                   }
                 >
-                  Dashboard
+                  {item.label}
                 </NavLink>
-              )}
-              {domainNav.map(domain => {
-                const isDomainActive =
-                  location.pathname === domain.to ||
-                  domain.items.some(item => location.pathname.startsWith(item.to))
-                return (
-                  <Link
-                    key={domain.to}
-                    to={domain.to}
-                    onClick={() => setMobileOpen(false)}
-                    className={cn(
-                      'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                      isDomainActive
-                        ? 'bg-brand-50 text-brand-700'
-                        : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
-                    )}
-                  >
-                    {domain.label}
-                  </Link>
-                )
-              })}
-            </>
-          ) : (
-            (mainNav ?? []).map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-brand-50 text-brand-700'
-                      : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900',
-                  )
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))
-          )}
-        </div>
-      )}
+              ))
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }
