@@ -74,6 +74,18 @@ type UpdateCourseBatchRequest struct {
 	PaymentMethod   string `json:"payment_method"`
 }
 
+// Create godoc
+// @Summary      Create a new course batch
+// @Description  Create a new course batch with pricing, payment method, and participant limits. Approval workflow is triggered based on creator role.
+// @Tags         course-batches
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateCourseBatchRequest  true  "Course batch data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /course-batches [post]
 func (h *CourseBatchHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req CreateCourseBatchRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -160,6 +172,17 @@ func (h *CourseBatchHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "course batch created successfully"})
 }
 
+// GetByID godoc
+// @Summary      Get a course batch by ID
+// @Description  Retrieve a single course batch by its unique identifier.
+// @Tags         course-batches
+// @Produce      json
+// @Param        id  path  string  true  "Course Batch ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /course-batches/{id} [get]
 func (h *CourseBatchHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	courseBatchIDStr := chi.URLParam(r, "id")
 	courseBatchID, err := uuid.Parse(courseBatchIDStr)
@@ -179,6 +202,17 @@ func (h *CourseBatchHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// List godoc
+// @Summary      List course batches
+// @Description  Retrieve a paginated list of course batches.
+// @Tags         course-batches
+// @Produce      json
+// @Param        offset  query  int  false  "Pagination offset"
+// @Param        limit   query  int  false  "Pagination limit (default 10)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /course-batches [get]
 func (h *CourseBatchHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -197,6 +231,19 @@ func (h *CourseBatchHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Update godoc
+// @Summary      Update a course batch
+// @Description  Update an existing course batch's details including pricing, schedule, and participant limits.
+// @Tags         course-batches
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                    true  "Course Batch ID (UUID)"
+// @Param        body  body  UpdateCourseBatchRequest  true  "Updated course batch data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /course-batches/{id} [put]
 func (h *CourseBatchHandler) Update(w http.ResponseWriter, r *http.Request) {
 	courseBatchIDStr := chi.URLParam(r, "id")
 	courseBatchID, err := uuid.Parse(courseBatchIDStr)
@@ -252,6 +299,17 @@ func (h *CourseBatchHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "course batch updated successfully"})
 }
 
+// Delete godoc
+// @Summary      Delete a course batch
+// @Description  Soft-delete a course batch by its unique identifier.
+// @Tags         course-batches
+// @Produce      json
+// @Param        id  path  string  true  "Course Batch ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /course-batches/{id} [delete]
 func (h *CourseBatchHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	courseBatchIDStr := chi.URLParam(r, "id")
 	courseBatchID, err := uuid.Parse(courseBatchIDStr)
@@ -270,6 +328,17 @@ func (h *CourseBatchHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "course batch deleted successfully"})
 }
 
+// GetDetail godoc
+// @Summary      Get course batch detail
+// @Description  Retrieve detailed course batch information including enrollments, schedules, and facilitator.
+// @Tags         course-batches
+// @Produce      json
+// @Param        id  path  string  true  "Course Batch ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /course-batches/{id}/detail [get]
 func (h *CourseBatchHandler) GetDetail(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	batchID, err := uuid.Parse(idStr)
@@ -293,6 +362,19 @@ type AssignFacilitatorRequest struct {
 	FacilitatorID string `json:"facilitator_id"` // empty = unassign
 }
 
+// AssignFacilitator godoc
+// @Summary      Assign or unassign a facilitator to a course batch
+// @Description  Assign a facilitator to a course batch. Pass empty facilitator_id to unassign.
+// @Tags         course-batches
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                      true  "Course Batch ID (UUID)"
+// @Param        body  body  AssignFacilitatorRequest    true  "Facilitator assignment data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /course-batches/{id}/facilitator [put]
 func (h *CourseBatchHandler) AssignFacilitator(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	if _, err := uuid.Parse(idStr); err != nil {
@@ -319,7 +401,20 @@ func (h *CourseBatchHandler) AssignFacilitator(w http.ResponseWriter, r *http.Re
 	writeJSON(w, http.StatusOK, map[string]string{"message": "facilitator assigned successfully"})
 }
 
-// CreateSchedule handles POST /api/v1/course-batches/{id}/schedules
+// CreateSchedule godoc
+// @Summary      Create a batch schedule
+// @Description  Create a new schedule entry for a course batch. Validates room availability to prevent conflicts.
+// @Tags         course-batches
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Course Batch ID (UUID)"
+// @Param        body  body  object  true  "Schedule data (module_id, room_id, scheduled_at, duration_minutes, notes)"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      409  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /course-batches/{id}/schedules [post]
 func (h *CourseBatchHandler) CreateSchedule(w http.ResponseWriter, r *http.Request) {
 	batchIDStr := chi.URLParam(r, "id")
 	batchID, err := uuid.Parse(batchIDStr)
@@ -364,7 +459,17 @@ func (h *CourseBatchHandler) CreateSchedule(w http.ResponseWriter, r *http.Reque
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "schedule created successfully"})
 }
 
-// ListSchedules handles GET /api/v1/course-batches/{id}/schedules
+// ListSchedules godoc
+// @Summary      List schedules for a course batch
+// @Description  Retrieve all schedule entries for a specific course batch.
+// @Tags         course-batches
+// @Produce      json
+// @Param        id  path  string  true  "Course Batch ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /course-batches/{id}/schedules [get]
 func (h *CourseBatchHandler) ListSchedules(w http.ResponseWriter, r *http.Request) {
 	batchIDStr := chi.URLParam(r, "id")
 	batchID, err := uuid.Parse(batchIDStr)

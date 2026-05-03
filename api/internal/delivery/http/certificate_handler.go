@@ -48,7 +48,18 @@ func RegisterCertificatePublicRoutes(h *CertificateHandler, r chi.Router) {
 	r.Get("/api/v1/certificates/verify/{code}", h.Verify)
 }
 
-// IssueCertificate handles POST /api/v1/certificates
+// IssueCertificate godoc
+// @Summary      Issue a certificate
+// @Description  Issue a new certificate (Participant or Competency) for a student in a batch.
+// @Tags         certificates
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Certificate data (template_id, student_id, batch_id, course_id, type, verification_base_url)"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /certificates [post]
 func (h *CertificateHandler) IssueCertificate(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		TemplateID          string `json:"template_id"`
@@ -80,7 +91,21 @@ func (h *CertificateHandler) IssueCertificate(w http.ResponseWriter, r *http.Req
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "certificate issued successfully"})
 }
 
-// List handles GET /api/v1/certificates
+// List godoc
+// @Summary      List certificates
+// @Description  Retrieve a paginated list of certificates with optional filters.
+// @Tags         certificates
+// @Produce      json
+// @Param        offset     query  int     false  "Pagination offset"
+// @Param        limit      query  int     false  "Pagination limit (default 10)"
+// @Param        student_id query  string  false  "Filter by Student ID (UUID)"
+// @Param        batch_id   query  string  false  "Filter by Batch ID (UUID)"
+// @Param        type       query  string  false  "Filter by certificate type"
+// @Param        status     query  string  false  "Filter by certificate status"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /certificates [get]
 func (h *CertificateHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -106,7 +131,17 @@ func (h *CertificateHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
-// GetByID handles GET /api/v1/certificates/{id}
+// GetByID godoc
+// @Summary      Get a certificate by ID
+// @Description  Retrieve a single certificate by its unique identifier.
+// @Tags         certificates
+// @Produce      json
+// @Param        id  path  string  true  "Certificate ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /certificates/{id} [get]
 func (h *CertificateHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -126,7 +161,20 @@ func (h *CertificateHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// Revoke handles POST /api/v1/certificates/{id}/revoke
+// Revoke godoc
+// @Summary      Revoke a certificate
+// @Description  Revoke a certificate by ID with a reason. Requires approval workflow.
+// @Tags         certificates
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Certificate ID (UUID)"
+// @Param        body  body  object  true  "Revocation data (reason field)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      409  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /certificates/{id}/revoke [post]
 func (h *CertificateHandler) Revoke(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -160,7 +208,17 @@ func (h *CertificateHandler) Revoke(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "certificate revoked successfully"})
 }
 
-// Verify handles GET /api/v1/certificates/verify/{code} (public, no auth)
+// Verify godoc
+// @Summary      Verify a certificate by code
+// @Description  Public endpoint to verify a certificate using its verification code. No authentication required.
+// @Tags         certificates
+// @Produce      json
+// @Param        code  path  string  true  "Certificate verification code"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /certificates/verify/{code} [get]
 func (h *CertificateHandler) Verify(w http.ResponseWriter, r *http.Request) {
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -183,7 +241,18 @@ func (h *CertificateHandler) Verify(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
-// CreateTemplate handles POST /api/v1/certificate-templates
+// CreateTemplate godoc
+// @Summary      Create a certificate template
+// @Description  Create a new certificate template with name, type, and template data.
+// @Tags         certificates
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Template data (name, type, template_data)"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /certificate-templates [post]
 func (h *CertificateHandler) CreateTemplate(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Name         string                 `json:"name"`
@@ -209,7 +278,14 @@ func (h *CertificateHandler) CreateTemplate(w http.ResponseWriter, r *http.Reque
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "certificate template created successfully"})
 }
 
-// ListTemplates handles GET /api/v1/certificate-templates
+// ListTemplates godoc
+// @Summary      List certificate templates
+// @Description  Retrieve all certificate templates.
+// @Tags         certificates
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Security     BearerAuth
+// @Router       /certificate-templates [get]
 func (h *CertificateHandler) ListTemplates(w http.ResponseWriter, r *http.Request) {
 	// Use list_certificates query indirectly — templates are fetched via the repository
 	// For now we return a simple response via the query bus is not registered for templates,
@@ -218,7 +294,19 @@ func (h *CertificateHandler) ListTemplates(w http.ResponseWriter, r *http.Reques
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": []interface{}{}})
 }
 
-// UpdateTemplate handles PUT /api/v1/certificate-templates/{id}
+// UpdateTemplate godoc
+// @Summary      Update a certificate template
+// @Description  Update an existing certificate template's name, data, and active status.
+// @Tags         certificates
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Template ID (UUID)"
+// @Param        body  body  object  true  "Updated template data (name, template_data, is_active)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /certificate-templates/{id} [put]
 func (h *CertificateHandler) UpdateTemplate(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)

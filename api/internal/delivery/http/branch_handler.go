@@ -28,6 +28,17 @@ func RegisterBranchRoutes(h *BranchHandler, r chi.Router) {
 	r.Post("/api/v1/branches", h.Create)
 }
 
+// List godoc
+// @Summary      List branches
+// @Description  Retrieve a paginated list of branches.
+// @Tags         settings
+// @Produce      json
+// @Param        offset  query  int  false  "Pagination offset"
+// @Param        limit   query  int  false  "Pagination limit (default 20)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /branches [get]
 func (h *BranchHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -46,6 +57,18 @@ func (h *BranchHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Create godoc
+// @Summary      Create a new branch
+// @Description  Create a new branch with name, city, address, and optional partner assignment.
+// @Tags         settings
+// @Accept       json
+// @Produce      json
+// @Param        body  body  object  true  "Branch data (name, city, address, partner_id, is_active)"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /branches [post]
 func (h *BranchHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Name      string `json:"name"`

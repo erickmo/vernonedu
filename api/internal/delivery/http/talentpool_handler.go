@@ -41,7 +41,19 @@ type PlacementRecordRequest struct {
 	Notes       string `json:"notes"`
 }
 
-// List menangani GET /api/v1/talentpool
+// List godoc
+// @Summary      List talent pool entries
+// @Description  Retrieve a paginated list of talent pool entries with optional filters for status and master course.
+// @Tags         talentpool
+// @Produce      json
+// @Param        offset           query  int     false  "Pagination offset"
+// @Param        limit            query  int     false  "Pagination limit (default 10)"
+// @Param        status           query  string  false  "Filter by status"
+// @Param        master_course_id query  string  false  "Filter by Master Course ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /talentpool [get]
 func (h *TalentPoolHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -74,7 +86,17 @@ func (h *TalentPoolHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
-// GetByID menangani GET /api/v1/talentpool/{id}
+// GetByID godoc
+// @Summary      Get a talent pool entry by ID
+// @Description  Retrieve a single talent pool entry by its unique identifier.
+// @Tags         talentpool
+// @Produce      json
+// @Param        id  path  string  true  "Talent Pool ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /talentpool/{id} [get]
 func (h *TalentPoolHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -94,7 +116,19 @@ func (h *TalentPoolHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// UpdateStatus menangani PUT /api/v1/talentpool/{id}/status
+// UpdateStatus godoc
+// @Summary      Update talent pool entry status
+// @Description  Update the status of a talent pool entry (e.g. placed, inactive). Optionally include placement details.
+// @Tags         talentpool
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                          true  "Talent Pool ID (UUID)"
+// @Param        body  body  UpdateTalentPoolStatusRequest   true  "Status and optional placement data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /talentpool/{id}/status [put]
 func (h *TalentPoolHandler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)

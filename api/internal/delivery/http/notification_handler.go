@@ -35,8 +35,20 @@ func RegisterNotificationRoutes(h *NotificationHandler, r chi.Router) {
 	r.Put("/api/v1/notifications/read-all", h.MarkAllRead)
 }
 
-// List returns paginated notifications for the authenticated user.
-// Query params: offset, limit, read (true|false), type
+// List godoc
+// @Summary      List notifications
+// @Description  Retrieve paginated notifications for the authenticated user.
+// @Tags         notifications
+// @Produce      json
+// @Param        offset  query  int     false  "Pagination offset"
+// @Param        limit   query  int     false  "Pagination limit (default 20)"
+// @Param        read    query  string  false  "Filter by read status (true|false)"
+// @Param        type    query  string  false  "Filter by notification type"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /notifications [get]
 func (h *NotificationHandler) List(w http.ResponseWriter, r *http.Request) {
 	recipientIDStr := pkgmiddleware.GetUserIDFromContext(r.Context())
 	recipientID, err := uuid.Parse(recipientIDStr)
@@ -75,7 +87,16 @@ func (h *NotificationHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
-// UnreadCount returns the number of unread notifications for the authenticated user.
+// UnreadCount godoc
+// @Summary      Get unread notification count
+// @Description  Returns the number of unread notifications for the authenticated user.
+// @Tags         notifications
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /notifications/unread-count [get]
 func (h *NotificationHandler) UnreadCount(w http.ResponseWriter, r *http.Request) {
 	recipientIDStr := pkgmiddleware.GetUserIDFromContext(r.Context())
 	recipientID, err := uuid.Parse(recipientIDStr)
@@ -95,7 +116,18 @@ func (h *NotificationHandler) UnreadCount(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// MarkRead marks a specific notification as read for the authenticated user.
+// MarkRead godoc
+// @Summary      Mark a notification as read
+// @Description  Mark a specific notification as read for the authenticated user.
+// @Tags         notifications
+// @Produce      json
+// @Param        id  path  string  true  "Notification ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /notifications/{id}/read [put]
 func (h *NotificationHandler) MarkRead(w http.ResponseWriter, r *http.Request) {
 	recipientIDStr := pkgmiddleware.GetUserIDFromContext(r.Context())
 	recipientID, err := uuid.Parse(recipientIDStr)
@@ -124,7 +156,16 @@ func (h *NotificationHandler) MarkRead(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "notification marked as read"})
 }
 
-// MarkAllRead marks all notifications as read for the authenticated user.
+// MarkAllRead godoc
+// @Summary      Mark all notifications as read
+// @Description  Mark all unread notifications as read for the authenticated user.
+// @Tags         notifications
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /notifications/read-all [put]
 func (h *NotificationHandler) MarkAllRead(w http.ResponseWriter, r *http.Request) {
 	recipientIDStr := pkgmiddleware.GetUserIDFromContext(r.Context())
 	recipientID, err := uuid.Parse(recipientIDStr)

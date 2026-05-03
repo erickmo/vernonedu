@@ -62,6 +62,18 @@ type AddNoteRequest struct {
 	Content string `json:"content" validate:"required,min=1"`
 }
 
+// Create godoc
+// @Summary      Create a new student
+// @Description  Register a new student with name, email, phone, and optional department.
+// @Tags         students
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateStudentRequest  true  "Student data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /students [post]
 func (h *StudentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req CreateStudentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -84,6 +96,17 @@ func (h *StudentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "student created successfully"})
 }
 
+// GetByID godoc
+// @Summary      Get a student by ID
+// @Description  Retrieve a single student by their unique identifier.
+// @Tags         students
+// @Produce      json
+// @Param        id  path  string  true  "Student ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /students/{id} [get]
 func (h *StudentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	studentIDStr := chi.URLParam(r, "id")
 	studentID, err := uuid.Parse(studentIDStr)
@@ -103,6 +126,17 @@ func (h *StudentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// List godoc
+// @Summary      List students
+// @Description  Retrieve a paginated list of students.
+// @Tags         students
+// @Produce      json
+// @Param        offset  query  int  false  "Pagination offset"
+// @Param        limit   query  int  false  "Pagination limit (default 10)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /students [get]
 func (h *StudentHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -121,6 +155,19 @@ func (h *StudentHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Update godoc
+// @Summary      Update a student
+// @Description  Update an existing student's profile information.
+// @Tags         students
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                  true  "Student ID (UUID)"
+// @Param        body  body  UpdateStudentRequest     true  "Updated student data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /students/{id} [put]
 func (h *StudentHandler) Update(w http.ResponseWriter, r *http.Request) {
 	studentIDStr := chi.URLParam(r, "id")
 	studentID, err := uuid.Parse(studentIDStr)
@@ -152,6 +199,17 @@ func (h *StudentHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "student updated successfully"})
 }
 
+// Delete godoc
+// @Summary      Delete a student
+// @Description  Soft-delete a student by their unique identifier.
+// @Tags         students
+// @Produce      json
+// @Param        id  path  string  true  "Student ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /students/{id} [delete]
 func (h *StudentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	studentIDStr := chi.URLParam(r, "id")
 	studentID, err := uuid.Parse(studentIDStr)
@@ -170,6 +228,16 @@ func (h *StudentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "student deleted successfully"})
 }
 
+// GetEnrollmentHistory godoc
+// @Summary      Get student enrollment history
+// @Description  Retrieve the full enrollment history for a specific student.
+// @Tags         students
+// @Produce      json
+// @Param        id  path  string  true  "Student ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /students/{id}/enrollment-history [get]
 func (h *StudentHandler) GetEnrollmentHistory(w http.ResponseWriter, r *http.Request) {
 	studentIDStr := chi.URLParam(r, "id")
 
@@ -184,6 +252,16 @@ func (h *StudentHandler) GetEnrollmentHistory(w http.ResponseWriter, r *http.Req
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// GetRecommendations godoc
+// @Summary      Get student course recommendations
+// @Description  Retrieve course recommendations for a specific student based on their history and profile.
+// @Tags         students
+// @Produce      json
+// @Param        id  path  string  true  "Student ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /students/{id}/recommendations [get]
 func (h *StudentHandler) GetRecommendations(w http.ResponseWriter, r *http.Request) {
 	studentIDStr := chi.URLParam(r, "id")
 
@@ -198,6 +276,16 @@ func (h *StudentHandler) GetRecommendations(w http.ResponseWriter, r *http.Reque
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// GetNotes godoc
+// @Summary      Get student notes
+// @Description  Retrieve all notes attached to a student profile.
+// @Tags         students
+// @Produce      json
+// @Param        id  path  string  true  "Student ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /students/{id}/notes [get]
 func (h *StudentHandler) GetNotes(w http.ResponseWriter, r *http.Request) {
 	studentIDStr := chi.URLParam(r, "id")
 
@@ -212,6 +300,19 @@ func (h *StudentHandler) GetNotes(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// AddNote godoc
+// @Summary      Add a note to a student
+// @Description  Attach a new note to a student profile. Author is derived from the authenticated user.
+// @Tags         students
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string           true  "Student ID (UUID)"
+// @Param        body  body  AddNoteRequest   true  "Note content"
+// @Success      201  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /students/{id}/notes [post]
 func (h *StudentHandler) AddNote(w http.ResponseWriter, r *http.Request) {
 	studentIDStr := chi.URLParam(r, "id")
 	studentID, err := uuid.Parse(studentIDStr)

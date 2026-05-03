@@ -47,6 +47,19 @@ type RejectStepRequest struct {
 	Comment string `json:"comment"`
 }
 
+// listApprovals godoc
+// @Summary      List approvals
+// @Description  Retrieve a paginated list of approvals with optional filters for status and approver.
+// @Tags         approvals
+// @Produce      json
+// @Param        offset       query  int     false  "Pagination offset"
+// @Param        limit        query  int     false  "Pagination limit (default 20)"
+// @Param        status       query  string  false  "Filter by status (pending, approved, rejected, cancelled)"
+// @Param        approver_id  query  string  false  "Filter by approver ID (UUID or 'me')"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /approvals [get]
 func (h *ApprovalHandler) listApprovals(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -79,6 +92,17 @@ func (h *ApprovalHandler) listApprovals(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, result)
 }
 
+// getApproval godoc
+// @Summary      Get an approval by ID
+// @Description  Retrieve a single approval request with its steps and current status.
+// @Tags         approvals
+// @Produce      json
+// @Param        id  path  string  true  "Approval ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /approvals/{id} [get]
 func (h *ApprovalHandler) getApproval(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -96,6 +120,18 @@ func (h *ApprovalHandler) getApproval(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// createApproval godoc
+// @Summary      Create an approval request
+// @Description  Create a new multi-step approval request with specified approvers.
+// @Tags         approvals
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateApprovalRequest  true  "Approval data with steps"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /approvals [post]
 func (h *ApprovalHandler) createApproval(w http.ResponseWriter, r *http.Request) {
 	var req CreateApprovalRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -150,6 +186,19 @@ func (h *ApprovalHandler) createApproval(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "approval request created"})
 }
 
+// approveStep godoc
+// @Summary      Approve an approval step
+// @Description  Approve the current step of an approval workflow. The approver is derived from the authenticated user.
+// @Tags         approvals
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string               true  "Approval ID (UUID)"
+// @Param        body  body  ApproveStepRequest   true  "Optional comment"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /approvals/{id}/approve [put]
 func (h *ApprovalHandler) approveStep(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	approvalID, err := uuid.Parse(idStr)
@@ -188,6 +237,19 @@ func (h *ApprovalHandler) approveStep(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "step approved"})
 }
 
+// rejectStep godoc
+// @Summary      Reject an approval step
+// @Description  Reject the current step of an approval workflow. The approver is derived from the authenticated user.
+// @Tags         approvals
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string               true  "Approval ID (UUID)"
+// @Param        body  body  RejectStepRequest    true  "Rejection comment"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /approvals/{id}/reject [put]
 func (h *ApprovalHandler) rejectStep(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	approvalID, err := uuid.Parse(idStr)
@@ -227,6 +289,17 @@ func (h *ApprovalHandler) rejectStep(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "step rejected"})
 }
 
+// cancelApproval godoc
+// @Summary      Cancel an approval request
+// @Description  Cancel an ongoing approval request. Only the initiator can cancel.
+// @Tags         approvals
+// @Produce      json
+// @Param        id  path  string  true  "Approval ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /approvals/{id}/cancel [put]
 func (h *ApprovalHandler) cancelApproval(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	approvalID, err := uuid.Parse(idStr)

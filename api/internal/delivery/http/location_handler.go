@@ -67,6 +67,17 @@ type UpdateRoomRequest struct {
 
 // ─── Building handlers ────────────────────────────────────────────────────────
 
+// ListBuildings godoc
+// @Summary      List buildings
+// @Description  Retrieve a paginated list of buildings.
+// @Tags         locations
+// @Produce      json
+// @Param        offset  query  int  false  "Pagination offset"
+// @Param        limit   query  int  false  "Pagination limit (default 20)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /buildings [get]
 func (h *LocationHandler) ListBuildings(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -83,6 +94,17 @@ func (h *LocationHandler) ListBuildings(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, result)
 }
 
+// GetBuilding godoc
+// @Summary      Get a building by ID
+// @Description  Retrieve a single building by its unique identifier.
+// @Tags         locations
+// @Produce      json
+// @Param        id  path  string  true  "Building ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /buildings/{id} [get]
 func (h *LocationHandler) GetBuilding(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -99,6 +121,18 @@ func (h *LocationHandler) GetBuilding(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// CreateBuilding godoc
+// @Summary      Create a new building
+// @Description  Create a new building with name, address, and description.
+// @Tags         locations
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateBuildingRequest  true  "Building data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /buildings [post]
 func (h *LocationHandler) CreateBuilding(w http.ResponseWriter, r *http.Request) {
 	var req CreateBuildingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -119,6 +153,19 @@ func (h *LocationHandler) CreateBuilding(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "building created successfully"})
 }
 
+// UpdateBuilding godoc
+// @Summary      Update a building
+// @Description  Update an existing building's details.
+// @Tags         locations
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                   true  "Building ID (UUID)"
+// @Param        body  body  UpdateBuildingRequest    true  "Updated building data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /buildings/{id} [put]
 func (h *LocationHandler) UpdateBuilding(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -146,6 +193,17 @@ func (h *LocationHandler) UpdateBuilding(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusOK, map[string]string{"message": "building updated successfully"})
 }
 
+// DeleteBuilding godoc
+// @Summary      Delete a building
+// @Description  Delete a building by its unique identifier.
+// @Tags         locations
+// @Produce      json
+// @Param        id  path  string  true  "Building ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /buildings/{id} [delete]
 func (h *LocationHandler) DeleteBuilding(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -164,6 +222,18 @@ func (h *LocationHandler) DeleteBuilding(w http.ResponseWriter, r *http.Request)
 
 // ─── Room handlers ────────────────────────────────────────────────────────────
 
+// ListRooms godoc
+// @Summary      List rooms
+// @Description  Retrieve a paginated list of rooms, optionally filtered by building.
+// @Tags         locations
+// @Produce      json
+// @Param        building_id  query  string  false  "Filter by Building ID (UUID)"
+// @Param        offset       query  int     false  "Pagination offset"
+// @Param        limit        query  int     false  "Pagination limit (default 20)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /rooms [get]
 func (h *LocationHandler) ListRooms(w http.ResponseWriter, r *http.Request) {
 	buildingID := r.URL.Query().Get("building_id")
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
@@ -185,6 +255,17 @@ func (h *LocationHandler) ListRooms(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// GetRoom godoc
+// @Summary      Get a room by ID
+// @Description  Retrieve a single room by its unique identifier.
+// @Tags         locations
+// @Produce      json
+// @Param        id  path  string  true  "Room ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /rooms/{id} [get]
 func (h *LocationHandler) GetRoom(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -201,6 +282,18 @@ func (h *LocationHandler) GetRoom(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// CreateRoom godoc
+// @Summary      Create a new room
+// @Description  Create a new room within a building with optional facilities, capacity, and floor.
+// @Tags         locations
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateRoomRequest  true  "Room data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /rooms [post]
 func (h *LocationHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	var req CreateRoomRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -230,6 +323,19 @@ func (h *LocationHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "room created successfully"})
 }
 
+// UpdateRoom godoc
+// @Summary      Update a room
+// @Description  Update an existing room's details including facilities, capacity, and floor.
+// @Tags         locations
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                true  "Room ID (UUID)"
+// @Param        body  body  UpdateRoomRequest     true  "Updated room data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /rooms/{id} [put]
 func (h *LocationHandler) UpdateRoom(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -259,6 +365,17 @@ func (h *LocationHandler) UpdateRoom(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "room updated successfully"})
 }
 
+// DeleteRoom godoc
+// @Summary      Delete a room
+// @Description  Delete a room by its unique identifier.
+// @Tags         locations
+// @Produce      json
+// @Param        id  path  string  true  "Room ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /rooms/{id} [delete]
 func (h *LocationHandler) DeleteRoom(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -275,6 +392,19 @@ func (h *LocationHandler) DeleteRoom(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "room deleted successfully"})
 }
 
+// CheckRoomAvailability godoc
+// @Summary      Check room availability
+// @Description  Check if a room is available during a given time range. Returns conflicting schedules if any.
+// @Tags         locations
+// @Produce      json
+// @Param        id    path  string  true  "Room ID (UUID)"
+// @Param        from  query  string  true  "Start time (RFC3339 format)"
+// @Param        to    query  string  true  "End time (RFC3339 format)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /rooms/{id}/availability [get]
 func (h *LocationHandler) CheckRoomAvailability(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {

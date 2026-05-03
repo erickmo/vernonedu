@@ -38,6 +38,18 @@ type CreateEnrollmentRequest struct {
 	CourseBatchID string `json:"course_batch_id" validate:"required"`
 }
 
+// EnrollStudent godoc
+// @Summary      Enroll a student into a course batch
+// @Description  Create a new enrollment for a student in a specific course batch. Triggers auto-invoice generation and referral commission if applicable.
+// @Tags         enrollments
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateEnrollmentRequest  true  "Enrollment data"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /enrollments [post]
 func (h *EnrollmentHandler) EnrollStudent(w http.ResponseWriter, r *http.Request) {
 	var req CreateEnrollmentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -70,6 +82,17 @@ func (h *EnrollmentHandler) EnrollStudent(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "enrollment created successfully"})
 }
 
+// GetByID godoc
+// @Summary      Get an enrollment by ID
+// @Description  Retrieve a single enrollment by its unique identifier.
+// @Tags         enrollments
+// @Produce      json
+// @Param        id  path  string  true  "Enrollment ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /enrollments/{id} [get]
 func (h *EnrollmentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	enrollmentIDStr := chi.URLParam(r, "id")
 	enrollmentID, err := uuid.Parse(enrollmentIDStr)
@@ -89,6 +112,17 @@ func (h *EnrollmentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// List godoc
+// @Summary      List enrollments
+// @Description  Retrieve a paginated list of enrollments.
+// @Tags         enrollments
+// @Produce      json
+// @Param        offset  query  int  false  "Pagination offset"
+// @Param        limit   query  int  false  "Pagination limit (default 10)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /enrollments [get]
 func (h *EnrollmentHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -107,6 +141,15 @@ func (h *EnrollmentHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// ListBatchSummary godoc
+// @Summary      List enrollment summaries per batch
+// @Description  Retrieve a summary of enrollments aggregated by course batch.
+// @Tags         enrollments
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /enrollments/summary [get]
 func (h *EnrollmentHandler) ListBatchSummary(w http.ResponseWriter, r *http.Request) {
 	query := &listenrollmentsummary.ListEnrollmentSummaryQuery{}
 	result, err := h.qryBus.Execute(r.Context(), query)
@@ -118,6 +161,19 @@ func (h *EnrollmentHandler) ListBatchSummary(w http.ResponseWriter, r *http.Requ
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// UpdateStatus godoc
+// @Summary      Update enrollment status
+// @Description  Update the status of an enrollment (e.g. active, withdrawn, completed).
+// @Tags         enrollments
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Enrollment ID (UUID)"
+// @Param        body  body  object  true  "Status update (status field)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /enrollments/{id}/status [put]
 func (h *EnrollmentHandler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 	enrollmentIDStr := chi.URLParam(r, "id")
 	enrollmentID, err := uuid.Parse(enrollmentIDStr)
@@ -144,6 +200,19 @@ func (h *EnrollmentHandler) UpdateStatus(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusOK, map[string]string{"message": "enrollment status updated"})
 }
 
+// UpdatePaymentStatus godoc
+// @Summary      Update enrollment payment status
+// @Description  Update the payment status of an enrollment (e.g. paid, unpaid, partial, overdue).
+// @Tags         enrollments
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Enrollment ID (UUID)"
+// @Param        body  body  object  true  "Payment status update (payment_status field)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /enrollments/{id}/payment-status [put]
 func (h *EnrollmentHandler) UpdatePaymentStatus(w http.ResponseWriter, r *http.Request) {
 	enrollmentIDStr := chi.URLParam(r, "id")
 	enrollmentID, err := uuid.Parse(enrollmentIDStr)
@@ -187,6 +256,20 @@ type GrantAppAccessRequest struct {
 	AppName string `json:"app_name"`
 }
 
+// GrantAppAccess godoc
+// @Summary      Grant app access to a student
+// @Description  Grant a student access to a supporting application (e.g. app-student, app-entrepreneur) for the enrollment's batch.
+// @Tags         enrollments
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Enrollment ID (UUID)"
+// @Param        body  body  GrantAppAccessRequest  true  "App name to grant (defaults to app-student)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /enrollments/{id}/access/grant [post]
 func (h *EnrollmentHandler) GrantAppAccess(w http.ResponseWriter, r *http.Request) {
 	enrollmentIDStr := chi.URLParam(r, "id")
 	enrollmentID, err := uuid.Parse(enrollmentIDStr)
@@ -230,6 +313,20 @@ type RevokeAppAccessRequest struct {
 	Reason string `json:"reason"`
 }
 
+// RevokeAppAccess godoc
+// @Summary      Revoke app access from a student
+// @Description  Revoke a student's access to a supporting application for the enrollment's batch.
+// @Tags         enrollments
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string  true  "Enrollment ID (UUID)"
+// @Param        body  body  RevokeAppAccessRequest  true  "Revocation reason"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /enrollments/{id}/access/revoke [post]
 func (h *EnrollmentHandler) RevokeAppAccess(w http.ResponseWriter, r *http.Request) {
 	enrollmentIDStr := chi.URLParam(r, "id")
 	enrollmentID, err := uuid.Parse(enrollmentIDStr)
