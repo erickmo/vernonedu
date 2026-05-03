@@ -1,7 +1,7 @@
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
-import { motion } from 'framer-motion'
+import { motion, type Variants } from 'framer-motion'
 import { fadeIn } from '@/lib/utils/motion'
 
 export const Sheet = RadixDialog.Root
@@ -16,15 +16,15 @@ interface SheetContentProps {
   className?: string
 }
 
-const slideVariants = {
+const slideVariants: Record<Side, Variants> = {
   left: {
     hidden: { x: '-100%' },
-    visible: { x: 0, transition: { type: 'tween', ease: [0.25, 0.1, 0.25, 1], duration: 0.3 } },
+    visible: { x: 0, transition: { type: 'tween', ease: [0.25, 0.1, 0.25, 1] as const, duration: 0.3 } },
     exit: { x: '-100%', transition: { duration: 0.15 } },
   },
   right: {
     hidden: { x: '100%' },
-    visible: { x: 0, transition: { type: 'tween', ease: [0.25, 0.1, 0.25, 1], duration: 0.3 } },
+    visible: { x: 0, transition: { type: 'tween', ease: [0.25, 0.1, 0.25, 1] as const, duration: 0.3 } },
     exit: { x: '100%', transition: { duration: 0.15 } },
   },
 }

@@ -7,7 +7,7 @@ import { GraduationCap, Eye, EyeOff, ChevronDown, ChevronUp, Code } from 'lucide
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth/useAuth'
 import { motion } from 'framer-motion'
-import { fadeInUp, stagger, staggerItem } from '@/lib/utils/motion'
+import { stagger, staggerItem } from '@/lib/utils/motion'
 import { cn } from '@/lib/utils/cn'
 
 const PRESET_USERS = [

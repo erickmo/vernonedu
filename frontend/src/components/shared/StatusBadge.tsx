@@ -64,7 +64,7 @@ function getStatusVariant(status: string): string {
   return STATUS_VARIANT_MAP[status] || 'secondary'
 }
 
-export default function StatusBadge({ status, variant }: StatusBadgeProps) {
+export default function StatusBadge({ status }: StatusBadgeProps) {
   const statusVariant = getStatusVariant(status)
   const label = STATUS_LABEL_MAP[status] || status
 

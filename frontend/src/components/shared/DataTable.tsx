@@ -38,18 +38,6 @@ function getCellValue<T>(row: T, accessor: keyof T | string): ReactNode {
   return String(val)
 }
 
-function SkeletonRow({ cols }: { cols: number }) {
-  return (
-    <tr>
-      {Array.from({ length: cols }).map((_, i) => (
-        <td key={i} className="px-4 py-3">
-          <Skeleton className="h-4 w-full" />
-        </td>
-      ))}
-    </tr>
-  )
-}
-
 export default function DataTable<T>({
   columns,
   data,
@@ -212,7 +200,7 @@ export default function DataTable<T>({
                     ))}
                   </tr>
                 ))
-              : sortedData.map((row, idx) => {
+              : sortedData.map((row) => {
                   const rowKeyVal = rowKey ? rowKey(row) : JSON.stringify(row)
                   const isSelected = selectedRows.has(rowKeyVal)
 

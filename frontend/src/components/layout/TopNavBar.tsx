@@ -36,7 +36,7 @@ export default function TopNavBar({
 }: TopNavBarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
-  const { theme, setTheme, resolved } = useTheme()
+  const { setTheme, resolved } = useTheme()
   const initial = user?.name?.charAt(0).toUpperCase() ?? '?'
 
   return (

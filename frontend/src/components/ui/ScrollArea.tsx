@@ -1,13 +1,15 @@
 import * as RadixScrollArea from '@radix-ui/react-scroll-area'
 import { cn } from '@/lib/utils/cn'
 
-interface ScrollAreaProps extends React.HTMLAttributes<HTMLDivElement> {
+interface ScrollAreaProps {
   orientation?: 'vertical' | 'horizontal' | 'both'
+  className?: string
+  children?: React.ReactNode
 }
 
-export default function ScrollArea({ orientation = 'vertical', className, children, ...props }: ScrollAreaProps) {
+export default function ScrollArea({ orientation = 'vertical', className, children }: ScrollAreaProps) {
   return (
-    <RadixScrollArea.Root className={cn('relative overflow-hidden', className)} {...props}>
+    <RadixScrollArea.Root className={cn('relative overflow-hidden', className)}>
       <RadixScrollArea.Viewport className="h-full w-full rounded-[inherit]">
         {children}
       </RadixScrollArea.Viewport>

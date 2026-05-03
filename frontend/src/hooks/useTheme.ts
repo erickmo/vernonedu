@@ -44,7 +44,7 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  return React.createElement(React.Fragment, null, children)
 }
 
 export function initTheme() {

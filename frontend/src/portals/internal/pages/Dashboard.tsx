@@ -180,8 +180,8 @@ export default function InternalDashboard() {
                 >
                   <div className="flex items-center gap-3">
                     <Avatar
-                      name={e.student_id ?? '?'}
-                      className="w-10 h-10 bg-brand-50 text-brand-700 font-semibold"
+                      fallback={(e.student_id ?? '?').charAt(0).toUpperCase()}
+                      size="lg"
                     />
                     <div>
                       <p className="text-sm font-medium text-neutral-800 group-hover:text-brand-700 transition-colors">{e.student_id}</p>
@@ -201,7 +201,7 @@ export default function InternalDashboard() {
                             ? 'warning'
                             : e.status === 'confirmed'
                               ? 'success'
-                              : 'neutral'
+                              : 'secondary'
                         }
                         className="text-xs"
                       >
