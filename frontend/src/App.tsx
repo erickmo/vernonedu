@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '@/lib/auth/useAuth'
 import ProtectedRoute from '@/lib/auth/ProtectedRoute'
 import StudentPortal from '@/portals/student/StudentPortal'
@@ -7,6 +8,20 @@ import InternalPortal from '@/portals/internal/InternalPortal'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register'
 import CertificateVerify from '@/pages/CertificateVerify'
+import { pageTransition } from '@/lib/utils/motion'
+
+function PageTransition({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={pageTransition}
+    >
+      {children}
+    </motion.div>
+  )
+}
 import StudentDashboard from '@/portals/student/pages/Dashboard'
 import CourseCatalog from '@/portals/student/pages/CourseCatalog'
 import StudentCourseDetail from '@/portals/student/pages/CourseDetail'
@@ -165,11 +180,12 @@ function RoleBasedRedirect() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/verify/:certNumber" element={<CertificateVerify />} />
-      <Route path="/" element={<RoleBasedRedirect />} />
+    <AnimatePresence mode="wait">
+      <Routes>
+        <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+        <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+        <Route path="/verify/:certNumber" element={<PageTransition><CertificateVerify /></PageTransition>} />
+        <Route path="/" element={<RoleBasedRedirect />} />
 
       <Route element={<ProtectedRoute allowedRoles={[ROLE_STUDENT]} />}>
         <Route path="/student" element={<StudentPortal />}>
@@ -331,5 +347,6 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </AnimatePresence>
   )
 }
