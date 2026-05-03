@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { NavLink, Link, useLocation } from 'react-router-dom'
-import { Bell, ChevronDown, GraduationCap, LogOut, Menu, X, Sun, Moon } from 'lucide-react'
+import { Bell, ChevronDown, GraduationCap, LogOut, Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/DropdownMenu'
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/Tooltip'
-import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/lib/utils/cn'
 import { fadeInDown } from '@/lib/utils/motion'
 import type { DomainGroup } from '@/lib/auth/roleNav'
@@ -36,7 +35,6 @@ export default function TopNavBar({
 }: TopNavBarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
-  const { setTheme, resolved } = useTheme()
   const initial = user?.name?.charAt(0).toUpperCase() ?? '?'
 
   return (
@@ -124,23 +122,6 @@ export default function TopNavBar({
           </TooltipProvider>
 
           {/* Theme toggle */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => setTheme(resolved === 'dark' ? 'light' : 'dark')}
-                  className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
-                >
-                  {resolved === 'dark' ? (
-                    <Sun className="w-5 h-5 text-neutral-500" />
-                  ) : (
-                    <Moon className="w-5 h-5 text-neutral-500" />
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>{resolved === 'dark' ? 'Light mode' : 'Dark mode'}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
 
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-neutral-100 transition-colors outline-none">
