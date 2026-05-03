@@ -52,7 +52,19 @@ type PromoteCourseVersionRequest struct {
 	ApprovedBy   *string `json:"approved_by"`                        // UUID opsional, wajib jika approved
 }
 
-// Create menangani POST /api/v1/curriculum/types/{typeID}/versions
+// Create godoc
+// @Summary      Create a course version
+// @Description  Create a new version of a course type with version number, change type, and changelog
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        typeID  path  string                         true  "Course Type ID (UUID)"
+// @Param        body    body  CreateCourseVersionRequest     true  "Course version creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/types/{typeID}/versions [post]
 func (h *CourseVersionHandler) Create(w http.ResponseWriter, r *http.Request) {
 	typeIDStr := chi.URLParam(r, "typeID")
 	typeID, err := uuid.Parse(typeIDStr)
@@ -89,7 +101,18 @@ func (h *CourseVersionHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "course version created successfully"})
 }
 
-// ListByType menangani GET /api/v1/curriculum/types/{typeID}/versions
+// ListByType godoc
+// @Summary      List course versions by type
+// @Description  Retrieve all course versions for a given course type
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        typeID  path  string  true  "Course Type ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/types/{typeID}/versions [get]
 func (h *CourseVersionHandler) ListByType(w http.ResponseWriter, r *http.Request) {
 	typeIDStr := chi.URLParam(r, "typeID")
 	typeID, err := uuid.Parse(typeIDStr)
@@ -109,7 +132,18 @@ func (h *CourseVersionHandler) ListByType(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// GetByID menangani GET /api/v1/curriculum/versions/{versionID}
+// GetByID godoc
+// @Summary      Get course version by ID
+// @Description  Retrieve a single course version by its UUID
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        versionID  path  string  true  "Course Version ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/{versionID} [get]
 func (h *CourseVersionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	versionIDStr := chi.URLParam(r, "versionID")
 	versionID, err := uuid.Parse(versionIDStr)
@@ -129,7 +163,19 @@ func (h *CourseVersionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// Promote menangani POST /api/v1/curriculum/versions/{versionID}/promote
+// Promote godoc
+// @Summary      Promote course version status
+// @Description  Promote a course version to a target status (e.g. review, approved)
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        versionID  path  string                          true  "Course Version ID (UUID)"
+// @Param        body       body  PromoteCourseVersionRequest     true  "Promote payload with target_status"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/{versionID}/promote [post]
 func (h *CourseVersionHandler) Promote(w http.ResponseWriter, r *http.Request) {
 	versionIDStr := chi.URLParam(r, "versionID")
 	versionID, err := uuid.Parse(versionIDStr)
@@ -169,7 +215,19 @@ type RejectCourseVersionRequest struct {
 	Reason string `json:"reason" validate:"required"`
 }
 
-// Submit menangani POST /api/v1/curriculum/versions/{versionID}/submit (course_owner).
+// Submit godoc
+// @Summary      Submit course version for review
+// @Description  Submit a course version for review (course_owner role required)
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        versionID  path  string  true  "Course Version ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      403  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/{versionID}/submit [post]
 func (h *CourseVersionHandler) Submit(w http.ResponseWriter, r *http.Request) {
 	if !middleware.HasRole(r.Context(), roleCourseOwner) {
 		writeError(w, http.StatusForbidden, "forbidden")
@@ -192,7 +250,19 @@ func (h *CourseVersionHandler) Submit(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "course version submitted"})
 }
 
-// Approve menangani POST /api/v1/curriculum/versions/{versionID}/approve (dept_leader).
+// Approve godoc
+// @Summary      Approve course version
+// @Description  Approve a course version (dept_leader role required)
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        versionID  path  string  true  "Course Version ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      403  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/{versionID}/approve [post]
 func (h *CourseVersionHandler) Approve(w http.ResponseWriter, r *http.Request) {
 	if !middleware.HasRole(r.Context(), roleDeptLeader) {
 		writeError(w, http.StatusForbidden, "forbidden")
@@ -215,7 +285,20 @@ func (h *CourseVersionHandler) Approve(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "course version approved"})
 }
 
-// Reject menangani POST /api/v1/curriculum/versions/{versionID}/reject (dept_leader).
+// Reject godoc
+// @Summary      Reject course version
+// @Description  Reject a course version with a reason (dept_leader role required)
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        versionID  path  string                         true  "Course Version ID (UUID)"
+// @Param        body       body  RejectCourseVersionRequest     true  "Rejection payload with reason"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      403  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/{versionID}/reject [post]
 func (h *CourseVersionHandler) Reject(w http.ResponseWriter, r *http.Request) {
 	if !middleware.HasRole(r.Context(), roleDeptLeader) {
 		writeError(w, http.StatusForbidden, "forbidden")
@@ -247,7 +330,18 @@ func (h *CourseVersionHandler) Reject(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "course version rejected"})
 }
 
-// ListPending menangani GET /api/v1/curriculum/versions/pending (dept_leader).
+// ListPending godoc
+// @Summary      List pending course versions
+// @Description  Retrieve all course versions pending review (dept_leader role required). Optional department_id filter.
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        department_id  query  string  false  "Filter by Department ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      403  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/pending [get]
 func (h *CourseVersionHandler) ListPending(w http.ResponseWriter, r *http.Request) {
 	if !middleware.HasRole(r.Context(), roleDeptLeader) {
 		writeError(w, http.StatusForbidden, "forbidden")

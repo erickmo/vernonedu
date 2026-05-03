@@ -38,6 +38,18 @@ type CreateUserRequest struct {
 	Roles    []string `json:"roles"    validate:"required,min=1"`
 }
 
+// Create godoc
+// @Summary      Create a new user
+// @Description  Create a user with name, email, password, and roles
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateUserRequest  true  "User creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /users [post]
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -60,6 +72,18 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "user created successfully"})
 }
 
+// GetByID godoc
+// @Summary      Get user by ID
+// @Description  Retrieve a single user by their UUID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "User ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /users/{id} [get]
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	userIDStr := chi.URLParam(r, "id")
 	userID, err := uuid.Parse(userIDStr)
@@ -79,6 +103,18 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// List godoc
+// @Summary      List users
+// @Description  Retrieve a paginated list of users
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int  false  "Pagination offset"
+// @Param        limit   query  int  false  "Pagination limit (default 10)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /users [get]
 func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -97,6 +133,19 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// Search godoc
+// @Summary      Search users by name
+// @Description  Search users with pagination and name filter
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        name    query  string  false  "Name to search for"
+// @Param        offset  query  int     false  "Pagination offset"
+// @Param        limit   query  int     false  "Pagination limit (default 10)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /users/search [get]
 func (h *UserHandler) Search(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
@@ -120,6 +169,19 @@ type UpdateUserRequest struct {
 	Name string `json:"name" validate:"required,min=1"`
 }
 
+// Update godoc
+// @Summary      Update user
+// @Description  Update a user's name by their ID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string              true  "User ID (UUID)"
+// @Param        body  body  UpdateUserRequest  true  "User update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /users/{id} [put]
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	userIDStr := chi.URLParam(r, "id")
 	userID, err := uuid.Parse(userIDStr)
@@ -144,6 +206,18 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "user updated successfully"})
 }
 
+// Delete godoc
+// @Summary      Delete user
+// @Description  Delete a user by their ID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "User ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /users/{id} [delete]
 func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	userIDStr := chi.URLParam(r, "id")
 	userID, err := uuid.Parse(userIDStr)

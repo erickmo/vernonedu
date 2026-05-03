@@ -42,6 +42,18 @@ type UpdateCourseRequest struct {
 	IsActive    bool   `json:"is_active"`
 }
 
+// Create godoc
+// @Summary      Create a new course
+// @Description  Create a course with name, description, and active status
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateCourseRequest  true  "Course creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /courses [post]
 func (h *CourseHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req CreateCourseRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -63,6 +75,18 @@ func (h *CourseHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "course created successfully"})
 }
 
+// GetByID godoc
+// @Summary      Get course by ID
+// @Description  Retrieve a single course by its UUID
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Course ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /courses/{id} [get]
 func (h *CourseHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	courseIDStr := chi.URLParam(r, "id")
 	courseID, err := uuid.Parse(courseIDStr)
@@ -82,6 +106,18 @@ func (h *CourseHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
+// List godoc
+// @Summary      List courses
+// @Description  Retrieve a paginated list of courses
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int  false  "Pagination offset"
+// @Param        limit   query  int  false  "Pagination limit (default 10)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /courses [get]
 func (h *CourseHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -100,6 +136,19 @@ func (h *CourseHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// Update godoc
+// @Summary      Update course
+// @Description  Update a course's name, description, and active status
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                true  "Course ID (UUID)"
+// @Param        body  body  UpdateCourseRequest  true  "Course update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /courses/{id} [put]
 func (h *CourseHandler) Update(w http.ResponseWriter, r *http.Request) {
 	courseIDStr := chi.URLParam(r, "id")
 	courseID, err := uuid.Parse(courseIDStr)
@@ -129,6 +178,18 @@ func (h *CourseHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "course updated successfully"})
 }
 
+// Delete godoc
+// @Summary      Delete course
+// @Description  Delete a course by its ID
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Course ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /courses/{id} [delete]
 func (h *CourseHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	courseIDStr := chi.URLParam(r, "id")
 	courseID, err := uuid.Parse(courseIDStr)

@@ -61,7 +61,19 @@ type UpdateCourseTypeRequest struct {
 	MaxParticipants        int                                `json:"max_participants"`
 }
 
-// Create menangani POST /api/v1/curriculum/courses/{courseID}/types
+// Create godoc
+// @Summary      Create a course type
+// @Description  Create a course type under a master course with pricing, participants, and failure config
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        courseID  path  string                    true  "Master Course ID (UUID)"
+// @Param        body      body  CreateCourseTypeRequest  true  "Course type creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/courses/{courseID}/types [post]
 func (h *CourseTypeHandler) Create(w http.ResponseWriter, r *http.Request) {
 	courseIDStr := chi.URLParam(r, "courseID")
 	courseID, err := uuid.Parse(courseIDStr)
@@ -99,7 +111,18 @@ func (h *CourseTypeHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "course type created successfully"})
 }
 
-// ListByMasterCourse menangani GET /api/v1/curriculum/courses/{courseID}/types
+// ListByMasterCourse godoc
+// @Summary      List course types by master course
+// @Description  Retrieve all course types under a specific master course
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        courseID  path  string  true  "Master Course ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/courses/{courseID}/types [get]
 func (h *CourseTypeHandler) ListByMasterCourse(w http.ResponseWriter, r *http.Request) {
 	courseIDStr := chi.URLParam(r, "courseID")
 	courseID, err := uuid.Parse(courseIDStr)
@@ -119,7 +142,18 @@ func (h *CourseTypeHandler) ListByMasterCourse(w http.ResponseWriter, r *http.Re
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// GetByID menangani GET /api/v1/curriculum/types/{typeID}
+// GetByID godoc
+// @Summary      Get course type by ID
+// @Description  Retrieve a single course type by its UUID
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        typeID  path  string  true  "Course Type ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/types/{typeID} [get]
 func (h *CourseTypeHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	typeIDStr := chi.URLParam(r, "typeID")
 	typeID, err := uuid.Parse(typeIDStr)
@@ -139,7 +173,19 @@ func (h *CourseTypeHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// Update menangani PUT /api/v1/curriculum/types/{typeID}
+// Update godoc
+// @Summary      Update course type
+// @Description  Update a course type's pricing, participants, audience, certification, and failure config
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        typeID  path  string                    true  "Course Type ID (UUID)"
+// @Param        body    body  UpdateCourseTypeRequest  true  "Course type update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/types/{typeID} [put]
 func (h *CourseTypeHandler) Update(w http.ResponseWriter, r *http.Request) {
 	typeIDStr := chi.URLParam(r, "typeID")
 	typeID, err := uuid.Parse(typeIDStr)
@@ -179,7 +225,18 @@ func (h *CourseTypeHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "course type updated successfully"})
 }
 
-// Toggle menangani POST /api/v1/curriculum/types/{typeID}/toggle
+// Toggle godoc
+// @Summary      Toggle course type active status
+// @Description  Toggle the active/inactive status of a course type
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        typeID  path  string  true  "Course Type ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/types/{typeID}/toggle [post]
 func (h *CourseTypeHandler) Toggle(w http.ResponseWriter, r *http.Request) {
 	typeIDStr := chi.URLParam(r, "typeID")
 	typeID, err := uuid.Parse(typeIDStr)

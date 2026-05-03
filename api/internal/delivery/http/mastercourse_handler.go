@@ -51,7 +51,18 @@ type UpdateMasterCourseRequest struct {
 	SupportingAppUrl string   `json:"supporting_app_url"`
 }
 
-// Create menangani POST /api/v1/curriculum/courses
+// Create godoc
+// @Summary      Create a master course
+// @Description  Create a master course with code, name, field, competencies, and optional supporting app URL
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        body  body  CreateMasterCourseRequest  true  "Master course creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/courses [post]
 func (h *MasterCourseHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req CreateMasterCourseRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -76,7 +87,20 @@ func (h *MasterCourseHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "master course created successfully"})
 }
 
-// List menangani GET /api/v1/curriculum/courses
+// List godoc
+// @Summary      List master courses
+// @Description  Retrieve a paginated list of master courses with optional status and field filters
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        offset  query  int     false  "Pagination offset"
+// @Param        limit   query  int     false  "Pagination limit (default 10)"
+// @Param        status  query  string  false  "Filter by status"
+// @Param        field   query  string  false  "Filter by field"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/courses [get]
 func (h *MasterCourseHandler) List(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
@@ -102,7 +126,18 @@ func (h *MasterCourseHandler) List(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
-// GetByID menangani GET /api/v1/curriculum/courses/{id}
+// GetByID godoc
+// @Summary      Get master course by ID
+// @Description  Retrieve a single master course by its UUID
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Master Course ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/courses/{id} [get]
 func (h *MasterCourseHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -122,7 +157,19 @@ func (h *MasterCourseHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// Update menangani PUT /api/v1/curriculum/courses/{id}
+// Update godoc
+// @Summary      Update master course
+// @Description  Update a master course's name, field, competencies, description, and supporting app URL
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                      true  "Master Course ID (UUID)"
+// @Param        body  body  UpdateMasterCourseRequest  true  "Master course update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/courses/{id} [put]
 func (h *MasterCourseHandler) Update(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -154,7 +201,18 @@ func (h *MasterCourseHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "master course updated successfully"})
 }
 
-// Archive menangani POST /api/v1/curriculum/courses/{id}/archive
+// Archive godoc
+// @Summary      Archive master course
+// @Description  Archive a master course by its ID
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Master Course ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/courses/{id}/archive [post]
 func (h *MasterCourseHandler) Archive(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -173,7 +231,18 @@ func (h *MasterCourseHandler) Archive(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "master course archived successfully"})
 }
 
-// Delete menangani DELETE /api/v1/curriculum/courses/{id}
+// Delete godoc
+// @Summary      Delete master course
+// @Description  Delete a master course by its ID
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Master Course ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/courses/{id} [delete]
 func (h *MasterCourseHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -192,7 +261,18 @@ func (h *MasterCourseHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "master course deleted successfully"})
 }
 
-// ListBatches menangani GET /api/v1/curriculum/courses/{id}/batches
+// ListBatches godoc
+// @Summary      List batches for a master course
+// @Description  Returns all course batches associated with a master course
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Master Course ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/courses/{id}/batches [get]
 func (h *MasterCourseHandler) ListBatches(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -234,7 +314,18 @@ func (h *MasterCourseHandler) ListBatches(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// ListStudents menangani GET /api/v1/curriculum/courses/{id}/students
+// ListStudents godoc
+// @Summary      List students for a master course
+// @Description  Returns all students enrolled in batches under a master course
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Master Course ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/courses/{id}/students [get]
 func (h *MasterCourseHandler) ListStudents(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)

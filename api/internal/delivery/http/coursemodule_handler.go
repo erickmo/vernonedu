@@ -57,7 +57,19 @@ type UpdateCourseModuleRequest struct {
 	Requirements        []string `json:"requirements"`
 }
 
-// Create menangani POST /api/v1/curriculum/versions/{versionID}/modules
+// Create godoc
+// @Summary      Create a course module
+// @Description  Create a module under a course version with topics, tools, requirements, and assessment
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        versionID  path  string                       true  "Course Version ID (UUID)"
+// @Param        body       body  CreateCourseModuleRequest    true  "Course module creation payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/{versionID}/modules [post]
 func (h *CourseModuleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	versionIDStr := chi.URLParam(r, "versionID")
 	versionID, err := uuid.Parse(versionIDStr)
@@ -102,7 +114,18 @@ func (h *CourseModuleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"message": "course module created successfully"})
 }
 
-// ListByVersion menangani GET /api/v1/curriculum/versions/{versionID}/modules
+// ListByVersion godoc
+// @Summary      List modules by course version
+// @Description  Retrieve all modules for a given course version
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        versionID  path  string  true  "Course Version ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/{versionID}/modules [get]
 func (h *CourseModuleHandler) ListByVersion(w http.ResponseWriter, r *http.Request) {
 	versionIDStr := chi.URLParam(r, "versionID")
 	versionID, err := uuid.Parse(versionIDStr)
@@ -122,7 +145,18 @@ func (h *CourseModuleHandler) ListByVersion(w http.ResponseWriter, r *http.Reque
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// GetByID menangani GET /api/v1/curriculum/modules/{moduleID}
+// GetByID godoc
+// @Summary      Get course module by ID
+// @Description  Retrieve a single course module by its UUID
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        moduleID  path  string  true  "Module ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/modules/{moduleID} [get]
 func (h *CourseModuleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	moduleIDStr := chi.URLParam(r, "moduleID")
 	moduleID, err := uuid.Parse(moduleIDStr)
@@ -142,7 +176,19 @@ func (h *CourseModuleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// Update menangani PUT /api/v1/curriculum/modules/{moduleID}
+// Update godoc
+// @Summary      Update course module
+// @Description  Update a course module's title, duration, topics, tools, requirements, and assessment
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        moduleID  path  string                        true  "Module ID (UUID)"
+// @Param        body      body  UpdateCourseModuleRequest    true  "Course module update payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/modules/{moduleID} [put]
 func (h *CourseModuleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	moduleIDStr := chi.URLParam(r, "moduleID")
 	moduleID, err := uuid.Parse(moduleIDStr)
@@ -178,7 +224,18 @@ func (h *CourseModuleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "course module updated successfully"})
 }
 
-// Delete menangani DELETE /api/v1/curriculum/modules/{moduleID}
+// Delete godoc
+// @Summary      Delete course module
+// @Description  Delete a course module by its ID
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        moduleID  path  string  true  "Module ID (UUID)"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/modules/{moduleID} [delete]
 func (h *CourseModuleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	moduleIDStr := chi.URLParam(r, "moduleID")
 	moduleID, err := uuid.Parse(moduleIDStr)

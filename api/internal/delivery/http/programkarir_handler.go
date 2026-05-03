@@ -64,7 +64,19 @@ type SubmitTestResultRequest struct {
 	TestScore        *float64               `json:"test_score"`
 }
 
-// UpsertInternshipConfig menangani PUT /api/v1/curriculum/versions/{versionID}/internship
+// UpsertInternshipConfig godoc
+// @Summary      Upsert internship configuration
+// @Description  Create or update the internship configuration for a course version
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        versionID  path  string                            true  "Course Version ID (UUID)"
+// @Param        body       body  UpsertInternshipConfigRequest     true  "Internship config payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/{versionID}/internship [put]
 func (h *ProgramKarirHandler) UpsertInternshipConfig(w http.ResponseWriter, r *http.Request) {
 	versionIDStr := chi.URLParam(r, "versionID")
 	versionID, err := uuid.Parse(versionIDStr)
@@ -105,7 +117,18 @@ func (h *ProgramKarirHandler) UpsertInternshipConfig(w http.ResponseWriter, r *h
 	writeJSON(w, http.StatusOK, map[string]string{"message": "internship config saved successfully"})
 }
 
-// GetInternshipConfig menangani GET /api/v1/curriculum/versions/{versionID}/internship
+// GetInternshipConfig godoc
+// @Summary      Get internship configuration
+// @Description  Retrieve the internship configuration for a course version
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        versionID  path  string  true  "Course Version ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/{versionID}/internship [get]
 func (h *ProgramKarirHandler) GetInternshipConfig(w http.ResponseWriter, r *http.Request) {
 	versionIDStr := chi.URLParam(r, "versionID")
 	versionID, err := uuid.Parse(versionIDStr)
@@ -125,7 +148,19 @@ func (h *ProgramKarirHandler) GetInternshipConfig(w http.ResponseWriter, r *http
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// UpsertCharacterTestConfig menangani PUT /api/v1/curriculum/versions/{versionID}/character-test
+// UpsertCharacterTestConfig godoc
+// @Summary      Upsert character test configuration
+// @Description  Create or update the character/mindset test configuration for a course version
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        versionID  path  string                                true  "Course Version ID (UUID)"
+// @Param        body       body  UpsertCharacterTestConfigRequest     true  "Character test config payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/{versionID}/character-test [put]
 func (h *ProgramKarirHandler) UpsertCharacterTestConfig(w http.ResponseWriter, r *http.Request) {
 	versionIDStr := chi.URLParam(r, "versionID")
 	versionID, err := uuid.Parse(versionIDStr)
@@ -157,7 +192,18 @@ func (h *ProgramKarirHandler) UpsertCharacterTestConfig(w http.ResponseWriter, r
 	writeJSON(w, http.StatusOK, map[string]string{"message": "character test config saved successfully"})
 }
 
-// GetCharacterTestConfig menangani GET /api/v1/curriculum/versions/{versionID}/character-test
+// GetCharacterTestConfig godoc
+// @Summary      Get character test configuration
+// @Description  Retrieve the character/mindset test configuration for a course version
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        versionID  path  string  true  "Course Version ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/{versionID}/character-test [get]
 func (h *ProgramKarirHandler) GetCharacterTestConfig(w http.ResponseWriter, r *http.Request) {
 	versionIDStr := chi.URLParam(r, "versionID")
 	versionID, err := uuid.Parse(versionIDStr)
@@ -177,7 +223,19 @@ func (h *ProgramKarirHandler) GetCharacterTestConfig(w http.ResponseWriter, r *h
 	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
 }
 
-// UpdateFailureConfig menangani PUT /api/v1/curriculum/types/{typeID}/failure-config
+// UpdateFailureConfig godoc
+// @Summary      Update component failure configuration
+// @Description  Update the component failure configuration for a course type (Program Karir)
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        typeID  path  string                         true  "Course Type ID (UUID)"
+// @Param        body    body  UpdateFailureConfigRequest     true  "Failure config payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/types/{typeID}/failure-config [put]
 func (h *ProgramKarirHandler) UpdateFailureConfig(w http.ResponseWriter, r *http.Request) {
 	typeIDStr := chi.URLParam(r, "typeID")
 	typeID, err := uuid.Parse(typeIDStr)
@@ -206,7 +264,21 @@ func (h *ProgramKarirHandler) UpdateFailureConfig(w http.ResponseWriter, r *http
 	writeJSON(w, http.StatusOK, map[string]string{"message": "failure config updated successfully"})
 }
 
-// SubmitTestResult menangani POST /api/v1/curriculum/versions/{versionID}/submit-test-result
+// SubmitTestResult godoc
+// @Summary      Submit character test result
+// @Description  Submit a character/mindset test result for a participant. Creates a talent pool entry if passing.
+// @Tags         curriculum
+// @Accept       json
+// @Produce      json
+// @Param        versionID        path   string                      true  "Course Version ID (UUID)"
+// @Param        master_course_id query  string                      true  "Master Course ID (UUID)"
+// @Param        course_type_id   query  string                      true  "Course Type ID (UUID)"
+// @Param        body             body   SubmitTestResultRequest     true  "Test result payload"
+// @Success      201  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /curriculum/versions/{versionID}/submit-test-result [post]
 func (h *ProgramKarirHandler) SubmitTestResult(w http.ResponseWriter, r *http.Request) {
 	versionIDStr := chi.URLParam(r, "versionID")
 	versionID, err := uuid.Parse(versionIDStr)
