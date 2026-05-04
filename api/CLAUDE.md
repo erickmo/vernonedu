@@ -452,8 +452,24 @@ GET    /api/v1/items...
 
 ### HRM
 ```
-GET    /api/v1/hrm/sdm                 → employee list
-GET    /api/v1/hrm/sdm/{id}            → employee detail
+GET    /api/v1/hrm/employees                        ?offset, limit, department_id, status
+POST   /api/v1/hrm/employees
+GET    /api/v1/hrm/employees/{id}
+PUT    /api/v1/hrm/employees/{id}
+GET    /api/v1/hrm/attendance                       ?employee_id, date, month, year
+POST   /api/v1/hrm/attendance
+GET    /api/v1/hrm/attendance/summary               ?employee_id, month, year
+GET    /api/v1/hrm/leave-requests                   ?employee_id, status, type
+POST   /api/v1/hrm/leave-requests
+PUT    /api/v1/hrm/leave-requests/{id}/review
+GET    /api/v1/hrm/payroll-periods                  ?month, year, status
+POST   /api/v1/hrm/payroll-periods
+GET    /api/v1/hrm/payroll-periods/{id}
+PUT    /api/v1/hrm/payroll-periods/{id}/approve
+PUT    /api/v1/hrm/payroll-periods/{id}/disburse
+GET    /api/v1/hrm/payroll-periods/{id}/items
+POST   /api/v1/hrm/payroll-periods/{id}/items
+PUT    /api/v1/hrm/payroll-items/{itemId}
 ```
 
 ### Delegations

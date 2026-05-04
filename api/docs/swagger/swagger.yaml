@@ -46,6 +46,13 @@ definitions:
         description: empty = unassign
         type: string
     type: object
+  internal_delivery_http.AssignLeaderRequest:
+    properties:
+      leader_id:
+        type: string
+    required:
+    - leader_id
+    type: object
   internal_delivery_http.CancelInvoiceRequest:
     properties:
       reason:
@@ -72,6 +79,25 @@ definitions:
         type: array
       type:
         type: string
+    type: object
+  internal_delivery_http.CreateAttendanceRequest:
+    properties:
+      clock_in:
+        type: string
+      clock_out:
+        type: string
+      date:
+        type: string
+      employee_id:
+        type: string
+      note:
+        type: string
+      status:
+        type: string
+    required:
+    - date
+    - employee_id
+    - status
     type: object
   internal_delivery_http.CreateBankAccountRequest:
     properties:
@@ -250,6 +276,40 @@ definitions:
     required:
     - name
     type: object
+  internal_delivery_http.CreateEmployeeRequest:
+    properties:
+      address:
+        type: string
+      bank_account:
+        type: string
+      bank_name:
+        type: string
+      base_salary:
+        type: number
+      contract_end:
+        type: string
+      contract_type:
+        type: string
+      department_id:
+        type: string
+      employee_number:
+        type: string
+      hire_date:
+        type: string
+      notes:
+        type: string
+      phone:
+        type: string
+      position:
+        type: string
+      user_id:
+        type: string
+    required:
+    - employee_number
+    - hire_date
+    - position
+    - user_id
+    type: object
   internal_delivery_http.CreateEnrollmentRequest:
     properties:
       course_batch_id:
@@ -354,6 +414,25 @@ definitions:
     required:
     - name
     type: object
+  internal_delivery_http.CreateLeaveRequestRequest:
+    properties:
+      employee_id:
+        type: string
+      end_date:
+        type: string
+      leave_type:
+        type: string
+      reason:
+        type: string
+      start_date:
+        type: string
+    required:
+    - employee_id
+    - end_date
+    - leave_type
+    - reason
+    - start_date
+    type: object
   internal_delivery_http.CreateMasterCourseRequest:
     properties:
       core_competencies:
@@ -375,6 +454,42 @@ definitions:
     - course_code
     - course_name
     - field
+    type: object
+  internal_delivery_http.CreatePayrollItemRequest:
+    properties:
+      attendance_deduction:
+        type: number
+      base_salary:
+        type: number
+      bonus:
+        type: number
+      employee_id:
+        type: string
+      facilitator_fee:
+        type: number
+      facilitator_sessions:
+        type: integer
+      notes:
+        type: string
+      total_amount:
+        type: number
+    required:
+    - employee_id
+    type: object
+  internal_delivery_http.CreatePayrollPeriodRequest:
+    properties:
+      end_date:
+        type: string
+      notes:
+        type: string
+      period:
+        type: string
+      start_date:
+        type: string
+    required:
+    - end_date
+    - period
+    - start_date
     type: object
   internal_delivery_http.CreateRoomRequest:
     properties:
@@ -543,6 +658,16 @@ definitions:
     properties:
       comment:
         type: string
+    type: object
+  internal_delivery_http.ReviewLeaveRequestRequest:
+    properties:
+      reviewed_by:
+        type: string
+      status:
+        type: string
+    required:
+    - reviewed_by
+    - status
     type: object
   internal_delivery_http.RevokeAppAccessRequest:
     properties:
@@ -715,6 +840,34 @@ definitions:
     required:
     - name
     type: object
+  internal_delivery_http.UpdateEmployeeRequest:
+    properties:
+      address:
+        type: string
+      bank_account:
+        type: string
+      bank_name:
+        type: string
+      base_salary:
+        type: number
+      contract_end:
+        type: string
+      contract_type:
+        type: string
+      department_id:
+        type: string
+      notes:
+        type: string
+      phone:
+        type: string
+      position:
+        type: string
+      status:
+        type: string
+    required:
+    - position
+    - status
+    type: object
   internal_delivery_http.UpdateFailureConfigRequest:
     properties:
       component_failure_config:
@@ -773,6 +926,36 @@ definitions:
     required:
     - course_name
     - field
+    type: object
+  internal_delivery_http.UpdatePayrollItemRequest:
+    properties:
+      attendance_deduction:
+        type: number
+      base_salary:
+        type: number
+      bonus:
+        type: number
+      facilitator_fee:
+        type: number
+      facilitator_sessions:
+        type: integer
+      notes:
+        type: string
+      status:
+        type: string
+      total_amount:
+        type: number
+    type: object
+  internal_delivery_http.UpdatePayrollPeriodRequest:
+    properties:
+      approved_by:
+        type: string
+      notes:
+        type: string
+      status:
+        type: string
+    required:
+    - status
     type: object
   internal_delivery_http.UpdateRoomRequest:
     properties:
@@ -5948,6 +6131,49 @@ paths:
       summary: Get department courses
       tags:
       - departments
+  /departments/{id}/leader:
+    put:
+      consumes:
+      - application/json
+      description: Assign or change the leader (dept_leader role) for a department
+      parameters:
+      - description: Department ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Leader assignment payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http.AssignLeaderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Assign department leader
+      tags:
+      - departments
   /departments/{id}/students:
     get:
       consumes:
@@ -7904,6 +8130,720 @@ paths:
       summary: Create finance transaction
       tags:
       - finance
+  /hrm/attendance:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve attendance records with optional filters
+      parameters:
+      - description: Filter by employee ID
+        in: query
+        name: employee_id
+        type: string
+      - description: From date (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: To date (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Pagination offset
+        in: query
+        name: offset
+        type: integer
+      - description: Pagination limit (default 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List attendance records
+      tags:
+      - hrm
+    post:
+      consumes:
+      - application/json
+      description: Record staff attendance for a given date
+      parameters:
+      - description: Attendance payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http.CreateAttendanceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create attendance record
+      tags:
+      - hrm
+  /hrm/attendance/summary:
+    get:
+      consumes:
+      - application/json
+      description: Get aggregated attendance stats for a payroll period
+      parameters:
+      - description: Payroll period (e.g. 2026-01)
+        in: query
+        name: period
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get attendance summary
+      tags:
+      - hrm
+  /hrm/employees:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of employees with optional filters
+      parameters:
+      - description: Pagination offset
+        in: query
+        name: offset
+        type: integer
+      - description: Pagination limit (default 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by employee number or name
+        in: query
+        name: search
+        type: string
+      - description: Filter by department ID
+        in: query
+        name: department_id
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List employees
+      tags:
+      - hrm
+    post:
+      consumes:
+      - application/json
+      description: Register a user as an employee with HR details
+      parameters:
+      - description: Employee creation payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http.CreateEmployeeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new employee
+      tags:
+      - hrm
+  /hrm/employees/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single employee by UUID
+      parameters:
+      - description: Employee ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get employee by ID
+      tags:
+      - hrm
+    put:
+      consumes:
+      - application/json
+      description: Update employee HR details
+      parameters:
+      - description: Employee ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Employee update payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http.UpdateEmployeeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update employee
+      tags:
+      - hrm
+  /hrm/leave-requests:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of leave requests with optional filters
+      parameters:
+      - description: Filter by employee ID
+        in: query
+        name: employee_id
+        type: string
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Pagination offset
+        in: query
+        name: offset
+        type: integer
+      - description: Pagination limit (default 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List leave requests
+      tags:
+      - hrm
+    post:
+      consumes:
+      - application/json
+      description: Submit a new leave request for an employee
+      parameters:
+      - description: Leave request payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http.CreateLeaveRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create leave request
+      tags:
+      - hrm
+  /hrm/leave-requests/{id}/review:
+    put:
+      consumes:
+      - application/json
+      description: Approve or reject a pending leave request
+      parameters:
+      - description: Leave Request ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Review payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http.ReviewLeaveRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Review leave request
+      tags:
+      - hrm
+  /hrm/payroll-items/{itemId}:
+    put:
+      consumes:
+      - application/json
+      description: Update a specific payroll item
+      parameters:
+      - description: Payroll Item ID (UUID)
+        in: path
+        name: itemId
+        required: true
+        type: string
+      - description: Payroll item update payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http.UpdatePayrollItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update payroll item
+      tags:
+      - hrm
+  /hrm/payroll-periods:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of payroll periods
+      parameters:
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Pagination offset
+        in: query
+        name: offset
+        type: integer
+      - description: Pagination limit (default 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List payroll periods
+      tags:
+      - hrm
+    post:
+      consumes:
+      - application/json
+      description: Create a new payroll period (e.g. monthly)
+      parameters:
+      - description: Payroll period payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http.CreatePayrollPeriodRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create payroll period
+      tags:
+      - hrm
+  /hrm/payroll-periods/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single payroll period with its details
+      parameters:
+      - description: Payroll Period ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get payroll period by ID
+      tags:
+      - hrm
+  /hrm/payroll-periods/{id}/approve:
+    put:
+      consumes:
+      - application/json
+      description: Approve a draft payroll period
+      parameters:
+      - description: Payroll Period ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Approval payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http.UpdatePayrollPeriodRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Approve payroll period
+      tags:
+      - hrm
+  /hrm/payroll-periods/{id}/disburse:
+    put:
+      consumes:
+      - application/json
+      description: Mark an approved payroll period as disbursed
+      parameters:
+      - description: Payroll Period ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Disbursement payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http.UpdatePayrollPeriodRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Disburse payroll
+      tags:
+      - hrm
+  /hrm/payroll-periods/{id}/items:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all payroll items for a payroll period
+      parameters:
+      - description: Payroll Period ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get payroll items
+      tags:
+      - hrm
+    post:
+      consumes:
+      - application/json
+      description: Create a payroll item for an employee in a payroll period
+      parameters:
+      - description: Payroll Period ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Payroll item payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_delivery_http.CreatePayrollItemRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Generate payroll item
+      tags:
+      - hrm
   /investments:
     get:
       consumes:

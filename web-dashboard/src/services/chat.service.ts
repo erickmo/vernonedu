@@ -102,7 +102,7 @@ export interface AddRuleRequest {
 
 // ─── Service ────────────────────────────────────────────────────────────────────
 
-const CHAT_BASE = '/api/v1/chat'
+const CHAT_BASE = '/chat'
 
 export const chatService = {
   // ─── Channels ───────────────────────────────────────────────────────────────

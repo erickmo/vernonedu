@@ -15,7 +15,7 @@ function buildQueryString(params?: ListParams): string {
   const q = new URLSearchParams()
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== '') {
-      q.set(k, String(v))
+      q.set(k, Array.isArray(v) ? JSON.stringify(v) : String(v))
     }
   })
   const str = q.toString()

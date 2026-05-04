@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
@@ -12,12 +12,10 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 import { authService } from '@/services/auth.service'
-import { userService } from '@/services/user.service'
 import { useForm } from '@/hooks/useForm'
 import { AppApiError } from '@/types/api.types'
 import { appConfig } from '@/config/app.config'
 import type { LoginResponse } from '@/types/auth.types'
-import type { User } from '@/services/user.service'
 import styles from './LoginPage.module.css'
 
 interface LoginFormValues extends Record<string, unknown> {
@@ -25,7 +23,22 @@ interface LoginFormValues extends Record<string, unknown> {
   password: string
 }
 
-const canBypassLogin =
+// DEV ONLY — hardcoded users for quick login testing
+const DEV_USERS = [
+  { name: 'Director', email: 'director@vernonedu.com', role: 'director' },
+  { name: 'Director 2', email: 'director2@test.com', role: 'director' },
+  { name: 'Education Leader', email: 'education2@test.com', role: 'education_leader' },
+  { name: 'Dept Leader', email: 'dept@test.com', role: 'dept_leader' },
+  { name: 'Course Creator', email: 'course2@test.com', role: 'course_owner' },
+  { name: 'Student', email: 'student@test.com', role: 'student' },
+  { name: 'Admin', email: 'admin@vernonedu.com', role: 'student' },
+  { name: 'Pilot', email: 'pilot@vernon.edu', role: 'student' },
+  { name: 'Smoke', email: 'smoke@test.com', role: 'student' },
+] as const
+
+const DEV_PASSWORD = '123123123'
+
+const isDev =
   import.meta.env.DEV || import.meta.env.MODE === 'test' || import.meta.env.VITE_ENABLE_LOGIN_BYPASS === 'true'
 
 export default function LoginPage() {
@@ -34,8 +47,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [serverError, setServerError] = useState('')
-  const [presetUsers, setPresetUsers] = useState<User[]>([])
-  const [usersLoading, setUsersLoading] = useState(false)
 
   const { values, errors, field, handleSubmit } = useForm<LoginFormValues>({
     initialValues: { email: '', password: '' },
@@ -44,23 +55,6 @@ export default function LoginPage() {
       password: !v.password ? 'Kata sandi wajib diisi' : undefined,
     }),
   })
-
-  useEffect(() => {
-    setUsersLoading(true)
-    console.log('[LoginPage] Fetching users...')
-    userService
-      .list({ limit: 100 })
-      .then((res) => {
-        const users = res.data ?? []
-        console.log(`[LoginPage] Fetched ${users.length} users`, users)
-        setPresetUsers(users)
-      })
-      .catch((err) => {
-        console.error('[LoginPage] Failed to fetch users:', err)
-        setPresetUsers([])
-      })
-      .finally(() => setUsersLoading(false))
-  }, [])
 
   const onSubmit = handleSubmit(async (v) => {
     setIsLoading(true)
@@ -133,39 +127,30 @@ export default function LoginPage() {
             <p className={styles.subtitle}>Gunakan akun kerja Anda untuk melanjutkan.</p>
           </div>
 
-          <div className={styles.pills}>
-            <span className={styles.pillsLabel}>
-              {usersLoading ? 'Loading roles...' : 'Test logins by role'}
-            </span>
-            <div className={styles.pillsList}>
-              {presetUsers.length > 0 ? (
-                Array.from(
-                  presetUsers.reduce((acc, u) => {
-                    const role = u.roles?.[0] || 'user'
-                    if (!acc.has(role)) acc.set(role, u)
-                    return acc
-                  }, new Map<string, typeof presetUsers[0]>()).values()
-                ).map((u) => (
+          {isDev && (
+            <div className={styles.pills}>
+              <span className={styles.pillsLabel}>
+                <span className={styles.devTag}>DEV</span>
+                Quick login
+              </span>
+              <div className={styles.pillsList}>
+                {DEV_USERS.map((u) => (
                   <button
-                    key={u.id}
+                    key={u.email}
                     type="button"
                     className={styles.pill}
+                    title={`${u.email} / ${DEV_PASSWORD}`}
                     onClick={() => {
                       field('email').onChange({ target: { value: u.email } } as React.ChangeEvent<HTMLInputElement>)
-                      field('password').onChange({ target: { value: '123123123' } } as React.ChangeEvent<HTMLInputElement>)
+                      field('password').onChange({ target: { value: DEV_PASSWORD } } as React.ChangeEvent<HTMLInputElement>)
                     }}
-                    title={`${u.email} / 123123123`}
                   >
-                    {u.roles?.[0] || 'User'}
+                    {u.name}
                   </button>
-                ))
-              ) : !usersLoading ? (
-                <span style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', padding: '0.5rem' }}>
-                  No users available
-                </span>
-              ) : null}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <form onSubmit={onSubmit} className={styles.form} noValidate>
             <div className={styles.field}>
