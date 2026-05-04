@@ -8,7 +8,7 @@ export interface User {
   roles: string[]
 }
 
-const BASE = '/api/v1/users'
+const BASE = '/users'
 
 export const userService = {
   list: async (params?: { offset?: number; limit?: number; role?: string }) => {
