@@ -9,7 +9,6 @@ import '../../domain/entities/invoice_detail_entity.dart';
 import '../../domain/entities/invoice_stats_entity.dart';
 import '../cubit/invoice_cubit.dart';
 import '../cubit/invoice_state.dart';
-import '../widgets/invoice_detail_modal.dart';
 
 String _paymentMethodLabel(String method) {
   switch (method) {
@@ -190,13 +189,12 @@ class _InvoiceViewState extends State<_InvoiceView>
                         horizontal: AppDimensions.md,
                         vertical: AppDimensions.sm),
                   ),
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<InvoiceCubit>(),
-                      child: const CreateManualInvoiceDialog(),
-                    ),
-                  ),
+                  onPressed: () async {
+                    final created = await context.push<bool>('/finance/invoices/manual/new');
+                    if (created == true && context.mounted) {
+                      context.read<InvoiceCubit>().loadAll();
+                    }
+                  },
                 ),
               ],
             ),
@@ -1223,7 +1221,7 @@ class _InvoiceRowState extends State<_InvoiceRow> {
                             color: AppColors.textSecondary),
                         tooltip: 'Detail',
                         onPressed: () =>
-                            showInvoiceDetailModal(context, inv),
+                            context.push('/finance/invoices/${inv.id}'),
                       ),
                       IconButton(
                         icon: const Icon(Icons.send_outlined,

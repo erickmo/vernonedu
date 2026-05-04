@@ -210,7 +210,7 @@ const ALL_ITEMS: NavItem[] = [
     key: 'departments',
     label: 'Departemen',
     icon: Building2,
-    path: '/departments',
+    path: '/pengembangan/departments',
     hasAccess: (ctx) =>
       hasAnyRole(ctx, ['director', 'education_leader', 'dept_leader']),
   },
@@ -231,7 +231,7 @@ const ALL_ITEMS: NavItem[] = [
     key: 'locations',
     label: 'Lokasi',
     icon: MapPin,
-    path: '/locations',
+    path: '/pengembangan/locations',
     hasAccess: (ctx) => canManageLocation(ctx),
   },
   {
@@ -336,13 +336,13 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'pendidikan',
     label: 'Pendidikan',
     icon: BookOpen,
-    items: ALL_ITEMS.slice(1, 8), // Kurikulum..Departemen
+    items: ALL_ITEMS.slice(1, 7), // Kurikulum..Sertifikat
   },
   {
     key: 'operasi',
     label: 'Operasi',
     icon: MapPin,
-    items: ALL_ITEMS.slice(8, 11), // Leads, Lokasi, Pembayaran
+    items: [ALL_ITEMS[8], ALL_ITEMS[10]], // Leads, Pembayaran
   },
   {
     key: 'marketing',
@@ -366,7 +366,7 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'pengembangan',
     label: 'Pengembangan',
     icon: Rocket,
-    items: ALL_ITEMS.slice(16, 18), // Proyek, Business Dev
+    items: [ALL_ITEMS[7], ALL_ITEMS[9], ...ALL_ITEMS.slice(16, 18)], // Departemen, Lokasi, Proyek, Business Dev
   },
   {
     key: 'sistem',

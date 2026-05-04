@@ -2,6 +2,7 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
@@ -231,113 +232,11 @@ class _PagesTab extends StatelessWidget {
     );
   }
 
-  void _showPageEditor(BuildContext context, CmsPageEntity page) {
-    showDialog(
-      context: context,
-      builder: (_) => BlocProvider.value(
-        value: context.read<CmsCubit>(),
-        child: _PageEditorDialog(page: page),
-      ),
-    );
-  }
-}
-
-class _PageEditorDialog extends StatefulWidget {
-  final CmsPageEntity page;
-  const _PageEditorDialog({required this.page});
-
-  @override
-  State<_PageEditorDialog> createState() => _PageEditorDialogState();
-}
-
-class _PageEditorDialogState extends State<_PageEditorDialog> {
-  late final TextEditingController _titleCtrl;
-  late final TextEditingController _subtitleCtrl;
-  late final TextEditingController _metaTitleCtrl;
-  late final TextEditingController _metaDescCtrl;
-  bool _saving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleCtrl = TextEditingController(text: widget.page.title);
-    _subtitleCtrl = TextEditingController(text: widget.page.subtitle);
-    _metaTitleCtrl = TextEditingController(text: widget.page.metaTitle);
-    _metaDescCtrl = TextEditingController(text: widget.page.metaDescription);
-  }
-
-  @override
-  void dispose() {
-    _titleCtrl.dispose();
-    _subtitleCtrl.dispose();
-    _metaTitleCtrl.dispose();
-    _metaDescCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Edit Halaman: ${widget.page.slug}'),
-      content: SizedBox(
-        width: 520,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _field('Judul Halaman', _titleCtrl),
-              const SizedBox(height: 12),
-              _field('Subtitle', _subtitleCtrl),
-              const SizedBox(height: 20),
-              Text('SEO', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-              const SizedBox(height: 8),
-              _field('Meta Title', _metaTitleCtrl),
-              const SizedBox(height: 12),
-              _field('Meta Description', _metaDescCtrl, maxLines: 3),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _saving ? null : () => Navigator.pop(context),
-          child: const Text('Batal'),
-        ),
-        ElevatedButton(
-          onPressed: _saving ? null : _save,
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-          child: _saving
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Simpan', style: TextStyle(color: Colors.white)),
-        ),
-      ],
-    );
-  }
-
-  Widget _field(String label, TextEditingController ctrl, {int maxLines = 1}) {
-    return TextField(
-      controller: ctrl,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-        isDense: true,
-      ),
-    );
-  }
-
-  Future<void> _save() async {
-    setState(() => _saving = true);
-    await context.read<CmsCubit>().savePage(widget.page.slug, {
-      'title': _titleCtrl.text,
-      'subtitle': _subtitleCtrl.text,
-      'seo': {
-        'meta_title': _metaTitleCtrl.text,
-        'meta_description': _metaDescCtrl.text,
-      },
-    });
-    if (mounted) Navigator.pop(context);
+  Future<void> _showPageEditor(BuildContext context, CmsPageEntity page) async {
+    final saved = await context.push<bool>('/cms/pages/${page.slug}/edit', extra: page);
+    if (saved == true && context.mounted) {
+      context.read<CmsCubit>().loadAll();
+    }
   }
 }
 
@@ -465,14 +364,13 @@ class _ArticlesTabState extends State<_ArticlesTab> {
     );
   }
 
-  void _showArticleForm(BuildContext context, CmsArticleEntity? article) {
-    showDialog(
-      context: context,
-      builder: (_) => BlocProvider.value(
-        value: context.read<CmsCubit>(),
-        child: _ArticleFormDialog(article: article),
-      ),
-    );
+  Future<void> _showArticleForm(BuildContext context, CmsArticleEntity? article) async {
+    final saved = article == null
+        ? await context.push<bool>('/cms/articles/new')
+        : await context.push<bool>('/cms/articles/${article.id}/edit', extra: article);
+    if (saved == true && context.mounted) {
+      context.read<CmsCubit>().loadAll();
+    }
   }
 
   void _confirmDelete(BuildContext context, CmsArticleEntity article) {
@@ -494,143 +392,6 @@ class _ArticlesTabState extends State<_ArticlesTab> {
         ],
       ),
     );
-  }
-}
-
-class _ArticleFormDialog extends StatefulWidget {
-  final CmsArticleEntity? article;
-  const _ArticleFormDialog({this.article});
-
-  @override
-  State<_ArticleFormDialog> createState() => _ArticleFormDialogState();
-}
-
-class _ArticleFormDialogState extends State<_ArticleFormDialog> {
-  late final TextEditingController _titleCtrl;
-  late final TextEditingController _slugCtrl;
-  late final TextEditingController _contentCtrl;
-  late final TextEditingController _metaTitleCtrl;
-  late final TextEditingController _metaDescCtrl;
-  late String _category;
-  late String _status;
-  bool _saving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final a = widget.article;
-    _titleCtrl = TextEditingController(text: a?.title ?? '');
-    _slugCtrl = TextEditingController(text: a?.slug ?? '');
-    _contentCtrl = TextEditingController(text: a?.content ?? '');
-    _metaTitleCtrl = TextEditingController(text: a?.metaTitle ?? '');
-    _metaDescCtrl = TextEditingController(text: a?.metaDescription ?? '');
-    _category = a?.category ?? 'tips_karir';
-    _status = a?.status ?? 'draft';
-  }
-
-  @override
-  void dispose() {
-    _titleCtrl.dispose();
-    _slugCtrl.dispose();
-    _contentCtrl.dispose();
-    _metaTitleCtrl.dispose();
-    _metaDescCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isEdit = widget.article != null;
-    return AlertDialog(
-      title: Text(isEdit ? 'Edit Artikel' : 'Buat Artikel Baru'),
-      content: SizedBox(
-        width: 580,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _field('Judul', _titleCtrl),
-              const SizedBox(height: 12),
-              _field('Slug', _slugCtrl),
-              const SizedBox(height: 12),
-              Row(children: [
-                Expanded(child: _dropdown('Kategori', _category, [
-                  ('tips_karir', 'Tips Karir'),
-                  ('info_kursus', 'Info Kursus'),
-                  ('berita', 'Berita'),
-                  ('event', 'Event'),
-                ], (v) => setState(() => _category = v))),
-                const SizedBox(width: 12),
-                Expanded(child: _dropdown('Status', _status, [
-                  ('draft', 'Draft'),
-                  ('published', 'Published'),
-                ], (v) => setState(() => _status = v))),
-              ]),
-              const SizedBox(height: 12),
-              _field('Konten', _contentCtrl, maxLines: 6),
-              const SizedBox(height: 20),
-              Text('SEO', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-              const SizedBox(height: 8),
-              _field('Meta Title', _metaTitleCtrl),
-              const SizedBox(height: 12),
-              _field('Meta Description', _metaDescCtrl, maxLines: 3),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(onPressed: _saving ? null : () => Navigator.pop(context), child: const Text('Batal')),
-        ElevatedButton(
-          onPressed: _saving ? null : _save,
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-          child: _saving
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-              : Text(isEdit ? 'Simpan' : 'Buat', style: const TextStyle(color: Colors.white)),
-        ),
-      ],
-    );
-  }
-
-  Widget _field(String label, TextEditingController ctrl, {int maxLines = 1}) => TextField(
-        controller: ctrl,
-        maxLines: maxLines,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-          isDense: true,
-        ),
-      );
-
-  Widget _dropdown(String label, String value, List<(String, String)> items, ValueChanged<String> onChanged) {
-    return DropdownButtonFormField<String>(
-      value: value,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-        isDense: true,
-      ),
-      items: items.map((e) => DropdownMenuItem(value: e.$1, child: Text(e.$2))).toList(),
-      onChanged: (v) { if (v != null) onChanged(v); },
-    );
-  }
-
-  Future<void> _save() async {
-    setState(() => _saving = true);
-    final data = {
-      'title': _titleCtrl.text,
-      'slug': _slugCtrl.text,
-      'category': _category,
-      'content': _contentCtrl.text,
-      'status': _status,
-      'seo': {'meta_title': _metaTitleCtrl.text, 'meta_description': _metaDescCtrl.text},
-    };
-    if (widget.article != null) {
-      await context.read<CmsCubit>().updateArticle(widget.article!.id, data);
-    } else {
-      await context.read<CmsCubit>().createArticle(data);
-    }
-    if (mounted) Navigator.pop(context);
   }
 }
 
@@ -717,14 +478,15 @@ class _TestimonialsTab extends StatelessWidget {
     );
   }
 
-  void _showForm(BuildContext context, CmsTestimonialEntity? item) {
-    showDialog(
-      context: context,
-      builder: (_) => BlocProvider.value(
-        value: context.read<CmsCubit>(),
-        child: _TestimonialFormDialog(item: item),
-      ),
-    );
+  Future<void> _showForm(BuildContext context, CmsTestimonialEntity? item) async {
+    final path = item != null
+        ? '/cms/testimonials/${item.id}/edit'
+        : '/cms/testimonials/new';
+    final extra = item;
+    final saved = await context.push<bool>(path, extra: extra);
+    if (saved == true && context.mounted) {
+      context.read<CmsCubit>().loadAll();
+    }
   }
 
   void _confirmDelete(BuildContext context, CmsTestimonialEntity item) {
@@ -746,120 +508,6 @@ class _TestimonialsTab extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class _TestimonialFormDialog extends StatefulWidget {
-  final CmsTestimonialEntity? item;
-  const _TestimonialFormDialog({this.item});
-
-  @override
-  State<_TestimonialFormDialog> createState() => _TestimonialFormDialogState();
-}
-
-class _TestimonialFormDialogState extends State<_TestimonialFormDialog> {
-  late final TextEditingController _nameCtrl;
-  late final TextEditingController _courseCtrl;
-  late final TextEditingController _quoteCtrl;
-  late int _rating;
-  late bool _featured;
-  bool _saving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final t = widget.item;
-    _nameCtrl = TextEditingController(text: t?.studentName ?? '');
-    _courseCtrl = TextEditingController(text: t?.courseName ?? '');
-    _quoteCtrl = TextEditingController(text: t?.quote ?? '');
-    _rating = t?.rating ?? 5;
-    _featured = t?.isFeatured ?? false;
-  }
-
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    _courseCtrl.dispose();
-    _quoteCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.item != null ? 'Edit Testimoni' : 'Tambah Testimoni'),
-      content: SizedBox(
-        width: 480,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _field('Nama Siswa', _nameCtrl),
-              const SizedBox(height: 12),
-              _field('Kursus', _courseCtrl),
-              const SizedBox(height: 12),
-              _field('Quote', _quoteCtrl, maxLines: 4),
-              const SizedBox(height: 12),
-              Text('Rating', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-              const SizedBox(height: 4),
-              Row(
-                children: List.generate(5, (i) => IconButton(
-                  icon: Icon(
-                    i < _rating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                  ),
-                  onPressed: () => setState(() => _rating = i + 1),
-                )),
-              ),
-              SwitchListTile(
-                title: const Text('Featured (tampil di beranda)'),
-                value: _featured,
-                onChanged: (v) => setState(() => _featured = v),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(onPressed: _saving ? null : () => Navigator.pop(context), child: const Text('Batal')),
-        ElevatedButton(
-          onPressed: _saving ? null : _save,
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-          child: _saving
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Simpan', style: TextStyle(color: Colors.white)),
-        ),
-      ],
-    );
-  }
-
-  Widget _field(String label, TextEditingController ctrl, {int maxLines = 1}) => TextField(
-        controller: ctrl,
-        maxLines: maxLines,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-          isDense: true,
-        ),
-      );
-
-  Future<void> _save() async {
-    setState(() => _saving = true);
-    final data = {
-      'student_name': _nameCtrl.text,
-      'course_name': _courseCtrl.text,
-      'quote': _quoteCtrl.text,
-      'rating': _rating,
-      'is_featured': _featured,
-    };
-    if (widget.item != null) {
-      await context.read<CmsCubit>().updateTestimonial(widget.item!.id, data);
-    } else {
-      await context.read<CmsCubit>().createTestimonial(data);
-    }
-    if (mounted) Navigator.pop(context);
   }
 }
 
@@ -974,14 +622,14 @@ class _FaqTabState extends State<_FaqTab> {
     );
   }
 
-  void _showForm(BuildContext context, CmsFaqEntity? faq) {
-    showDialog(
-      context: context,
-      builder: (_) => BlocProvider.value(
-        value: context.read<CmsCubit>(),
-        child: _FaqFormDialog(faq: faq),
-      ),
-    );
+  Future<void> _showForm(BuildContext context, CmsFaqEntity? faq) async {
+    final path = faq != null
+        ? '/cms/faq/${faq.id}/edit'
+        : '/cms/faq/new';
+    final saved = await context.push<bool>(path, extra: faq);
+    if (saved == true && context.mounted) {
+      context.read<CmsCubit>().loadAll();
+    }
   }
 
   void _confirmDelete(BuildContext context, CmsFaqEntity faq) {
@@ -1003,115 +651,6 @@ class _FaqTabState extends State<_FaqTab> {
         ],
       ),
     );
-  }
-}
-
-class _FaqFormDialog extends StatefulWidget {
-  final CmsFaqEntity? faq;
-  const _FaqFormDialog({this.faq});
-
-  @override
-  State<_FaqFormDialog> createState() => _FaqFormDialogState();
-}
-
-class _FaqFormDialogState extends State<_FaqFormDialog> {
-  late final TextEditingController _questionCtrl;
-  late final TextEditingController _answerCtrl;
-  late String _category;
-  bool _saving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final f = widget.faq;
-    _questionCtrl = TextEditingController(text: f?.question ?? '');
-    _answerCtrl = TextEditingController(text: f?.answer ?? '');
-    _category = f?.category ?? 'umum';
-  }
-
-  @override
-  void dispose() {
-    _questionCtrl.dispose();
-    _answerCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.faq != null ? 'Edit FAQ' : 'Tambah FAQ'),
-      content: SizedBox(
-        width: 520,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: _questionCtrl,
-                decoration: InputDecoration(
-                  labelText: 'Pertanyaan',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-                  isDense: true,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _answerCtrl,
-                maxLines: 5,
-                decoration: InputDecoration(
-                  labelText: 'Jawaban',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-                  isDense: true,
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _category,
-                decoration: InputDecoration(
-                  labelText: 'Kategori',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-                  isDense: true,
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'umum', child: Text('Umum')),
-                  DropdownMenuItem(value: 'pendaftaran', child: Text('Pendaftaran')),
-                  DropdownMenuItem(value: 'pembayaran', child: Text('Pembayaran')),
-                  DropdownMenuItem(value: 'sertifikat', child: Text('Sertifikat')),
-                  DropdownMenuItem(value: 'program_karir', child: Text('Program Karir')),
-                ],
-                onChanged: (v) { if (v != null) setState(() => _category = v); },
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(onPressed: _saving ? null : () => Navigator.pop(context), child: const Text('Batal')),
-        ElevatedButton(
-          onPressed: _saving ? null : _save,
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-          child: _saving
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Simpan', style: TextStyle(color: Colors.white)),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _save() async {
-    setState(() => _saving = true);
-    final data = {
-      'question': _questionCtrl.text,
-      'answer': _answerCtrl.text,
-      'category': _category,
-    };
-    if (widget.faq != null) {
-      await context.read<CmsCubit>().updateFaq(widget.faq!.id, data);
-    } else {
-      await context.read<CmsCubit>().createFaq(data);
-    }
-    if (mounted) Navigator.pop(context);
   }
 }
 
@@ -1344,14 +883,11 @@ class _SeoTab extends StatelessWidget {
     );
   }
 
-  void _showPageEditor(BuildContext context, CmsPageEntity page) {
-    showDialog(
-      context: context,
-      builder: (_) => BlocProvider.value(
-        value: context.read<CmsCubit>(),
-        child: _PageEditorDialog(page: page),
-      ),
-    );
+  Future<void> _showPageEditor(BuildContext context, CmsPageEntity page) async {
+    final saved = await context.push<bool>('/cms/pages/${page.slug}/edit', extra: page);
+    if (saved == true && context.mounted) {
+      context.read<CmsCubit>().loadAll();
+    }
   }
 }
 

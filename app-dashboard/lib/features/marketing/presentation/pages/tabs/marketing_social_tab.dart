@@ -1,6 +1,7 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_dimensions.dart';
@@ -35,147 +36,17 @@ class _MarketingSocialTabState extends State<MarketingSocialTab> {
     ('posted', 'Diposting'),
   ];
 
-  static const _contentTypes = [
-    ('promo', 'Promosi Course'),
-    ('dokumentasi', 'Dokumentasi Kelas'),
-    ('event', 'Event'),
-    ('info', 'Info Umum'),
-  ];
-
-  void _showPostForm(BuildContext context, {SocialMediaPostEntity? post}) {
-    final captionCtrl = TextEditingController(text: post?.caption ?? '');
-    final mediaUrlCtrl = TextEditingController(text: post?.mediaUrl ?? '');
-    final scheduledCtrl = TextEditingController(
-        text: post != null
-            ? DateFormatUtil.toDisplayWithTime(post.scheduledAt)
-            : '');
-    List<String> selPlatforms =
-        post?.platforms.toList() ?? ['instagram'];
-    String selContentType = post?.contentType ?? 'promo';
-    DateTime selDate = post?.scheduledAt ?? DateTime.now();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSt) => AlertDialog(
-          title: Text(post == null ? 'Jadwalkan Post' : 'Edit Post'),
-          content: SizedBox(
-            width: 480,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Platform checkboxes
-                  const Text('Platform',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 13)),
-                  const SizedBox(height: AppDimensions.xs),
-                  Wrap(
-                    spacing: AppDimensions.sm,
-                    children: [
-                      'instagram',
-                      'facebook',
-                      'tiktok',
-                      'linkedin'
-                    ].map((p) {
-                      final checked = selPlatforms.contains(p);
-                      return FilterChip(
-                        label: Text(p),
-                        selected: checked,
-                        onSelected: (v) => setSt(() {
-                          if (v) {
-                            selPlatforms.add(p);
-                          } else {
-                            selPlatforms.remove(p);
-                          }
-                        }),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  DropdownButtonFormField<String>(
-                    value: selContentType,
-                    decoration:
-                        const InputDecoration(labelText: 'Tipe Konten'),
-                    items: _contentTypes
-                        .map((e) => DropdownMenuItem(
-                            value: e.$1, child: Text(e.$2)))
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) setSt(() => selContentType = v);
-                    },
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  TextField(
-                    controller: captionCtrl,
-                    maxLines: 4,
-                    decoration: const InputDecoration(
-                        labelText: 'Caption',
-                        alignLabelWithHint: true),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  TextField(
-                    controller: mediaUrlCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'URL Media'),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  InkWell(
-                    onTap: () async {
-                      final picked = await showDateTimePicker(ctx, selDate);
-                      if (picked != null) {
-                        setSt(() {
-                          selDate = picked;
-                          scheduledCtrl.text =
-                              DateFormatUtil.toDisplayWithTime(picked);
-                        });
-                      }
-                    },
-                    child: AbsorbPointer(
-                      child: TextField(
-                        controller: scheduledCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Jadwal Posting',
-                          suffixIcon: Icon(Icons.calendar_today, size: 16),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Batal')),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary),
-              onPressed: () {
-                final data = {
-                  'platforms': selPlatforms,
-                  'content_type': selContentType,
-                  'caption': captionCtrl.text.trim(),
-                  'media_url': mediaUrlCtrl.text.trim(),
-                  'scheduled_at':
-                      selDate.millisecondsSinceEpoch ~/ 1000,
-                };
-                final cubit = context.read<MarketingCubit>();
-                if (post == null) {
-                  cubit.createPost(data);
-                } else {
-                  cubit.updatePost(post.id, data);
-                }
-                Navigator.pop(ctx);
-              },
-              child: const Text('Simpan'),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _showPostForm(BuildContext context,
+      {SocialMediaPostEntity? post}) async {
+    final saved = post == null
+        ? await context.push<bool>('/marketing/social/new')
+        : await context.push<bool>(
+            '/marketing/social/${post.id}/edit',
+            extra: post,
+          );
+    if (saved == true && context.mounted) {
+      context.read<MarketingCubit>().loadAll();
+    }
   }
 
   void _showSubmitUrlDialog(BuildContext context, String postId) {
@@ -210,24 +81,6 @@ class _MarketingSocialTabState extends State<MarketingSocialTab> {
         ],
       ),
     );
-  }
-
-  Future<DateTime?> showDateTimePicker(
-      BuildContext context, DateTime initial) async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-    );
-    if (date == null) return null;
-    if (!context.mounted) return null;
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(initial),
-    );
-    if (time == null) return null;
-    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
   @override

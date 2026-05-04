@@ -36,7 +36,6 @@ const _menuItems = <_MenuItem>[
       '/evaluations',
       '/certificates',
       '/courses',
-      '/departments',
     ],
   ),
   _MenuItem(
@@ -49,7 +48,7 @@ const _menuItems = <_MenuItem>[
     label: 'Operations',
     icon: Icons.business_outlined,
     route: '/leads',
-    activePrefixes: ['/leads', '/locations', '/partners'],
+    activePrefixes: ['/leads'],
   ),
   _MenuItem(
     label: 'HR',
@@ -60,8 +59,8 @@ const _menuItems = <_MenuItem>[
   _MenuItem(
     label: 'Finance',
     icon: Icons.account_balance_outlined,
-    route: '/accounting',
-    activePrefixes: ['/accounting', '/payments'],
+    route: '/finance',
+    activePrefixes: ['/finance', '/payments'],
   ),
   _MenuItem(
     label: 'CRM',
@@ -73,7 +72,7 @@ const _menuItems = <_MenuItem>[
     label: 'Business Dev',
     icon: Icons.trending_up_outlined,
     route: '/business-development',
-    activePrefixes: ['/business-development', '/projects'],
+    activePrefixes: ['/business-development', '/projects', '/locations', '/partners', '/departments'],
   ),
   _MenuItem(
     label: 'Approvals',

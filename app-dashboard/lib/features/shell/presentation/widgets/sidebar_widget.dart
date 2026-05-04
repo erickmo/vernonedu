@@ -76,15 +76,6 @@ final _navItems = <_NavItem>[
     route: '/curriculum/approvals',
     hasAccess: (u) => u.hasRole(UserRole.deptLeader),
   ),
-  _NavItem(
-    label: AppStrings.navDepartment,
-    icon: Icons.corporate_fare_outlined,
-    route: '/departments',
-    hasAccess: (u) =>
-        u.hasRole(UserRole.director) ||
-        u.hasRole(UserRole.educationLeader) ||
-        u.hasRole(UserRole.deptLeader),
-  ),
 
   // ── Operations ───────────────────────────────────────────────────────────
   _NavItem(

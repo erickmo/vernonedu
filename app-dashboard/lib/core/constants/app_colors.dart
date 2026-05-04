@@ -3,26 +3,39 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary — Indigo (professional, authoritative)
-  static const Color primary = Color(0xFF1A237E);
-  static const Color primaryLight = Color(0xFF534BAE);
-  static const Color primaryDark = Color(0xFF000051);
-  static const Color primarySurface = Color(0xFFE8EAF6);
+  // Primary — Purple/Violet (synced with frontend brand palette)
+  static const Color primary = Color(0xFF9561AB);
+  static const Color primaryLight = Color(0xFFA96BD0);
+  static const Color primaryDark = Color(0xFF7A4E90);
+  static const Color primarySurface = Color(0xFFF8F0FD);
+
+  // Brand scale (50–950, matching frontend tailwind)
+  static const Color brand50 = Color(0xFFF8F0FD);
+  static const Color brand100 = Color(0xFFEDD5F8);
+  static const Color brand200 = Color(0xFFD8A8F0);
+  static const Color brand300 = Color(0xFFBE79E4);
+  static const Color brand400 = Color(0xFFA96BD0);
+  static const Color brand500 = Color(0xFF9561AB);
+  static const Color brand600 = Color(0xFF7A4E90);
+  static const Color brand700 = Color(0xFF603C72);
+  static const Color brand800 = Color(0xFF472A54);
+  static const Color brand900 = Color(0xFF2E1A37);
+  static const Color brand950 = Color(0xFF1A0D20);
 
   // Secondary — Teal
   static const Color secondary = Color(0xFF00695C);
   static const Color secondaryLight = Color(0xFF439889);
   static const Color secondaryDark = Color(0xFF003D33);
 
-  // Sidebar
-  static const Color sidebarBg = Color(0xFF1A237E);
-  static const Color sidebarActive = Color(0xFF283593);
-  static const Color sidebarHover = Color(0xFF3949AB);
-  static const Color sidebarText = Color(0xFFE8EAF6);
-  static const Color sidebarTextMuted = Color(0xFF9FA8DA);
-  static const Color sidebarDivider = Color(0xFF283593);
+  // Sidebar (dark purple theme)
+  static const Color sidebarBg = Color(0xFF2E1A37);
+  static const Color sidebarActive = Color(0xFF472A54);
+  static const Color sidebarHover = Color(0xFF603C72);
+  static const Color sidebarText = Color(0xFFF8F0FD);
+  static const Color sidebarTextMuted = Color(0xFFD8A8F0);
+  static const Color sidebarDivider = Color(0xFF472A54);
 
-  // Lavender accent — dari brand VernonEdu
+  // Lavender accent
   static const Color lavender = Color(0xFFEDE9FF);
   static const Color lavenderMid = Color(0xFFC8B4E8);
 
@@ -58,9 +71,9 @@ class AppColors {
   static const Color roleStudent = Color(0xFF0277BD);
   static const Color rolePartner = Color(0xFF4E342E);
 
-  // Chart palette
+  // Chart palette (brand-first)
   static const List<Color> chartColors = [
-    Color(0xFF1A237E),
+    Color(0xFF9561AB),
     Color(0xFF00695C),
     Color(0xFFF57F17),
     Color(0xFFC62828),

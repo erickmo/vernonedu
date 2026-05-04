@@ -26,13 +26,26 @@ Platform pendidikan yang mengelola:
 
 ---
 
+## DEPRECATED — app-dashboard
+
+> **`app-dashboard/` is DEPRECATED and no longer maintained.**
+>
+> - DO NOT modify, refactor, or add features to `app-dashboard/`.
+> - DO NOT run tests, linters, or builds for `app-dashboard/`.
+> - DO NOT update its dependencies or pubspec.
+> - All dashboard work should target `web-dashboard/` instead.
+> - If a user asks to change something in `app-dashboard/`, redirect them to `web-dashboard/`.
+
+---
+
 ## Monorepo Structure
 
 ```
 vernonedu/
 ├── api/                  ← Backend REST API (Go) — port 8081
+├── web-dashboard/        ← React + Vite (Admin, staff internal dashboard) — port 3001
+├── app-dashboard/        ← ⚠️ DEPRECATED — do not modify
 ├── app-entrepreneur/     ← Flutter Web PWA (Siswa — entrepreneurship) — port 3000
-├── app-dashboard/        ← Flutter Web (Admin, staff internal) — port 3001
 ├── app-blockcoding/      ← Flutter Web (Block Coding IDE) — port 3002
 ├── app-mentors/          ← Flutter Mobile (Fasilitator) — port N/A
 ├── app-student/          ← Flutter Mobile (Siswa — base app) — port N/A
@@ -52,9 +65,9 @@ vernonedu/
 | **DB** | PostgreSQL (write) + Redis (read cache) |
 | **Events** | NATS JetStream (Watermill) |
 | **Observability** | OpenTelemetry → Jaeger, Prometheus, zerolog |
+| **Dashboard** | React 18, TypeScript, Vite 8, Tailwind CSS, Zustand, TanStack React Query |
 | **Flutter Apps** | Flutter/Dart, BLoC/Cubit, go_router, get_it, Dio, dartz |
 | **Auth** | JWT (Bearer token) |
-| **Storage (Flutter)** | shared_preferences (web + mobile compat) |
 | **Notifications** | In-app, Push (FCM), Email, WhatsApp/SMS |
 
 ---
@@ -81,7 +94,7 @@ Director
 
 ## Role System
 
-### Staff Roles (app-dashboard)
+### Staff Roles (web-dashboard)
 
 | Role Key | Label | Reports To | Scope |
 |----------|-------|------------|-------|
@@ -182,7 +195,7 @@ Leads
       → Cross-referenced when new course/batch created
 
 Notification Center
-  └── Distributes to: app-dashboard, app-mentors, app-student, supporting apps
+  └── Distributes to: web-dashboard, app-mentors, app-student, supporting apps
       Channels: in-app, push (FCM), email, WhatsApp/SMS
 
 Accounting (Branch-Based)
@@ -244,8 +257,8 @@ Dashboard (role-based)
 | NATS | 4222 |
 | Jaeger | 16686 |
 | Prometheus | 9090 |
+| web-dashboard | 3001 |
 | app-entrepreneur | 3000 |
-| app-dashboard | 3001 |
 | app-blockcoding | 3002 |
 
 ---
@@ -255,7 +268,7 @@ Dashboard (role-based)
 ```bash
 cd api && make infra-up && make migrate-up   # Infrastructure + DB
 cd api && make dev                            # API (port 8081)
-cd app-dashboard && make run-dev              # Dashboard (port 3001)
+cd web-dashboard && npm install && npm run dev  # Dashboard React (port 3001)
 cd app-entrepreneur && make run-dev           # Entrepreneur (port 3000)
 cd app-mentors && flutter run --dart-define=BASE_URL=http://localhost:8081/api/v1
 ```
@@ -266,10 +279,10 @@ cd app-mentors && flutter run --dart-define=BASE_URL=http://localhost:8081/api/v
 
 1. **SEMUA code ditulis oleh AI** — developer tidak menulis code manual
 2. **DILARANG push ke `main`** — selalu via feature branch + PR
-3. **Fitur WAJIB diimplementasi di kedua sisi** — API (Go) + Flutter secara bersamaan
+3. **Fitur WAJIB diimplementasi di kedua sisi** — API (Go) + Frontend (React) secara bersamaan
 4. **WAJIB unit test** untuk setiap fungsi/widget baru
 5. **Commit format:** `type(scope): deskripsi` — e.g., `feat(attendance): add weekly summary`
-6. **Design uniformity** — All apps MUST share consistent VernonEdu brand identity: fonts, colors, spacing, component styles. Use `AppColors`, `AppDimensions`, `AppStrings` consistently across all Flutter apps.
+6. **Design uniformity** — All apps MUST share consistent VernonEdu brand identity: fonts, colors, spacing, component styles.
 
 ---
 
@@ -283,12 +296,9 @@ cd app-mentors && flutter run --dart-define=BASE_URL=http://localhost:8081/api/v
 | Contributing | `docs/CONTRIBUTING.md` | Cara menambah fitur baru (step-by-step) |
 | Environment Setup | `docs/ENVIRONMENT_SETUP.md` | Setup lokal, troubleshooting |
 | API CLAUDE.md | `api/CLAUDE.md` | Go coding guide + semua endpoints |
-| Dashboard CLAUDE.md | `app-dashboard/CLAUDE.md` | Stack, arch, routes, domain index |
-| Dashboard Requirements | `app-dashboard/docs/requirements/` | Per-domain specs |
-| Dashboard Testing | `app-dashboard/docs/testing/TESTING.md` | Test conventions |
-| Dashboard Audit | `app-dashboard/docs/audit/AUDIT.md` | Code quality, tech debt |
+| Dashboard CLAUDE.md | `web-dashboard/CLAUDE.md` | React stack, arch, routes, domain index |
 | Mentors CLAUDE.md | `app-mentors/CLAUDE.md` | Roles, routes, fitur mobile |
 
 ---
 
-**Last Updated:** Maret 2026
+**Last Updated:** Mei 2026

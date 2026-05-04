@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 
@@ -7,7 +8,7 @@ class AppTheme {
 
   static ThemeData get light => ThemeData(
         useMaterial3: true,
-        fontFamily: 'Inter',
+        textTheme: GoogleFonts.plusJakartaSansTextTheme(),
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
           surface: AppColors.surface,
@@ -106,20 +107,6 @@ class AppTheme {
         dividerTheme: const DividerThemeData(
           color: AppColors.divider,
           thickness: 1,
-        ),
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(color: AppColors.textPrimary),
-          displayMedium: TextStyle(color: AppColors.textPrimary),
-          displaySmall: TextStyle(color: AppColors.textPrimary),
-          headlineLarge: TextStyle(color: AppColors.textPrimary),
-          headlineMedium: TextStyle(color: AppColors.textPrimary),
-          headlineSmall: TextStyle(color: AppColors.textPrimary),
-          titleLarge: TextStyle(color: AppColors.textPrimary),
-          titleMedium: TextStyle(color: AppColors.textPrimary),
-          titleSmall: TextStyle(color: AppColors.textSecondary),
-          bodyLarge: TextStyle(color: AppColors.textPrimary),
-          bodyMedium: TextStyle(color: AppColors.textSecondary),
-          bodySmall: TextStyle(color: AppColors.textSecondary),
         ),
       );
 }

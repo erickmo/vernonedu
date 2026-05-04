@@ -194,18 +194,20 @@ class InvoiceCubit extends Cubit<InvoiceState> {
 
   Future<void> createManualInvoice(Map<String, dynamic> body) async {
     final current = state;
-    if (current is! InvoiceLoaded) return;
+    final previousFilter = current is InvoiceLoaded ? current.filter : null;
 
     final result = await createManual(body);
 
     result.fold(
       (failure) => emit(InvoiceError(failure.message)),
       (_) async {
-        emit(InvoiceActionSuccess(
-          message: 'Invoice manual berhasil dibuat',
-          previous: current,
-        ));
-        await loadAll(filter: current.filter);
+        if (current is InvoiceLoaded) {
+          emit(InvoiceActionSuccess(
+            message: 'Invoice manual berhasil dibuat',
+            previous: current,
+          ));
+          await loadAll(filter: previousFilter);
+        }
       },
     );
   }

@@ -8,7 +8,7 @@ Monorepo platform pendidikan VernonEdu — entrepreneurship, kurikulum, dan mana
 |--------|-------|-----------|----------|
 | `api/` | Go + Chi + CQRS | Backend REST API | `:8081` |
 | `app-entrepreneur/` | Flutter Web PWA | Aplikasi siswa (entrepreneurship) | `:3000` |
-| `app-dashboard/` | Flutter Web | Dashboard admin & instruktur | `:3001` |
+| `web-dashboard/` | React + Vite + TS | Dashboard admin & instruktur | `:3001` |
 | `app-blockcoding/` | Flutter Web | Sub-app block coding | `:3002` |
 | `app-mentors/` | Flutter Mobile (Android/iOS) | Aplikasi mentor, fasilitator & course owner | — |
 | `app-student/` | Flutter Mobile (Android/iOS) | Aplikasi siswa (mobile) | — |
@@ -40,12 +40,12 @@ make get             # Install dependencies
 make run-dev         # Start app (Chrome, connect ke localhost:8081)
 ```
 
-### 4. App Dashboard (Web)
+### 4. Web Dashboard
 
 ```bash
-cd app-dashboard
-make get             # Install dependencies
-make run-dev         # Start dashboard (Chrome, port 3001)
+cd web-dashboard
+npm install           # Install dependencies
+npm run dev           # Start dashboard (Vite, port 3001)
 ```
 
 ### 5. App Mentors (Mobile)
@@ -82,8 +82,8 @@ flutter run --dart-define=BASE_URL=http://localhost:8081/api/v1
 | Jaeger (Tracing) | http://localhost:16686 |
 | Prometheus (Metrics) | http://localhost:9090 |
 | App Entrepreneur | http://localhost:3000 |
-| App Dashboard | http://localhost:3001 |
+| Web Dashboard | http://localhost:3001 |
 
 ---
 
-**Last Updated:** Maret 2026
+**Last Updated:** Mei 2026

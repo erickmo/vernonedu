@@ -339,6 +339,25 @@ import (
 	listrefpartners     "github.com/vernonedu/entrepreneurship-api/internal/query/list_referral_partners"
 	listreferrals       "github.com/vernonedu/entrepreneurship-api/internal/query/list_referrals"
 	getmarketingstats   "github.com/vernonedu/entrepreneurship-api/internal/query/get_marketing_stats"
+	// HRM commands
+	createattendance   "github.com/vernonedu/entrepreneurship-api/internal/command/create_attendance"
+	createemployee     "github.com/vernonedu/entrepreneurship-api/internal/command/create_employee"
+	createleaverequest "github.com/vernonedu/entrepreneurship-api/internal/command/create_leave_request"
+	createpayrollitem  "github.com/vernonedu/entrepreneurship-api/internal/command/create_payroll_item"
+	createpayrollperiod "github.com/vernonedu/entrepreneurship-api/internal/command/create_payroll_period"
+	reviewleaverequest "github.com/vernonedu/entrepreneurship-api/internal/command/review_leave_request"
+	updateemployee     "github.com/vernonedu/entrepreneurship-api/internal/command/update_employee"
+	updatepayrollitem  "github.com/vernonedu/entrepreneurship-api/internal/command/update_payroll_item"
+	updatepayrollperiod "github.com/vernonedu/entrepreneurship-api/internal/command/update_payroll_period"
+	// HRM queries
+	getattendancesummary "github.com/vernonedu/entrepreneurship-api/internal/query/get_attendance_summary"
+	getemployee        "github.com/vernonedu/entrepreneurship-api/internal/query/get_employee"
+	getpayrollperiod   "github.com/vernonedu/entrepreneurship-api/internal/query/get_payroll_period"
+	listattendance     "github.com/vernonedu/entrepreneurship-api/internal/query/list_attendance"
+	listemployees      "github.com/vernonedu/entrepreneurship-api/internal/query/list_employees"
+	listleaverequests  "github.com/vernonedu/entrepreneurship-api/internal/query/list_leave_requests"
+	listpayrollitems   "github.com/vernonedu/entrepreneurship-api/internal/query/list_payroll_items"
+	listpayrollperiods "github.com/vernonedu/entrepreneurship-api/internal/query/list_payroll_periods"
 	// handlers
 	httphandler "github.com/vernonedu/entrepreneurship-api/internal/delivery/http"
 )
@@ -505,6 +524,7 @@ func main() {
 				return database.NewFinanceJournalRepository(db)
 			},
 			newFinanceHTTPHandler,
+			newHrmHTTPHandler,
 			// Approval repository
 			func(db *sqlx.DB) *database.ApprovalRepository {
 				return database.NewApprovalRepository(db)
@@ -549,6 +569,10 @@ func main() {
 			// Student App Access repository
 			func(db *sqlx.DB) *database.StudentAppAccessRepository {
 				return database.NewStudentAppAccessRepository(db)
+			},
+			// HRM repository
+			func(db *sqlx.DB) *database.HrmRepository {
+				return database.NewHrmRepository(db)
 			},
 
 			// HTTP handlers
@@ -786,6 +810,10 @@ func newFinanceHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBu
 	return httphandler.NewFinanceHandler(cmdBus, qryBus)
 }
 
+func newHrmHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.HrmHandler {
+	return httphandler.NewHrmHandler(cmdBus, qryBus)
+}
+
 func newRouter(
 	userHandler *httphandler.UserHandler,
 	businessHandler *httphandler.BusinessHandler,
@@ -823,6 +851,7 @@ func newRouter(
 	financeReportHandler *httphandler.FinanceReportHandler,
 	financeHandler *httphandler.FinanceHandler,
 	marketingHandler *httphandler.MarketingHandler,
+	hrmHandler *httphandler.HrmHandler,
 	jwtUtil *jwtutil.JWTUtil,
 ) *chi.Mux {
 	r := chi.NewRouter()
@@ -898,6 +927,8 @@ func newRouter(
 		httphandler.RegisterFinanceRoutes(financeHandler, r)
 		// Marketing routes
 		httphandler.RegisterMarketingRoutes(marketingHandler, r)
+		// HRM routes
+		httphandler.RegisterHrmRoutes(hrmHandler, r)
 	})
 
 	// Certificate public routes (no auth)
@@ -974,6 +1005,8 @@ type registerParams struct {
 	HolidayRepo     *database.HolidayRepo
 	ReportRepo      *database.ReportRepository
 	AppAccessRepo   *database.StudentAppAccessRepository
+	// HRM repository
+	HrmRepo         *database.HrmRepository
 	EventBus eventbus.EventBus
 }
 
@@ -2251,6 +2284,78 @@ func registerHandlers(p registerParams) error {
 	}
 	if err := p.EventBus.Subscribe(ctxBg, "InvoiceOverdue", appAccessH.OnInvoiceOverdue); err != nil {
 		log.Warn().Err(err).Msg("failed to subscribe InvoiceOverdue for app access")
+	}
+
+	// ---- HRM Command Handlers ----
+	if err := p.CmdBus.Register(&createemployee.CreateEmployeeCommand{},
+		createemployee.NewHandler(p.HrmRepo, p.HrmRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updateemployee.UpdateEmployeeCommand{},
+		updateemployee.NewHandler(p.HrmRepo, p.HrmRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createattendance.CreateAttendanceCommand{},
+		createattendance.NewHandler(p.HrmRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createleaverequest.CreateLeaveRequestCommand{},
+		createleaverequest.NewHandler(p.HrmRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&reviewleaverequest.ReviewLeaveRequestCommand{},
+		reviewleaverequest.NewHandler(p.HrmRepo, p.HrmRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createpayrollperiod.CreatePayrollPeriodCommand{},
+		createpayrollperiod.NewHandler(p.HrmRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatepayrollperiod.UpdatePayrollPeriodCommand{},
+		updatepayrollperiod.NewHandler(p.HrmRepo, p.HrmRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createpayrollitem.CreatePayrollItemCommand{},
+		createpayrollitem.NewHandler(p.HrmRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatepayrollitem.UpdatePayrollItemCommand{},
+		updatepayrollitem.NewHandler(p.HrmRepo, p.HrmRepo, p.EventBus)); err != nil {
+		return err
+	}
+
+	// ---- HRM Query Handlers ----
+	listEmployeesH := listemployees.NewHandler(p.HrmRepo)
+	if err := p.QryBus.Register(&listemployees.ListEmployeesQuery{}, adaptQueryHandler(listEmployeesH.Handle)); err != nil {
+		return err
+	}
+	getEmployeeH := getemployee.NewHandler(p.HrmRepo)
+	if err := p.QryBus.Register(&getemployee.GetEmployeeQuery{}, adaptQueryHandler(getEmployeeH.Handle)); err != nil {
+		return err
+	}
+	listAttendanceH := listattendance.NewHandler(p.HrmRepo)
+	if err := p.QryBus.Register(&listattendance.ListAttendanceQuery{}, adaptQueryHandler(listAttendanceH.Handle)); err != nil {
+		return err
+	}
+	getAttendanceSummaryH := getattendancesummary.NewHandler(p.HrmRepo)
+	if err := p.QryBus.Register(&getattendancesummary.AttendanceSummaryQuery{}, adaptQueryHandler(getAttendanceSummaryH.Handle)); err != nil {
+		return err
+	}
+	listLeaveRequestsH := listleaverequests.NewHandler(p.HrmRepo)
+	if err := p.QryBus.Register(&listleaverequests.ListLeaveRequestsQuery{}, adaptQueryHandler(listLeaveRequestsH.Handle)); err != nil {
+		return err
+	}
+	listPayrollPeriodsH := listpayrollperiods.NewHandler(p.HrmRepo)
+	if err := p.QryBus.Register(&listpayrollperiods.ListPayrollPeriodsQuery{}, adaptQueryHandler(listPayrollPeriodsH.Handle)); err != nil {
+		return err
+	}
+	getPayrollPeriodH := getpayrollperiod.NewHandler(p.HrmRepo)
+	if err := p.QryBus.Register(&getpayrollperiod.GetPayrollPeriodQuery{}, adaptQueryHandler(getPayrollPeriodH.Handle)); err != nil {
+		return err
+	}
+	listPayrollItemsH := listpayrollitems.NewHandler(p.HrmRepo)
+	if err := p.QryBus.Register(&listpayrollitems.ListPayrollItemsQuery{}, adaptQueryHandler(listPayrollItemsH.Handle)); err != nil {
+		return err
 	}
 
 	return nil

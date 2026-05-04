@@ -1,6 +1,7 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_dimensions.dart';
@@ -36,147 +37,17 @@ class _MarketingPrTabState extends State<MarketingPrTab> {
     ('other', 'Lainnya'),
   ];
 
-  void _showPrForm(BuildContext context, {PrScheduleEntity? pr}) {
-    final titleCtrl = TextEditingController(text: pr?.title ?? '');
-    final mediaVenueCtrl = TextEditingController(text: pr?.mediaVenue ?? '');
-    final picCtrl = TextEditingController(text: pr?.picName ?? '');
-    final notesCtrl = TextEditingController(text: pr?.notes ?? '');
-    String selType = pr?.type ?? 'event';
-    String selStatus = pr?.status ?? 'scheduled';
-    DateTime selDate = pr?.scheduledAt ?? DateTime.now();
-    final dateCtrl = TextEditingController(
-        text: pr != null ? DateFormatUtil.toDisplayWithTime(pr.scheduledAt) : '');
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSt) => AlertDialog(
-          title: Text(pr == null ? 'Jadwalkan PR / Event' : 'Edit PR / Event'),
-          content: SizedBox(
-            width: 480,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: titleCtrl,
-                    decoration: const InputDecoration(labelText: 'Judul *'),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  DropdownButtonFormField<String>(
-                    value: selType,
-                    decoration: const InputDecoration(labelText: 'Tipe'),
-                    items: _typeFilters
-                        .where((e) => e.$1.isNotEmpty)
-                        .map((e) => DropdownMenuItem(
-                            value: e.$1, child: Text(e.$2)))
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) setSt(() => selType = v);
-                    },
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  TextField(
-                    controller: mediaVenueCtrl,
-                    decoration: const InputDecoration(
-                        labelText: 'Media / Venue'),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  TextField(
-                    controller: picCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'PIC (Nama)'),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  if (pr != null)
-                    DropdownButtonFormField<String>(
-                      value: selStatus,
-                      decoration: const InputDecoration(labelText: 'Status'),
-                      items: _statusFilters
-                          .where((e) => e.$1.isNotEmpty)
-                          .map((e) => DropdownMenuItem(
-                              value: e.$1, child: Text(e.$2)))
-                          .toList(),
-                      onChanged: (v) {
-                        if (v != null) setSt(() => selStatus = v);
-                      },
-                    ),
-                  if (pr != null) const SizedBox(height: AppDimensions.sm),
-                  InkWell(
-                    onTap: () async {
-                      final date = await showDatePicker(
-                        context: ctx,
-                        initialDate: selDate,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2030),
-                      );
-                      if (date == null || !ctx.mounted) return;
-                      final time = await showTimePicker(
-                        context: ctx,
-                        initialTime: TimeOfDay.fromDateTime(selDate),
-                      );
-                      if (time == null) return;
-                      setSt(() {
-                        selDate = DateTime(date.year, date.month, date.day,
-                            time.hour, time.minute);
-                        dateCtrl.text =
-                            DateFormatUtil.toDisplayWithTime(selDate);
-                      });
-                    },
-                    child: AbsorbPointer(
-                      child: TextField(
-                        controller: dateCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Tanggal & Waktu',
-                          suffixIcon: Icon(Icons.calendar_today, size: 16),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  TextField(
-                    controller: notesCtrl,
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                        labelText: 'Keterangan',
-                        alignLabelWithHint: true),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Batal')),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary),
-              onPressed: () {
-                if (titleCtrl.text.trim().isEmpty) return;
-                final data = {
-                  'title': titleCtrl.text.trim(),
-                  'type': selType,
-                  'media_venue': mediaVenueCtrl.text.trim(),
-                  'pic_name': picCtrl.text.trim(),
-                  'status': selStatus,
-                  'notes': notesCtrl.text.trim(),
-                  'scheduled_at': selDate.millisecondsSinceEpoch ~/ 1000,
-                };
-                final cubit = context.read<MarketingCubit>();
-                if (pr == null) {
-                  cubit.createPr(data);
-                } else {
-                  cubit.updatePr(pr.id, data);
-                }
-                Navigator.pop(ctx);
-              },
-              child: const Text('Simpan'),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _showPrForm(BuildContext context,
+      {PrScheduleEntity? pr}) async {
+    final saved = pr == null
+        ? await context.push<bool>('/marketing/pr/new')
+        : await context.push<bool>(
+            '/marketing/pr/${pr.id}/edit',
+            extra: pr,
+          );
+    if (saved == true && context.mounted) {
+      context.read<MarketingCubit>().loadAll();
+    }
   }
 
   @override

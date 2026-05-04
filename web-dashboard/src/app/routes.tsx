@@ -194,19 +194,19 @@ const singleTenantRoutes = [
       { path: 'certificates/templates/new',           element: <S><CertificateTemplateEditorPage /></S> },
       { path: 'certificates/templates/:templateId/edit', element: <S><CertificateTemplateEditorPage /></S> },
 
-      // ── Departments ────────────────────────────────────────────────────────
-      { path: 'departments',                          element: <S><DepartmentListPage /></S> },
-      { path: 'departments/new',                      element: <S><DepartmentFormPage /></S> },
-      { path: 'departments/:deptId',                  element: <S><DepartmentDashboardPage /></S> },
-      { path: 'departments/:deptId/edit',             element: <S><DepartmentFormPage /></S> },
+      // ── Departments (under Pengembangan) ──────────────────────────────────
+      { path: 'pengembangan/departments',             element: <S><DepartmentListPage /></S> },
+      { path: 'pengembangan/departments/new',         element: <S><DepartmentFormPage /></S> },
+      { path: 'pengembangan/departments/:deptId',     element: <S><DepartmentDashboardPage /></S> },
+      { path: 'pengembangan/departments/:deptId/edit', element: <S><DepartmentFormPage /></S> },
 
       // ── Leads ──────────────────────────────────────────────────────────────
       { path: 'leads',                                element: <S><LeadListPage /></S> },
       { path: 'leads/new',                            element: <S><LeadFormPage /></S> },
       { path: 'leads/:leadId/edit',                   element: <S><LeadFormPage /></S> },
 
-      // ── Locations ──────────────────────────────────────────────────────────
-      { path: 'locations',                            element: <S><LocationListPage /></S> },
+      // ── Locations (under Pengembangan) ────────────────────────────────────
+      { path: 'pengembangan/locations',               element: <S><LocationListPage /></S> },
 
       // ── Payments ───────────────────────────────────────────────────────────
       { path: 'payments',                             element: <S><PaymentListPage /></S> },

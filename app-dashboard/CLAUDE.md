@@ -164,61 +164,90 @@ AppColors.chartColors      // [#1A237E, #00695C, #F57F17, #C62828, #6A1B9A, #027
 ```
 /login                              → LoginPage (unauthenticated)
 /dashboard                          → DashboardPage
-/curriculum                         → CoursePage
-  /curriculum/types/:typeId         → CourseVersionPage
-  /curriculum/versions/:versionId   → CourseModulePage
-  /curriculum/:courseId             → CourseDashboardPage
+/curriculum                         → EducationPage
+  /curriculum/new-course                                          → CourseFormPage
+  /curriculum/types/:typeId                                       → CourseVersionPage
+    /curriculum/types/:typeId/versions/new                        → VersionFormPage
+  /curriculum/versions/:versionId                                 → CourseModulePage
+    /curriculum/versions/:versionId/internship-config             → InternshipConfigPage
+    /curriculum/versions/:versionId/character-test-config         → CharacterTestConfigPage
+  /curriculum/:courseId                                           → CourseDashboardPage
 /courses/:id                        → CourseDashboardPage (backward compat)
 /course-batches                     → CourseBatchPage
-  /course-batches/:batchId          → CourseBatchDetailPage
+  /course-batches/new                                             → BatchFormPage
+  /course-batches/:batchId                                        → CourseBatchDetailPage
 /enrollments                        → EnrollmentPage
+  /enrollments/new                                                → EnrollmentFormPage
 /evaluations                        → EvaluationPage
 /students                           → StudentPage
-  /students/:studentId              → StudentDashboardPage
+  /students/new                                                   → StudentFormPage
+  /students/:studentId                                            → StudentDashboardPage
+    /students/:studentId/edit                                     → StudentFormPage (edit)
 /talentpool                         → TalentPoolPage (4 tabs)
 /certificates                       → CertificatePage
+  /certificates/issue/participant                                 → IssueParticipantPage
+  /certificates/issue/competency                                  → IssueCompetencyPage
+/certificate-templates              → CertificateTemplateListPage
+  /certificate-templates/new                                      → CertificateTemplateEditorPage
+  /certificate-templates/:id/edit                                 → CertificateTemplateEditorPage
 /payments                           → PaymentPage
 /departments                        → DepartmentPage
-  /departments/:departmentId        → DepartmentDashboardPage
+  /departments/:departmentId                                      → DepartmentDashboardPage
 /accounting                         → (deprecated — redirect to /finance)
 /finance                            → FinanceMainPage (dashboard)
-  /finance/transactions             → TransactionPage
-  /finance/transactions/new         → TransactionFormPage
-  /finance/journal                  → JournalPage
-  /finance/coa                      → ChartOfAccountsPage
-  /finance/invoices                 → InvoicePage
-  /finance/payables                 → PayablePage
-  /finance/reports                  → ReportNavigationPage
-    /finance/reports/balance-sheet  → BalanceSheetPage
-    /finance/reports/profit-loss    → ProfitLossPage
-    /finance/reports/cash-flow      → CashFlowPage
-    /finance/reports/ledger         → GeneralLedgerPage
-    /finance/reports/trial-balance  → TrialBalancePage
-  /finance/analysis                 → FinancialAnalysisPage
+  /finance/transactions                                           → TransactionPage
+    /finance/transactions/new                                     → TransactionFormPage
+  /finance/journal                                                → JournalPage
+  /finance/coa                                                    → ChartOfAccountsPage
+    /finance/coa/new                                              → CoaFormPage
+  /finance/bank-accounts                                          → BankAccountsPage
+  /finance/invoices                                               → InvoicePage
+    /finance/invoices/manual/new                                  → ManualInvoiceFormPage
+    /finance/invoices/:id                                         → InvoiceDetailPage
+  /finance/payables                                               → PayablePage
+  /finance/reports                                                → ReportNavigationPage
+    /finance/reports/balance-sheet                                → BalanceSheetPage
+    /finance/reports/profit-loss                                  → ProfitLossPage
+    /finance/reports/cash-flow                                    → CashFlowPage
+    /finance/reports/ledger                                       → GeneralLedgerPage
+    /finance/reports/trial-balance                                → TrialBalancePage
+  /finance/analysis                                               → FinancialAnalysisPage
 /hrm                                → HrmPage
-  /hrm/:sdmId                       → SdmDetailPage
+  /hrm/:sdmId                                                     → SdmDetailPage
 /projects                           → ProjectPage
 /crm                                → CrmPage
-/marketing                          → MarketingPage (leads, social media, PR, referral, calendar)
-/partners                           → PartnerPage (partner data + MOU tracking)
-/leads                              → LeadsPage (potential customer tracking)
-/locations                          → LocationPage (buildings & rooms)
-/business-development               → BusinessDevelopmentPage (overview)
-  /business-development/canvas      → BMCPage (Business Model Canvas)
+/leads                              → LeadsPage
+  /leads/new                                                      → LeadFormPage
+  /leads/:id/edit                                                 → LeadFormPage (edit)
+/marketing                          → MarketingPage
+  /marketing/social/new                                           → SocialPostFormPage
+  /marketing/social/:id/edit                                      → SocialPostFormPage (edit)
+  /marketing/pr/new                                               → PrContentFormPage
+  /marketing/pr/:id/edit                                          → PrContentFormPage (edit)
+  /marketing/referrals/new                                        → ReferralFormPage
+  /marketing/referrals/:id/edit                                   → ReferralFormPage (edit)
+/partners                           → PartnerPage
+/locations                          → LocationPage
+/business-development               → BusinessDevelopmentPage
+  /business-development/canvas      → BMCPage
   /business-development/branches    → BranchManagementPage
   /business-development/franchises  → FranchiseManagementPage
-  /business-development/okr         → OkrPage (OKR & KPI)
+  /business-development/okr         → OkrPage
   /business-development/investments → InvestmentPlanPage
   /business-development/projections → ProjectionReportsPage
   /business-development/delegations → DelegationPage
+  /business-development/partners/:partnerId → PartnerDetailPage
 /notifications                      → NotificationPage
-/approvals                          → ApprovalPage (pending approvals queue)
-/settings                           → SettingsPage (certificate templates, commission, CoA, domains, etc.)
-/cms                                → CmsPage (website content management)
-  /cms/pages/:slug/edit             → PageEditorPage
-  /cms/articles                     → ArticleListPage
-  /cms/articles/new                 → ArticleEditorPage
-  /cms/articles/:id/edit            → ArticleEditorPage
+/approvals                          → ApprovalPage
+/settings                           → SettingsPage
+/cms                                → CmsPage
+  /cms/pages/:slug/edit                                           → PageEditorPage
+  /cms/articles/new                                               → ArticleFormPage
+  /cms/articles/:id/edit                                          → ArticleFormPage (edit)
+  /cms/testimonials/new                                           → TestimonialFormPage
+  /cms/testimonials/:id/edit                                      → TestimonialFormPage (edit)
+  /cms/faq/new                                                    → FaqFormPage
+  /cms/faq/:id/edit                                               → FaqFormPage (edit)
 ```
 
 Auth redirect: unauthenticated → `/login`; authenticated on `/login` → `/dashboard`

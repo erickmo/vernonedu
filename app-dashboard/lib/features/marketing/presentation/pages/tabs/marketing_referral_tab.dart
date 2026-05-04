@@ -1,6 +1,7 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../core/constants/app_colors.dart';
@@ -25,105 +26,17 @@ class _MarketingReferralTabState extends State<MarketingReferralTab> {
   final _currFmt =
       NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
-  void _showPartnerForm(BuildContext context,
-      {ReferralPartnerEntity? partner}) {
-    final nameCtrl = TextEditingController(text: partner?.name ?? '');
-    final emailCtrl =
-        TextEditingController(text: partner?.contactEmail ?? '');
-    final codeCtrl =
-        TextEditingController(text: partner?.referralCode ?? '');
-    final commValueCtrl = TextEditingController(
-        text: partner?.commissionValue.toString() ?? '');
-    String commType = partner?.commissionType ?? 'percentage';
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSt) => AlertDialog(
-          title: Text(partner == null
-              ? 'Tambah Referral Partner'
-              : 'Edit Referral Partner'),
-          content: SizedBox(
-            width: 400,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: nameCtrl,
-                    decoration: const InputDecoration(labelText: 'Nama *'),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  TextField(
-                    controller: emailCtrl,
-                    decoration: const InputDecoration(labelText: 'Email Kontak'),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  TextField(
-                    controller: codeCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'Kode Referral'),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  DropdownButtonFormField<String>(
-                    value: commType,
-                    decoration:
-                        const InputDecoration(labelText: 'Tipe Komisi'),
-                    items: const [
-                      DropdownMenuItem(
-                          value: 'percentage', child: Text('Persentase (%)')),
-                      DropdownMenuItem(
-                          value: 'fixed', child: Text('Nominal Tetap (Rp)')),
-                    ],
-                    onChanged: (v) {
-                      if (v != null) setSt(() => commType = v);
-                    },
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  TextField(
-                    controller: commValueCtrl,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: commType == 'percentage'
-                          ? 'Nilai Komisi (%)'
-                          : 'Nilai Komisi (Rp)',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Batal')),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary),
-              onPressed: () {
-                if (nameCtrl.text.trim().isEmpty) return;
-                final data = {
-                  'name': nameCtrl.text.trim(),
-                  'contact_email': emailCtrl.text.trim(),
-                  'referral_code': codeCtrl.text.trim(),
-                  'commission_type': commType,
-                  'commission_value':
-                      double.tryParse(commValueCtrl.text.trim()) ?? 0.0,
-                };
-                final cubit = context.read<MarketingCubit>();
-                if (partner == null) {
-                  cubit.createReferralPartner(data);
-                } else {
-                  cubit.updateReferralPartner(partner.id, data);
-                }
-                Navigator.pop(ctx);
-              },
-              child: const Text('Simpan'),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _showPartnerForm(BuildContext context,
+      {ReferralPartnerEntity? partner}) async {
+    final saved = partner == null
+        ? await context.push<bool>('/marketing/referrals/new')
+        : await context.push<bool>(
+            '/marketing/referrals/${partner.id}/edit',
+            extra: partner,
+          );
+    if (saved == true && context.mounted) {
+      context.read<MarketingCubit>().loadAll();
+    }
   }
 
   Future<void> _toggleExpand(

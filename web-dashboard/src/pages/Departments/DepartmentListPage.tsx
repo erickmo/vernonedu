@@ -106,7 +106,7 @@ export default function DepartmentListPage() {
       key: 'edit',
       label: 'Edit',
       icon: <Pencil size={14} />,
-      onClick: (row) => navigate(`/departments/${row.id}/edit`),
+      onClick: (row) => navigate(`/pengembangan/departments/${row.id}/edit`),
     },
   ]
 
@@ -114,12 +114,12 @@ export default function DepartmentListPage() {
     <ListPageTemplate<Department>
       title="Departemen"
       addLabel="Tambah Departemen"
-      onAdd={() => navigate('/departments/new')}
+      onAdd={() => navigate('/pengembangan/departments/new')}
       queryKey="departments"
       fetcher={(params) => departmentService.list(params)}
       columns={columns}
       rowActions={rowActions}
-      onRowClick={(row) => navigate(`/departments/${row.id}`)}
+      onRowClick={(row) => navigate(`/pengembangan/departments/${row.id}`)}
       searchPlaceholder="Cari departemen..."
       exportFilename="departemen"
       emptyTitle="Belum ada departemen"

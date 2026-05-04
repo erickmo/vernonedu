@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_dimensions.dart';
@@ -94,11 +95,11 @@ class _CoaView extends StatelessWidget {
     );
   }
 
-  void _showAddAccountDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const _AddAccountDialog(),
-    );
+  Future<void> _showAddAccountDialog(BuildContext context) async {
+    final created = await context.push<bool>('/finance/coa/new');
+    if (created == true && context.mounted) {
+      context.read<AccountingCubit>().loadAll();
+    }
   }
 }
 
@@ -522,89 +523,3 @@ class _ActiveIndicator extends StatelessWidget {
   }
 }
 
-class _AddAccountDialog extends StatefulWidget {
-  const _AddAccountDialog();
-
-  @override
-  State<_AddAccountDialog> createState() => _AddAccountDialogState();
-}
-
-class _AddAccountDialogState extends State<_AddAccountDialog> {
-  final _codeCtrl = TextEditingController();
-  final _nameCtrl = TextEditingController();
-  String _type = 'asset';
-
-  @override
-  void dispose() {
-    _codeCtrl.dispose();
-    _nameCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Tambah Akun Baru'),
-      content: SizedBox(
-        width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _codeCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Kode Akun',
-                hintText: 'misal: 1101',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: AppDimensions.md),
-            TextField(
-              controller: _nameCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Nama Akun',
-                hintText: 'misal: Kas',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: AppDimensions.md),
-            DropdownButtonFormField<String>(
-              value: _type,
-              decoration: const InputDecoration(
-                labelText: 'Tipe Akun',
-                border: OutlineInputBorder(),
-              ),
-              items: const [
-                DropdownMenuItem(value: 'asset', child: Text('Aset')),
-                DropdownMenuItem(value: 'liability', child: Text('Kewajiban')),
-                DropdownMenuItem(value: 'equity', child: Text('Ekuitas')),
-                DropdownMenuItem(value: 'revenue', child: Text('Pendapatan')),
-                DropdownMenuItem(value: 'expense', child: Text('Beban')),
-              ],
-              onChanged: (v) {
-                if (v != null) setState(() => _type = v);
-              },
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Batal'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            // TODO: wire to create COA command
-            Navigator.of(context).pop();
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.textOnPrimary,
-          ),
-          child: const Text('Simpan'),
-        ),
-      ],
-    );
-  }
-}

@@ -1,6 +1,7 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
@@ -81,136 +82,13 @@ class _LeadsViewState extends State<_LeadsView> {
     }).toList();
   }
 
-  void _showLeadForm(BuildContext context, {LeadEntity? lead}) {
-    final nameCtrl = TextEditingController(text: lead?.name ?? '');
-    final emailCtrl = TextEditingController(text: lead?.email ?? '');
-    final phoneCtrl = TextEditingController(text: lead?.phone ?? '');
-    final interestCtrl = TextEditingController(text: lead?.interest ?? '');
-    final notesCtrl = TextEditingController(text: lead?.notes ?? '');
-    String selectedSource = lead?.source ?? 'referral';
-    String selectedStatus = lead?.status ?? 'new';
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(lead == null ? 'Tambah Lead' : 'Edit Lead'),
-          content: SizedBox(
-            width: 400,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: nameCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Nama *',
-                      hintText: 'Nama calon siswa',
-                    ),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  TextField(
-                    controller: emailCtrl,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      hintText: 'contoh@email.com',
-                    ),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  TextField(
-                    controller: phoneCtrl,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      labelText: 'Nomor Telepon',
-                      hintText: '08xxxxxxxxxx',
-                    ),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  TextField(
-                    controller: interestCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Minat Program',
-                      hintText: 'Program yang diminati',
-                    ),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  DropdownButtonFormField<String>(
-                    value: selectedSource,
-                    decoration: const InputDecoration(labelText: 'Sumber'),
-                    items: _sourceOptions
-                        .map((e) => DropdownMenuItem(
-                              value: e.$1,
-                              child: Text(e.$2),
-                            ))
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) setDialogState(() => selectedSource = v);
-                    },
-                  ),
-                  if (lead != null) ...[
-                    const SizedBox(height: AppDimensions.sm),
-                    DropdownButtonFormField<String>(
-                      value: selectedStatus,
-                      decoration: const InputDecoration(labelText: 'Status'),
-                      items: _statusOptions
-                          .map((e) => DropdownMenuItem(
-                                value: e.$1,
-                                child: Text(e.$2),
-                              ))
-                          .toList(),
-                      onChanged: (v) {
-                        if (v != null) setDialogState(() => selectedStatus = v);
-                      },
-                    ),
-                  ],
-                  const SizedBox(height: AppDimensions.sm),
-                  TextField(
-                    controller: notesCtrl,
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Catatan',
-                      hintText: 'Catatan tambahan',
-                      alignLabelWithHint: true,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Batal'),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-              ),
-              onPressed: () {
-                if (nameCtrl.text.trim().isEmpty) return;
-                final data = {
-                  'name': nameCtrl.text.trim(),
-                  'email': emailCtrl.text.trim(),
-                  'phone': phoneCtrl.text.trim(),
-                  'interest': interestCtrl.text.trim(),
-                  'source': selectedSource,
-                  'notes': notesCtrl.text.trim(),
-                  if (lead != null) 'status': selectedStatus,
-                };
-                if (lead == null) {
-                  context.read<LeadCubit>().createLead(data);
-                } else {
-                  context.read<LeadCubit>().updateLead(lead.id, data);
-                }
-                Navigator.pop(ctx);
-              },
-              child: Text(lead == null ? 'Simpan' : 'Update'),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _showLeadForm(BuildContext context, {LeadEntity? lead}) async {
+    final saved = lead == null
+        ? await context.push<bool>('/leads/new')
+        : await context.push<bool>('/leads/${lead.id}/edit', extra: lead);
+    if (saved == true && context.mounted) {
+      context.read<LeadCubit>().loadLeads();
+    }
   }
 
   void _confirmDelete(BuildContext context, LeadEntity lead) {

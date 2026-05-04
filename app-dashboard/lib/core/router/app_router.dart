@@ -9,16 +9,25 @@ import '../../features/auth/presentation/cubit/auth_state.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/shell/presentation/pages/shell_page.dart';
 import '../../features/course/presentation/pages/course_page.dart';
+import '../../features/course/presentation/pages/course_form_page.dart';
 import '../../features/course/presentation/pages/course_dashboard_page.dart';
 import '../../features/course/presentation/pages/education_page.dart';
 import '../../features/course_batch/presentation/pages/course_batch_page.dart';
 import '../../features/course_batch/presentation/pages/course_batch_detail_page.dart';
+import '../../features/course_batch/presentation/pages/batch_form_page.dart';
 import '../../features/course_version/presentation/pages/course_version_page.dart';
 import '../../features/course_version/presentation/pages/course_module_page.dart';
 import '../../features/course_version/presentation/pages/propose_version_page.dart';
 import '../../features/course_version/presentation/pages/pending_approvals_page.dart';
+import '../../features/course_version/presentation/pages/version_form_page.dart';
+import '../../features/course_version/presentation/pages/internship_config_page.dart';
+import '../../features/course_version/presentation/pages/character_test_config_page.dart';
+import '../../features/course_version/domain/entities/course_version_entity.dart';
+import '../../features/course_version/domain/entities/internship_config_entity.dart';
+import '../../features/course_version/domain/entities/character_test_config_entity.dart';
 import '../../features/talentpool/presentation/pages/talentpool_page.dart';
 import '../../features/enrollment/presentation/pages/enrollment_page.dart';
+import '../../features/enrollment/presentation/pages/enrollment_form_page.dart';
 import '../../features/evaluation/presentation/pages/evaluation_page.dart';
 import '../../features/student/presentation/pages/student_page.dart';
 import '../../features/student/presentation/pages/student_dashboard_page.dart';
@@ -35,12 +44,18 @@ import '../../features/accounting/domain/entities/transaction_entity.dart';
 import '../../features/finance/presentation/pages/finance_main_page.dart';
 import '../../features/finance/presentation/pages/finance_stub_pages.dart';
 import '../../features/finance_invoices/presentation/pages/invoice_detail_page.dart';
+import '../../features/finance_invoices/presentation/pages/manual_invoice_form_page.dart';
+import '../../features/accounting/presentation/pages/coa_form_page.dart';
+import '../../features/cms/presentation/pages/faq_form_page.dart';
+import '../../features/cms/presentation/pages/testimonial_form_page.dart';
 import '../../features/hrm/presentation/pages/hrm_page.dart';
 import '../../features/hrm/presentation/pages/sdm_detail_page.dart';
 import '../../features/project_mgmt/presentation/pages/project_page.dart';
 import '../../features/crm/presentation/pages/crm_page.dart';
 import '../../features/partners/presentation/pages/partner_page.dart';
 import '../../features/leads/presentation/pages/leads_page.dart';
+import '../../features/leads/presentation/pages/lead_form_page.dart';
+import '../../features/leads/domain/entities/lead_entity.dart';
 import '../../features/locations/presentation/pages/location_page.dart';
 import '../../features/notifications/presentation/pages/notification_page.dart';
 import '../../features/approvals/presentation/pages/approval_page.dart';
@@ -55,7 +70,19 @@ import '../../features/business_dev/presentation/pages/investment_plan_page.dart
 import '../../features/business_dev/presentation/pages/projection_reports_page.dart';
 import '../../features/business_dev/presentation/pages/delegation_page.dart';
 import '../../features/marketing/presentation/pages/marketing_page.dart';
+import '../../features/marketing/presentation/pages/social_post_form_page.dart';
+import '../../features/marketing/presentation/pages/pr_content_form_page.dart';
+import '../../features/marketing/presentation/pages/referral_form_page.dart';
+import '../../features/marketing/domain/entities/social_media_post_entity.dart';
+import '../../features/marketing/domain/entities/pr_schedule_entity.dart';
+import '../../features/marketing/domain/entities/referral_partner_entity.dart';
 import '../../features/cms/presentation/pages/cms_page.dart';
+import '../../features/cms/domain/entities/cms_faq_entity.dart';
+import '../../features/cms/domain/entities/cms_testimonial_entity.dart';
+import '../../features/cms/domain/entities/cms_article_entity.dart';
+import '../../features/cms/domain/entities/cms_page_entity.dart';
+import '../../features/cms/presentation/pages/article_form_page.dart';
+import '../../features/cms/presentation/pages/page_editor_page.dart';
 import '../constants/app_constants.dart';
 import '../di/injection.dart';
 
@@ -102,12 +129,29 @@ class AppRouter {
                     const NoTransitionPage(child: EducationPage()),
                 routes: [
                   GoRoute(
+                    path: 'new-course',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: CourseFormPage(),
+                    ),
+                  ),
+                  GoRoute(
                     path: 'types/:typeId',
                     pageBuilder: (_, state) => NoTransitionPage(
                       child: CourseVersionPage(
                         typeId: state.pathParameters['typeId']!,
                       ),
                     ),
+                    routes: [
+                      GoRoute(
+                        path: 'versions/new',
+                        pageBuilder: (_, state) => NoTransitionPage(
+                          child: VersionFormPage(
+                            typeId: state.pathParameters['typeId']!,
+                            existingVersions: (state.extra as List?)?.cast<CourseVersionEntity>() ?? [],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'versions/:versionId',
@@ -116,6 +160,26 @@ class AppRouter {
                         versionId: state.pathParameters['versionId']!,
                       ),
                     ),
+                    routes: [
+                      GoRoute(
+                        path: 'internship-config',
+                        pageBuilder: (_, state) => NoTransitionPage(
+                          child: InternshipConfigPage(
+                            versionId: state.pathParameters['versionId']!,
+                            existingConfig: state.extra as InternshipConfigEntity?,
+                          ),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'character-test-config',
+                        pageBuilder: (_, state) => NoTransitionPage(
+                          child: CharacterTestConfigPage(
+                            versionId: state.pathParameters['versionId']!,
+                            existingConfig: state.extra as CharacterTestConfigEntity?,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'propose-version',
@@ -172,6 +236,12 @@ class AppRouter {
                     const NoTransitionPage(child: CourseBatchPage()),
                 routes: [
                   GoRoute(
+                    path: 'new',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: BatchFormPage(),
+                    ),
+                  ),
+                  GoRoute(
                     path: ':batchId',
                     pageBuilder: (_, state) => NoTransitionPage(
                       child: CourseBatchDetailPage(
@@ -185,6 +255,14 @@ class AppRouter {
                 path: '/enrollments',
                 pageBuilder: (_, __) =>
                     const NoTransitionPage(child: EnrollmentPage()),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: EnrollmentFormPage(),
+                    ),
+                  ),
+                ],
               ),
               GoRoute(
                 path: '/evaluations',
@@ -268,21 +346,6 @@ class AppRouter {
                     const NoTransitionPage(child: PaymentPage()),
               ),
               GoRoute(
-                path: '/departments',
-                pageBuilder: (_, __) =>
-                    const NoTransitionPage(child: DepartmentPage()),
-                routes: [
-                  GoRoute(
-                    path: ':departmentId',
-                    pageBuilder: (_, state) => NoTransitionPage(
-                      child: DepartmentDashboardPage(
-                        departmentId: state.pathParameters['departmentId']!,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              GoRoute(
                 path: '/accounting',
                 redirect: (_, __) => '/finance',
               ),
@@ -322,6 +385,13 @@ class AppRouter {
                     path: 'coa',
                     pageBuilder: (_, __) =>
                         const NoTransitionPage(child: ChartOfAccountsPage()),
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        pageBuilder: (_, __) =>
+                            const NoTransitionPage(child: CoaFormPage()),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'bank-accounts',
@@ -338,6 +408,12 @@ class AppRouter {
                     pageBuilder: (_, __) =>
                         const NoTransitionPage(child: InvoicePage()),
                     routes: [
+                      GoRoute(
+                        path: 'manual/new',
+                        pageBuilder: (_, __) => const NoTransitionPage(
+                          child: ManualInvoiceFormPage(),
+                        ),
+                      ),
                       GoRoute(
                         path: ':id',
                         pageBuilder: (_, state) => NoTransitionPage(
@@ -426,6 +502,22 @@ class AppRouter {
                 path: '/leads',
                 pageBuilder: (_, __) =>
                     const NoTransitionPage(child: LeadsPage()),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: LeadFormPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: ':id/edit',
+                    pageBuilder: (_, state) => NoTransitionPage(
+                      child: LeadFormPage(
+                        lead: state.extra as LeadEntity?,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               GoRoute(
                 path: '/locations',
@@ -451,6 +543,22 @@ class AppRouter {
                     path: 'franchises',
                     pageBuilder: (_, __) => const NoTransitionPage(
                         child: FranchiseManagementPage()),
+                  ),
+                  GoRoute(
+                    path: 'departments',
+                    pageBuilder: (_, __) =>
+                        const NoTransitionPage(child: DepartmentPage()),
+                    routes: [
+                      GoRoute(
+                        path: ':departmentId',
+                        pageBuilder: (_, state) => NoTransitionPage(
+                          child: DepartmentDashboardPage(
+                            departmentId:
+                                state.pathParameters['departmentId']!,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'okr',
@@ -486,6 +594,44 @@ class AppRouter {
                 path: '/marketing',
                 pageBuilder: (_, __) =>
                     const NoTransitionPage(child: MarketingPage()),
+                routes: [
+                  GoRoute(
+                    path: 'social/new',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: SocialPostFormPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'social/:id/edit',
+                    pageBuilder: (_, state) => NoTransitionPage(
+                      child: SocialPostFormPage(post: state.extra as SocialMediaPostEntity?),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'pr/new',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: PrContentFormPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'pr/:id/edit',
+                    pageBuilder: (_, state) => NoTransitionPage(
+                      child: PrContentFormPage(prSchedule: state.extra as PrScheduleEntity?),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'referrals/new',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: ReferralFormPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'referrals/:id/edit',
+                    pageBuilder: (_, state) => NoTransitionPage(
+                      child: ReferralFormPage(partner: state.extra as ReferralPartnerEntity?),
+                    ),
+                  ),
+                ],
               ),
               GoRoute(
                 path: '/notifications',
@@ -506,6 +652,56 @@ class AppRouter {
                 path: '/cms',
                 pageBuilder: (_, __) =>
                     const NoTransitionPage(child: CmsPage()),
+                routes: [
+                  GoRoute(
+                    path: 'faq/new',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: FaqFormPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'faq/:id/edit',
+                    pageBuilder: (_, state) => NoTransitionPage(
+                      child: FaqFormPage(faq: state.extra as CmsFaqEntity?),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'testimonials/new',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: TestimonialFormPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'testimonials/:id/edit',
+                    pageBuilder: (_, state) => NoTransitionPage(
+                      child: TestimonialFormPage(
+                        testimonial: state.extra as CmsTestimonialEntity?,
+                      ),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'pages/:slug/edit',
+                    pageBuilder: (_, state) => NoTransitionPage(
+                      child: PageEditorPage(
+                        page: state.extra as CmsPageEntity,
+                      ),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'articles/new',
+                    pageBuilder: (_, __) => const NoTransitionPage(
+                      child: ArticleFormPage(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'articles/:id/edit',
+                    pageBuilder: (_, state) => NoTransitionPage(
+                      child: ArticleFormPage(
+                        article: state.extra as CmsArticleEntity?,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

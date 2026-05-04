@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
+	"github.com/vernonedu/entrepreneurship-api/internal/command/assign_department_leader"
 	"github.com/vernonedu/entrepreneurship-api/internal/command/create_department"
 	"github.com/vernonedu/entrepreneurship-api/internal/command/delete_department"
 	"github.com/vernonedu/entrepreneurship-api/internal/command/update_department"
@@ -45,6 +46,10 @@ type UpdateDepartmentRequest struct {
 	Name        string `json:"name" validate:"required,min=1"`
 	Description string `json:"description"`
 	IsActive    bool   `json:"is_active"`
+}
+
+type AssignLeaderRequest struct {
+	LeaderID string `json:"leader_id" validate:"required"`
 }
 
 // Create godoc
@@ -181,6 +186,52 @@ func (h *DepartmentHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"message": "department updated successfully"})
+}
+
+// AssignLeader godoc
+// @Summary      Assign department leader
+// @Description  Assign or change the leader (dept_leader role) for a department
+// @Tags         departments
+// @Accept       json
+// @Produce      json
+// @Param        id    path  string                  true  "Department ID (UUID)"
+// @Param        body  body  AssignLeaderRequest      true  "Leader assignment payload"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /departments/{id}/leader [put]
+func (h *DepartmentHandler) AssignLeader(w http.ResponseWriter, r *http.Request) {
+	departmentIDStr := chi.URLParam(r, "id")
+	departmentID, err := uuid.Parse(departmentIDStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid department id")
+		return
+	}
+
+	var req AssignLeaderRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	leaderID, err := uuid.Parse(req.LeaderID)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid leader_id")
+		return
+	}
+
+	cmd := &assign_department_leader.AssignDepartmentLeaderCommand{
+		DepartmentID: departmentID,
+		LeaderID:     &leaderID,
+	}
+	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
+		log.Error().Err(err).Msg("failed to execute assign department leader command")
+		writeError(w, http.StatusInternalServerError, "failed to assign department leader")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"message": "department leader assigned successfully"})
 }
 
 // Delete godoc
@@ -344,6 +395,7 @@ func RegisterDepartmentRoutes(h *DepartmentHandler, r chi.Router) {
 	r.Get("/api/v1/departments", h.List)
 	r.Get("/api/v1/departments/{id}", h.GetByID)
 	r.Put("/api/v1/departments/{id}", h.Update)
+	r.Put("/api/v1/departments/{id}/leader", h.AssignLeader)
 	r.Delete("/api/v1/departments/{id}", h.Delete)
 	// Dashboard sub-routes
 	r.Get("/api/v1/departments/{id}/batches", h.GetBatches)

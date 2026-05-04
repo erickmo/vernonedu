@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_dimensions.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/department_batch_entity.dart';
 import '../../domain/entities/department_course_entity.dart';
 import '../../domain/entities/department_student_entity.dart';
@@ -64,7 +65,8 @@ class _DashboardViewState extends State<_DashboardView>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error_outline, color: AppColors.error, size: 48),
+                  const Icon(Icons.error_outline,
+                      color: AppColors.error, size: 48),
                   const SizedBox(height: AppDimensions.md),
                   Text(state.message),
                   const SizedBox(height: AppDimensions.md),
@@ -149,7 +151,7 @@ class _Header extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.go('/departments'),
+            onPressed: () => context.go('/business-development/departments'),
             tooltip: 'Kembali ke Departemen',
           ),
           const SizedBox(width: AppDimensions.sm),
@@ -219,14 +221,14 @@ class _CalendarTabState extends State<_CalendarTab> {
             const LinearProgressIndicator(color: AppColors.primary),
           Expanded(
             child: _filtered.isEmpty
-                ? _emptyState('Belum ada kelas di departemen ini')
+                ? const EmptyStateWidget(
+                    message: 'Belum ada kelas di departemen ini')
                 : ListView.builder(
                     itemCount: _filtered.length,
-                    itemBuilder: (_, i) =>
-                        _BatchCalendarCard(
-                          batch: _filtered[i],
-                          departmentId: widget.departmentId,
-                        ),
+                    itemBuilder: (_, i) => _BatchCalendarCard(
+                      batch: _filtered[i],
+                      departmentId: widget.departmentId,
+                    ),
                   ),
           ),
         ],
@@ -237,30 +239,30 @@ class _CalendarTabState extends State<_CalendarTab> {
   Widget _buildFilters() {
     return Row(
       children: [
-        SizedBox(
-          width: 260,
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Cari batch atau kursus...',
-              prefixIcon: const Icon(Icons.search, size: AppDimensions.iconMd),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-              filled: true,
-              fillColor: AppColors.surface,
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.md, vertical: 10),
-            ),
-            onChanged: (v) => setState(() => _search = v.toLowerCase()),
-          ),
+        SearchBarWidget(
+          hintText: 'Cari batch atau kursus...',
+          onChanged: (v) => setState(() => _search = v.toLowerCase()),
         ),
         const SizedBox(width: AppDimensions.md),
-        _FilterChip(label: 'Semua', selected: _statusFilter.isEmpty, onTap: () => setState(() => _statusFilter = '')),
+        FilterChipWidget(
+            label: 'Semua',
+            selected: _statusFilter.isEmpty,
+            onTap: () => setState(() => _statusFilter = '')),
         const SizedBox(width: 6),
-        _FilterChip(label: 'Akan Datang', selected: _statusFilter == 'upcoming', onTap: () => setState(() => _statusFilter = 'upcoming')),
+        FilterChipWidget(
+            label: 'Akan Datang',
+            selected: _statusFilter == 'upcoming',
+            onTap: () => setState(() => _statusFilter = 'upcoming')),
         const SizedBox(width: 6),
-        _FilterChip(label: 'Sedang Berjalan', selected: _statusFilter == 'ongoing', onTap: () => setState(() => _statusFilter = 'ongoing')),
+        FilterChipWidget(
+            label: 'Sedang Berjalan',
+            selected: _statusFilter == 'ongoing',
+            onTap: () => setState(() => _statusFilter = 'ongoing')),
         const SizedBox(width: 6),
-        _FilterChip(label: 'Selesai', selected: _statusFilter == 'completed', onTap: () => setState(() => _statusFilter = 'completed')),
+        FilterChipWidget(
+            label: 'Selesai',
+            selected: _statusFilter == 'completed',
+            onTap: () => setState(() => _statusFilter = 'completed')),
       ],
     );
   }
@@ -282,14 +284,16 @@ class _BatchCalendarCard extends StatelessWidget {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 1)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 4,
+              offset: const Offset(0, 1)),
         ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppDimensions.md),
         child: Row(
           children: [
-            // Status indicator
             Container(
               width: 4,
               height: 60,
@@ -299,7 +303,6 @@ class _BatchCalendarCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppDimensions.md),
-            // Batch info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,29 +318,35 @@ class _BatchCalendarCard extends StatelessWidget {
                               color: AppColors.textPrimary),
                         ),
                       ),
-                      _StatusBadge(label: statusLabel, color: statusColor),
+                      StatusBadgeWidget(
+                          label: statusLabel, color: statusColor),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     batch.courseName,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today, size: 12, color: AppColors.textSecondary),
+                      const Icon(Icons.calendar_today,
+                          size: 12, color: AppColors.textSecondary),
                       const SizedBox(width: 4),
                       Text(
                         '${batch.startDate} — ${batch.endDate}',
-                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                            fontSize: 11, color: AppColors.textSecondary),
                       ),
                       const SizedBox(width: AppDimensions.md),
-                      const Icon(Icons.people_outline, size: 12, color: AppColors.textSecondary),
+                      const Icon(Icons.people_outline,
+                          size: 12, color: AppColors.textSecondary),
                       const SizedBox(width: 4),
                       Text(
                         '${batch.enrollmentCount}/${batch.maxParticipants} peserta',
-                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                            fontSize: 11, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -345,7 +354,6 @@ class _BatchCalendarCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppDimensions.md),
-            // Facilitator section
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -367,9 +375,11 @@ class _BatchCalendarCard extends StatelessWidget {
                 TextButton.icon(
                   onPressed: () => _showAssignFacilitatorDialog(context),
                   icon: const Icon(Icons.person_add_alt, size: 14),
-                  label: const Text('Assign', style: TextStyle(fontSize: 12)),
+                  label:
+                      const Text('Assign', style: TextStyle(fontSize: 12)),
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     foregroundColor: AppColors.primary,
                   ),
                 ),
@@ -394,7 +404,8 @@ class _BatchCalendarCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Batch: ${batch.batchName}',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                  style: const TextStyle(
+                      color: AppColors.textSecondary, fontSize: 13)),
               const SizedBox(height: AppDimensions.md),
               TextField(
                 controller: ctrl,
@@ -407,10 +418,13 @@ class _BatchCalendarCard extends StatelessWidget {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Batal')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white),
             onPressed: () {
               context.read<DepartmentDashboardCubit>().assignFacilitator(
                     departmentId,
@@ -469,7 +483,8 @@ class _CourseTabState extends State<_CourseTab> {
   @override
   Widget build(BuildContext context) {
     final filtered = widget.courses
-        .where((c) => _search.isEmpty || c.courseName.toLowerCase().contains(_search))
+        .where((c) =>
+            _search.isEmpty || c.courseName.toLowerCase().contains(_search))
         .toList();
 
     return Padding(
@@ -477,29 +492,19 @@ class _CourseTabState extends State<_CourseTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 260,
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Cari kursus...',
-                prefixIcon: const Icon(Icons.search, size: AppDimensions.iconMd),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-                filled: true,
-                fillColor: AppColors.surface,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
-              ),
-              onChanged: (v) => setState(() => _search = v.toLowerCase()),
-            ),
+          SearchBarWidget(
+            hintText: 'Cari kursus...',
+            onChanged: (v) => setState(() => _search = v.toLowerCase()),
           ),
           const SizedBox(height: AppDimensions.md),
           Expanded(
             child: filtered.isEmpty
-                ? _emptyState('Belum ada kursus di departemen ini')
+                ? const EmptyStateWidget(
+                    message: 'Belum ada kursus di departemen ini')
                 : ListView.builder(
                     itemCount: filtered.length,
-                    itemBuilder: (_, i) => _CourseCard(course: filtered[i]),
+                    itemBuilder: (_, i) =>
+                        _CourseCard(course: filtered[i]),
                   ),
           ),
         ],
@@ -540,7 +545,9 @@ class _CourseCard extends StatelessWidget {
             ),
             child: Icon(
               Icons.school_outlined,
-              color: course.isActive ? AppColors.primary : AppColors.textSecondary,
+              color: course.isActive
+                  ? AppColors.primary
+                  : AppColors.textSecondary,
               size: AppDimensions.iconLg,
             ),
           ),
@@ -560,22 +567,11 @@ class _CourseCard extends StatelessWidget {
                             color: AppColors.textPrimary),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: course.isActive
-                            ? AppColors.successSurface
-                            : Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                      ),
-                      child: Text(
-                        course.isActive ? 'Aktif' : 'Nonaktif',
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: course.isActive
-                                ? AppColors.success
-                                : AppColors.textSecondary),
-                      ),
+                    StatusBadgeWidget(
+                      label: course.isActive ? 'Aktif' : 'Nonaktif',
+                      color: course.isActive
+                          ? AppColors.success
+                          : AppColors.textSecondary,
                     ),
                   ],
                 ),
@@ -605,7 +601,8 @@ class _CourseCard extends StatelessWidget {
                     color: AppColors.primary),
               ),
               const Text('Batch',
-                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  style:
+                      TextStyle(fontSize: 11, color: AppColors.textSecondary)),
             ],
           ),
         ],
@@ -650,24 +647,12 @@ class _StudentTabState extends State<_StudentTab> {
         children: [
           Row(
             children: [
-              SizedBox(
-                width: 260,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Cari siswa...',
-                    prefixIcon: const Icon(Icons.search, size: AppDimensions.iconMd),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-                    filled: true,
-                    fillColor: AppColors.surface,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.md, vertical: 10),
-                  ),
-                  onChanged: (v) => setState(() => _search = v.toLowerCase()),
-                ),
+              SearchBarWidget(
+                hintText: 'Cari siswa...',
+                onChanged: (v) => setState(() => _search = v.toLowerCase()),
               ),
               const SizedBox(width: AppDimensions.md),
-              _FilterChip(
+              FilterChipWidget(
                 label: 'Semua',
                 selected: widget.currentFilter.isEmpty,
                 onTap: () => context
@@ -675,7 +660,7 @@ class _StudentTabState extends State<_StudentTab> {
                     .filterStudents(widget.departmentId, ''),
               ),
               const SizedBox(width: 6),
-              _FilterChip(
+              FilterChipWidget(
                 label: 'Aktif',
                 selected: widget.currentFilter == 'active',
                 onTap: () => context
@@ -683,7 +668,7 @@ class _StudentTabState extends State<_StudentTab> {
                     .filterStudents(widget.departmentId, 'active'),
               ),
               const SizedBox(width: 6),
-              _FilterChip(
+              FilterChipWidget(
                 label: 'Alumni',
                 selected: widget.currentFilter == 'alumni',
                 onTap: () => context
@@ -695,10 +680,12 @@ class _StudentTabState extends State<_StudentTab> {
           const SizedBox(height: AppDimensions.md),
           Expanded(
             child: _filtered.isEmpty
-                ? _emptyState('Belum ada siswa di departemen ini')
+                ? const EmptyStateWidget(
+                    message: 'Belum ada siswa di departemen ini')
                 : ListView.builder(
                     itemCount: _filtered.length,
-                    itemBuilder: (_, i) => _StudentRow(student: _filtered[i]),
+                    itemBuilder: (_, i) =>
+                        _StudentRow(student: _filtered[i]),
                   ),
           ),
         ],
@@ -729,16 +716,11 @@ class _StudentRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: AppDimensions.avatarSm,
-            backgroundColor: AppColors.primarySurface,
-            child: Text(
-              student.initials,
-              style: const TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12),
-            ),
+          InitialAvatarWidget(
+            name: student.initials,
+            size: AppDimensions.avatarSm * 2,
+            fontSize: 12,
+            borderRadius: AppDimensions.avatarSm * 2,
           ),
           const SizedBox(width: AppDimensions.md),
           Expanded(
@@ -754,7 +736,8 @@ class _StudentRow extends StatelessWidget {
                 ),
                 Text(
                   student.email,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -762,14 +745,16 @@ class _StudentRow extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _StatusBadge(
+              StatusBadgeWidget(
                 label: student.statusLabel,
-                color: student.isActive ? AppColors.success : AppColors.textSecondary,
+                color:
+                    student.isActive ? AppColors.success : AppColors.textSecondary,
               ),
               const SizedBox(height: 2),
               Text(
                 '${student.enrolledBatchCount} batch',
-                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                style: const TextStyle(
+                    fontSize: 11, color: AppColors.textSecondary),
               ),
             ],
           ),
@@ -808,29 +793,20 @@ class _TalentPoolTabState extends State<_TalentPoolTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 260,
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Cari peserta...',
-                prefixIcon: const Icon(Icons.search, size: AppDimensions.iconMd),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-                filled: true,
-                fillColor: AppColors.surface,
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppDimensions.md, vertical: 10),
-              ),
-              onChanged: (v) => setState(() => _search = v.toLowerCase()),
-            ),
+          SearchBarWidget(
+            hintText: 'Cari peserta...',
+            onChanged: (v) => setState(() => _search = v.toLowerCase()),
           ),
           const SizedBox(height: AppDimensions.md),
           Expanded(
             child: _filtered.isEmpty
-                ? _emptyState('Belum ada anggota talent pool di departemen ini')
+                ? const EmptyStateWidget(
+                    message:
+                        'Belum ada anggota talent pool di departemen ini')
                 : ListView.builder(
                     itemCount: _filtered.length,
-                    itemBuilder: (_, i) => _TalentPoolRow(entry: _filtered[i]),
+                    itemBuilder: (_, i) =>
+                        _TalentPoolRow(entry: _filtered[i]),
                   ),
           ),
         ],
@@ -862,16 +838,13 @@ class _TalentPoolRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: AppDimensions.avatarSm,
+          InitialAvatarWidget(
+            name: entry.initials,
+            size: AppDimensions.avatarSm * 2,
+            fontSize: 12,
+            borderRadius: AppDimensions.avatarSm * 2,
             backgroundColor: statusColor.withOpacity(0.15),
-            child: Text(
-              entry.initials,
-              style: TextStyle(
-                  color: statusColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12),
-            ),
+            textColor: statusColor,
           ),
           const SizedBox(width: AppDimensions.md),
           Expanded(
@@ -887,8 +860,8 @@ class _TalentPoolRow extends StatelessWidget {
                 ),
                 Text(
                   entry.participantEmail,
-                  style:
-                      const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -896,14 +869,15 @@ class _TalentPoolRow extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _StatusBadge(label: entry.statusLabel, color: statusColor),
+              StatusBadgeWidget(
+                  label: entry.statusLabel, color: statusColor),
               if (entry.testScore != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
                     'Skor: ${entry.testScore!.toStringAsFixed(1)}',
-                    style:
-                        const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                        fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ),
             ],
@@ -925,77 +899,4 @@ class _TalentPoolRow extends StatelessWidget {
         return Colors.grey;
     }
   }
-}
-
-// ─── Shared widgets ───────────────────────────────────────────────────────────
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-  const _FilterChip(
-      {required this.label, required this.selected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primary : AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-              color: selected ? AppColors.primary : Colors.grey.shade300),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-            color: selected ? Colors.white : AppColors.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final String label;
-  final Color color;
-  const _StatusBadge({required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-            fontSize: 11, fontWeight: FontWeight.w600, color: color),
-      ),
-    );
-  }
-}
-
-Widget _emptyState(String message) {
-  return Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(Icons.inbox_outlined, size: 48, color: Colors.grey.shade300),
-        const SizedBox(height: AppDimensions.md),
-        Text(
-          message,
-          style: const TextStyle(color: AppColors.textSecondary),
-        ),
-      ],
-    ),
-  );
 }

@@ -153,6 +153,7 @@ class _Breadcrumb extends StatelessWidget {
     'certificates': 'Sertifikat',
     'payments': 'Pembayaran',
     'talentpool': 'TalentPool',
+    'business-development': 'Pengembangan',
     'departments': 'Departemen',
     'crm': 'Business Development',
     'hrm': 'HR',
@@ -217,7 +218,54 @@ class _Breadcrumb extends StatelessWidget {
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
 
-// ── Notification Button ───────────────────────────────────────────────────────
+// ── Notification Button with Dropdown ──────────────────────────────────────────
+
+class _NotificationItem {
+  final String title;
+  final String body;
+  final String time;
+  final bool unread;
+
+  const _NotificationItem({
+    required this.title,
+    required this.body,
+    required this.time,
+    this.unread = false,
+  });
+}
+
+const _mockNotifications = <_NotificationItem>[
+  _NotificationItem(
+    title: 'Batch Baru',
+    body: 'Batch "Web Development Angkatan 5" telah dibuat.',
+    time: '5 menit lalu',
+    unread: true,
+  ),
+  _NotificationItem(
+    title: 'Enrollment Baru',
+    body: 'Ahmad Fauzi mendaftar ke batch "Flutter Mobile Dev".',
+    time: '1 jam lalu',
+    unread: true,
+  ),
+  _NotificationItem(
+    title: 'Approval Dibutuhkan',
+    body: 'Pengajuan kursus "AI Fundamentals" menunggu persetujuan.',
+    time: '3 jam lalu',
+    unread: true,
+  ),
+  _NotificationItem(
+    title: 'Pembayaran Diterima',
+    body: 'Invoice #INV-2026-041 telah dibayar lunas.',
+    time: '1 hari lalu',
+    unread: false,
+  ),
+  _NotificationItem(
+    title: 'Sertifikat Terbit',
+    body: 'Sertifikat competency untuk Budi Santoso telah diterbitkan.',
+    time: '2 hari lalu',
+    unread: false,
+  ),
+];
 
 class _NotificationButton extends StatefulWidget {
   @override
@@ -226,48 +274,325 @@ class _NotificationButton extends StatefulWidget {
 
 class _NotificationButtonState extends State<_NotificationButton> {
   bool _hovered = false;
+  bool _dropdownOpen = false;
+  final _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+
+  int get _unreadCount =>
+      _mockNotifications.where((n) => n.unread).length;
+
+  void _toggleDropdown() {
+    if (_dropdownOpen) {
+      _closeDropdown();
+    } else {
+      _openDropdown();
+    }
+  }
+
+  void _openDropdown() {
+    final overlay = Overlay.of(context);
+    final box = context.findRenderObject() as RenderBox;
+    final size = box.size;
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          // Invisible tap-away layer
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _closeDropdown,
+              behavior: HitTestBehavior.opaque,
+              child: const SizedBox.expand(),
+            ),
+          ),
+          // Dropdown positioned below button
+          CompositedTransformFollower(
+            link: _layerLink,
+            offset: Offset(0, size.height + 4),
+            targetAnchor: Alignment.bottomRight,
+            followerAnchor: Alignment.topRight,
+            child: Material(
+              elevation: 12,
+              shadowColor: AppColors.primary.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+              child: _NotificationDropdown(
+                notifications: _mockNotifications,
+                onViewAll: () {
+                  _closeDropdown();
+                  GoRouter.of(context).go('/notifications');
+                },
+                onMarkAllRead: _closeDropdown,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    overlay.insert(_overlayEntry!);
+    setState(() => _dropdownOpen = true);
+  }
+
+  void _closeDropdown() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    if (mounted) setState(() => _dropdownOpen = false);
+  }
+
+  @override
+  void dispose() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          onTap: _toggleDropdown,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: _hovered || _dropdownOpen
+                  ? AppColors.lavender
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  Icons.notifications_outlined,
+                  size: 20,
+                  color: _hovered || _dropdownOpen
+                      ? AppColors.primary
+                      : AppColors.textSecondary,
+                ),
+                if (_unreadCount > 0)
+                  Positioned(
+                    top: -3,
+                    right: -3,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF6B4FE0),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${_unreadCount > 9 ? '9+' : _unreadCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationDropdown extends StatelessWidget {
+  final List<_NotificationItem> notifications;
+  final VoidCallback onViewAll;
+  final VoidCallback onMarkAllRead;
+
+  const _NotificationDropdown({
+    required this.notifications,
+    required this.onViewAll,
+    required this.onMarkAllRead,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 360,
+      constraints: const BoxConstraints(maxHeight: 440),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.md,
+              vertical: AppDimensions.sm + 2,
+            ),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: AppColors.divider)),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  'Notifikasi',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: onMarkAllRead,
+                  child: Text(
+                    'Tandai semua dibaca',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF6B4FE0),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Notification list
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              itemCount: notifications.length,
+              separatorBuilder: (_, __) => Divider(
+                height: 1,
+                thickness: 1,
+                color: AppColors.divider,
+              ),
+              itemBuilder: (context, index) {
+                final n = notifications[index];
+                return _NotificationTile(item: n);
+              },
+            ),
+          ),
+          // Footer
+          Container(
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: AppColors.divider)),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onViewAll,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(AppDimensions.radiusLg),
+                  bottomRight: Radius.circular(AppDimensions.radiusLg),
+                ),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'Lihat semua notifikasi',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF6B4FE0),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotificationTile extends StatefulWidget {
+  final _NotificationItem item;
+  const _NotificationTile({required this.item});
+
+  @override
+  State<_NotificationTile> createState() => _NotificationTileState();
+}
+
+class _NotificationTileState extends State<_NotificationTile> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: _hovered ? AppColors.lavender : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      child: Container(
+        color: item.unread
+            ? AppColors.lavender.withValues(alpha: _hovered ? 0.8 : 0.5)
+            : _hovered
+                ? AppColors.surfaceVariant
+                : Colors.transparent,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.md,
+          vertical: AppDimensions.sm + 2,
         ),
-        child: Stack(
-          clipBehavior: Clip.none,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.notifications_outlined,
-              size: 20,
-              color: _hovered ? AppColors.primary : AppColors.textSecondary,
-            ),
-            Positioned(
-              top: -3,
-              right: -3,
+            // Unread dot
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
               child: Container(
-                width: 16,
-                height: 16,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF6B4FE0),
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: item.unread ? const Color(0xFF6B4FE0) : Colors.transparent,
                   shape: BoxShape.circle,
                 ),
-                child: const Center(
-                  child: Text(
-                    '3',
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 12.5,
+                      fontWeight: item.unread ? FontWeight.w600 : FontWeight.w500,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 2),
+                  Text(
+                    item.body,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.time,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textHint,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
