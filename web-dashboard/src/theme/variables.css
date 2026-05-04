@@ -1,0 +1,124 @@
+:root {
+  /* === Brand Colors — VernonEdu Purple/Violet (synced with app-dashboard) === */
+  --color-primary: #9561AB;
+  --color-primary-hover: #7A4E90;
+  --color-primary-subtle: rgba(149, 97, 171, 0.08);
+  --color-primary-text: #ffffff;
+
+  --color-secondary: #00695C;
+  --color-secondary-hover: #004D40;
+  --color-secondary-text: #ffffff;
+
+  --color-accent: #A96BD0;
+  --color-accent-hover: #9561AB;
+  --color-accent-text: #ffffff;
+
+  /* === Sidebar (dark purple theme) === */
+  --color-sidebar-bg: #2E1A37;
+  --color-sidebar-active: #472A54;
+  --color-sidebar-text: #F8F0FD;
+
+  /* === Semantic Colors === */
+  --color-success: #16A34A;
+  --color-success-light: #DCFCE7;
+  --color-success-dark: #14532D;
+
+  --color-warning: #D97706;
+  --color-warning-light: #FEF9C3;
+  --color-warning-dark: #78350F;
+
+  --color-danger: #DC2626;
+  --color-danger-light: #FEE2E2;
+  --color-danger-dark: #7F1D1D;
+
+  --color-info: #2563EB;
+  --color-info-light: #DBEAFE;
+  --color-info-dark: #1E3A8A;
+
+  /* === Surfaces === */
+  --color-surface: #F5F5F5;
+  --color-surface-elevated: #ffffff;
+  --color-surface-alt: #F8F0FD;
+  --color-overlay: rgba(149, 97, 171, 0.4);
+
+  /* === Neutral (purple-tinted gray) === */
+  --color-border: #E8E4F0;
+  --color-border-subtle: #F0EDF8;
+  --color-hover: rgba(149, 97, 171, 0.05);
+
+  /* === Text === */
+  --color-text: #1C2536;
+  --color-text-secondary: #637381;
+  --color-text-tertiary: #8E8EA8;
+  --color-text-disabled: #B0BEC5;
+  --color-text-on-primary: #ffffff;
+  --color-text-link: #9561AB;
+
+  /* === Typography === */
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --font-min: 0.625rem;    /* 10px — badges only */
+  --font-xs: 0.6875rem;    /* 11px */
+  --font-sm: 0.75rem;      /* 12px */
+  --font-base: 0.875rem;   /* 14px */
+  --font-lg: 1rem;         /* 16px */
+  --font-xl: 1.125rem;     /* 18px — headings only */
+  --font-2xl: 1.25rem;     /* 20px */
+  --font-3xl: 1.5rem;      /* 24px */
+  --font-4xl: 2rem;        /* 32px */
+
+  /* === Spacing (4px grid) === */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 48px;
+  --space-10: 64px;
+
+  /* === Layout === */
+  --navbar-height: 56px;
+  --secondary-nav-height: 44px;
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 68px;
+  --content-max-width: 1280px;
+
+  /* === Input Heights === */
+  --input-height: 36px;
+  --input-height-sm: 30px;
+  --input-height-lg: 42px;
+
+  /* === Border Radius === */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* === Shadows === */
+  --shadow-sm: 0 1px 2px rgba(28, 37, 54, 0.06);
+  --shadow-md: 0 4px 6px rgba(28, 37, 54, 0.08), 0 1px 3px rgba(28, 37, 54, 0.06);
+  --shadow-lg: 0 10px 15px rgba(28, 37, 54, 0.1), 0 4px 6px rgba(28, 37, 54, 0.06);
+  --shadow-xl: 0 20px 25px rgba(28, 37, 54, 0.12), 0 8px 10px rgba(28, 37, 54, 0.06);
+
+  /* === Z-index === */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-navbar: 300;
+  --z-modal: 400;
+  --z-tooltip: 500;
+  --z-toast: 600;
+
+  /* === Transitions === */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 0.1s;
+  --duration-normal: 0.2s;
+  --duration-slow: 0.3s;
+}
