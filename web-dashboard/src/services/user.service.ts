@@ -6,9 +6,6 @@ export interface User {
   name: string
   email: string
   roles: string[]
-  is_active: boolean
-  created_at?: string
-  updated_at?: string
 }
 
 const BASE = '/api/v1/users'
@@ -20,17 +17,27 @@ export const userService = {
     if (params?.limit) query.set('limit', String(params.limit))
     if (params?.role) query.set('role', params.role)
     const qs = query.toString()
-    const response = await apiClient.get<PaginatedResponse<User>>(
+    const response = await apiClient.get<{
+      data: {
+        data: Omit<User, 'is_active' | 'created_at' | 'updated_at'>[]
+        total: number
+        offset: number
+        limit: number
+      }
+    }>(
       `${BASE}${qs ? `?${qs}` : ''}`
     )
-    return response
+    return {
+      data: response.data.data,
+      total: response.data.total,
+    }
   },
 
   get: async (id: string) => {
     return apiClient.get<User>(`${BASE}/${id}`)
   },
 
-  create: async (data: Omit<User, 'id' | 'created_at' | 'updated_at'>) => {
+  create: async (data: Omit<User, 'id'>) => {
     return apiClient.post<User>(BASE, data)
   },
 

@@ -46,12 +46,23 @@ export default function LoginPage() {
   })
 
   useEffect(() => {
-    if (!canBypassLogin) return
+    if (!canBypassLogin) {
+      console.log('[LoginPage] Pills disabled: canBypassLogin=false')
+      return
+    }
     setUsersLoading(true)
+    console.log('[LoginPage] Fetching users...')
     userService
       .list({ limit: 100 })
-      .then((res) => setPresetUsers(res.data ?? []))
-      .catch(() => setPresetUsers([]))
+      .then((res) => {
+        const users = res.data ?? []
+        console.log(`[LoginPage] Fetched ${users.length} users`, users)
+        setPresetUsers(users)
+      })
+      .catch((err) => {
+        console.error('[LoginPage] Failed to fetch users:', err)
+        setPresetUsers([])
+      })
       .finally(() => setUsersLoading(false))
   }, [])
 
@@ -132,20 +143,25 @@ export default function LoginPage() {
                 {usersLoading ? 'Loading users...' : 'Quick login'}
               </span>
               <div className={styles.pillsList}>
-                {presetUsers.map((u) => (
-                  <button
-                    key={u.id}
-                    type="button"
-                    className={styles.pill}
-                    onClick={() => {
-                      field('email').onChange({ target: { value: u.email } } as React.ChangeEvent<HTMLInputElement>)
-                    }}
-                    title={u.email}
-                    disabled={!u.is_active}
-                  >
-                    {u.name}
-                  </button>
-                ))}
+                {presetUsers.length > 0 ? (
+                  presetUsers.map((u) => (
+                    <button
+                      key={u.id}
+                      type="button"
+                      className={styles.pill}
+                      onClick={() => {
+                        field('email').onChange({ target: { value: u.email } } as React.ChangeEvent<HTMLInputElement>)
+                      }}
+                      title={u.email}
+                    >
+                      {u.name}
+                    </button>
+                  ))
+                ) : !usersLoading ? (
+                  <span style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', padding: '0.5rem' }}>
+                    No users available
+                  </span>
+                ) : null}
               </div>
             </div>
           )}
