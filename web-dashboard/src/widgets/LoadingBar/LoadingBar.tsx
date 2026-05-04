@@ -24,8 +24,6 @@ export function useLoadingBar() {
   return { isLoading, start, complete }
 }
 
-// ─── Internal ────────────────────────────────────────────────────────────────
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function LoadingBar({

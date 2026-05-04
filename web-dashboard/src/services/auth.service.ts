@@ -1,13 +1,13 @@
 import { apiClient } from './api.client'
-import type { VernonEduLoginRequest, VernonEduLoginResponse, VernonEduUser } from '@/types/auth.types'
+import type { LoginRequest, LoginResponse } from '@/types/auth.types'
 
 export const authService = {
-  login: (body: VernonEduLoginRequest): Promise<VernonEduLoginResponse> =>
-    apiClient.post<VernonEduLoginResponse>('/auth/login', body),
-
-  me: (): Promise<{ data: VernonEduUser }> =>
-    apiClient.get('/auth/me'),
+  login: (body: LoginRequest): Promise<LoginResponse> =>
+    apiClient.post<LoginResponse>('/auth/login', body),
 
   logout: (): Promise<void> =>
     apiClient.post<void>('/auth/logout', {}),
+
+  me: (): Promise<LoginResponse['user']> =>
+    apiClient.get('/auth/me'),
 }

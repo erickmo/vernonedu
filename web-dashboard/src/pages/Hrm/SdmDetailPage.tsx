@@ -12,7 +12,8 @@ import {
   ATTENDANCE_STATUS_LABELS, ATTENDANCE_STATUS_COLORS,
   PAYROLL_STATUS_LABELS, PAYROLL_STATUS_COLORS,
 } from '@/types/hrm.types'
-import type { EmployeeStatus, StaffAttendance, PayrollItem } from '@/types/hrm.types'
+import type { EmployeeStatus, StaffAttendance } from '@/types/hrm.types'
+import { apiClient } from '@/services/api.client'
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount)
@@ -71,7 +72,7 @@ export default function SdmDetailPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: emp, isLoading } = useQuery({
+  const { data: emp, isLoading } = useQuery<any>({
     queryKey: ['hrm-employee-detail', employeeId],
     queryFn: () => hrmService.getEmployee(employeeId!),
   })
@@ -267,7 +268,7 @@ export default function SdmDetailPage() {
       onBack={() => navigate('/hrm')}
       icon={<UserCog size={20} />}
       title={isLoading ? 'Memuat...' : (emp?.user_name ?? 'Karyawan')}
-      code={emp?.employee_number}
+      code={(emp as any)?.employee_number}
       badges={
         status ? (
           <span style={{

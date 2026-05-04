@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Pencil, FileText, Plus } from 'lucide-react'
+import { Pencil, FileText } from 'lucide-react'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
 import type { ColumnDef, RowActionDef } from '@/widgets/DataTable/DataTable'
 import { certificateService } from '@/services/certificate.service'

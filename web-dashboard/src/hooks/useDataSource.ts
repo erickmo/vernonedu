@@ -1,8 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useDebounce } from './useDebounce'
 import type { PaginatedResponse } from '@/types/api.types'
-import type { ListParams } from '@/services/createEntityService'
+import type { FilterTuple, ListParams } from '@/services/createEntityService'
 
 interface SortState {
   key: string
@@ -26,16 +25,14 @@ export function useDataSource<T>({
   const [pageSize, setPageSizeRaw] = useState(defaultPageSize)
   const [sort, setSortRaw] = useState<SortState | undefined>(defaultSort)
   const [search, setSearchRaw] = useState('')
-  const [filters, setFiltersRaw] = useState<Record<string, unknown>>({})
-
-  const debouncedSearch = useDebounce(search, 300)
+  const [filters, setFiltersRaw] = useState<FilterTuple[]>([])
 
   const params: ListParams = {
     limit: pageSize,
     offset: page * pageSize,
-    ...(sort ? { sort: sort.key, order: sort.order } : {}),
-    ...(debouncedSearch ? { search: debouncedSearch } : {}),
-    ...filters,
+    ...(sort ? { sort: [[sort.key, sort.order === 'asc' ? 1 : -1]] } : {}),
+    ...(search ? { search } : {}),
+    ...(filters.length > 0 ? { filters } : {}),
   }
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -62,7 +59,7 @@ export function useDataSource<T>({
     setPageRaw(0)
   }, [])
 
-  const setFilters = useCallback((f: Record<string, unknown>) => {
+  const setFilters = useCallback((f: FilterTuple[]) => {
     setFiltersRaw(f)
     setPageRaw(0)
   }, [])

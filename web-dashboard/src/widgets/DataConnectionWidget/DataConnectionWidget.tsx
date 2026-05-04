@@ -1,4 +1,7 @@
+import { useNavigate } from 'react-router-dom'
 import { Link2 } from 'lucide-react'
+import { useCompanyPath } from '@/hooks/useCompanyPath'
+import { useHQPath } from '@/hooks/useHQPath'
 import { useDashboardContext, type DashboardContext } from '@/hooks/useDashboardContext'
 import type { FilterTuple } from '@/widgets/DataTable/filter.types'
 import { buildFilterQueryString } from '@/widgets/DataTable/filter.utils'
@@ -65,16 +68,17 @@ interface DataConnectionCardProps extends DataConnectionItem {
   context: DashboardContext
 }
 
-function DataConnectionCard({ icon, title, subtitle, onClick, path, filters }: DataConnectionCardProps) {
-  // Single-tenant: simple path builder
-  const nav = (segment: string) => `/${segment}`
+function DataConnectionCard({ icon, title, subtitle, onClick, path, filters, context }: DataConnectionCardProps) {
+  const navigate = useNavigate()
+  const companyPath = useCompanyPath()
+  const hqPath = useHQPath()
+
+  const buildUrl = context === 'hq' ? hqPath : companyPath
 
   function handleClick() {
     if (path) {
-      // Build URL with structured filters: ?filters=[["field","operator","value"]]
-      // Uses Frappe-style operators (=, !=, like, in, >, >=, <, <=)
       const url = buildFilterQueryString(path, filters ?? [])
-      nav(url)
+      navigate(buildUrl(url))
     } else if (onClick) {
       onClick()
     }

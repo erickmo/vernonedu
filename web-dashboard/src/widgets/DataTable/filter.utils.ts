@@ -148,6 +148,22 @@ export function parseFiltersFromURL(
 }
 
 /**
+ * Convert ActiveFilter[] → FilterTuple[] for API params (raw array, not stringified).
+ */
+export function activeFiltersToTuples(filters: ActiveFilter[]): FilterTuple[] {
+  return filters
+    .filter(isComplete)
+    .map((f) => {
+      const raw = f.value
+      const value =
+        typeof raw === 'object' && raw !== null && !Array.isArray(raw) && 'value' in (raw as object)
+          ? (raw as { value: unknown }).value
+          : raw
+      return [f.key, f.operator, value] as FilterTuple
+    })
+}
+
+/**
  * Build URL query string dari FilterTuple array.
  * Contoh: buildFilterQueryString('master-data/items', [['status', '=', 'active']])
  * Hasil: 'master-data/items?filters=[["status","=","active"]]'

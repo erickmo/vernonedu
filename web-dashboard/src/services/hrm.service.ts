@@ -30,77 +30,77 @@ export const hrmService = {
   // ── Employees ────────────────────────────────────────────────────────────────
 
   listEmployees: (params?: ListParams): Promise<PaginatedResponse<any>> =>
-    apiClient.get<any>(`/hrm/employees${buildQS(params)}`)
+    apiClient.get<any>(`hrm/employees${buildQS(params)}`)
       .then(r => toPaginated(unwrap(r), [])),
 
   getEmployee: (id: string) =>
-    apiClient.get<any>(`/hrm/employees/${id}`).then(r => unwrap(r)),
+    apiClient.get<any>(`hrm/employees/${id}`).then(r => unwrap(r)),
 
   createEmployee: (data: unknown) =>
-    apiClient.post<any>('/hrm/employees', data),
+    apiClient.post<any>('hrm/employees', data),
 
   updateEmployee: (id: string, data: unknown) =>
-    apiClient.put<any>(`/hrm/employees/${id}`, data),
+    apiClient.put<any>(`hrm/employees/${id}`, data),
 
   // ── Attendance ───────────────────────────────────────────────────────────────
 
   listAttendance: (params?: ListParams): Promise<PaginatedResponse<any>> =>
-    apiClient.get<any>(`/hrm/attendance${buildQS(params)}`)
+    apiClient.get<any>(`hrm/attendance${buildQS(params)}`)
       .then(r => toPaginated(unwrap(r), [])),
 
   createAttendance: (data: unknown) =>
-    apiClient.post<any>('/hrm/attendance', data),
+    apiClient.post<any>('hrm/attendance', data),
 
   getAttendanceSummary: (period?: string) =>
-    apiClient.get<any>(`/hrm/attendance/summary${period ? `?period=${period}` : ''}`)
+    apiClient.get<any>(`hrm/attendance/summary${period ? `?period=${period}` : ''}`)
       .then(r => unwrap(r)),
 
   // ── Leaves ───────────────────────────────────────────────────────────────────
 
   listLeaves: (params?: ListParams): Promise<PaginatedResponse<any>> =>
-    apiClient.get<any>(`/hrm/leaves${buildQS(params)}`)
+    apiClient.get<any>(`hrm/leaves${buildQS(params)}`)
       .then(r => toPaginated(unwrap(r), [])),
 
   createLeave: (data: unknown) =>
-    apiClient.post<any>('/hrm/leaves', data),
+    apiClient.post<any>('hrm/leaves', data),
 
   reviewLeave: (id: string, data: { status: 'approved' | 'rejected'; note?: string }) =>
-    apiClient.post<any>(`/hrm/leaves/${id}/review`, data),
+    apiClient.post<any>(`hrm/leaves/${id}/review`, data),
 
   // ── Payroll Periods ─────────────────────────────────────────────────────────
 
   listPayrollPeriods: (params?: ListParams): Promise<PaginatedResponse<any>> =>
-    apiClient.get<any>(`/hrm/payroll-periods${buildQS(params)}`)
+    apiClient.get<any>(`hrm/payroll-periods${buildQS(params)}`)
       .then(r => toPaginated(unwrap(r), [])),
 
   getPayrollPeriod: (id: string) =>
-    apiClient.get<any>(`/hrm/payroll-periods/${id}`).then(r => unwrap(r)),
+    apiClient.get<any>(`hrm/payroll-periods/${id}`).then(r => unwrap(r)),
 
   createPayrollPeriod: (data: unknown) =>
-    apiClient.post<any>('/hrm/payroll-periods', data),
+    apiClient.post<any>('hrm/payroll-periods', data),
 
   generatePayroll: (id: string) =>
-    apiClient.post<any>(`/hrm/payroll-periods/${id}/generate`, {}),
+    apiClient.post<any>(`hrm/payroll-periods/${id}/generate`, {}),
 
   approvePayroll: (id: string) =>
-    apiClient.post<any>(`/hrm/payroll-periods/${id}/approve`, {}),
+    apiClient.post<any>(`hrm/payroll-periods/${id}/approve`, {}),
 
   disbursePayroll: (id: string) =>
-    apiClient.post<any>(`/hrm/payroll-periods/${id}/disburse`, {}),
+    apiClient.post<any>(`hrm/payroll-periods/${id}/disburse`, {}),
 
   // ── Payroll Items ────────────────────────────────────────────────────────────
 
   getPayrollItems: (periodId: string): Promise<PaginatedResponse<any>> =>
-    apiClient.get<any>(`/hrm/payroll-periods/${periodId}/items`)
+    apiClient.get<any>(`hrm/payroll-periods/${periodId}/items`)
       .then(r => toPaginated(unwrap(r), [])),
 
   updatePayrollItem: (id: string, data: unknown) =>
-    apiClient.put<any>(`/hrm/payroll-items/${id}`, data),
+    apiClient.put<any>(`hrm/payroll-items/${id}`, data),
 
   // ── Departments (for filters) ────────────────────────────────────────────────
 
   listDepartments: () =>
-    apiClient.get<any>('/departments').then(r => {
+    apiClient.get<any>('departments').then(r => {
       const d = unwrap(r)
       return Array.isArray(d) ? d : (d as Record<string, unknown>)?.items ?? []
     }),

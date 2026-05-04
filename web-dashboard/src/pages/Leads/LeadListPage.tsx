@@ -165,7 +165,7 @@ export default function LeadListPage() {
       helpTitle="Leads"
       helpText="Leads adalah prospek pelanggan yang belum terdaftar sebagai siswa. Anda dapat melacak minat, sumber, dan status kontak mereka untuk mengkonversi menjadi pendaftaran."
       deleteConfig={{
-        onDelete: (row) => leadService.delete(row.id),
+        onDelete: (row) => leadService.delete(row.id) as Promise<void>,
         dialogTitle: 'Hapus Lead?',
         dialogBody: (row) => `${row.name} akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.`,
         successMessage: (row) => `Lead "${row.name}" berhasil dihapus`,

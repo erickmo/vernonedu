@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Building2, BookOpen, Users, GraduationCap, Calendar, Pencil, UserPlus, X, Search, User } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
+import { DetailPageTemplate, type DetailPageAction, type DataConnectionItem } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { departmentService } from '@/services/department.service'
 import { apiClient } from '@/services/api.client'
 import { toast } from '@/widgets/Toast/Toast'
@@ -71,6 +71,30 @@ export default function DepartmentDashboardPage() {
       setIsAssigning(false)
     }
   }
+
+  const connections: DataConnectionItem[] = [
+    {
+      icon: <BookOpen size={16} />,
+      title: 'Kurikulum',
+      subtitle: `${courses.length} kursus di departemen ini`,
+      path: 'pengembangan/curriculum',
+      filters: [['department_id', '=', deptId ?? '']],
+    },
+    {
+      icon: <Calendar size={16} />,
+      title: 'Batch Kelas',
+      subtitle: `${batches.length} batch (${batches.filter((b: any) => b.is_active).length} aktif)`,
+      path: 'pengembangan/course-batches',
+      filters: [['department_id', '=', deptId ?? '']],
+    },
+    {
+      icon: <Users size={16} />,
+      title: 'Siswa',
+      subtitle: `${students.length} siswa terdaftar`,
+      path: 'students',
+      filters: [['department_id', '=', deptId ?? '']],
+    },
+  ]
 
   const actions: DetailPageAction[] = [
     {
@@ -296,7 +320,7 @@ export default function DepartmentDashboardPage() {
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 10px', borderRadius: 'var(--radius-full)',
               fontSize: 'var(--font-xs)', fontWeight: 600,
-              background: 'var(--color-surface-alt)', color: 'var(--color-text-tertiary)',
+              background: '#fef2f2', color: '#dc2626',
             }}>
               <User size={12} />
               Belum ada Leader
@@ -305,8 +329,8 @@ export default function DepartmentDashboardPage() {
         </>
       }
       actions={actions}
-      tabs={[
-        { id: 'overview', label: 'Ringkasan', icon: <Building2 size={14} />, content: (
+      sections={[
+        { id: 'overview', label: 'Overview', icon: <Building2 size={14} />, tabs: [{ id: 'overview', label: 'Overview', content: (
           <div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-3)' }}>
               <StatCard icon={<BookOpen size={18} />} label="Kursus" value={courses.length} color="var(--color-primary)" />
@@ -315,11 +339,11 @@ export default function DepartmentDashboardPage() {
               <StatCard icon={<GraduationCap size={18} />} label="Batch Selesai" value={batches.filter((b: any) => !b.is_active).length} color="var(--color-success-dark)" />
             </div>
           </div>
-        )},
-        { id: 'batches', label: 'Batch Kelas', icon: <Calendar size={14} />, content: batchTab },
-        { id: 'courses', label: 'Kursus', icon: <BookOpen size={14} />, content: coursesTab },
-        { id: 'students', label: 'Siswa', icon: <Users size={14} />, content: studentsTab },
+        )}] },
+        { id: 'batches', label: 'Batch', icon: <Calendar size={14} />, tabs: [{ id: 'batches', label: 'Batch', content: batchTab }] },
+        { id: 'students', label: 'Siswa', icon: <Users size={14} />, tabs: [{ id: 'students', label: 'Siswa', content: studentsTab }] },
       ]}
+      connections={{ items: connections }}
     />
 
     {showAssignModal && (

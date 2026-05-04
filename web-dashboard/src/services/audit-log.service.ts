@@ -15,11 +15,7 @@ export interface PaginatedResponse<T> {
 
 export const auditLogService = {
   list: (filters: AuditLogFilters) => {
-    const params = new URLSearchParams()
-    Object.entries(filters).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && v !== '') params.set(k, String(v))
-    })
-    const qs = params.toString()
-    return apiClient.get<PaginatedResponse<AuditLog>>(`/api/audit-logs${qs ? `?${qs}` : ''}`)
+    const qs = new URLSearchParams(filters as unknown as Record<string, string>).toString()
+    return apiClient.get<PaginatedResponse<AuditLog>>(`/api/audit-logs?${qs}`)
   },
 }

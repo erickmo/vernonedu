@@ -15,7 +15,7 @@ import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
 
 export default function IssueCompetencyPage() {
   const navigate = useNavigate()
-  const { enrollmentId } = useParams<{ enrollmentId: string }>()
+  useParams<{ enrollmentId: string }>()
   const queryClient = useQueryClient()
 
   const [studentId, setStudentId] = useState('')

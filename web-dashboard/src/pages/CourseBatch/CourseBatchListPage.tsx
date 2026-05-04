@@ -174,7 +174,7 @@ export default function CourseBatchListPage() {
       helpTitle="Batch Kelas"
       helpText="Batch kelas adalah jadwal pelatihan nyata dengan fasilitator, lokasi, dan peserta terdaftar. Setiap batch memiliki sistem pembayaran, komisi, dan tracking pendapatan."
       deleteConfig={{
-        onDelete: (row) => courseBatchService.list({ action: 'delete', batch_id: row.id }),
+        onDelete: (row) => courseBatchService.delete(row.id),
         dialogTitle: 'Hapus Batch Kelas?',
         dialogBody: (row) => `${row.batch_name} akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.`,
         successMessage: (row) => `Batch "${row.batch_name}" berhasil dihapus`,

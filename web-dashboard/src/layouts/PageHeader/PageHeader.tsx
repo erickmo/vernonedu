@@ -11,7 +11,7 @@ interface PageHeaderProps {
   className?: string
 }
 
-export function PageHeader({ title, subtitle, breadcrumbs, actions, className }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, breadcrumbs, pills, actions, className }: PageHeaderProps) {
   return (
     <div className={cn(styles.root, className)}>
       {breadcrumbs && breadcrumbs.length > 0 && (
@@ -32,6 +32,7 @@ export function PageHeader({ title, subtitle, breadcrumbs, actions, className }:
         <div>
           <h1 className={styles.title}>{title}</h1>
           {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+          {pills && <div className={styles.pills}>{pills}</div>}
         </div>
         {actions && <div className={styles.actions}>{actions}</div>}
       </div>

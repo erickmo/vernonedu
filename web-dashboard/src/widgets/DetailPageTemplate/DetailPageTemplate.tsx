@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, HelpCircle, ChevronRight, Home, Link2, MoreHorizontal } from 'lucide-react'
+import { ArrowLeft, HelpCircle, ChevronRight, Home, Link2, MoreVertical, X } from 'lucide-react'
 import { StatusPills } from '@/widgets/StatusPills/StatusPills'
 import { ProgressWidget, type ProgressStep, type TerminalStatus } from '@/widgets/ProgressWidget/ProgressWidget'
 import { DataConnectionWidget, type DataConnectionItem, type FilterTuple } from '@/widgets/DataConnectionWidget/DataConnectionWidget'
@@ -20,12 +20,11 @@ export interface DetailPageTab {
   content: React.ReactNode
 }
 
-export interface DetailPageSidebar {
-  content: React.ReactNode
-  /** Width of sidebar in pixels. Default: 360 */
-  width?: number
-  /** Hide sidebar on screens smaller than this breakpoint. Default: 1024 */
-  breakpoint?: number
+export interface DetailPageSection {
+  id: string
+  label: string
+  icon?: React.ReactNode
+  tabs: DetailPageTab[]
 }
 
 export interface DetailPageAction {
@@ -53,8 +52,11 @@ interface DetailPageTemplateProps {
   title: string
   badges?: React.ReactNode
 
-  /** Tabs. Single tab = no tab bar chrome, just content. */
-  tabs: DetailPageTab[]
+  /** Tabs. Single tab = no tab bar chrome, just content. Required when `sections` is not provided. */
+  tabs?: DetailPageTab[]
+
+  /** Optional sidebar sections. When set, the sidebar menu controls which submenu tabs show. */
+  sections?: DetailPageSection[]
 
   /** Action buttons (Edit, Hapus, etc.) */
   actions?: DetailPageAction[]
@@ -84,9 +86,6 @@ interface DetailPageTemplateProps {
 
   /** Explicit dashboard context for DataConnectionWidget. If not provided, auto-detects from URL. */
   dashboardContext?: DashboardContext
-
-  /** Right sidebar content */
-  sidebar?: DetailPageSidebar
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -99,6 +98,7 @@ export function DetailPageTemplate({
   title,
   badges,
   tabs,
+  sections,
   actions = [],
   helpTitle,
   helpText,
@@ -108,7 +108,6 @@ export function DetailPageTemplate({
   progress,
   connections,
   dashboardContext: explicitContext,
-  sidebar,
 }: DetailPageTemplateProps) {
   const moduleAccess = useModuleAccess()
   const effectiveReadonly = isReadonly || moduleAccess.readonly
@@ -117,23 +116,38 @@ export function DetailPageTemplate({
   const detectedContext = useDashboardContext()
   const context = explicitContext ?? detectedContext
 
-  const koneksiTab: DetailPageTab = {
+  const koneksiSection: DetailPageSection = {
     id: '__koneksi__',
     label: 'Koneksi',
     icon: <Link2 size={14} />,
-    content: (
-      <DataConnectionWidget
-        title={connections?.title}
-        items={connections?.items ?? []}
-        dashboardContext={context}
-      />
-    ),
+    tabs: [{
+      id: '__koneksi__',
+      label: 'Koneksi',
+      content: (
+        <DataConnectionWidget
+          title={connections?.title}
+          items={connections?.items ?? []}
+          dashboardContext={context}
+        />
+      ),
+    }],
   }
 
-  const allTabs = [...tabs, koneksiTab]
+  const baseSections = sections?.length
+    ? sections
+    : [{ id: '__default__', label: 'Menu', tabs: tabs ?? [] }]
 
-  const [activeTab, setActiveTab] = useState(tabs[0]?.id ?? '__log__')
+  const sectionItems = connections !== undefined
+    ? [...baseSections, koneksiSection]
+    : baseSections
+
+  const [activeSectionId, setActiveSectionId] = useState(sectionItems[0]?.id ?? '__default__')
+  const activeSection = sectionItems.find((section) => section.id === activeSectionId) ?? sectionItems[0]
+  const activeSectionTabs = activeSection?.tabs ?? []
+
+  const [activeTab, setActiveTab] = useState(activeSectionTabs[0]?.id ?? '__log__')
   const [overflowOpen, setOverflowOpen] = useState(false)
+  const [showHelpModal, setShowHelpModal] = useState(false)
   const overflowRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -146,15 +160,20 @@ export function DetailPageTemplate({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [overflowOpen])
 
-  const activeContent = allTabs.find((t) => t.id === activeTab)?.content
-  const hasMultipleTabs = allTabs.length > 1
+  const currentTabId = activeSectionTabs.some((tab) => tab.id === activeTab)
+    ? activeTab
+    : (activeSectionTabs[0]?.id ?? '__log__')
+  const activeContent = activeSectionTabs.find((t) => t.id === currentTabId)?.content
+  const hasMultipleTabs = activeSectionTabs.length > 1
   const hasHelp = !!(helpTitle || helpText)
   const autoBreadcrumbs = useAutoBreadcrumbs(title)
   const handleBack = onBack ?? (() => window.history.back())
+  const helpContent = { title: helpTitle ?? title, text: helpText ?? '' }
 
-  // ─── Action split: all actions go to overflow dropdown ──────────────────────
-  const visibleActions: DetailPageAction[] = []
-  const overflowActions = actions
+  const menuActions = [
+    ...actions.filter((action) => action.variant !== 'danger'),
+    ...actions.filter((action) => action.variant === 'danger'),
+  ]
 
   return (
     <div className={styles.page}>
@@ -201,8 +220,13 @@ export function DetailPageTemplate({
             {hasHelp && (
               <button
                 className={styles.helpBtn}
-                onClick={() => onShowHelp?.({ title: helpTitle ?? title, text: helpText ?? '' })}
+                type="button"
+                onClick={() => {
+                  if (onShowHelp) onShowHelp(helpContent)
+                  else setShowHelpModal(true)
+                }}
                 title="Bantuan"
+                aria-label="Bantuan"
               >
                 <HelpCircle size={16} />
               </button>
@@ -211,17 +235,20 @@ export function DetailPageTemplate({
               <div className={styles.actions}>
                 <div className={styles.overflowWrap} ref={overflowRef}>
                   <button
-                    className={`${styles.btnSecondary} ${styles.overflowBtn}`}
+                    className={styles.overflowBtn}
                     onClick={() => setOverflowOpen((v) => !v)}
-                    title="Aksi"
+                    title="Aksi lainnya"
+                    aria-label="Aksi lainnya"
+                    aria-haspopup="menu"
+                    aria-expanded={overflowOpen}
                   >
-                    <MoreHorizontal size={15} />
+                    <MoreVertical size={17} />
                   </button>
                   {overflowOpen && (
-                    <div className={styles.dropdown}>
-                      {overflowActions.map((action, i) => {
+                    <div className={styles.dropdown} role="menu">
+                      {menuActions.map((action, i) => {
                         const isDanger = action.variant === 'danger'
-                        const prevIsDanger = i > 0 && overflowActions[i - 1].variant === 'danger'
+                        const prevIsDanger = i > 0 && menuActions[i - 1].variant === 'danger'
                         const showDivider = isDanger && !prevIsDanger && i > 0
                         return (
                           <div key={action.label}>
@@ -230,6 +257,7 @@ export function DetailPageTemplate({
                               className={`${styles.dropdownItem} ${isDanger ? styles.dropdownItemDanger : ''}`}
                               onClick={() => { setOverflowOpen(false); action.onClick() }}
                               disabled={action.disabled}
+                              role="menuitem"
                             >
                               {action.icon}
                               {action.label}
@@ -257,37 +285,84 @@ export function DetailPageTemplate({
         </div>
       )}
 
-      {/* Tabs card */}
-      <div className={styles.tabsCard}>
-        {hasMultipleTabs && (
-          <div className={styles.tabList}>
-            {allTabs.map((tab) => (
-              <button
-                key={tab.id}
-                className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
+      {/* Main layout */}
+      <div className={styles.detailGrid}>
+        <aside className={styles.menuCard} aria-label="Detail menu">
+          <div className={styles.menuHeader}>
+            <span className={styles.menuTitle}>Menu</span>
+            <span className={styles.menuCount}>{sectionItems.length} items</span>
           </div>
-        )}
-        <div className={styles.tabContentWrapper}>
-          <div className={styles.tabContent}>{activeContent}</div>
-          {sidebar && (
-            <div
-              className={styles.sidebar}
-              data-breakpoint={sidebar.breakpoint ?? 1024}
-              style={{
-                width: `${sidebar.width ?? 360}px`,
-              }}
-            >
-              {sidebar.content}
+          <div className={styles.menuList}>
+            {sectionItems.map((section) => {
+              const isActive = activeSection?.id === section.id
+              return (
+                <button
+                  key={section.id}
+                  type="button"
+                  className={`${styles.menuItem} ${isActive ? styles.menuItemActive : ''}`}
+                  onClick={() => {
+                    setActiveSectionId(section.id)
+                    setActiveTab(section.tabs[0]?.id ?? '__log__')
+                  }}
+                  aria-pressed={isActive}
+                >
+                  {section.icon && <span className={styles.menuIcon}>{section.icon}</span>}
+                  <span className={styles.menuLabel}>{section.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </aside>
+
+        <div className={styles.tabsCard}>
+          {hasMultipleTabs && (
+            <div className={styles.tabList}>
+              {activeSectionTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  className={`${styles.tab} ${currentTabId === tab.id ? styles.tabActive : ''}`}
+                  onClick={() => setActiveTab(tab.id)}
+                  type="button"
+                >
+                  {tab.icon}
+                  {tab.label}
+                </button>
+              ))}
             </div>
           )}
+          <div className={styles.tabContentWrapper}>
+            <div className={styles.tabContent}>{activeContent}</div>
+          </div>
         </div>
       </div>
+
+      {showHelpModal && hasHelp && (
+        <div className={styles.overlay} onClick={() => setShowHelpModal(false)}>
+          <div
+            className={styles.helpModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="detail-help-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.helpModalHeader}>
+              <span className={styles.helpModalIcon}>
+                <HelpCircle size={18} />
+              </span>
+              <h2 id="detail-help-title" className={styles.helpModalTitle}>{helpContent.title}</h2>
+              <button
+                className={styles.helpModalClose}
+                type="button"
+                aria-label="Tutup bantuan"
+                onClick={() => setShowHelpModal(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <p className={styles.helpModalBody}>{helpContent.text}</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

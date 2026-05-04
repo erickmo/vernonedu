@@ -159,7 +159,7 @@ export default function TransactionListPage() {
       helpTitle="Transaksi"
       helpText="Transaksi mencatat semua pemasukan dan pengeluaran. Setiap transaksi terhubung ke akun di Chart of Accounts."
       deleteConfig={{
-        onDelete: (row) => accountingService.deleteTransaction(row.id),
+        onDelete: (row) => accountingService.deleteTransaction(row.id) as Promise<void>,
         dialogTitle: 'Hapus Transaksi?',
         dialogBody: (row) =>
           `Transaksi ${row.reference_number ? `"${row.reference_number}"` : 'ini'} akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.`,

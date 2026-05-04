@@ -40,7 +40,6 @@ export const ROUTE_LABELS: Record<string, string> = {
   employees: 'Karyawan',
   payroll: 'Penggajian',
   attendance: 'Kehadiran',
-  leaves: 'Cuti',
   // HQ routes
   g: 'HQ Dashboard',
   keuangan: 'Keuangan',

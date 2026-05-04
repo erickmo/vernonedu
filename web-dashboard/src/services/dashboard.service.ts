@@ -63,7 +63,7 @@ function mapSummary(raw: ApiDashboardSummary): DashboardSummary {
 
 export const dashboardService = {
   getSummary: async (): Promise<DashboardSummary> => {
-    const resp = await apiClient.get<{ data: ApiDashboardSummary }>('/api/v1/dashboard/summary')
+    const resp = await apiClient.get<{ data: ApiDashboardSummary }>('/dashboard/summary')
     return mapSummary(resp.data)
   },
 }
