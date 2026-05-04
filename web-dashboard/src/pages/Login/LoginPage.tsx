@@ -46,10 +46,6 @@ export default function LoginPage() {
   })
 
   useEffect(() => {
-    if (!canBypassLogin) {
-      console.log('[LoginPage] Pills disabled: canBypassLogin=false')
-      return
-    }
     setUsersLoading(true)
     console.log('[LoginPage] Fetching users...')
     userService
@@ -137,34 +133,32 @@ export default function LoginPage() {
             <p className={styles.subtitle}>Gunakan akun kerja Anda untuk melanjutkan.</p>
           </div>
 
-          {canBypassLogin && (
-            <div className={styles.pills}>
-              <span className={styles.pillsLabel}>
-                {usersLoading ? 'Loading users...' : 'Quick login'}
-              </span>
-              <div className={styles.pillsList}>
-                {presetUsers.length > 0 ? (
-                  presetUsers.map((u) => (
-                    <button
-                      key={u.id}
-                      type="button"
-                      className={styles.pill}
-                      onClick={() => {
-                        field('email').onChange({ target: { value: u.email } } as React.ChangeEvent<HTMLInputElement>)
-                      }}
-                      title={u.email}
-                    >
-                      {u.name}
-                    </button>
-                  ))
-                ) : !usersLoading ? (
-                  <span style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', padding: '0.5rem' }}>
-                    No users available
-                  </span>
-                ) : null}
-              </div>
+          <div className={styles.pills}>
+            <span className={styles.pillsLabel}>
+              {usersLoading ? 'Loading users...' : 'Quick login'}
+            </span>
+            <div className={styles.pillsList}>
+              {presetUsers.length > 0 ? (
+                presetUsers.map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    className={styles.pill}
+                    onClick={() => {
+                      field('email').onChange({ target: { value: u.email } } as React.ChangeEvent<HTMLInputElement>)
+                    }}
+                    title={u.email}
+                  >
+                    {u.name}
+                  </button>
+                ))
+              ) : !usersLoading ? (
+                <span style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', padding: '0.5rem' }}>
+                  No users available
+                </span>
+              ) : null}
             </div>
-          )}
+          </div>
 
           <form onSubmit={onSubmit} className={styles.form} noValidate>
             <div className={styles.field}>
