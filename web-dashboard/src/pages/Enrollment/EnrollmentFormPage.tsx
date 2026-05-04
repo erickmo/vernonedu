@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Users, GraduationCap, DollarSign, Calendar, Clock } from 'lucide-react'
+import { Users, Calendar, Clock } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   FormPageTemplate,

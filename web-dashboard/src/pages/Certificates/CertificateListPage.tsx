@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Award, Ban } from 'lucide-react'
+import { Ban } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
 import type { ColumnDef, RowActionDef, FilterDef } from '@/widgets/DataTable/DataTable'

@@ -127,7 +127,7 @@ export default function BankAccountsPage() {
       addLabel="Tambah Rekening"
       onAdd={() => toast.info('Formulir tambah rekening segera hadir')}
       queryKey="finance/bank-accounts"
-      fetcher={(params) => accountingService.listBankAccounts(params)}
+      fetcher={(params) => accountingService.listBankAccounts(params as any)}
       columns={columns}
       rowActions={rowActions}
       searchPlaceholder="Cari rekening..."

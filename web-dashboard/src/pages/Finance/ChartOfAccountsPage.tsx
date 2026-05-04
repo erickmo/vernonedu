@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Pencil, BookOpen } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
 import type { ColumnDef, RowActionDef } from '@/widgets/DataTable/DataTable'
 import { accountingService } from '@/services/accounting.service'

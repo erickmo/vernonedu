@@ -6,7 +6,7 @@ interface UseIntersectionObserverOptions extends IntersectionObserverInit {
 }
 
 interface UseIntersectionObserverReturn<T extends Element> {
-  ref: RefObject<T>
+  ref: RefObject<T | null>
   isIntersecting: boolean
   entry: IntersectionObserverEntry | null
 }
@@ -44,5 +44,5 @@ export function useIntersectionObserver<T extends Element = Element>({
     return () => observer.disconnect()
   }, [root, rootMargin, threshold, once])
 
-  return { ref: ref as RefObject<T>, isIntersecting: entry?.isIntersecting ?? false, entry }
+  return { ref, isIntersecting: entry?.isIntersecting ?? false, entry }
 }

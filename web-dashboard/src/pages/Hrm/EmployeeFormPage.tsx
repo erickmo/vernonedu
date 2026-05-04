@@ -52,7 +52,7 @@ export default function EmployeeFormPage() {
   const [userResults, setUserResults] = useState<any[]>([])
 
   // Fetch employee data for edit mode
-  const { data: emp } = useQuery({
+  const { data: emp } = useQuery<any>({
     queryKey: ['hrm-employee-detail', employeeId],
     queryFn: () => hrmService.getEmployee(employeeId!),
     enabled: isEdit,
@@ -61,7 +61,10 @@ export default function EmployeeFormPage() {
   // Fetch departments for dropdown
   const { data: departments = [] } = useQuery({
     queryKey: ['departments'],
-    queryFn: () => hrmService.listDepartments(),
+    queryFn: async () => {
+      const res = await hrmService.listDepartments()
+      return (res as any) ?? []
+    },
   })
 
   useEffect(() => {

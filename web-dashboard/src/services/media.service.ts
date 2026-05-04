@@ -27,6 +27,13 @@ export const mediaService = {
     if (authState.token) {
       headers['Authorization'] = `Bearer ${authState.token}`
     }
+    // Multi-tenant headers (unused in single-tenant VernonEdu)
+    if ('selectedGroup' in authState && authState.selectedGroup) {
+      headers['X-Company-Group-ID'] = (authState.selectedGroup as { id: string }).id
+    }
+    if ('selectedCompany' in authState && authState.selectedCompany) {
+      headers['X-Company-ID'] = (authState.selectedCompany as { id: string }).id
+    }
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest()

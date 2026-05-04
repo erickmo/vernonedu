@@ -1,1 +1,5 @@
-// Chat widget — not used in VernonEdu
+export { ChatWidget } from './ChatWidget'
+export { useChatStore } from '@/stores/chat.store'
+export { useChannelFormModal } from './ChannelFormModal'
+export { ChannelFormModalProvider } from './ChannelFormModal'
+export type { ChatChannel, ChannelCategory, ChatMessage, ChatMember } from './chat.types'

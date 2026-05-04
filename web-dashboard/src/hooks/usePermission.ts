@@ -7,15 +7,19 @@ export function usePermission() {
   const isDirector = roles.includes('director')
 
   return {
+    can: (_permission: string): boolean =>
+      isDirector,
+
+    canAny: (_perms: string[]): boolean =>
+      isDirector,
+
+    canAll: (_perms: string[]): boolean =>
+      isDirector,
+
     hasRole: (role: VernonEduRole | VernonEduRole[]): boolean => {
       if (isDirector) return true
-      const check = Array.isArray(role) ? role : [role]
-      return check.some(r => roles.includes(r))
-    },
-
-    hasAnyRole: (checkRoles: VernonEduRole[]): boolean => {
-      if (isDirector) return true
-      return checkRoles.some(r => roles.includes(r))
+      const checkRoles = Array.isArray(role) ? role : [role]
+      return checkRoles.some((r) => roles.includes(r))
     },
   }
 }

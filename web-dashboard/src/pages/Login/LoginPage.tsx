@@ -135,21 +135,28 @@ export default function LoginPage() {
 
           <div className={styles.pills}>
             <span className={styles.pillsLabel}>
-              {usersLoading ? 'Loading users...' : 'Quick login'}
+              {usersLoading ? 'Loading roles...' : 'Test logins by role'}
             </span>
             <div className={styles.pillsList}>
               {presetUsers.length > 0 ? (
-                presetUsers.map((u) => (
+                Array.from(
+                  presetUsers.reduce((acc, u) => {
+                    const role = u.roles?.[0] || 'user'
+                    if (!acc.has(role)) acc.set(role, u)
+                    return acc
+                  }, new Map<string, typeof presetUsers[0]>()).values()
+                ).map((u) => (
                   <button
                     key={u.id}
                     type="button"
                     className={styles.pill}
                     onClick={() => {
                       field('email').onChange({ target: { value: u.email } } as React.ChangeEvent<HTMLInputElement>)
+                      field('password').onChange({ target: { value: '123123123' } } as React.ChangeEvent<HTMLInputElement>)
                     }}
-                    title={u.email}
+                    title={`${u.email} / 123123123`}
                   >
-                    {u.name}
+                    {u.roles?.[0] || 'User'}
                   </button>
                 ))
               ) : !usersLoading ? (

@@ -45,7 +45,7 @@ export function MultiSelect({
   const dropdownRef = useRef<HTMLDivElement>(null)
   const inputId = id ?? `multiselect-${Math.random().toString(36).slice(2)}`
 
-  useClickOutside([triggerRef as React.RefObject<HTMLElement>, dropdownRef as React.RefObject<HTMLElement>], () => { setOpen(false); setSearch('') })
+  useClickOutside([triggerRef, dropdownRef], () => { setOpen(false); setSearch('') })
 
   const openDropdown = useCallback(() => {
     if (disabled) return

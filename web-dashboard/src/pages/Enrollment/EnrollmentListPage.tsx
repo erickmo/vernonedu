@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Pencil, Users } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
 import type { ColumnDef, RowActionDef, FilterDef } from '@/widgets/DataTable/DataTable'
 import { enrollmentService } from '@/services/enrollment.service'

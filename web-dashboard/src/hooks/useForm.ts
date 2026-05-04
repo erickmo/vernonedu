@@ -26,8 +26,7 @@ interface UseFormReturn<T> {
   setServerErrors: (errors: Record<string, string>) => void
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function useForm<T extends Record<string, any> = Record<string, any>>({
+export function useForm<T extends Record<string, unknown>>({
   initialValues,
   validate,
 }: UseFormConfig<T>): UseFormReturn<T> {
@@ -92,5 +91,5 @@ export function useForm<T extends Record<string, any> = Record<string, any>>({
     setErrors(errs as FieldErrors<T>)
   }, [])
 
-  return { values, errors, touched, isDirty, setFieldValue, setValues, field, handleSubmit, reset, setServerErrors }
+  return { values, errors, touched, isDirty, setFieldValue, field, handleSubmit, reset, setServerErrors }
 }

@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Users, ClipboardCheck, UserCog, Wallet, Plus } from 'lucide-react'
+import { Users, ClipboardCheck, UserCog, Wallet } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'

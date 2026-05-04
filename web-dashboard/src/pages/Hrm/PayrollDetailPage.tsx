@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Wallet, Pencil, CheckCircle, SendHorizonal, Clock, User, CreditCard } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -51,7 +50,7 @@ export default function PayrollDetailPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: period, isLoading } = useQuery({
+  const { data: period, isLoading } = useQuery<any>({
     queryKey: ['hrm-payroll-period-detail', periodId],
     queryFn: () => hrmService.getPayrollPeriod(periodId!),
   })

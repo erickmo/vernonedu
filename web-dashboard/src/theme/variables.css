@@ -1,22 +1,17 @@
 :root {
-  /* === Brand Colors — VernonEdu Purple/Violet (synced with app-dashboard) === */
-  --color-primary: #9561AB;
-  --color-primary-hover: #7A4E90;
-  --color-primary-subtle: rgba(149, 97, 171, 0.08);
+  /* === Brand Colors === */
+  --color-primary: #4D2975;
+  --color-primary-hover: #3D1F5E;
+  --color-primary-subtle: rgba(77, 41, 117, 0.08);
   --color-primary-text: #ffffff;
 
-  --color-secondary: #00695C;
-  --color-secondary-hover: #004D40;
-  --color-secondary-text: #ffffff;
+  --color-secondary: #E9A800;
+  --color-secondary-hover: #C78F00;
+  --color-secondary-text: #15101A;
 
-  --color-accent: #A96BD0;
-  --color-accent-hover: #9561AB;
+  --color-accent: #26B8B0;
+  --color-accent-hover: #00968D;
   --color-accent-text: #ffffff;
-
-  /* === Sidebar (dark purple theme) === */
-  --color-sidebar-bg: #2E1A37;
-  --color-sidebar-active: #472A54;
-  --color-sidebar-text: #F8F0FD;
 
   /* === Semantic Colors === */
   --color-success: #16A34A;
@@ -36,23 +31,24 @@
   --color-info-dark: #1E3A8A;
 
   /* === Surfaces === */
-  --color-surface: #F5F5F5;
+  --color-surface: #F8F5FC;
   --color-surface-elevated: #ffffff;
-  --color-surface-alt: #F8F0FD;
-  --color-overlay: rgba(149, 97, 171, 0.4);
+  --color-surface-alt: #F0E8FA;
+  --color-navbar-bg: rgba(77, 41, 117, 0.95);
+  --color-overlay: rgba(30, 13, 48, 0.5);
 
   /* === Neutral (purple-tinted gray) === */
-  --color-border: #E8E4F0;
-  --color-border-subtle: #F0EDF8;
-  --color-hover: rgba(149, 97, 171, 0.05);
+  --color-border: #E3DFEA;
+  --color-border-subtle: #F1EFF5;
+  --color-hover: rgba(77, 41, 117, 0.06);
 
   /* === Text === */
-  --color-text: #1C2536;
-  --color-text-secondary: #637381;
-  --color-text-tertiary: #8E8EA8;
-  --color-text-disabled: #B0BEC5;
+  --color-text: #15101A;
+  --color-text-secondary: #7A7089;
+  --color-text-tertiary: #9E96AE;
+  --color-text-disabled: #C8C2D4;
   --color-text-on-primary: #ffffff;
-  --color-text-link: #9561AB;
+  --color-text-link: #6E33B3;
 
   /* === Typography === */
   --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -84,8 +80,7 @@
   /* === Layout === */
   --navbar-height: 56px;
   --secondary-nav-height: 44px;
-  --sidebar-width: 260px;
-  --sidebar-collapsed-width: 68px;
+  --sidebar-width: 240px;
   --content-max-width: 1280px;
 
   /* === Input Heights === */
@@ -102,10 +97,10 @@
   --radius-full: 9999px;
 
   /* === Shadows === */
-  --shadow-sm: 0 1px 2px rgba(28, 37, 54, 0.06);
-  --shadow-md: 0 4px 6px rgba(28, 37, 54, 0.08), 0 1px 3px rgba(28, 37, 54, 0.06);
-  --shadow-lg: 0 10px 15px rgba(28, 37, 54, 0.1), 0 4px 6px rgba(28, 37, 54, 0.06);
-  --shadow-xl: 0 20px 25px rgba(28, 37, 54, 0.12), 0 8px 10px rgba(28, 37, 54, 0.06);
+  --shadow-sm: 0 1px 2px rgba(21, 16, 26, 0.06);
+  --shadow-md: 0 4px 6px rgba(21, 16, 26, 0.08), 0 1px 3px rgba(21, 16, 26, 0.06);
+  --shadow-lg: 0 10px 15px rgba(21, 16, 26, 0.1), 0 4px 6px rgba(21, 16, 26, 0.06);
+  --shadow-xl: 0 20px 25px rgba(21, 16, 26, 0.12), 0 8px 10px rgba(21, 16, 26, 0.06);
 
   /* === Z-index === */
   --z-dropdown: 100;
@@ -121,4 +116,26 @@
   --duration-fast: 0.1s;
   --duration-normal: 0.2s;
   --duration-slow: 0.3s;
+}
+
+[data-theme='dark'] {
+  --color-surface: #0F0A15;
+  --color-surface-elevated: #1C1428;
+  --color-surface-alt: #261A33;
+  --color-navbar-bg: rgba(28, 20, 40, 0.98);
+  --color-overlay: rgba(0, 0, 0, 0.6);
+
+  --color-border: #3D2E52;
+  --color-border-subtle: #2A1E3A;
+  --color-hover: rgba(255, 255, 255, 0.06);
+
+  --color-text: #EDE8F5;
+  --color-text-secondary: #A89CBD;
+  --color-text-tertiary: #6B5E7D;
+  --color-text-disabled: #4A3E5E;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4), 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.45), 0 8px 10px rgba(0, 0, 0, 0.35);
 }
