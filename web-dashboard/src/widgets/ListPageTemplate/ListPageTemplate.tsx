@@ -10,7 +10,7 @@ import { useModuleAccess } from '@/hooks/useModuleAccess'
 import { toast } from '@/widgets/Toast/Toast'
 import { StatusPills } from '@/widgets/StatusPills/StatusPills'
 import type { ColumnDef, RowActionDef, FilterDef, ActiveFilter } from '@/widgets/DataTable/DataTable'
-import { serializeFilters, parseFiltersFromURL } from '@/widgets/DataTable/filter.utils'
+import { serializeFilters, parseFiltersFromURL, activeFiltersToTuples } from '@/widgets/DataTable/filter.utils'
 import type { ListParams } from '@/services/createEntityService'
 import type { PaginatedResponse } from '@/types/api.types'
 import styles from './ListPageTemplate.module.css'
@@ -111,7 +111,7 @@ export function ListPageTemplate<T extends { id: string }>({
   const effectiveManagedByHQ = managedByHQ || moduleAccess.managedByHQ
 
   const queryClient = useQueryClient()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [deletingRow, setDeletingRow] = useState<T | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
@@ -130,9 +130,13 @@ export function ListPageTemplate<T extends { id: string }>({
     defaultSort,
   })
 
-  // Parse filter dari URL query string (?filters=[...]) saat pertama kali dimuat
+  // Parse filter dan search dari URL saat pertama kali dimuat
   useEffect(() => {
     if (urlFiltersApplied) return
+
+    const initialSearch = searchParams.get('search')
+    if (initialSearch) setSearch(initialSearch)
+
     if (!filterDefs) {
       setUrlFiltersApplied(true)
       return
@@ -140,18 +144,40 @@ export function ListPageTemplate<T extends { id: string }>({
     const { matched, adhoc } = parseFiltersFromURL(searchParams, filterDefs)
     const hasFilters = matched.length > 0 || adhoc.length > 0
     if (hasFilters) {
-      // Sertakan SEMUA filter (matched + adhoc) ke UI agar user bisa melihatnya
       setActiveFilters([...matched, ...adhoc])
-      // Gabung matched filters + adhoc filters (semua dalam format baru)
       const allFilters = [...matched, ...adhoc]
-      setFilters(serializeFilters(allFilters))
+      setFilters(activeFiltersToTuples(allFilters))
     }
     setUrlFiltersApplied(true)
-  }, [searchParams, filterDefs, urlFiltersApplied, setFilters])
+  }, [searchParams, filterDefs, urlFiltersApplied, setFilters, setSearch])
+
+  function handleSearchChange(value: string) {
+    setSearch(value)
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (value) next.set('search', value)
+        else next.delete('search')
+        return next
+      },
+      { replace: true },
+    )
+  }
 
   function handleActiveFiltersChange(filters: ActiveFilter[]) {
     setActiveFilters(filters)
-    setFilters(serializeFilters(filters))
+    setFilters(activeFiltersToTuples(filters))
+    const serialized = serializeFilters(filters)
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        const filtersParam = serialized.filters as string | undefined
+        if (filtersParam) next.set('filters', filtersParam)
+        else next.delete('filters')
+        return next
+      },
+      { replace: true },
+    )
   }
 
   const allRowActions: RowActionDef<T>[] = deleteConfig && !effectiveReadonly && !effectiveManagedByHQ
@@ -227,7 +253,7 @@ export function ListPageTemplate<T extends { id: string }>({
           sort={sort}
           onSortChange={setSort}
           search={search}
-          onSearchChange={setSearch}
+          onSearchChange={handleSearchChange}
           searchPlaceholder={searchPlaceholder}
           rowActions={allRowActions}
           onRowClick={onRowClick}

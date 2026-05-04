@@ -52,8 +52,8 @@ interface DetailPageTemplateProps {
   title: string
   badges?: React.ReactNode
 
-  /** Tabs. Single tab = no tab bar chrome, just content. */
-  tabs: DetailPageTab[]
+  /** Tabs. Single tab = no tab bar chrome, just content. Required when `sections` is not provided. */
+  tabs?: DetailPageTab[]
 
   /** Optional sidebar sections. When set, the sidebar menu controls which submenu tabs show. */
   sections?: DetailPageSection[]
@@ -116,26 +116,34 @@ export function DetailPageTemplate({
   const detectedContext = useDashboardContext()
   const context = explicitContext ?? detectedContext
 
-  const koneksiTab: DetailPageTab = {
+  const koneksiSection: DetailPageSection = {
     id: '__koneksi__',
     label: 'Koneksi',
     icon: <Link2 size={14} />,
-    content: (
-      <DataConnectionWidget
-        title={connections?.title}
-        items={connections?.items ?? []}
-        dashboardContext={context}
-      />
-    ),
+    tabs: [{
+      id: '__koneksi__',
+      label: 'Koneksi',
+      content: (
+        <DataConnectionWidget
+          title={connections?.title}
+          items={connections?.items ?? []}
+          dashboardContext={context}
+        />
+      ),
+    }],
   }
 
-  const sectionItems = sections?.length
+  const baseSections = sections?.length
     ? sections
-    : [{ id: '__default__', label: 'Menu', tabs }]
+    : [{ id: '__default__', label: 'Menu', tabs: tabs ?? [] }]
+
+  const sectionItems = connections !== undefined
+    ? [...baseSections, koneksiSection]
+    : baseSections
 
   const [activeSectionId, setActiveSectionId] = useState(sectionItems[0]?.id ?? '__default__')
   const activeSection = sectionItems.find((section) => section.id === activeSectionId) ?? sectionItems[0]
-  const activeSectionTabs = activeSection ? [...activeSection.tabs, koneksiTab] : [koneksiTab]
+  const activeSectionTabs = activeSection?.tabs ?? []
 
   const [activeTab, setActiveTab] = useState(activeSectionTabs[0]?.id ?? '__log__')
   const [overflowOpen, setOverflowOpen] = useState(false)

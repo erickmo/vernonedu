@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Building2, BookOpen, Users, GraduationCap, Calendar, Pencil, UserPlus, X, Search, User } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
+import { DetailPageTemplate, type DetailPageAction, type DataConnectionItem } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { departmentService } from '@/services/department.service'
 import { apiClient } from '@/services/api.client'
 import { toast } from '@/widgets/Toast/Toast'
@@ -71,6 +71,30 @@ export default function DepartmentDashboardPage() {
       setIsAssigning(false)
     }
   }
+
+  const connections: DataConnectionItem[] = [
+    {
+      icon: <BookOpen size={16} />,
+      title: 'Kurikulum',
+      subtitle: `${courses.length} kursus di departemen ini`,
+      path: 'pengembangan/curriculum',
+      filters: [['department_id', '=', deptId ?? '']],
+    },
+    {
+      icon: <Calendar size={16} />,
+      title: 'Batch Kelas',
+      subtitle: `${batches.length} batch (${batches.filter((b: any) => b.is_active).length} aktif)`,
+      path: 'pengembangan/course-batches',
+      filters: [['department_id', '=', deptId ?? '']],
+    },
+    {
+      icon: <Users size={16} />,
+      title: 'Siswa',
+      subtitle: `${students.length} siswa terdaftar`,
+      path: 'students',
+      filters: [['department_id', '=', deptId ?? '']],
+    },
+  ]
 
   const actions: DetailPageAction[] = [
     {
@@ -319,6 +343,7 @@ export default function DepartmentDashboardPage() {
         { id: 'batches', label: 'Batch', icon: <Calendar size={14} />, tabs: [{ id: 'batches', label: 'Batch', content: batchTab }] },
         { id: 'students', label: 'Siswa', icon: <Users size={14} />, tabs: [{ id: 'students', label: 'Siswa', content: studentsTab }] },
       ]}
+      connections={{ items: connections }}
     />
 
     {showAssignModal && (

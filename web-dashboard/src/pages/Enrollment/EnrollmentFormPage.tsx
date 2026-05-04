@@ -53,16 +53,9 @@ export default function EnrollmentFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverError, setServerError] = useState('')
 
-  // In edit mode, we need to fetch existing data
-  // Note: The enrollmentService doesn't have getById, we may need to add it or use list with filter
   const { data: enrollment } = useQuery({
     queryKey: ['enrollment', enrollmentId],
-    queryFn: async () => {
-      // For now, we'll assume the service will be enhanced with getById
-      // If not, we can create a custom fetcher
-      const response = await enrollmentService.list({ page: 1, pageSize: 1 })
-      return response.data?.[0]
-    },
+    queryFn: () => enrollmentService.getById(enrollmentId!),
     enabled: isEdit,
   })
 

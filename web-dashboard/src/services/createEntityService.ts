@@ -1,11 +1,15 @@
 import { apiClient } from './api.client'
 import type { PaginatedResponse } from '@/types/api.types'
 
+export type SortTuple = [string, 1 | -1]
+export type FilterTuple = [string, string, unknown]
+
 export interface ListParams {
   limit?: number
   offset?: number
-  sort?: string
-  order?: 'asc' | 'desc'
+  sort?: SortTuple[]
+  filters?: FilterTuple[]
+  groupby?: string[]
   search?: string
   [key: string]: unknown
 }

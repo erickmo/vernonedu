@@ -1,17 +1,17 @@
 import { apiClient } from './api.client'
 import type { ListParams } from './createEntityService'
+import type { PaginatedResponse } from '@/types/api.types'
 
-export const talentPoolService = {
-  list: (params?: ListParams) => {
-    const qs = buildQS(params)
-    return apiClient.get<any>(`/talentpool${qs}`).then(r => (r as any).data ?? r)
-  },
+function toPaginated<T>(raw: unknown, fallback: T[]): PaginatedResponse<T> {
+  const r = raw as Record<string, unknown>
+  if (r && typeof r === 'object' && 'items' in r) return r as unknown as PaginatedResponse<T>
+  const list = Array.isArray(raw) ? raw : fallback
+  return { items: list as T[], total: list.length, limit: 9999, offset: 0 }
+}
 
-  getById: (id: string) =>
-    apiClient.get<any>(`/talentpool/${id}`).then(r => (r as any).data ?? r),
-
-  updateStatus: (id: string, status: string) =>
-    apiClient.put<any>(`/talentpool/${id}/status`, { status }),
+function unwrap<T>(res: unknown): T {
+  const r = res as Record<string, unknown>
+  return (r?.data ?? res) as T
 }
 
 function buildQS(params?: Record<string, any>): string {
@@ -22,4 +22,18 @@ function buildQS(params?: Record<string, any>): string {
   })
   const s = q.toString()
   return s ? `?${s}` : ''
+}
+
+export const talentPoolService = {
+  list: (params?: ListParams): Promise<PaginatedResponse<any>> => {
+    const qs = buildQS(params)
+    return apiClient.get<any>(`talentpool${qs}`)
+      .then(r => toPaginated(unwrap(r), []))
+  },
+
+  getById: (id: string) =>
+    apiClient.get<any>(`talentpool/${id}`).then(r => unwrap(r)),
+
+  updateStatus: (id: string, status: string) =>
+    apiClient.put<any>(`talentpool/${id}/status`, { status }),
 }

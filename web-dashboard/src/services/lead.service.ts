@@ -1,32 +1,17 @@
 import { apiClient } from './api.client'
 import type { ListParams } from './createEntityService'
+import type { PaginatedResponse } from '@/types/api.types'
 
-export const leadService = {
-  list: (params?: ListParams) => {
-    const qs = buildQS(params)
-    return apiClient.get<any>(`/leads${qs}`).then(r => (r as any).data ?? r)
-  },
+function toPaginated<T>(raw: unknown, fallback: T[]): PaginatedResponse<T> {
+  const r = raw as Record<string, unknown>
+  if (r && typeof r === 'object' && 'items' in r) return r as unknown as PaginatedResponse<T>
+  const list = Array.isArray(raw) ? raw : fallback
+  return { items: list as T[], total: list.length, limit: 9999, offset: 0 }
+}
 
-  getById: (id: string) =>
-    apiClient.get<any>(`/leads/${id}`).then(r => (r as any).data ?? r),
-
-  create: (data: any) =>
-    apiClient.post<any>('/leads', data),
-
-  update: (id: string, data: any) =>
-    apiClient.put<any>(`/leads/${id}`, data),
-
-  delete: (id: string) =>
-    apiClient.delete(`/leads/${id}`),
-
-  getCrmLogs: (id: string) =>
-    apiClient.get<any>(`/leads/${id}/crm-logs`).then(r => (r as any).data ?? r),
-
-  addCrmLog: (id: string, data: any) =>
-    apiClient.post<any>(`/leads/${id}/crm-logs`, data),
-
-  convertToStudent: (id: string) =>
-    apiClient.post<any>(`/leads/${id}/convert`, {}),
+function unwrap<T>(res: unknown): T {
+  const r = res as Record<string, unknown>
+  return (r?.data ?? res) as T
 }
 
 function buildQS(params?: Record<string, any>): string {
@@ -37,4 +22,33 @@ function buildQS(params?: Record<string, any>): string {
   })
   const s = q.toString()
   return s ? `?${s}` : ''
+}
+
+export const leadService = {
+  list: (params?: ListParams): Promise<PaginatedResponse<any>> => {
+    const qs = buildQS(params)
+    return apiClient.get<any>(`leads${qs}`)
+      .then(r => toPaginated(unwrap(r), []))
+  },
+
+  getById: (id: string) =>
+    apiClient.get<any>(`leads/${id}`).then(r => unwrap(r)),
+
+  create: (data: { name: string; email?: string; phone?: string; source: string; interest?: string; notes?: string }) =>
+    apiClient.post<any>('leads', data),
+
+  update: (id: string, data: unknown) =>
+    apiClient.put<any>(`leads/${id}`, data),
+
+  delete: (id: string) =>
+    apiClient.delete(`leads/${id}`),
+
+  getCrmLogs: (id: string) =>
+    apiClient.get<any>(`leads/${id}/crm-logs`).then(r => unwrap(r)),
+
+  addCrmLog: (id: string, data: any) =>
+    apiClient.post<any>(`leads/${id}/crm-logs`, data),
+
+  convertToStudent: (id: string) =>
+    apiClient.post<any>(`leads/${id}/convert`, {}),
 }
