@@ -34,7 +34,7 @@ export default function CourseDashboardPage() {
     {
       label: 'Edit Kursus',
       icon: <Pencil size={14} />,
-      onClick: () => navigate(`/curriculum/${courseId}/edit`),
+      onClick: () => navigate(`/course/${courseId}/edit`),
       variant: 'default',
     },
   ]
@@ -169,7 +169,7 @@ export default function CourseDashboardPage() {
 
   return (
     <DetailPageTemplate
-      onBack={() => navigate('/curriculum')}
+      onBack={() => navigate('/course')}
       icon={<BookOpen size={20} />}
       title={loadingCourse ? 'Memuat...' : (course?.name ?? 'Kursus')}
       badges={

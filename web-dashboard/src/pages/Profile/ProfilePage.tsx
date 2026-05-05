@@ -57,7 +57,7 @@ export default function ProfilePage() {
   const onSubmit = handleSubmit(async (v) => {
     setIsSubmitting(true)
     try {
-      await apiClient.put('/api/profile', { name: v.name, phone: v.phone })
+      await apiClient.put('/users/me', { name: v.name, phone: v.phone })
       toast.success('Profil berhasil diperbarui')
     } catch (err) {
       if (err instanceof AppApiError) {

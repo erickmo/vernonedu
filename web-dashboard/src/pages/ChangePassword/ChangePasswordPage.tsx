@@ -73,7 +73,7 @@ export default function ChangePasswordPage() {
     setIsSubmitting(true)
     setServerError('')
     try {
-      await apiClient.post('/api/auth/change-password', {
+      await apiClient.post('/auth/change-password', {
         currentPassword: v.currentPassword,
         newPassword: v.newPassword,
       })

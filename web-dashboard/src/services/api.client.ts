@@ -18,7 +18,8 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  const response = await fetch(`${BASE_URL}${normalizedPath}`, {
     ...config,
     headers: { ...headers, ...config?.headers },
   })
@@ -72,7 +73,8 @@ export const apiClient = {
       headers['Authorization'] = `Bearer ${authState.token}`
     }
 
-    const response = await fetch(`${BASE_URL}${path}`, {
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`
+    const response = await fetch(`${BASE_URL}${normalizedPath}`, {
       method: 'GET',
       headers,
     })

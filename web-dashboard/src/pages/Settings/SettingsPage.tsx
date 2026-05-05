@@ -66,7 +66,7 @@ function CommissionTab() {
 
   const { data } = useQuery({
     queryKey: ['settings-commission'],
-    queryFn: () => apiClient.get<CommissionSettings>('/api/v1/settings/commission'),
+    queryFn: () => apiClient.get<CommissionSettings>('/settings/commission'),
   })
 
   useEffect(() => {
@@ -82,7 +82,7 @@ function CommissionTab() {
     setIsSubmitting(true)
     setServerError('')
     try {
-      await apiClient.put('/api/v1/settings/commission', form)
+      await apiClient.put('/settings/commission', form)
       await queryClient.invalidateQueries({ queryKey: ['settings-commission'] })
       toast.success('Pengaturan komisi berhasil disimpan')
     } catch (err) {
@@ -174,7 +174,7 @@ function FacilitatorLevelsTab() {
 
   const { data } = useQuery({
     queryKey: ['settings-facilitator-levels'],
-    queryFn: () => apiClient.get<FacilitatorLevelsResponse>('/api/v1/settings/facilitator-levels'),
+    queryFn: () => apiClient.get<FacilitatorLevelsResponse>('/settings/facilitator-levels'),
   })
 
   useEffect(() => {
@@ -188,7 +188,7 @@ function FacilitatorLevelsTab() {
   async function handleSave() {
     setIsSubmitting(true)
     try {
-      await apiClient.put('/api/v1/settings/facilitator-levels', { levels })
+      await apiClient.put('/settings/facilitator-levels', { levels })
       await queryClient.invalidateQueries({ queryKey: ['settings-facilitator-levels'] })
       toast.success('Level fasilitator berhasil disimpan')
     } catch (err) {
