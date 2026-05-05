@@ -147,7 +147,7 @@ export default function TransactionListPage() {
       title="Transaksi"
       addLabel="Tambah Transaksi"
       onAdd={() => navigate('/finance/transactions/new')}
-      queryKey="transactions"
+      queryKey="finance/transactions"
       fetcher={(params) => accountingService.listTransactions(params)}
       columns={columns}
       filterDefs={filterDefs}
