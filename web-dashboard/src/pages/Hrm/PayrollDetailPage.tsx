@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { hrmService } from '@/services/hrm.service'
 import { toast } from '@/widgets/Toast/Toast'
+import { useDeleteConfirmModal } from '@/widgets/Modals/DeleteConfirmModal'
 import { PAYROLL_STATUS_LABELS, PAYROLL_STATUS_COLORS } from '@/types/hrm.types'
 import type { PayrollPeriodStatus, PayrollItem } from '@/types/hrm.types'
 
@@ -49,6 +50,7 @@ export default function PayrollDetailPage() {
   const { periodId } = useParams<{ periodId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const confirmDelete = useDeleteConfirmModal()
 
   const { data: period, isLoading } = useQuery<any>({
     queryKey: ['hrm-payroll-period-detail', periodId],
@@ -121,16 +123,11 @@ export default function PayrollDetailPage() {
     {
       label: 'Hapus',
       icon: <Trash2 size={14} />,
-      onClick: async () => {
-        if (!window.confirm('Yakin ingin menghapus periode payroll ini?')) return
-        try {
-          await hrmService.deletePayrollPeriod(periodId!)
-          toast.success('Periode payroll berhasil dihapus')
-          navigate('/hrm/payroll')
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : 'Gagal menghapus periode payroll')
-        }
-      },
+      onClick: () => confirmDelete('Hapus Payroll', 'Yakin ingin menghapus periode payroll ini?', async () => {
+        await hrmService.deletePayrollPeriod(periodId!)
+        toast.success('Periode payroll berhasil dihapus')
+        navigate('/hrm/payroll')
+      }),
       variant: 'danger' as const,
     },
   ]
