@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/rs/zerolog/log"
 
 	"github.com/vernonedu/entrepreneurship-api/internal/domain/building"
 )
@@ -189,6 +190,7 @@ func (r *BuildingRepository) ListWithRooms(ctx context.Context, offset, limit in
 		for _, rd := range roomsData {
 			rid, err := uuid.Parse(rd.ID)
 			if err != nil {
+				log.Warn().Err(err).Str("room_id", rd.ID).Msg("skipping room with invalid UUID in building list")
 				continue
 			}
 			rooms = append(rooms, building.RoomSummary{
