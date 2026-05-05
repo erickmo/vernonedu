@@ -1,8 +1,9 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Calendar, Users, DollarSign, Pencil } from 'lucide-react'
+import { Calendar, Users, DollarSign, Pencil, Trash2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { courseBatchService } from '@/services/course-batch.service'
+import { toast } from '@/widgets/Toast/Toast'
 
 export default function CourseBatchDetailPage() {
   const { batchId } = useParams<{ batchId: string }>()
@@ -19,6 +20,21 @@ export default function CourseBatchDetailPage() {
       icon: <Pencil size={14} />,
       onClick: () => navigate(`/course-batches/${batchId}/edit`),
       variant: 'default',
+    },
+    {
+      label: 'Hapus',
+      icon: <Trash2 size={14} />,
+      onClick: async () => {
+        if (!window.confirm('Yakin ingin menghapus batch ini?')) return
+        try {
+          await courseBatchService.delete(batchId!)
+          toast.success('Batch berhasil dihapus')
+          navigate('/course-batches')
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : 'Gagal menghapus batch')
+        }
+      },
+      variant: 'danger' as const,
     },
   ]
 
