@@ -3,12 +3,14 @@ import { Building2, DoorOpen, Pencil, MapPin, FileText, Trash2 } from 'lucide-re
 import { useQuery } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { toast } from '@/widgets/Toast/Toast'
+import { useDeleteConfirmModal } from '@/widgets/Modals/DeleteConfirmModal'
 import { locationService } from '@/services/location.service'
 import { RoomsManager, type Room } from './RoomsManager'
 
 export default function LocationDetailPage() {
   const { buildingId } = useParams<{ buildingId: string }>()
   const navigate = useNavigate()
+  const confirmDelete = useDeleteConfirmModal()
 
   const { data: building, isLoading: loadingBuilding } = useQuery({
     queryKey: ['building', buildingId],
@@ -35,16 +37,11 @@ export default function LocationDetailPage() {
     {
       label: 'Hapus',
       icon: <Trash2 size={14} />,
-      onClick: async () => {
-        if (!window.confirm('Yakin ingin menghapus lokasi ini?')) return
-        try {
-          await locationService.deleteBuilding(buildingId!)
-          toast.success('Lokasi berhasil dihapus')
-          navigate('/pengembangan/locations')
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : 'Gagal menghapus lokasi')
-        }
-      },
+      onClick: () => confirmDelete('Hapus Lokasi', 'Yakin ingin menghapus lokasi ini?', async () => {
+        await locationService.deleteBuilding(buildingId!)
+        toast.success('Lokasi berhasil dihapus')
+        navigate('/pengembangan/locations')
+      }),
       variant: 'danger' as const,
     },
   ]
