@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { invoiceService } from '@/services/invoice.service'
 import { toast } from '@/widgets/Toast/Toast'
+import { useDeleteConfirmModal } from '@/widgets/Modals/DeleteConfirmModal'
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
   draft:     { label: 'Draft',        bg: 'var(--color-surface-alt)',      color: 'var(--color-text-tertiary)' },
@@ -60,6 +61,7 @@ export default function InvoiceDetailPage() {
   const { invoiceId } = useParams<{ invoiceId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const confirmDelete = useDeleteConfirmModal()
   const [actionLoading, setActionLoading] = useState(false)
 
   const { data: invoice, isLoading } = useQuery({
@@ -132,16 +134,11 @@ export default function InvoiceDetailPage() {
     {
       label: 'Hapus',
       icon: <Trash2 size={14} />,
-      onClick: async () => {
-        if (!window.confirm('Yakin ingin menghapus invoice ini?')) return
-        try {
-          await invoiceService.delete(invoiceId!)
-          toast.success('Invoice berhasil dihapus')
-          navigate('/finance/invoices')
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : 'Gagal menghapus invoice')
-        }
-      },
+      onClick: () => confirmDelete('Hapus Invoice', 'Yakin ingin menghapus invoice ini?', async () => {
+        await invoiceService.delete(invoiceId!)
+        toast.success('Invoice berhasil dihapus')
+        navigate('/finance/invoices')
+      }),
       variant: 'danger' as const,
     },
   ]
