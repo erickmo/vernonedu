@@ -38,7 +38,7 @@ func NewHandler(readRepo calendar.ReadRepository) *Handler {
 	return &Handler{readRepo: readRepo}
 }
 
-func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, error) {
+func (h *Handler) Handle(ctx context.Context, query any) (any, error) {
 	q, ok := query.(*GetCalendarEventQuery)
 	if !ok {
 		return nil, ErrInvalidQuery

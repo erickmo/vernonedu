@@ -65,7 +65,7 @@ func toReadModel(e *calendar.CalendarEvent) *CalendarEventReadModel {
 	return rm
 }
 
-func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, error) {
+func (h *Handler) Handle(ctx context.Context, query any) (any, error) {
 	q, ok := query.(*ListCalendarEventsQuery)
 	if !ok {
 		return nil, ErrInvalidQuery
