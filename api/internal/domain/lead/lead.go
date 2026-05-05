@@ -9,8 +9,11 @@ import (
 )
 
 var (
-	ErrInvalidName  = errors.New("invalid lead name")
-	ErrLeadNotFound = errors.New("lead not found")
+	ErrInvalidName      = errors.New("invalid lead name")
+	ErrPhoneRequired    = errors.New("phone is required")
+	ErrLeadNotFound     = errors.New("lead not found")
+	ErrSourceNotFound   = errors.New("lead source not found")
+	ErrInterestNotFound = errors.New("lead interest not found")
 )
 
 type Lead struct {
@@ -18,8 +21,7 @@ type Lead struct {
 	Name      string
 	Email     string
 	Phone     string
-	Interest  string
-	Source    string
+	SourceID  *uuid.UUID
 	Notes     string
 	Status    string
 	PicID     *uuid.UUID
@@ -27,22 +29,19 @@ type Lead struct {
 	UpdatedAt time.Time
 }
 
-func NewLead(name, email, phone, interest, source, notes string, picID *uuid.UUID) (*Lead, error) {
+func NewLead(name, email, phone string, sourceID *uuid.UUID, notes string, picID *uuid.UUID) (*Lead, error) {
 	if name == "" {
 		return nil, ErrInvalidName
 	}
-
-	if source == "" {
-		source = "other"
+	if phone == "" {
+		return nil, ErrPhoneRequired
 	}
-
 	return &Lead{
 		ID:        uuid.New(),
 		Name:      name,
 		Email:     email,
 		Phone:     phone,
-		Interest:  interest,
-		Source:    source,
+		SourceID:  sourceID,
 		Notes:     notes,
 		Status:    "new",
 		PicID:     picID,
@@ -51,11 +50,48 @@ func NewLead(name, email, phone, interest, source, notes string, picID *uuid.UUI
 	}, nil
 }
 
+type LeadSource struct {
+	ID        uuid.UUID
+	Name      string
+	IsActive  bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func NewLeadSource(name string) *LeadSource {
+	return &LeadSource{
+		ID:        uuid.New(),
+		Name:      name,
+		IsActive:  true,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+}
+
+type LeadInterest struct {
+	ID         uuid.UUID
+	LeadID     uuid.UUID
+	EntityType string
+	EntityID   uuid.UUID
+	EntityName string
+	CreatedAt  time.Time
+}
+
+func NewLeadInterest(leadID uuid.UUID, entityType string, entityID uuid.UUID) *LeadInterest {
+	return &LeadInterest{
+		ID:         uuid.New(),
+		LeadID:     leadID,
+		EntityType: entityType,
+		EntityID:   entityID,
+		CreatedAt:  time.Now(),
+	}
+}
+
 type CrmLog struct {
 	ID            uuid.UUID
 	LeadID        uuid.UUID
 	ContactedByID uuid.UUID
-	ContactMethod string // phone, email, whatsapp
+	ContactMethod string
 	Response      string
 	FollowUpDate  *time.Time
 	CreatedAt     time.Time
@@ -81,7 +117,27 @@ type WriteRepository interface {
 
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Lead, error)
-	List(ctx context.Context, offset, limit int, status, source, interest, search, sortBy, sortDir string) ([]*Lead, int, error)
+	List(ctx context.Context, offset, limit int, status, sourceID, search, sortBy, sortDir string) ([]*Lead, int, error)
+}
+
+type SourceWriteRepository interface {
+	SaveSource(ctx context.Context, s *LeadSource) error
+	UpdateSource(ctx context.Context, s *LeadSource) error
+	DeleteSource(ctx context.Context, id uuid.UUID) error
+}
+
+type SourceReadRepository interface {
+	GetSourceByID(ctx context.Context, id uuid.UUID) (*LeadSource, error)
+	ListSources(ctx context.Context) ([]*LeadSource, error)
+}
+
+type InterestWriteRepository interface {
+	SaveInterest(ctx context.Context, i *LeadInterest) error
+	DeleteInterest(ctx context.Context, leadID, interestID uuid.UUID) error
+}
+
+type InterestReadRepository interface {
+	ListInterests(ctx context.Context, leadID uuid.UUID) ([]*LeadInterest, error)
 }
 
 type CrmLogWriteRepository interface {
