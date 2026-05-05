@@ -83,8 +83,18 @@ export default function InvoiceDetailPage() {
   const status = invoice?.status || 'draft'
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.draft
 
+  async function handleCancel() {
+    const reason = prompt('Alasan pembatalan:')
+    if (reason === null) return
+    await handleAction(
+      () => invoiceService.cancel(invoiceId!, reason),
+      `Invoice ${invoice?.invoice_number} dibatalkan`,
+      'Gagal membatalkan invoice',
+    )
+  }
+
   const actions: DetailPageAction[] = [
-    ...(status !== 'paid' && status !== 'cancelled'
+    ...(status === 'sent'
       ? [{
           label: 'Tandai Lunas',
           icon: <CheckCircle size={14} />,
@@ -110,15 +120,11 @@ export default function InvoiceDetailPage() {
           disabled: actionLoading,
         }
       ] : []),
-    ...(status !== 'cancelled'
+    ...(status === 'draft' || status === 'sent'
       ? [{
           label: 'Batalkan',
           icon: <XCircle size={14} />,
-          onClick: () => handleAction(
-            () => invoiceService.cancel(invoiceId!, 'Dibatalkan oleh admin'),
-            `Invoice ${invoice?.invoice_number} dibatalkan`,
-            'Gagal membatalkan invoice',
-          ),
+          onClick: () => handleCancel(),
           variant: 'danger' as const,
           disabled: actionLoading,
         }

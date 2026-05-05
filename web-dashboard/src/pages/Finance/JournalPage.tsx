@@ -104,7 +104,7 @@ export default function JournalPage() {
     <ListPageTemplate<JournalEntry>
       title="Jurnal"
       queryKey="finance/journal"
-      fetcher={(params) => accountingService.listTransactions(params)}
+      fetcher={(params) => accountingService.getJournal(params)}
       columns={columns}
       searchPlaceholder="Cari jurnal..."
       exportFilename="jurnal"

@@ -11,6 +11,7 @@ import {
 import { toast } from '@/widgets/Toast/Toast'
 import { accountingService } from '@/services/accounting.service'
 import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
+import { DatePicker } from '@/widgets/DatePicker/DatePicker'
 
 function formatDate(ts: number | undefined) {
   if (!ts) return '—'
@@ -46,24 +47,19 @@ export default function TransactionFormPage() {
 
   const { data: tx } = useQuery({
     queryKey: ['transaction', txId],
-    queryFn: () => accountingService.listTransactions({ id: txId }).then((r: any) => {
-      if (Array.isArray(r)) return r.find((t: any) => t.id === txId) ?? r
-      return (r as any).data?.find((t: any) => t.id === txId) ?? r
-    }),
+    queryFn: () => accountingService.getTransaction(txId!),
     enabled: isEdit,
   })
 
   useEffect(() => {
     if (tx) {
-      const data = Array.isArray(tx) ? tx[0] : tx
-      if (data) {
-        setDate(data.date ?? '')
-        setAccountId(data.account_id ?? '')
-        setType(data.type ?? 'debit')
-        setAmount(data.amount?.toString() ?? data.debit?.toString() ?? data.credit?.toString() ?? '')
-        setDescription(data.description ?? '')
-        setReferenceNumber(data.reference_number ?? '')
-      }
+      const data = tx as any
+      setDate(data.date ?? '')
+      setAccountId(data.account_id ?? '')
+      setType(data.type ?? 'debit')
+      setAmount(data.amount?.toString() ?? data.debit?.toString() ?? data.credit?.toString() ?? '')
+      setDescription(data.description ?? '')
+      setReferenceNumber(data.reference_number ?? '')
     }
   }, [tx])
 
@@ -100,7 +96,7 @@ export default function TransactionFormPage() {
         await accountingService.createTransaction(payload)
         toast.success('Transaksi berhasil dibuat')
       }
-      await queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      await queryClient.invalidateQueries({ queryKey: ['finance/transactions'] })
       navigate('/finance/transactions')
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Gagal menyimpan transaksi')
@@ -151,11 +147,10 @@ export default function TransactionFormPage() {
             <FormGrid>
               <FormColumn>
                 <Field label="Tanggal" required error={errors.date}>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className={`${formStyles.input} ${errors.date ? formStyles.inputError : ''}`}
+                    onChange={val => setDate(val)}
+                    className={errors.date ? formStyles.inputError : undefined}
                   />
                 </Field>
                 <Field label="ID Akun" required error={errors.account_id}>

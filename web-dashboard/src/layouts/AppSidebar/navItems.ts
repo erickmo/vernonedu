@@ -22,6 +22,13 @@ import {
   CheckCircle,
   Bell,
   Settings,
+  ArrowLeftRight,
+  Receipt,
+  ClipboardList,
+  ScrollText,
+  Landmark,
+  LayoutList,
+  BarChart2,
 } from 'lucide-react'
 
 // ─── Permission helpers ─────────────────────────────────────────────────────────
@@ -323,6 +330,67 @@ const ALL_ITEMS: NavItem[] = [
   },
 ]
 
+// ─── Finance sub-nav items ──────────────────────────────────────────────────────
+
+const FINANCE_ITEMS: NavItem[] = [
+  {
+    key: 'finance-overview',
+    label: 'Overview',
+    icon: Wallet,
+    path: '/finance',
+    hasAccess: (ctx) => canViewAccounting(ctx),
+  },
+  {
+    key: 'finance-transactions',
+    label: 'Transaksi',
+    icon: ArrowLeftRight,
+    path: '/finance/transactions',
+    hasAccess: (ctx) => canViewAccounting(ctx),
+  },
+  {
+    key: 'finance-invoices',
+    label: 'Invoice',
+    icon: Receipt,
+    path: '/finance/invoices',
+    hasAccess: (ctx) => canViewAccounting(ctx),
+  },
+  {
+    key: 'finance-payables',
+    label: 'Tagihan',
+    icon: ClipboardList,
+    path: '/finance/payables',
+    hasAccess: (ctx) => canViewAccounting(ctx),
+  },
+  {
+    key: 'finance-journals',
+    label: 'Jurnal',
+    icon: ScrollText,
+    path: '/finance/journals',
+    hasAccess: (ctx) => canViewAccounting(ctx),
+  },
+  {
+    key: 'finance-bank-accounts',
+    label: 'Rekening',
+    icon: Landmark,
+    path: '/finance/bank-accounts',
+    hasAccess: (ctx) => canViewAccounting(ctx),
+  },
+  {
+    key: 'finance-coa',
+    label: 'Bagan Akun',
+    icon: LayoutList,
+    path: '/finance/chart-of-accounts',
+    hasAccess: (ctx) => canViewAccounting(ctx),
+  },
+  {
+    key: 'finance-reports',
+    label: 'Laporan',
+    icon: BarChart2,
+    path: '/finance/reports',
+    hasAccess: (ctx) => canViewAccounting(ctx),
+  },
+]
+
 // ─── Section grouping ───────────────────────────────────────────────────────────
 
 export const NAV_SECTIONS: NavSection[] = [
@@ -354,7 +422,7 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'keuangan',
     label: 'Keuangan',
     icon: Wallet,
-    items: [ALL_ITEMS[14]], // Keuangan
+    items: FINANCE_ITEMS,
   },
   {
     key: 'sdm',

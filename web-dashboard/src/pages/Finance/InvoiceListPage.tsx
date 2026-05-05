@@ -194,15 +194,17 @@ export default function InvoiceListPage() {
       icon: <XCircle size={14} />,
       variant: 'danger',
       onClick: async (row) => {
+        const reason = prompt('Alasan pembatalan:')
+        if (reason === null) return
         try {
-          await invoiceService.cancel(row.id, 'Dibatalkan oleh admin')
+          await invoiceService.cancel(row.id, reason)
           await queryClient.invalidateQueries({ queryKey: ['finance/invoices'] })
           toast.success(`Invoice ${row.invoice_number} dibatalkan`)
         } catch {
           toast.error('Gagal membatalkan invoice')
         }
       },
-      visible: (row) => row.status !== 'cancelled',
+      visible: (row) => row.status !== 'cancelled' && row.status !== 'paid',
     },
   ]
 
