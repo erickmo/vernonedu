@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { partnerService } from '@/services/partner.service'
 import { toast } from '@/widgets/Toast/Toast'
+import { useDeleteConfirmModal } from '@/widgets/Modals/DeleteConfirmModal'
 
 interface Partner {
   id: string
@@ -47,6 +48,7 @@ function Badge({ label, variant }: { label: string; variant: 'success' | 'warnin
 export default function PartnerDetailPage() {
   const { partnerId } = useParams<{ partnerId: string }>()
   const navigate = useNavigate()
+  const confirmDelete = useDeleteConfirmModal()
   const [showMOUDialog, setShowMOUDialog] = useState(false)
 
   const { data: partner, isLoading } = useQuery({
@@ -84,16 +86,11 @@ export default function PartnerDetailPage() {
     {
       label: 'Hapus',
       icon: <Trash2 size={14} />,
-      onClick: async () => {
-        if (!window.confirm('Yakin ingin menghapus partner ini?')) return
-        try {
-          await partnerService.delete(partnerId!)
-          toast.success('Partner berhasil dihapus')
-          navigate('/business-dev/partners')
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : 'Gagal menghapus partner')
-        }
-      },
+      onClick: () => confirmDelete('Hapus Partner', 'Yakin ingin menghapus partner ini?', async () => {
+        await partnerService.delete(partnerId!)
+        toast.success('Partner berhasil dihapus')
+        navigate('/business-dev/partners')
+      }),
       variant: 'danger' as const,
     },
   ]
