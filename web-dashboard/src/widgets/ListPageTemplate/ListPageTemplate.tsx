@@ -77,6 +77,9 @@ interface ListPageTemplateProps<T extends { id: string }> {
 
   /** When provided, custom action buttons are rendered in the header alongside Add/Help buttons */
   actions?: React.ReactNode
+
+  /** When provided, each row gets a chevron toggle. Clicking shows the returned content below the row. */
+  expandedRow?: (row: T) => React.ReactNode
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -105,6 +108,7 @@ export function ListPageTemplate<T extends { id: string }>({
   readonly: isReadonly = false,
   managedByHQ = false,
   actions,
+  expandedRow,
 }: ListPageTemplateProps<T>) {
   const moduleAccess = useModuleAccess()
   const effectiveReadonly = isReadonly || moduleAccess.readonly
@@ -264,6 +268,7 @@ export function ListPageTemplate<T extends { id: string }>({
           filterDefs={filterDefs}
           activeFilters={activeFilters}
           onActiveFiltersChange={handleActiveFiltersChange}
+          expandedRow={expandedRow}
         />
       </PageWrapper>
 
