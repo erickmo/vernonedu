@@ -42,4 +42,7 @@ export const partnerService = {
 
   addMOU: (id: string, data: any) =>
     apiClient.post<any>(`partners/${id}/mou`, data),
+
+  delete: (id: string) =>
+    apiClient.delete<any>(`partners/${id}`),
 }
