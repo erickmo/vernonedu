@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { payableService } from '@/services/payable.service'
 import { toast } from '@/widgets/Toast/Toast'
+import { useDeleteConfirmModal } from '@/widgets/Modals/DeleteConfirmModal'
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
   pending:   { label: 'Menunggu',  bg: 'var(--color-info-light)',    color: 'var(--color-info-dark)' },
@@ -29,6 +30,7 @@ export default function PayableDetailPage() {
   const { payableId } = useParams<{ payableId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const confirmDelete = useDeleteConfirmModal()
 
   const { data: payable, isLoading } = useQuery({
     queryKey: ['payable', payableId],
@@ -83,16 +85,11 @@ export default function PayableDetailPage() {
     {
       label: 'Hapus',
       icon: <Trash2 size={14} />,
-      onClick: async () => {
-        if (!window.confirm('Yakin ingin menghapus payable ini?')) return
-        try {
-          await payableService.delete(payableId!)
-          toast.success('Payable berhasil dihapus')
-          navigate('/finance/payables')
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : 'Gagal menghapus payable')
-        }
-      },
+      onClick: () => confirmDelete('Hapus Payable', 'Yakin ingin menghapus payable ini?', async () => {
+        await payableService.delete(payableId!)
+        toast.success('Payable berhasil dihapus')
+        navigate('/finance/payables')
+      }),
       variant: 'danger' as const,
     },
   ]
