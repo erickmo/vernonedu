@@ -81,7 +81,7 @@ const columns: ColumnDef<Building>[] = [
   },
 ]
 
-function RoomList({ rooms }: { rooms: RoomItem[] }) {
+export function RoomList({ rooms }: { rooms: RoomItem[] }) {
   if (rooms.length === 0) {
     return (
       <div style={{ padding: '12px 16px 12px 56px', color: 'var(--color-text-tertiary)', fontSize: 'var(--font-sm)' }}>
