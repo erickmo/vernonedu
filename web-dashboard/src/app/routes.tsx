@@ -19,16 +19,16 @@ const ChooseCompanyPage  = lazy(() => import('@/pages/ChooseCompany/ChooseCompan
 const NotFoundPage       = lazy(() => import('@/pages/errors/NotFoundPage'))
 const ForbiddenPage      = lazy(() => import('@/pages/errors/ForbiddenPage'))
 
-// Curriculum
-const CurriculumPage           = lazy(() => import('@/pages/Curriculum/CurriculumPage'))
-const CourseFormPage           = lazy(() => import('@/pages/Curriculum/CourseFormPage'))
-const CourseVersionPage        = lazy(() => import('@/pages/Curriculum/CourseVersionPage'))
-const VersionFormPage          = lazy(() => import('@/pages/Curriculum/VersionFormPage'))
-const CourseModulePage         = lazy(() => import('@/pages/Curriculum/CourseModulePage'))
-const InternshipConfigPage     = lazy(() => import('@/pages/Curriculum/InternshipConfigPage'))
-const CharacterTestConfigPage  = lazy(() => import('@/pages/Curriculum/CharacterTestConfigPage'))
-const CurriculumApprovalsPage  = lazy(() => import('@/pages/Curriculum/CurriculumApprovalsPage'))
-const CourseDashboardPage      = lazy(() => import('@/pages/Curriculum/CourseDashboardPage'))
+// Course
+const CourseListPage           = lazy(() => import('@/pages/Course/CourseListPage'))
+const CourseFormPage           = lazy(() => import('@/pages/Course/CourseFormPage'))
+const CourseVersionPage        = lazy(() => import('@/pages/Course/CourseVersionPage'))
+const VersionFormPage          = lazy(() => import('@/pages/Course/VersionFormPage'))
+const CourseModulePage         = lazy(() => import('@/pages/Course/CourseModulePage'))
+const InternshipConfigPage     = lazy(() => import('@/pages/Course/InternshipConfigPage'))
+const CharacterTestConfigPage  = lazy(() => import('@/pages/Course/CharacterTestConfigPage'))
+const CourseApprovalsPage      = lazy(() => import('@/pages/Course/CourseApprovalsPage'))
+const CourseDashboardPage      = lazy(() => import('@/pages/Course/CourseDashboardPage'))
 
 // Course Batches
 const CourseBatchListPage   = lazy(() => import('@/pages/CourseBatch/CourseBatchListPage'))
@@ -36,8 +36,9 @@ const BatchFormPage         = lazy(() => import('@/pages/CourseBatch/BatchFormPa
 const CourseBatchDetailPage = lazy(() => import('@/pages/CourseBatch/CourseBatchDetailPage'))
 
 // Enrollment
-const EnrollmentListPage = lazy(() => import('@/pages/Enrollment/EnrollmentListPage'))
-const EnrollmentFormPage = lazy(() => import('@/pages/Enrollment/EnrollmentFormPage'))
+const EnrollmentListPage   = lazy(() => import('@/pages/Enrollment/EnrollmentListPage'))
+const EnrollmentFormPage   = lazy(() => import('@/pages/Enrollment/EnrollmentFormPage'))
+const EnrollmentDetailPage = lazy(() => import('@/pages/Enrollment/EnrollmentDetailPage'))
 
 // Students
 const StudentListPage     = lazy(() => import('@/pages/Students/StudentListPage'))
@@ -71,6 +72,9 @@ const InvoiceListPage       = lazy(() => import('@/pages/Finance/InvoiceListPage
 const ManualInvoiceFormPage = lazy(() => import('@/pages/Finance/ManualInvoiceFormPage'))
 const InvoiceDetailPage     = lazy(() => import('@/pages/Finance/InvoiceDetailPage'))
 const PayableListPage       = lazy(() => import('@/pages/Finance/PayableListPage'))
+const PayableDetailPage     = lazy(() => import('@/pages/Finance/PayableDetailPage'))
+const PayableFormPage       = lazy(() => import('@/pages/Finance/PayableFormPage'))
+const BankAccountFormPage   = lazy(() => import('@/pages/Finance/BankAccountFormPage'))
 const ReportNavigationPage  = lazy(() => import('@/pages/Finance/ReportNavigationPage'))
 const BalanceSheetPage      = lazy(() => import('@/pages/Finance/BalanceSheetPage'))
 const ProfitLossPage        = lazy(() => import('@/pages/Finance/ProfitLossPage'))
@@ -80,33 +84,45 @@ const TrialBalancePage      = lazy(() => import('@/pages/Finance/TrialBalancePag
 const FinancialAnalysisPage = lazy(() => import('@/pages/Finance/FinancialAnalysisPage'))
 
 // HRM
-const HrmListPage         = lazy(() => import('@/pages/Hrm/HrmListPage'))
-const SdmDetailPage       = lazy(() => import('@/pages/Hrm/SdmDetailPage'))
-const EmployeeFormPage    = lazy(() => import('@/pages/Hrm/EmployeeFormPage'))
-const AttendancePage      = lazy(() => import('@/pages/Hrm/AttendancePage'))
-const LeaveRequestsPage   = lazy(() => import('@/pages/Hrm/LeaveRequestsPage'))
-const PayrollPeriodsPage  = lazy(() => import('@/pages/Hrm/PayrollPeriodsPage'))
-const PayrollDetailPage   = lazy(() => import('@/pages/Hrm/PayrollDetailPage'))
+const HrmListPage            = lazy(() => import('@/pages/Hrm/HrmListPage'))
+const SdmDetailPage          = lazy(() => import('@/pages/Hrm/SdmDetailPage'))
+const EmployeeFormPage       = lazy(() => import('@/pages/Hrm/EmployeeFormPage'))
+const AttendancePage         = lazy(() => import('@/pages/Hrm/AttendancePage'))
+const AttendanceDetailPage   = lazy(() => import('@/pages/Hrm/AttendanceDetailPage'))
+const AttendanceFormPage     = lazy(() => import('@/pages/Hrm/AttendanceFormPage'))
+const LeaveRequestsPage      = lazy(() => import('@/pages/Hrm/LeaveRequestsPage'))
+const LeaveDetailPage        = lazy(() => import('@/pages/Hrm/LeaveDetailPage'))
+const LeaveRequestFormPage   = lazy(() => import('@/pages/Hrm/LeaveRequestFormPage'))
+const PayrollPeriodsPage     = lazy(() => import('@/pages/Hrm/PayrollPeriodsPage'))
+const PayrollPeriodFormPage  = lazy(() => import('@/pages/Hrm/PayrollPeriodFormPage'))
+const PayrollDetailPage      = lazy(() => import('@/pages/Hrm/PayrollDetailPage'))
 
 // Leads
-const LeadListPage = lazy(() => import('@/pages/Leads/LeadListPage'))
-const LeadFormPage = lazy(() => import('@/pages/Leads/LeadFormPage'))
+const LeadListPage   = lazy(() => import('@/pages/Leads/LeadListPage'))
+const LeadFormPage   = lazy(() => import('@/pages/Leads/LeadFormPage'))
+const LeadDetailPage = lazy(() => import('@/pages/Leads/LeadDetailPage'))
 
 // Operations
-const LocationListPage = lazy(() => import('@/pages/Operations/LocationListPage'))
+const LocationListPage   = lazy(() => import('@/pages/Operations/LocationListPage'))
+const LocationDetailPage = lazy(() => import('@/pages/Operations/LocationDetailPage'))
+const LocationFormPage   = lazy(() => import('@/pages/Operations/LocationFormPage'))
 const PaymentListPage  = lazy(() => import('@/pages/Operations/PaymentListPage'))
 
 // Marketing
 const MarketingPage      = lazy(() => import('@/pages/Marketing/MarketingPage'))
+const SocialPostListPage = lazy(() => import('@/pages/Marketing/SocialPostListPage'))
 const SocialPostFormPage = lazy(() => import('@/pages/Marketing/SocialPostFormPage'))
+const PrContentListPage  = lazy(() => import('@/pages/Marketing/PrContentListPage'))
 const PrContentFormPage  = lazy(() => import('@/pages/Marketing/PrContentFormPage'))
+const ReferralListPage   = lazy(() => import('@/pages/Marketing/ReferralListPage'))
 const ReferralFormPage   = lazy(() => import('@/pages/Marketing/ReferralFormPage'))
 
 // CRM
 const CrmPage = lazy(() => import('@/pages/Crm/CrmPage'))
 
 // Partners
-const PartnerListPage = lazy(() => import('@/pages/Partners/PartnerListPage'))
+const PartnerListPage   = lazy(() => import('@/pages/Partners/PartnerListPage'))
+const PartnerFormPage   = lazy(() => import('@/pages/Partners/PartnerFormPage'))
 
 // Business Development
 const BusinessDevPage        = lazy(() => import('@/pages/BusinessDev/BusinessDevPage'))
@@ -120,14 +136,19 @@ const DelegationPage         = lazy(() => import('@/pages/BusinessDev/Delegation
 const PartnerDetailPage      = lazy(() => import('@/pages/BusinessDev/PartnerDetailPage'))
 
 // Projects
-const ProjectListPage = lazy(() => import('@/pages/Projects/ProjectListPage'))
+const ProjectListPage   = lazy(() => import('@/pages/Projects/ProjectListPage'))
+const ProjectDetailPage = lazy(() => import('@/pages/Projects/ProjectDetailPage'))
+const ProjectFormPage   = lazy(() => import('@/pages/Projects/ProjectFormPage'))
 
 // CMS
-const CmsPage            = lazy(() => import('@/pages/Cms/CmsPage'))
-const PageEditorPage     = lazy(() => import('@/pages/Cms/PageEditorPage'))
-const ArticleFormPage    = lazy(() => import('@/pages/Cms/ArticleFormPage'))
+const CmsPage             = lazy(() => import('@/pages/Cms/CmsPage'))
+const PageEditorPage      = lazy(() => import('@/pages/Cms/PageEditorPage'))
+const ArticleListPage     = lazy(() => import('@/pages/Cms/ArticleListPage'))
+const ArticleFormPage     = lazy(() => import('@/pages/Cms/ArticleFormPage'))
+const TestimonialListPage = lazy(() => import('@/pages/Cms/TestimonialListPage'))
 const TestimonialFormPage = lazy(() => import('@/pages/Cms/TestimonialFormPage'))
-const FaqFormPage        = lazy(() => import('@/pages/Cms/FaqFormPage'))
+const FaqListPage         = lazy(() => import('@/pages/Cms/FaqListPage'))
+const FaqFormPage         = lazy(() => import('@/pages/Cms/FaqFormPage'))
 
 // Settings
 const SettingsPage = lazy(() => import('@/pages/Settings/SettingsPage'))
@@ -137,6 +158,9 @@ const NotificationPage = lazy(() => import('@/pages/Notifications/NotificationPa
 
 // Approvals
 const ApprovalPage = lazy(() => import('@/pages/Approvals/ApprovalPage'))
+
+// Calendar
+const CalendarPage = lazy(() => import('@/pages/Calendar/CalendarPage'))
 
 // ─── Suspense wrapper ─────────────────────────────────────────────────────────
 
@@ -153,18 +177,18 @@ const singleTenantRoutes = [
     children: [
       { path: 'dashboard', element: <S><DashboardPage /></S> },
 
-      // ── Curriculum ─────────────────────────────────────────────────────────
-      { path: 'curriculum',                           element: <S><CurriculumPage /></S> },
-      { path: 'curriculum/new',                       element: <S><CourseFormPage /></S> },
-      { path: 'curriculum/:courseId',                 element: <S><CourseDashboardPage /></S> },
-      { path: 'curriculum/:courseId/edit',            element: <S><CourseFormPage /></S> },
-      { path: 'curriculum/:courseId/versions',        element: <S><CourseVersionPage /></S> },
-      { path: 'curriculum/:courseId/versions/new',    element: <S><VersionFormPage /></S> },
-      { path: 'curriculum/:courseId/versions/:versionId/edit', element: <S><VersionFormPage /></S> },
-      { path: 'curriculum/:courseId/versions/:versionId/modules', element: <S><CourseModulePage /></S> },
-      { path: 'curriculum/:courseId/internship-config', element: <S><InternshipConfigPage /></S> },
-      { path: 'curriculum/:courseId/character-test-config', element: <S><CharacterTestConfigPage /></S> },
-      { path: 'curriculum/approvals',                 element: <S><CurriculumApprovalsPage /></S> },
+      // ── Course ─────────────────────────────────────────────────────────────
+      { path: 'course',                               element: <S><CourseListPage /></S> },
+      { path: 'course/new',                           element: <S><CourseFormPage /></S> },
+      { path: 'course/:courseId',                     element: <S><CourseDashboardPage /></S> },
+      { path: 'course/:courseId/edit',                element: <S><CourseFormPage /></S> },
+      { path: 'course/:courseId/versions',            element: <S><CourseVersionPage /></S> },
+      { path: 'course/:courseId/versions/new',        element: <S><VersionFormPage /></S> },
+      { path: 'course/:courseId/versions/:versionId/edit', element: <S><VersionFormPage /></S> },
+      { path: 'course/:courseId/versions/:versionId/modules', element: <S><CourseModulePage /></S> },
+      { path: 'course/:courseId/internship-config',   element: <S><InternshipConfigPage /></S> },
+      { path: 'course/:courseId/character-test-config', element: <S><CharacterTestConfigPage /></S> },
+      { path: 'course/approvals',                     element: <S><CourseApprovalsPage /></S> },
 
       // ── Course Batches ─────────────────────────────────────────────────────
       { path: 'course-batches',                       element: <S><CourseBatchListPage /></S> },
@@ -175,7 +199,8 @@ const singleTenantRoutes = [
       // ── Enrollment ─────────────────────────────────────────────────────────
       { path: 'enrollments',                          element: <S><EnrollmentListPage /></S> },
       { path: 'enrollments/new',                      element: <S><EnrollmentFormPage /></S> },
-      { path: 'enrollments/:enrollmentId',            element: <S><EnrollmentFormPage /></S> },
+      { path: 'enrollments/:enrollmentId',            element: <S><EnrollmentDetailPage /></S> },
+      { path: 'enrollments/:enrollmentId/edit',       element: <S><EnrollmentFormPage /></S> },
 
       // ── Students ───────────────────────────────────────────────────────────
       { path: 'students',                             element: <S><StudentListPage /></S> },
@@ -204,19 +229,26 @@ const singleTenantRoutes = [
       { path: 'leads',                                element: <S><LeadListPage /></S> },
       { path: 'leads/new',                            element: <S><LeadFormPage /></S> },
       { path: 'leads/:leadId/edit',                   element: <S><LeadFormPage /></S> },
+      { path: 'leads/:leadId',                        element: <S><LeadDetailPage /></S> },
 
       // ── Locations (under Pengembangan) ────────────────────────────────────
-      { path: 'pengembangan/locations',               element: <S><LocationListPage /></S> },
+      { path: 'pengembangan/locations',                  element: <S><LocationListPage /></S> },
+      { path: 'pengembangan/locations/new',              element: <S><LocationFormPage /></S> },
+      { path: 'pengembangan/locations/:buildingId',      element: <S><LocationDetailPage /></S> },
+      { path: 'pengembangan/locations/:buildingId/edit', element: <S><LocationFormPage /></S> },
 
       // ── Payments ───────────────────────────────────────────────────────────
       { path: 'payments',                             element: <S><PaymentListPage /></S> },
 
       // ── Marketing ──────────────────────────────────────────────────────────
       { path: 'marketing',                            element: <S><MarketingPage /></S> },
+      { path: 'marketing/social',                     element: <S><SocialPostListPage /></S> },
       { path: 'marketing/social/new',                 element: <S><SocialPostFormPage /></S> },
       { path: 'marketing/social/:postId/edit',        element: <S><SocialPostFormPage /></S> },
+      { path: 'marketing/pr',                         element: <S><PrContentListPage /></S> },
       { path: 'marketing/pr/new',                     element: <S><PrContentFormPage /></S> },
       { path: 'marketing/pr/:contentId/edit',         element: <S><PrContentFormPage /></S> },
+      { path: 'marketing/referral',                   element: <S><ReferralListPage /></S> },
       { path: 'marketing/referral/new',               element: <S><ReferralFormPage /></S> },
       { path: 'marketing/referral/:refId/edit',       element: <S><ReferralFormPage /></S> },
 
@@ -225,6 +257,9 @@ const singleTenantRoutes = [
 
       // ── Partners ───────────────────────────────────────────────────────────
       { path: 'partners',                             element: <S><PartnerListPage /></S> },
+      { path: 'partners/new',                         element: <S><PartnerFormPage /></S> },
+      { path: 'partners/:partnerId',                  element: <S><PartnerDetailPage /></S> },
+      { path: 'partners/:partnerId/edit',             element: <S><PartnerFormPage /></S> },
 
       // ── Finance ────────────────────────────────────────────────────────────
       { path: 'finance',                              element: <S><FinanceMainPage /></S> },
@@ -236,10 +271,14 @@ const singleTenantRoutes = [
       { path: 'finance/chart-of-accounts/new',        element: <S><CoaFormPage /></S> },
       { path: 'finance/chart-of-accounts/:coaId/edit', element: <S><CoaFormPage /></S> },
       { path: 'finance/bank-accounts',                element: <S><BankAccountsPage /></S> },
+      { path: 'finance/bank-accounts/new',              element: <S><BankAccountFormPage /></S> },
+      { path: 'finance/bank-accounts/:accountId/edit',  element: <S><BankAccountFormPage /></S> },
       { path: 'finance/invoices',                     element: <S><InvoiceListPage /></S> },
       { path: 'finance/invoices/new',                 element: <S><ManualInvoiceFormPage /></S> },
       { path: 'finance/invoices/:invoiceId',          element: <S><InvoiceDetailPage /></S> },
       { path: 'finance/payables',                     element: <S><PayableListPage /></S> },
+      { path: 'finance/payables/new',                 element: <S><PayableFormPage /></S> },
+      { path: 'finance/payables/:payableId',          element: <S><PayableDetailPage /></S> },
       { path: 'finance/reports',                      element: <S><ReportNavigationPage /></S> },
       { path: 'finance/reports/balance-sheet',        element: <S><BalanceSheetPage /></S> },
       { path: 'finance/reports/profit-loss',          element: <S><ProfitLossPage /></S> },
@@ -254,12 +293,21 @@ const singleTenantRoutes = [
       { path: 'hrm/:employeeId',                      element: <S><SdmDetailPage /></S> },
       { path: 'hrm/:employeeId/edit',                 element: <S><EmployeeFormPage /></S> },
       { path: 'hrm/attendance',                       element: <S><AttendancePage /></S> },
+      { path: 'hrm/attendance/new',                   element: <S><AttendanceFormPage /></S> },
+      { path: 'hrm/attendance/:attendanceId',         element: <S><AttendanceDetailPage /></S> },
+      { path: 'hrm/attendance/:attendanceId/edit',    element: <S><AttendanceFormPage /></S> },
       { path: 'hrm/leaves',                           element: <S><LeaveRequestsPage /></S> },
+      { path: 'hrm/leaves/new',                       element: <S><LeaveRequestFormPage /></S> },
+      { path: 'hrm/leaves/:leaveId',                  element: <S><LeaveDetailPage /></S> },
       { path: 'hrm/payroll',                          element: <S><PayrollPeriodsPage /></S> },
+      { path: 'hrm/payroll/new',                      element: <S><PayrollPeriodFormPage /></S> },
       { path: 'hrm/payroll/:periodId',                element: <S><PayrollDetailPage /></S> },
 
       // ── Projects ───────────────────────────────────────────────────────────
       { path: 'projects',                             element: <S><ProjectListPage /></S> },
+      { path: 'projects/new',                         element: <S><ProjectFormPage /></S> },
+      { path: 'projects/:projectId',                  element: <S><ProjectDetailPage /></S> },
+      { path: 'projects/:projectId/edit',             element: <S><ProjectFormPage /></S> },
 
       // ── Business Development ───────────────────────────────────────────────
       { path: 'business-development',                 element: <S><BusinessDevPage /></S> },
@@ -274,6 +322,9 @@ const singleTenantRoutes = [
 
       // ── CMS ────────────────────────────────────────────────────────────────
       { path: 'cms',                                  element: <S><CmsPage /></S> },
+      { path: 'cms/articles',                         element: <S><ArticleListPage /></S> },
+      { path: 'cms/testimonials',                     element: <S><TestimonialListPage /></S> },
+      { path: 'cms/faq',                              element: <S><FaqListPage /></S> },
       { path: 'cms/pages/new',                        element: <S><PageEditorPage /></S> },
       { path: 'cms/pages/:pageId/edit',               element: <S><PageEditorPage /></S> },
       { path: 'cms/articles/new',                     element: <S><ArticleFormPage /></S> },
@@ -285,6 +336,9 @@ const singleTenantRoutes = [
 
       // ── Approvals ──────────────────────────────────────────────────────────
       { path: 'approvals',                            element: <S><ApprovalPage /></S> },
+
+      // ── Calendar ───────────────────────────────────────────────────────────
+      { path: 'calendar',                             element: <S><CalendarPage /></S> },
 
       // ── Notifications ──────────────────────────────────────────────────────
       { path: 'notifications',                        element: <S><NotificationPage /></S> },

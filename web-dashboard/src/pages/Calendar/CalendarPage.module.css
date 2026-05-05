@@ -1,0 +1,89 @@
+.page {
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 480px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.navBtn:hover {
+  background: var(--color-bg-hover, #f5f5f5);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.dayLabel {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  padding: 0.4rem 0;
+}
+
+.cell,
+.cellEmpty,
+.cellToday {
+  text-align: center;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  border-radius: 6px;
+}
+
+.cell {
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.cell:hover {
+  background: var(--color-bg-hover, #f0f0f0);
+}
+
+.cellEmpty {
+  color: transparent;
+}
+
+.cellToday {
+  background: var(--color-primary, #3b82f6);
+  color: #fff;
+  font-weight: 600;
+}

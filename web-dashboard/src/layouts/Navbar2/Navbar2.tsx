@@ -7,6 +7,15 @@ interface Navbar2Props {
   section: NavSection
 }
 
+function isItemActive(itemPath: string, pathname: string, siblings: { path: string }[]): boolean {
+  if (itemPath === '/dashboard') return pathname === '/dashboard' || pathname === '/'
+  const hasMoreSpecificMatch = siblings.some(
+    (s) => s.path !== itemPath && s.path.startsWith(itemPath) && pathname.startsWith(s.path),
+  )
+  if (hasMoreSpecificMatch) return false
+  return pathname.startsWith(itemPath)
+}
+
 export function Navbar2({ section }: Navbar2Props) {
   const location = useLocation()
 
@@ -16,9 +25,7 @@ export function Navbar2({ section }: Navbar2Props) {
     <nav className={styles.navbar}>
       {section.items.map((item) => {
         const Icon = item.icon
-        const active = item.path === '/dashboard'
-          ? location.pathname === '/dashboard' || location.pathname === '/'
-          : location.pathname.startsWith(item.path)
+        const active = isItemActive(item.path, location.pathname, section.items)
 
         return (
           <Link

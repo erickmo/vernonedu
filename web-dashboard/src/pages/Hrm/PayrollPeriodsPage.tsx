@@ -1,5 +1,5 @@
-import { useNavigate, useLocation } from 'react-router-dom'
-import { Users, ClipboardCheck, UserCog, Wallet } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { DatePicker } from '@/widgets/DatePicker/DatePicker'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
@@ -83,16 +83,8 @@ const filterDefs: FilterDef[] = [
   },
 ]
 
-const TAB_ITEMS = [
-  { key: 'employees', label: 'Karyawan', icon: <Users size={15} />, path: '/hrm' },
-  { key: 'attendance', label: 'Kehadiran', icon: <ClipboardCheck size={15} />, path: '/hrm/attendance' },
-  { key: 'leaves', label: 'Cuti', icon: <UserCog size={15} />, path: '/hrm/leaves' },
-  { key: 'payroll', label: 'Penggajian', icon: <Wallet size={15} />, path: '/hrm/payroll' },
-]
-
 export default function PayrollPeriodsPage() {
   const navigate = useNavigate()
-  const location = useLocation()
   const queryClient = useQueryClient()
 
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -175,36 +167,7 @@ export default function PayrollPeriodsPage() {
   }
 
   return (
-    <div>
-      {/* Tab navigation */}
-      <div style={{
-        display: 'flex', gap: 'var(--space-1)', marginBottom: 'var(--space-4)',
-        borderBottom: '1px solid var(--color-border)', paddingBottom: 0,
-      }}>
-        {TAB_ITEMS.map((tab) => {
-          const isActive = location.pathname === tab.path
-          return (
-            <button
-              key={tab.key}
-              onClick={() => navigate(tab.path)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: 'var(--space-3) var(--space-4)',
-                border: 'none', borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
-                background: 'none', cursor: 'pointer',
-                color: isActive ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                fontWeight: isActive ? 600 : 400,
-                fontSize: 'var(--font-sm)',
-                marginBottom: -1,
-              }}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          )
-        })}
-      </div>
-
+    <>
       <ListPageTemplate<PayrollPeriod>
         title="Periode Penggajian"
         addLabel="Buat Periode"
@@ -223,7 +186,6 @@ export default function PayrollPeriodsPage() {
         helpText="Kelola periode penggajian karyawan. Alur: Draft → Generate → Approve → Disburse."
       />
 
-      {/* Create Period Modal */}
       {showCreateModal && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 400,
@@ -260,30 +222,18 @@ export default function PayrollPeriodsPage() {
                   <label style={{ display: 'block', fontSize: 'var(--font-sm)', fontWeight: 500, marginBottom: 4 }}>
                     Mulai *
                   </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={newStart}
-                    onChange={(e) => setNewStart(e.target.value)}
-                    style={{
-                      width: '100%', padding: '8px 12px', borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)', fontSize: 'var(--font-sm)',
-                      background: 'var(--color-surface)', color: 'var(--color-text)',
-                    }}
+                    onChange={val => setNewStart(val)}
                   />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: 'var(--font-sm)', fontWeight: 500, marginBottom: 4 }}>
                     Selesai *
                   </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={newEnd}
-                    onChange={(e) => setNewEnd(e.target.value)}
-                    style={{
-                      width: '100%', padding: '8px 12px', borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)', fontSize: 'var(--font-sm)',
-                      background: 'var(--color-surface)', color: 'var(--color-text)',
-                    }}
+                    onChange={val => setNewEnd(val)}
                   />
                 </div>
               </div>
@@ -334,6 +284,6 @@ export default function PayrollPeriodsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }

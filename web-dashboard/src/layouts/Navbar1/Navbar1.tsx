@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, ChevronDown, LogOut, Menu, X } from 'lucide-react'
+import { Bell, Calendar, ChevronDown, LogOut, Menu, X } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 import { cn } from '@/utils/cn'
 import type { NavSection } from '../AppSidebar/navItems'
@@ -71,6 +71,9 @@ export function Navbar1({ sections }: Navbar1Props) {
 
         {/* Right */}
         <div className={styles.right}>
+          <Link to="/calendar" className={styles.iconBtn}>
+            <Calendar size={18} />
+          </Link>
           <button className={styles.iconBtn}>
             <Bell size={18} />
           </button>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { Users, ClipboardCheck, UserCog, Wallet, X, CheckCircle, XCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { X, CheckCircle, XCircle } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
 import type { ColumnDef, RowActionDef, FilterDef } from '@/widgets/DataTable/DataTable'
@@ -114,16 +114,8 @@ const filterDefs: FilterDef[] = [
   },
 ]
 
-const TAB_ITEMS = [
-  { key: 'employees', label: 'Karyawan', icon: <Users size={15} />, path: '/hrm' },
-  { key: 'attendance', label: 'Kehadiran', icon: <ClipboardCheck size={15} />, path: '/hrm/attendance' },
-  { key: 'leaves', label: 'Cuti', icon: <UserCog size={15} />, path: '/hrm/leaves' },
-  { key: 'payroll', label: 'Penggajian', icon: <Wallet size={15} />, path: '/hrm/payroll' },
-]
-
 export default function LeaveRequestsPage() {
   const navigate = useNavigate()
-  const location = useLocation()
   const queryClient = useQueryClient()
 
   const [reviewingLeave, setReviewingLeave] = useState<LeaveRequest | null>(null)
@@ -159,42 +151,16 @@ export default function LeaveRequestsPage() {
   }
 
   return (
-    <div>
-      {/* Tab navigation */}
-      <div style={{
-        display: 'flex', gap: 'var(--space-1)', marginBottom: 'var(--space-4)',
-        borderBottom: '1px solid var(--color-border)', paddingBottom: 0,
-      }}>
-        {TAB_ITEMS.map((tab) => {
-          const isActive = location.pathname === tab.path
-          return (
-            <button
-              key={tab.key}
-              onClick={() => navigate(tab.path)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: 'var(--space-3) var(--space-4)',
-                border: 'none', borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
-                background: 'none', cursor: 'pointer',
-                color: isActive ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                fontWeight: isActive ? 600 : 400,
-                fontSize: 'var(--font-sm)',
-                marginBottom: -1,
-              }}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          )
-        })}
-      </div>
-
+    <>
       <ListPageTemplate<LeaveRequest>
         title="Permintaan Cuti"
+        addLabel="Ajukan Cuti"
+        onAdd={() => navigate('/hrm/leaves/new')}
         queryKey="hrm-leaves"
         fetcher={(params) => hrmService.listLeaves(params)}
         columns={columns}
         rowActions={rowActions}
+        onRowClick={(row) => navigate(`/hrm/leaves/${row.id}`)}
         searchPlaceholder="Cari karyawan..."
         exportFilename="cuti"
         filterDefs={filterDefs}
@@ -204,7 +170,6 @@ export default function LeaveRequestsPage() {
         helpText="Kelola permintaan cuti karyawan. Setujui atau tolak permintaan yang menunggu persetujuan."
       />
 
-      {/* Review Modal */}
       {reviewingLeave && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 400,
@@ -323,6 +288,6 @@ export default function LeaveRequestsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }

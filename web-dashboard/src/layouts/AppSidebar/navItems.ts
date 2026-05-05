@@ -29,6 +29,8 @@ import {
   Landmark,
   LayoutList,
   BarChart2,
+  CalendarCheck,
+  CalendarOff,
 } from 'lucide-react'
 
 // ─── Permission helpers ─────────────────────────────────────────────────────────
@@ -171,10 +173,10 @@ const ALL_ITEMS: NavItem[] = [
     hasAccess: () => true,
   },
   {
-    key: 'curriculum',
+    key: 'course',
     label: 'Kurikulum',
     icon: BookOpen,
-    path: '/curriculum',
+    path: '/course',
     hasAccess: (ctx) => canManageCourse(ctx) || hasRole(ctx, 'facilitator'),
   },
   {
@@ -391,6 +393,39 @@ const FINANCE_ITEMS: NavItem[] = [
   },
 ]
 
+// ─── HRM sub-nav items ──────────────────────────────────────────────────────────
+
+const HRM_ITEMS: NavItem[] = [
+  {
+    key: 'hrm-employees',
+    label: 'Karyawan',
+    icon: UserCog,
+    path: '/hrm',
+    hasAccess: (ctx) => canViewHrm(ctx),
+  },
+  {
+    key: 'hrm-attendance',
+    label: 'Kehadiran',
+    icon: CalendarCheck,
+    path: '/hrm/attendance',
+    hasAccess: (ctx) => canViewHrm(ctx),
+  },
+  {
+    key: 'hrm-leaves',
+    label: 'Cuti',
+    icon: CalendarOff,
+    path: '/hrm/leaves',
+    hasAccess: (ctx) => canViewHrm(ctx),
+  },
+  {
+    key: 'hrm-payroll',
+    label: 'Penggajian',
+    icon: CreditCard,
+    path: '/hrm/payroll',
+    hasAccess: (ctx) => canViewHrm(ctx),
+  },
+]
+
 // ─── Section grouping ───────────────────────────────────────────────────────────
 
 export const NAV_SECTIONS: NavSection[] = [
@@ -428,7 +463,7 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'sdm',
     label: 'SDM',
     icon: UserCog,
-    items: [ALL_ITEMS[15]], // SDM
+    items: HRM_ITEMS,
   },
   {
     key: 'pengembangan',

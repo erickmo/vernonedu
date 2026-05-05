@@ -1,5 +1,4 @@
-import { useNavigate, useLocation } from 'react-router-dom'
-import { Users, ClipboardCheck, UserCog, Wallet } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
 import type { ColumnDef, FilterDef } from '@/widgets/DataTable/DataTable'
 import { hrmService } from '@/services/hrm.service'
@@ -100,53 +99,18 @@ const filterDefs: FilterDef[] = [
   },
 ]
 
-const TAB_ITEMS = [
-  { key: 'employees', label: 'Karyawan', icon: <Users size={15} />, path: '/hrm' },
-  { key: 'attendance', label: 'Kehadiran', icon: <ClipboardCheck size={15} />, path: '/hrm/attendance' },
-  { key: 'leaves', label: 'Cuti', icon: <UserCog size={15} />, path: '/hrm/leaves' },
-  { key: 'payroll', label: 'Penggajian', icon: <Wallet size={15} />, path: '/hrm/payroll' },
-]
-
 export default function AttendancePage() {
   const navigate = useNavigate()
-  const location = useLocation()
 
   return (
-    <div>
-      {/* Tab navigation */}
-      <div style={{
-        display: 'flex', gap: 'var(--space-1)', marginBottom: 'var(--space-4)',
-        borderBottom: '1px solid var(--color-border)', paddingBottom: 0,
-      }}>
-        {TAB_ITEMS.map((tab) => {
-          const isActive = location.pathname === tab.path
-          return (
-            <button
-              key={tab.key}
-              onClick={() => navigate(tab.path)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: 'var(--space-3) var(--space-4)',
-                border: 'none', borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
-                background: 'none', cursor: 'pointer',
-                color: isActive ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                fontWeight: isActive ? 600 : 400,
-                fontSize: 'var(--font-sm)',
-                marginBottom: -1,
-              }}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          )
-        })}
-      </div>
-
-      <ListPageTemplate<StaffAttendance>
+    <ListPageTemplate<StaffAttendance>
         title="Kehadiran"
+        addLabel="Tambah Kehadiran"
+        onAdd={() => navigate('/hrm/attendance/new')}
         queryKey="hrm-attendance"
         fetcher={(params) => hrmService.listAttendance(params)}
         columns={columns}
+        onRowClick={(row) => navigate(`/hrm/attendance/${row.id}`)}
         searchPlaceholder="Cari karyawan..."
         exportFilename="kehadiran"
         filterDefs={filterDefs}
@@ -155,6 +119,5 @@ export default function AttendancePage() {
         helpTitle="Kehadiran"
         helpText="Catatan kehadiran harian karyawan mencakup jam masuk, jam keluar, dan status kehadiran."
       />
-    </div>
   )
 }

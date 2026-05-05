@@ -1,5 +1,5 @@
-import { useNavigate, useLocation } from 'react-router-dom'
-import { UserCog, Users, ClipboardCheck, Wallet, Pencil } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Pencil } from 'lucide-react'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
 import type { ColumnDef, RowActionDef, FilterDef } from '@/widgets/DataTable/DataTable'
 import { hrmService } from '@/services/hrm.service'
@@ -102,16 +102,8 @@ const filterDefs: FilterDef[] = [
   },
 ]
 
-const TAB_ITEMS = [
-  { key: 'employees', label: 'Karyawan', icon: <Users size={15} />, path: '/hrm' },
-  { key: 'attendance', label: 'Kehadiran', icon: <ClipboardCheck size={15} />, path: '/hrm/attendance' },
-  { key: 'leaves', label: 'Cuti', icon: <UserCog size={15} />, path: '/hrm/leaves' },
-  { key: 'payroll', label: 'Penggajian', icon: <Wallet size={15} />, path: '/hrm/payroll' },
-]
-
 export default function HrmListPage() {
   const navigate = useNavigate()
-  const location = useLocation()
 
   const rowActions: RowActionDef<Employee>[] = [
     {
@@ -123,37 +115,7 @@ export default function HrmListPage() {
   ]
 
   return (
-    <div>
-      {/* Tab navigation */}
-      <div style={{
-        display: 'flex', gap: 'var(--space-1)', marginBottom: 'var(--space-4)',
-        borderBottom: '1px solid var(--color-border)', paddingBottom: 0,
-      }}>
-        {TAB_ITEMS.map((tab) => {
-          const isActive = location.pathname === tab.path
-          return (
-            <button
-              key={tab.key}
-              onClick={() => navigate(tab.path)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: 'var(--space-3) var(--space-4)',
-                border: 'none', borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
-                background: 'none', cursor: 'pointer',
-                color: isActive ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                fontWeight: isActive ? 600 : 400,
-                fontSize: 'var(--font-sm)',
-                marginBottom: -1,
-              }}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          )
-        })}
-      </div>
-
-      <ListPageTemplate<Employee>
+    <ListPageTemplate<Employee>
         title="Karyawan"
         addLabel="Tambah Karyawan"
         onAdd={() => navigate('/hrm/new')}
@@ -170,6 +132,5 @@ export default function HrmListPage() {
         helpTitle="Karyawan"
         helpText="Kelola data karyawan termasuk informasi pribadi, jabatan, departemen, dan status kepegawaian."
       />
-    </div>
   )
 }
