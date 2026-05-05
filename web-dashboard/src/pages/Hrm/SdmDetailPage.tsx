@@ -8,6 +8,7 @@ import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageT
 import { hrmService } from '@/services/hrm.service'
 import { userService } from '@/services/user.service'
 import { toast } from '@/widgets/Toast/Toast'
+import { useDeleteConfirmModal } from '@/widgets/Modals/DeleteConfirmModal'
 import {
   EMPLOYEE_STATUS_LABELS, EMPLOYEE_STATUS_COLORS,
   ATTENDANCE_STATUS_LABELS, ATTENDANCE_STATUS_COLORS,
@@ -72,6 +73,7 @@ export default function SdmDetailPage() {
   const { employeeId } = useParams<{ employeeId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const confirmDelete = useDeleteConfirmModal()
 
   const { data: emp, isLoading } = useQuery<any>({
     queryKey: ['hrm-employee-detail', employeeId],
@@ -135,16 +137,11 @@ export default function SdmDetailPage() {
     {
       label: 'Hapus',
       icon: <Trash2 size={14} />,
-      onClick: async () => {
-        if (!window.confirm('Yakin ingin menghapus karyawan ini?')) return
-        try {
-          await userService.delete(employeeId!)
-          toast.success('Karyawan berhasil dihapus')
-          navigate('/hrm')
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : 'Gagal menghapus karyawan')
-        }
-      },
+      onClick: () => confirmDelete('Hapus Karyawan', 'Yakin ingin menghapus karyawan ini?', async () => {
+        await userService.delete(employeeId!)
+        toast.success('Karyawan berhasil dihapus')
+        navigate('/hrm')
+      }),
       variant: 'danger' as const,
     },
   ]
