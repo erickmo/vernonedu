@@ -154,7 +154,7 @@ export default function EmployeeFormPage() {
         toast.success('Karyawan berhasil ditambahkan')
       }
       await queryClient.invalidateQueries({ queryKey: ['hrm-employees'] })
-      navigate('/hrm')
+      navigate(isEdit ? `/hrm/${employeeId}` : '/hrm')
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Gagal menyimpan data')
     } finally {
@@ -265,7 +265,7 @@ export default function EmployeeFormPage() {
     <FormPageTemplate
       title={isEdit ? 'Edit Karyawan' : 'Tambah Karyawan'}
       icon={<UserCog size={20} />}
-      onBack={() => navigate('/hrm')}
+      onBack={() => navigate(isEdit ? `/hrm/${employeeId}` : '/hrm')}
       tabs={[
         {
           id: 'general',
@@ -397,7 +397,7 @@ export default function EmployeeFormPage() {
         },
       ]}
       onSubmit={handleSubmit}
-      onCancel={() => navigate('/hrm')}
+      onCancel={() => navigate(isEdit ? `/hrm/${employeeId}` : '/hrm')}
       isSubmitting={isSubmitting}
       serverError={serverError}
     />

@@ -98,7 +98,7 @@ export default function EnrollmentFormPage() {
         toast.success('Pendaftaran berhasil dibuat')
       }
       await queryClient.invalidateQueries({ queryKey: ['enrollments'] })
-      navigate('/enrollments')
+      navigate(isEdit ? `/enrollments/${enrollmentId}` : '/enrollments')
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Gagal menyimpan data')
     } finally {
@@ -145,7 +145,7 @@ export default function EnrollmentFormPage() {
     <FormPageTemplate
       title={isEdit ? 'Edit Pendaftaran' : 'Tambah Pendaftaran'}
       icon={<Users size={20} />}
-      onBack={() => navigate('/enrollments')}
+      onBack={() => navigate(isEdit ? `/enrollments/${enrollmentId}` : '/enrollments')}
       tabs={[
         {
           id: 'general',
@@ -199,7 +199,7 @@ export default function EnrollmentFormPage() {
         },
       ]}
       onSubmit={handleSubmit}
-      onCancel={() => navigate('/enrollments')}
+      onCancel={() => navigate(isEdit ? `/enrollments/${enrollmentId}` : '/enrollments')}
       isSubmitting={isSubmitting}
       serverError={serverError}
     />

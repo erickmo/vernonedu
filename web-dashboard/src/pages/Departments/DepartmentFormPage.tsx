@@ -73,7 +73,7 @@ export default function DepartmentFormPage() {
         toast.success('Departemen berhasil dibuat')
       }
       await queryClient.invalidateQueries({ queryKey: ['departments'] })
-      navigate('/pengembangan/departments')
+      navigate(isEdit ? `/pengembangan/departments/${deptId}` : '/pengembangan/departments')
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Gagal menyimpan data')
     } finally {
@@ -134,7 +134,7 @@ export default function DepartmentFormPage() {
     <FormPageTemplate
       title={isEdit ? 'Edit Departemen' : 'Tambah Departemen'}
       icon={<Building2 size={20} />}
-      onBack={() => navigate('/pengembangan/departments')}
+      onBack={() => navigate(isEdit ? `/pengembangan/departments/${deptId}` : '/pengembangan/departments')}
       tabs={[
         {
           id: 'general',
@@ -174,7 +174,7 @@ export default function DepartmentFormPage() {
         },
       ]}
       onSubmit={handleSubmit}
-      onCancel={() => navigate('/pengembangan/departments')}
+      onCancel={() => navigate(isEdit ? `/pengembangan/departments/${deptId}` : '/pengembangan/departments')}
       isSubmitting={isSubmitting}
       serverError={serverError}
     />
