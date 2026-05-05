@@ -18,6 +18,7 @@ import (
 	"github.com/vernonedu/entrepreneurship-api/infrastructure/database"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 // MasterCourseHandler menangani request HTTP untuk resource MasterCourse.
@@ -110,11 +111,20 @@ func (h *MasterCourseHandler) List(w http.ResponseWriter, r *http.Request) {
 	status := r.URL.Query().Get("status")
 	field := r.URL.Query().Get("field")
 
+	var sortBy, sortDir string
+	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
+		sortBy = s.Column
+		sortDir = s.Dir
+	}
+
 	query := &list_mastercourse.ListMasterCourseQuery{
-		Offset: offset,
-		Limit:  limit,
-		Status: status,
-		Field:  field,
+		Offset:  offset,
+		Limit:   limit,
+		Search:  r.URL.Query().Get("search"),
+		Status:  status,
+		Field:   field,
+		SortBy:  sortBy,
+		SortDir: sortDir,
 	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {

@@ -20,6 +20,7 @@ import (
 	listlead "github.com/vernonedu/entrepreneurship-api/internal/query/list_lead"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 type LeadHandler struct {
@@ -164,6 +165,14 @@ func (h *LeadHandler) List(w http.ResponseWriter, r *http.Request) {
 	status := r.URL.Query().Get("status")
 	source := r.URL.Query().Get("source")
 	interest := r.URL.Query().Get("interest")
+	search := r.URL.Query().Get("search")
+
+	sort := sortutil.Parse(r.URL.Query().Get("sort"))
+	var sortBy, sortDir string
+	if sort != nil {
+		sortBy = sort.Column
+		sortDir = sort.Dir
+	}
 
 	query := &listlead.ListLeadQuery{
 		Offset:   offset,
@@ -171,6 +180,9 @@ func (h *LeadHandler) List(w http.ResponseWriter, r *http.Request) {
 		Status:   status,
 		Source:   source,
 		Interest: interest,
+		Search:   search,
+		SortBy:   sortBy,
+		SortDir:  sortDir,
 	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {

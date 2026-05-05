@@ -183,6 +183,8 @@ type TransactionFilter struct {
 	BranchID  *uuid.UUID
 	DateFrom  *time.Time
 	DateTo    *time.Time
+	SortBy    string
+	SortDir   string
 }
 
 type JournalFilter struct {

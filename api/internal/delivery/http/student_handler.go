@@ -143,8 +143,10 @@ func (h *StudentHandler) List(w http.ResponseWriter, r *http.Request) {
 	if limit == 0 {
 		limit = 10
 	}
+	search := r.URL.Query().Get("search")
+	sort := r.URL.Query().Get("sort")
 
-	query := &list_student.ListStudentQuery{Offset: offset, Limit: limit}
+	query := &list_student.ListStudentQuery{Offset: offset, Limit: limit, Search: search, Sort: sort}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to execute list student query")

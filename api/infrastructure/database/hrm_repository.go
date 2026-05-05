@@ -334,7 +334,15 @@ func (r *HrmRepository) GetEmployeeByUserID(ctx context.Context, userID uuid.UUI
 	return rec.toDomain(), nil
 }
 
-func (r *HrmRepository) ListEmployees(ctx context.Context, offset, limit int, search, departmentID, status string) ([]*hrm.Employee, int, error) {
+var employeeSortCols = map[string]string{
+	"name":       "u.name",
+	"email":      "u.email",
+	"status":     "e.status",
+	"created_at": "e.created_at",
+	"updated_at": "e.updated_at",
+}
+
+func (r *HrmRepository) ListEmployees(ctx context.Context, offset, limit int, search, departmentID, status, sortBy, sortDir string) ([]*hrm.Employee, int, error) {
 	baseWhere := "WHERE 1=1"
 	args := []interface{}{}
 	argIdx := 1
@@ -365,11 +373,12 @@ func (r *HrmRepository) ListEmployees(ctx context.Context, offset, limit int, se
 		return nil, 0, fmt.Errorf("failed to count employees: %w", err)
 	}
 
+	orderBy := buildOrderBy(sortBy, sortDir, employeeSortCols, "e.created_at DESC")
 	listArgs := append(args, limit, offset)
 	query := fmt.Sprintf(`
 		SELECT e.* FROM employees e
 		LEFT JOIN users u ON u.id = e.user_id
-		%s ORDER BY e.created_at DESC LIMIT $%d OFFSET $%d`, baseWhere, argIdx, argIdx+1)
+		%s %s LIMIT $%d OFFSET $%d`, baseWhere, orderBy, argIdx, argIdx+1)
 
 	var recs []employeeRecord
 	if err := r.db.SelectContext(ctx, &recs, query, listArgs...); err != nil {
@@ -383,7 +392,9 @@ func (r *HrmRepository) ListEmployees(ctx context.Context, offset, limit int, se
 	return result, total, nil
 }
 
-func (r *HrmRepository) GetAttendanceByRange(ctx context.Context, employeeID uuid.UUID, from, to time.Time) ([]*hrm.StaffAttendance, error) {
+func (r *HrmRepository) GetAttendanceByRange(ctx context.Context, employeeID uuid.UUID, from, to time.Time, sortBy, sortDir string) ([]*hrm.StaffAttendance, error) {
+	_ = sortBy  // reserved for future dynamic sort support
+	_ = sortDir // reserved for future dynamic sort support
 	query := `SELECT * FROM staff_attendance WHERE employee_id = $1 AND date >= $2 AND date <= $3 ORDER BY date DESC`
 	var recs []staffAttendanceRecord
 	if err := r.db.SelectContext(ctx, &recs, query, employeeID, from, to); err != nil {
@@ -446,7 +457,9 @@ func (r *HrmRepository) GetAttendanceSummary(ctx context.Context, period string)
 	return result, nil
 }
 
-func (r *HrmRepository) ListLeaveRequests(ctx context.Context, employeeID *uuid.UUID, status string, offset, limit int) ([]*hrm.LeaveRequest, int, error) {
+func (r *HrmRepository) ListLeaveRequests(ctx context.Context, employeeID *uuid.UUID, status, sortBy, sortDir string, offset, limit int) ([]*hrm.LeaveRequest, int, error) {
+	_ = sortBy  // reserved for future dynamic sort support
+	_ = sortDir // reserved for future dynamic sort support
 	baseWhere := "WHERE 1=1"
 	args := []interface{}{}
 	argIdx := 1
@@ -508,7 +521,9 @@ func (r *HrmRepository) GetPayrollPeriodByID(ctx context.Context, id uuid.UUID) 
 	return rec.toDomain(), nil
 }
 
-func (r *HrmRepository) ListPayrollPeriods(ctx context.Context, status string, offset, limit int) ([]*hrm.PayrollPeriod, int, error) {
+func (r *HrmRepository) ListPayrollPeriods(ctx context.Context, status, sortBy, sortDir string, offset, limit int) ([]*hrm.PayrollPeriod, int, error) {
+	_ = sortBy  // reserved for future dynamic sort support
+	_ = sortDir // reserved for future dynamic sort support
 	baseWhere := "WHERE 1=1"
 	args := []interface{}{}
 	argIdx := 1

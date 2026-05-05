@@ -70,7 +70,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		limit = 10
 	}
 
-	certs, total, err := h.certReadRepo.List(ctx, studentID, batchID, q.Type, q.Status, q.Offset, limit)
+	certs, total, err := h.certReadRepo.List(ctx, studentID, batchID, q.Type, q.Status, q.Offset, limit, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list certificates")
 		return nil, err

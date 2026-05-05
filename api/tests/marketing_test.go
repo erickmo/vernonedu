@@ -105,7 +105,7 @@ func (m *mockMarketingReadRepo) GetPostByID(ctx context.Context, id uuid.UUID) (
 	}
 	return nil, marketing.ErrPostNotFound
 }
-func (m *mockMarketingReadRepo) ListPosts(ctx context.Context, offset, limit int, platform, status, month string) ([]*marketing.SocialMediaPost, int, error) {
+func (m *mockMarketingReadRepo) ListPosts(ctx context.Context, offset, limit int, platform, status, month, _, _ string) ([]*marketing.SocialMediaPost, int, error) {
 	return m.posts, len(m.posts), nil
 }
 func (m *mockMarketingReadRepo) ListClassDocs(ctx context.Context, offset, limit int, status string) ([]*marketing.ClassDocPost, int, error) {

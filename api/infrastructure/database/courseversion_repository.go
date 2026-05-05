@@ -155,11 +155,19 @@ func (r *CourseVersionRepository) GetByID(ctx context.Context, id uuid.UUID) (*c
 	return rec.toDomain(), nil
 }
 
-// ListByType mengambil semua CourseVersion yang terkait dengan satu CourseType.
-func (r *CourseVersionRepository) ListByType(ctx context.Context, courseTypeID uuid.UUID) ([]*courseversion.CourseVersion, error) {
+// courseVersionAllowedSortCols defines the whitelist of sortable columns for CourseVersion.
+var courseVersionAllowedSortCols = map[string]string{
+	"version":    "version_number",
+	"status":     "status",
+	"created_at": "created_at",
+}
+
+// ListByType mengambil semua CourseVersion yang terkait dengan satu CourseType dengan dynamic sort.
+func (r *CourseVersionRepository) ListByType(ctx context.Context, courseTypeID uuid.UUID, sortBy, sortDir string) ([]*courseversion.CourseVersion, error) {
+	orderByClause := buildOrderBy(sortBy, sortDir, courseVersionAllowedSortCols, "created_at DESC")
 	var recs []courseVersionRecord
-	query := `SELECT ` + courseVersionSelectColumns + ` FROM course_versions
-		WHERE course_type_id = $1 ORDER BY created_at DESC`
+	query := fmt.Sprintf(`SELECT `+courseVersionSelectColumns+` FROM course_versions
+		WHERE course_type_id = $1 %s`, orderByClause)
 	if err := r.db.SelectContext(ctx, &recs, query, courseTypeID); err != nil {
 		return nil, fmt.Errorf("failed to list course versions by type: %w", err)
 	}

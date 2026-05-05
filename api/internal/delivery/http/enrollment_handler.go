@@ -19,6 +19,7 @@ import (
 	listenrollmentsummary "github.com/vernonedu/entrepreneurship-api/internal/query/list_enrollment_summary"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 type EnrollmentHandler struct {
@@ -130,7 +131,12 @@ func (h *EnrollmentHandler) List(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
-	query := &list_enrollment.ListEnrollmentQuery{Offset: offset, Limit: limit}
+	sortBy, sortDir := "", ""
+	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
+		sortBy, sortDir = s.Column, s.Dir
+	}
+
+	query := &list_enrollment.ListEnrollmentQuery{Offset: offset, Limit: limit, SortBy: sortBy, SortDir: sortDir}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to execute list enrollment query")

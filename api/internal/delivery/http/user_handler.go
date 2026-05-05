@@ -17,6 +17,7 @@ import (
 	"github.com/vernonedu/entrepreneurship-api/internal/query/search_user"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 type UserHandler struct {
@@ -122,7 +123,14 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
-	query := &list_user.ListUserQuery{Offset: offset, Limit: limit}
+	sort := sortutil.Parse(r.URL.Query().Get("sort"))
+	var sortBy, sortDir string
+	if sort != nil {
+		sortBy = sort.Column
+		sortDir = sort.Dir
+	}
+
+	query := &list_user.ListUserQuery{Offset: offset, Limit: limit, SortBy: sortBy, SortDir: sortDir}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to execute list user query")

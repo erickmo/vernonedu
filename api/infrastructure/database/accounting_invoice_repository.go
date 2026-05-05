@@ -331,6 +331,14 @@ func (r *AccountingInvoiceRepository) ListEnriched(ctx context.Context, filters 
 		return nil, 0, fmt.Errorf("failed to count enriched invoices: %w", err)
 	}
 
+	invoiceSortCols := map[string]string{
+		"status":       "status",
+		"due_date":     "due_date",
+		"total_amount": "amount",
+		"created_at":   "created_at",
+	}
+	orderBy := buildOrderBy(filters.SortBy, filters.SortDir, invoiceSortCols, "created_at DESC")
+
 	selectArgs := append(args, filters.Limit, filters.Offset)
 	dataQuery := fmt.Sprintf(`
 		SELECT id,
@@ -348,9 +356,9 @@ func (r *AccountingInvoiceRepository) ListEnriched(ctx context.Context, filters 
 		       created_at, updated_at
 		FROM accounting_invoices
 		WHERE %s
-		ORDER BY created_at DESC
+		%s
 		LIMIT $%d OFFSET $%d
-	`, where, argIdx, argIdx+1)
+	`, where, orderBy, argIdx, argIdx+1)
 
 	var rows []invoiceRecord
 	if err := r.db.SelectContext(ctx, &rows, dataQuery, selectArgs...); err != nil {

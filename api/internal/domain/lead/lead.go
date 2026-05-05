@@ -81,7 +81,7 @@ type WriteRepository interface {
 
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Lead, error)
-	List(ctx context.Context, offset, limit int, status, source, interest string) ([]*Lead, int, error)
+	List(ctx context.Context, offset, limit int, status, source, interest, search, sortBy, sortDir string) ([]*Lead, int, error)
 }
 
 type CrmLogWriteRepository interface {

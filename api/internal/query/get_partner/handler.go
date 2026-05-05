@@ -73,7 +73,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, err
 	}
 
-	mous, err := h.readRepo.ListMOUs(ctx, id)
+	mous, err := h.readRepo.ListMOUs(ctx, id, "", "")
 	if err != nil {
 		return nil, err
 	}

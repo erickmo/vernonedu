@@ -79,9 +79,9 @@ type WriteRepository interface {
 
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Partner, error)
-	List(ctx context.Context, offset, limit int, status string) ([]*Partner, int, error)
+	List(ctx context.Context, offset, limit int, status, search, sortBy, sortDir string) ([]*Partner, int, error)
 	ListGroups(ctx context.Context) ([]*PartnerGroup, error)
-	ListMOUs(ctx context.Context, partnerID uuid.UUID) ([]*MOU, error)
+	ListMOUs(ctx context.Context, partnerID uuid.UUID, sortBy, sortDir string) ([]*MOU, error)
 	GetMOUByID(ctx context.Context, id uuid.UUID) (*MOU, error)
 	ListExpiringMOUs(ctx context.Context, withinMonths int) ([]*MOU, error)
 	ListLogs(ctx context.Context, partnerID uuid.UUID) ([]*PartnershipLog, error)

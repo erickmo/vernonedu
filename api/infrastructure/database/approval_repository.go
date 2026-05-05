@@ -132,8 +132,15 @@ func (r *ApprovalRepository) GetByID(ctx context.Context, id uuid.UUID) (*approv
 	return recordToApprovalEntity(&rec, steps), nil
 }
 
-func (r *ApprovalRepository) List(ctx context.Context, offset, limit int, status string, approverID *uuid.UUID) ([]*approval.ApprovalRequest, int, error) {
+var approvalSortCols = map[string]string{
+	"status":     "status",
+	"type":       "type",
+	"created_at": "created_at",
+}
+
+func (r *ApprovalRepository) List(ctx context.Context, offset, limit int, status string, approverID *uuid.UUID, sortBy, sortDir string) ([]*approval.ApprovalRequest, int, error) {
 	var total int
+	orderBy := buildOrderBy(sortBy, sortDir, approvalSortCols, "created_at DESC")
 
 	if approverID != nil {
 		countQuery := `SELECT COUNT(*) FROM approval_requests WHERE ($1='' OR status=$1) AND id IN (SELECT approval_id FROM approval_steps WHERE approver_id=$2)`
@@ -145,7 +152,7 @@ func (r *ApprovalRepository) List(ctx context.Context, offset, limit int, status
 			SELECT id, type, entity_type, entity_id, initiator_id, current_step, total_steps, status, COALESCE(reason,'') AS reason, created_at, updated_at
 			FROM approval_requests
 			WHERE ($1='' OR status=$1) AND id IN (SELECT approval_id FROM approval_steps WHERE approver_id=$2)
-			ORDER BY created_at DESC
+			` + orderBy + `
 			LIMIT $3 OFFSET $4
 		`
 		var rows []approvalRecord
@@ -173,7 +180,7 @@ func (r *ApprovalRepository) List(ctx context.Context, offset, limit int, status
 		SELECT id, type, entity_type, entity_id, initiator_id, current_step, total_steps, status, COALESCE(reason,'') AS reason, created_at, updated_at
 		FROM approval_requests
 		WHERE ($1='' OR status=$1)
-		ORDER BY created_at DESC
+		` + orderBy + `
 		LIMIT $2 OFFSET $3
 	`
 	var rows []approvalRecord

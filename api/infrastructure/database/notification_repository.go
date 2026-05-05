@@ -125,12 +125,14 @@ func (r *NotificationRepository) GetByID(ctx context.Context, id uuid.UUID) (*no
 }
 
 // ListByRecipient returns paginated notifications for a recipient with optional filters.
+// sortBy and sortDir control ordering (sortBy: "type"|"read"|"created_at", sortDir: "ASC"|"DESC").
 func (r *NotificationRepository) ListByRecipient(
 	ctx context.Context,
 	recipientID uuid.UUID,
 	offset, limit int,
 	onlyUnread bool,
 	notifType string,
+	sortBy, sortDir string,
 ) ([]*notification.Notification, int, error) {
 	// Build dynamic WHERE clause
 	where := "WHERE recipient_id = $1"
@@ -153,6 +155,13 @@ func (r *NotificationRepository) ListByRecipient(
 		return nil, 0, fmt.Errorf("failed to count notifications: %w", err)
 	}
 
+	allowedCols := map[string]string{
+		"type":       "type",
+		"read":       "read_at",
+		"created_at": "created_at",
+	}
+	orderBy := buildOrderBy(sortBy, sortDir, allowedCols, "created_at DESC")
+
 	// Paginate
 	listQuery := fmt.Sprintf(`
 		SELECT id, recipient_id, type, title, body, channel,
@@ -160,9 +169,9 @@ func (r *NotificationRepository) ListByRecipient(
 		       read_at, created_at
 		FROM notifications
 		%s
-		ORDER BY created_at DESC
+		%s
 		LIMIT $%d OFFSET $%d
-	`, where, idx, idx+1)
+	`, where, orderBy, idx, idx+1)
 	args = append(args, limit, offset)
 
 	var recs []notificationRecord

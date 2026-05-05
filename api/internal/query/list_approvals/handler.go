@@ -55,7 +55,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	approvals, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Status, q.ApproverID)
+	approvals, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Status, q.ApproverID, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list approvals")
 		return nil, err

@@ -105,7 +105,7 @@ type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Student, error)
 	GetDetail(ctx context.Context, id uuid.UUID) (*StudentDetail, error)
 	List(ctx context.Context, offset, limit int) ([]*Student, int, error)
-	ListWithCounts(ctx context.Context, offset, limit int) ([]*StudentListEntry, int, error)
+	ListWithCounts(ctx context.Context, offset, limit int, search, sort string) ([]*StudentListEntry, int, error)
 	GetEnrollmentHistory(ctx context.Context, id uuid.UUID) ([]*StudentEnrollmentHistoryItem, error)
 	GetRecommendations(ctx context.Context, id uuid.UUID) ([]*StudentRecommendationItem, error)
 	GetNotes(ctx context.Context, id uuid.UUID) ([]*StudentNoteItem, error)

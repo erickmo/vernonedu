@@ -40,7 +40,7 @@ func (m *mockCertReadRepo) ListTemplates(ctx context.Context) ([]*certificate.Ce
 	return nil, nil
 }
 
-func (m *mockCertReadRepo) List(ctx context.Context, studentID, batchID *uuid.UUID, certType, status string, offset, limit int) ([]*certificate.Certificate, int, error) {
+func (m *mockCertReadRepo) List(ctx context.Context, studentID, batchID *uuid.UUID, certType, status string, offset, limit int, _, _ string) ([]*certificate.Certificate, int, error) {
 	return nil, 0, nil
 }
 

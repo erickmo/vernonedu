@@ -17,6 +17,7 @@ import (
 	listapprovals "github.com/vernonedu/entrepreneurship-api/internal/query/list_approvals"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 type ApprovalHandler struct {
@@ -77,11 +78,18 @@ func (h *ApprovalHandler) listApprovals(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
+	sortBy, sortDir := "", ""
+	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
+		sortBy, sortDir = s.Column, s.Dir
+	}
+
 	query := &listapprovals.ListApprovalsQuery{
 		Offset:     offset,
 		Limit:      limit,
 		Status:     status,
 		ApproverID: approverID,
+		SortBy:     sortBy,
+		SortDir:    sortDir,
 	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {

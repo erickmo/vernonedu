@@ -24,6 +24,7 @@ import (
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	pkgmiddleware "github.com/vernonedu/entrepreneurship-api/pkg/middleware"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 type CourseBatchHandler struct {
@@ -220,7 +221,12 @@ func (h *CourseBatchHandler) List(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
-	query := &list_course_batch.ListCourseBatchQuery{Offset: offset, Limit: limit}
+	sortBy, sortDir := "", ""
+	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
+		sortBy, sortDir = s.Column, s.Dir
+	}
+
+	query := &list_course_batch.ListCourseBatchQuery{Offset: offset, Limit: limit, Search: r.URL.Query().Get("search"), SortBy: sortBy, SortDir: sortDir}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to execute list course batch query")

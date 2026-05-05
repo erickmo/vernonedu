@@ -32,6 +32,7 @@ import (
 	listtransactions "github.com/vernonedu/entrepreneurship-api/internal/query/list_transactions"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 type AccountingHandler struct {
@@ -878,6 +879,11 @@ func (h *AccountingHandler) listInvoicesEnriched(w http.ResponseWriter, r *http.
 	status := r.URL.Query().Get("status")
 	paymentMethod := r.URL.Query().Get("payment_method")
 
+	sortBy, sortDir := "", ""
+	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
+		sortBy, sortDir = s.Column, s.Dir
+	}
+
 	query := &listinvoices.ListInvoicesQuery{
 		Offset:        offset,
 		Limit:         limit,
@@ -885,6 +891,8 @@ func (h *AccountingHandler) listInvoicesEnriched(w http.ResponseWriter, r *http.
 		Year:          year,
 		Status:        status,
 		PaymentMethod: paymentMethod,
+		SortBy:        sortBy,
+		SortDir:       sortDir,
 	}
 	if batchIDStr := r.URL.Query().Get("batch_id"); batchIDStr != "" {
 		if id, err := uuid.Parse(batchIDStr); err == nil {

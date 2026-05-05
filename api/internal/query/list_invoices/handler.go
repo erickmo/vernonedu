@@ -56,6 +56,8 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		DateTo:        q.DateTo,
 		Month:         q.Month,
 		Year:          q.Year,
+		SortBy:        q.SortBy,
+		SortDir:       q.SortDir,
 	}
 	if filters.Limit == 0 {
 		filters.Limit = 20

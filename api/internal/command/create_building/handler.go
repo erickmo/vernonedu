@@ -39,6 +39,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		log.Error().Err(err).Msg("failed to save building")
 		return err
 	}
+	c.ResultID = b.ID
 
 	event := &building.BuildingCreatedEvent{
 		EventType:  "BuildingCreated",

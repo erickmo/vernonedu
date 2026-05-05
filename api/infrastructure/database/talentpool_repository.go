@@ -151,7 +151,8 @@ func (r *TalentPoolRepository) GetByID(ctx context.Context, id uuid.UUID) (*tale
 
 // List mengambil daftar TalentPool dengan pagination dan filter opsional berdasarkan status dan master_course_id.
 // Gunakan string kosong ("") untuk status dan uuid.Nil untuk masterCourseID jika tidak ingin filter.
-func (r *TalentPoolRepository) List(ctx context.Context, offset, limit int, status string, masterCourseID uuid.UUID) ([]*talentpool.TalentPool, int, error) {
+// sortBy dan sortDir mengontrol urutan hasil; nilai yang diizinkan: "status", "joined_at", "created_at".
+func (r *TalentPoolRepository) List(ctx context.Context, offset, limit int, status string, masterCourseID uuid.UUID, sortBy, sortDir string) ([]*talentpool.TalentPool, int, error) {
 	// Bangun kondisi WHERE secara dinamis
 	conditions := []string{}
 	args := []interface{}{}
@@ -181,14 +182,20 @@ func (r *TalentPoolRepository) List(ctx context.Context, offset, limit int, stat
 	}
 
 	// Ambil data dengan pagination
+	allowedCols := map[string]string{
+		"status":     "talentpool_status",
+		"joined_at":  "joined_at",
+		"created_at": "joined_at",
+	}
+	orderBy := buildOrderBy(sortBy, sortDir, allowedCols, "joined_at DESC")
 	listArgs := append(args, limit, offset)
 	selectQuery := fmt.Sprintf(
 		`SELECT id, participant_id, participant_name, participant_email,
 		        master_course_id, course_type_id, course_version_id,
 		        character_test_result, test_score, talentpool_status,
 		        placement_history, joined_at, updated_at
-		 FROM talentpool %s ORDER BY joined_at DESC LIMIT $%d OFFSET $%d`,
-		whereClause, argIdx, argIdx+1,
+		 FROM talentpool %s %s LIMIT $%d OFFSET $%d`,
+		whereClause, orderBy, argIdx, argIdx+1,
 	)
 	var recs []talentPoolRecord
 	if err := r.db.SelectContext(ctx, &recs, selectQuery, listArgs...); err != nil {

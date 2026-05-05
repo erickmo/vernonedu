@@ -3,7 +3,9 @@ package database
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,6 +13,44 @@ import (
 
 	"github.com/vernonedu/entrepreneurship-api/internal/domain/department"
 )
+
+var deptSortableColumns = map[string]string{
+	"name":        "name",
+	"description": "description",
+	"is_active":   "is_active",
+	"created_at":  "created_at",
+	"updated_at":  "updated_at",
+}
+
+func buildDeptOrderBy(sortJSON string) string {
+	if sortJSON == "" {
+		return "ORDER BY created_at DESC"
+	}
+	var tuples [][2]any
+	if err := json.Unmarshal([]byte(sortJSON), &tuples); err != nil {
+		return "ORDER BY created_at DESC"
+	}
+	var parts []string
+	for _, t := range tuples {
+		col, ok := t[0].(string)
+		if !ok {
+			continue
+		}
+		dbCol, allowed := deptSortableColumns[col]
+		if !allowed {
+			continue
+		}
+		dir := "ASC"
+		if n, ok := t[1].(float64); ok && n < 0 {
+			dir = "DESC"
+		}
+		parts = append(parts, dbCol+" "+dir)
+	}
+	if len(parts) == 0 {
+		return "ORDER BY created_at DESC"
+	}
+	return "ORDER BY " + strings.Join(parts, ", ")
+}
 
 type DepartmentRepository struct {
 	db *sqlx.DB
@@ -85,16 +125,30 @@ func (r *DepartmentRepository) GetByID(ctx context.Context, id uuid.UUID) (*depa
 	return rec.toDomain(), nil
 }
 
-func (r *DepartmentRepository) List(ctx context.Context, offset, limit int) ([]*department.Department, int, error) {
+func (r *DepartmentRepository) List(ctx context.Context, offset, limit int, search, sort string) ([]*department.Department, int, error) {
 	var total int
-	countQuery := `SELECT COUNT(*) FROM departments`
-	if err := r.db.GetContext(ctx, &total, countQuery); err != nil {
-		return nil, 0, fmt.Errorf("failed to count departments: %w", err)
+	if search != "" {
+		if err := r.db.GetContext(ctx, &total, `SELECT COUNT(*) FROM departments WHERE name ILIKE $1`, "%"+search+"%"); err != nil {
+			return nil, 0, fmt.Errorf("failed to count departments: %w", err)
+		}
+	} else {
+		if err := r.db.GetContext(ctx, &total, `SELECT COUNT(*) FROM departments`); err != nil {
+			return nil, 0, fmt.Errorf("failed to count departments: %w", err)
+		}
 	}
 
+	orderBy := buildDeptOrderBy(sort)
 	var recs []departmentRecord
-	query := `SELECT id, name, description, leader_id, is_active, created_at, updated_at FROM departments ORDER BY created_at DESC LIMIT $1 OFFSET $2`
-	if err := r.db.SelectContext(ctx, &recs, query, limit, offset); err != nil {
+	var err error
+	const sel = `SELECT id, name, description, leader_id, is_active, created_at, updated_at FROM departments`
+	if search != "" {
+		q := fmt.Sprintf(`%s WHERE name ILIKE $1 %s LIMIT $2 OFFSET $3`, sel, orderBy)
+		err = r.db.SelectContext(ctx, &recs, q, "%"+search+"%", limit, offset)
+	} else {
+		q := fmt.Sprintf(`%s %s LIMIT $1 OFFSET $2`, sel, orderBy)
+		err = r.db.SelectContext(ctx, &recs, q, limit, offset)
+	}
+	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list departments: %w", err)
 	}
 

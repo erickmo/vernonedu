@@ -14,4 +14,6 @@ type ListFinanceTransactionsQuery struct {
 	BranchID  *uuid.UUID
 	DateFrom  *time.Time
 	DateTo    *time.Time
+	SortBy    string
+	SortDir   string
 }

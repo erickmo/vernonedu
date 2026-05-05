@@ -15,6 +15,7 @@ import (
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	pkgmiddleware "github.com/vernonedu/entrepreneurship-api/pkg/middleware"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 // NotificationHandler handles notification-related HTTP requests.
@@ -70,12 +71,20 @@ func (h *NotificationHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	notifType := r.URL.Query().Get("type")
 
+	sort := sortutil.Parse(r.URL.Query().Get("sort"))
+	sortBy, sortDir := "", ""
+	if sort != nil {
+		sortBy, sortDir = sort.Column, sort.Dir
+	}
+
 	query := &listnotifications.ListNotificationsQuery{
 		RecipientID: recipientID,
 		Offset:      offset,
 		Limit:       limit,
 		OnlyUnread:  onlyUnread,
 		Type:        notifType,
+		SortBy:      sortBy,
+		SortDir:     sortDir,
 	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {

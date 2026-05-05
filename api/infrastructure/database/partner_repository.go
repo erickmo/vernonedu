@@ -245,45 +245,42 @@ func (r *PartnerRepository) GetByID(ctx context.Context, id uuid.UUID) (*partner
 	return rec.toDomain(), nil
 }
 
-func (r *PartnerRepository) List(ctx context.Context, offset, limit int, status string) ([]*partner.Partner, int, error) {
+var partnerSortCols = map[string]string{
+	"name":       "p.name",
+	"is_active":  "p.status",
+	"status":     "p.status",
+	"created_at": "p.created_at",
+	"updated_at": "p.updated_at",
+}
+
+func (r *PartnerRepository) List(ctx context.Context, offset, limit int, status, search, sortBy, sortDir string) ([]*partner.Partner, int, error) {
 	var total int
-	countArgs := []interface{}{}
-	countQuery := `SELECT COUNT(*) FROM partners`
-	if status != "" {
-		countQuery += ` WHERE status = $1`
-		countArgs = append(countArgs, status)
+	var countArgs []interface{}
+	countQuery := `SELECT COUNT(*) FROM partners p WHERE ($1='' OR p.status=$1) AND ($2='' OR p.name ILIKE $2)`
+	searchPattern := ""
+	if search != "" {
+		searchPattern = "%" + search + "%"
 	}
+	countArgs = []interface{}{status, searchPattern}
 	if err := r.db.GetContext(ctx, &total, countQuery, countArgs...); err != nil {
 		return nil, 0, fmt.Errorf("failed to count partners: %w", err)
 	}
 
+	orderBy := buildOrderBy(sortBy, sortDir, partnerSortCols, "p.created_at DESC")
+
+	listQuery := fmt.Sprintf(`
+		SELECT p.id, p.name, p.industry, p.address, p.contact_person, p.contact_email, p.contact_phone,
+		       p.website, p.logo_url, p.group_id, COALESCE(pg.name, '') AS group_name, p.status,
+		       p.partner_since, p.notes, p.created_at, p.updated_at
+		FROM partners p
+		LEFT JOIN partner_groups pg ON pg.id = p.group_id
+		WHERE ($1='' OR p.status=$1) AND ($2='' OR p.name ILIKE $2)
+		%s
+		LIMIT $3 OFFSET $4
+	`, orderBy)
+	listArgs := []interface{}{status, searchPattern, limit, offset}
+
 	var recs []partnerRecord
-	var listQuery string
-	var listArgs []interface{}
-	if status != "" {
-		listQuery = `
-			SELECT p.id, p.name, p.industry, p.address, p.contact_person, p.contact_email, p.contact_phone,
-			       p.website, p.logo_url, p.group_id, COALESCE(pg.name, '') AS group_name, p.status,
-			       p.partner_since, p.notes, p.created_at, p.updated_at
-			FROM partners p
-			LEFT JOIN partner_groups pg ON pg.id = p.group_id
-			WHERE p.status = $1
-			ORDER BY p.created_at DESC
-			LIMIT $2 OFFSET $3
-		`
-		listArgs = []interface{}{status, limit, offset}
-	} else {
-		listQuery = `
-			SELECT p.id, p.name, p.industry, p.address, p.contact_person, p.contact_email, p.contact_phone,
-			       p.website, p.logo_url, p.group_id, COALESCE(pg.name, '') AS group_name, p.status,
-			       p.partner_since, p.notes, p.created_at, p.updated_at
-			FROM partners p
-			LEFT JOIN partner_groups pg ON pg.id = p.group_id
-			ORDER BY p.created_at DESC
-			LIMIT $1 OFFSET $2
-		`
-		listArgs = []interface{}{limit, offset}
-	}
 	if err := r.db.SelectContext(ctx, &recs, listQuery, listArgs...); err != nil {
 		return nil, 0, fmt.Errorf("failed to list partners: %w", err)
 	}
@@ -313,14 +310,22 @@ func (r *PartnerRepository) ListGroups(ctx context.Context) ([]*partner.PartnerG
 	return groups, nil
 }
 
-func (r *PartnerRepository) ListMOUs(ctx context.Context, partnerID uuid.UUID) ([]*partner.MOU, error) {
-	var recs []mouRecord
-	query := `
+var mouSortCols = map[string]string{
+	"start_date": "start_date",
+	"end_date":   "end_date",
+	"status":     "status",
+	"created_at": "created_at",
+}
+
+func (r *PartnerRepository) ListMOUs(ctx context.Context, partnerID uuid.UUID, sortBy, sortDir string) ([]*partner.MOU, error) {
+	orderBy := buildOrderBy(sortBy, sortDir, mouSortCols, "start_date DESC")
+	query := fmt.Sprintf(`
 		SELECT id, partner_id, '' AS partner_name, document_number, COALESCE(title, '') AS title,
 		       start_date::text, end_date::text, COALESCE(status, 'active') AS status,
 		       COALESCE(document_url, '') AS document_url, notes, created_at, updated_at
-		FROM mous WHERE partner_id = $1 ORDER BY start_date DESC
-	`
+		FROM mous WHERE partner_id = $1 %s
+	`, orderBy)
+	var recs []mouRecord
 	if err := r.db.SelectContext(ctx, &recs, query, partnerID); err != nil {
 		return nil, fmt.Errorf("failed to list MOUs: %w", err)
 	}

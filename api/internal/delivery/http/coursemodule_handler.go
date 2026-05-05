@@ -15,6 +15,7 @@ import (
 	list_coursemodule "github.com/vernonedu/entrepreneurship-api/internal/query/list_coursemodule"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 // CourseModuleHandler menangani request HTTP untuk resource CourseModule.
@@ -134,7 +135,17 @@ func (h *CourseModuleHandler) ListByVersion(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	query := &list_coursemodule.ListCourseModuleQuery{CourseVersionID: versionID}
+	var sortBy, sortDir string
+	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
+		sortBy = s.Column
+		sortDir = s.Dir
+	}
+
+	query := &list_coursemodule.ListCourseModuleQuery{
+		CourseVersionID: versionID,
+		SortBy:          sortBy,
+		SortDir:         sortDir,
+	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to execute list course module query")

@@ -7,4 +7,6 @@ type ListApprovalsQuery struct {
 	Limit      int
 	Status     string
 	ApproverID *uuid.UUID
+	SortBy     string
+	SortDir    string
 }

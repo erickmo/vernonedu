@@ -213,15 +213,23 @@ func (r *CourseModuleRepository) GetByID(ctx context.Context, id uuid.UUID) (*co
 	return rec.toDomain()
 }
 
-// ListByVersion mengambil semua modul yang terkait dengan satu CourseVersion, diurut berdasarkan sequence ASC.
-func (r *CourseModuleRepository) ListByVersion(ctx context.Context, courseVersionID uuid.UUID) ([]*coursemodule.CourseModule, error) {
+// courseModuleAllowedSortCols defines the whitelist of sortable columns for CourseModule.
+var courseModuleAllowedSortCols = map[string]string{
+	"title":       "module_title",
+	"order_index": "sequence",
+	"created_at":  "created_at",
+}
+
+// ListByVersion mengambil semua modul yang terkait dengan satu CourseVersion dengan dynamic sort.
+func (r *CourseModuleRepository) ListByVersion(ctx context.Context, courseVersionID uuid.UUID, sortBy, sortDir string) ([]*coursemodule.CourseModule, error) {
+	orderByClause := buildOrderBy(sortBy, sortDir, courseModuleAllowedSortCols, "sequence ASC")
 	var recs []courseModuleRecord
-	query := `
+	query := fmt.Sprintf(`
 		SELECT id, course_version_id, module_code, module_title, duration_hours, sequence,
 		       content_depth, topics, practical_activities, assessment_method,
 		       tools_required, requirements, is_reference, ref_module_id, created_at, updated_at
-		FROM course_modules WHERE course_version_id = $1 ORDER BY sequence ASC
-	`
+		FROM course_modules WHERE course_version_id = $1 %s
+	`, orderByClause)
 	if err := r.db.SelectContext(ctx, &recs, query, courseVersionID); err != nil {
 		return nil, fmt.Errorf("failed to list course modules by version: %w", err)
 	}

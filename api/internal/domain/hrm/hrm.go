@@ -231,13 +231,13 @@ type WriteRepository interface {
 type ReadRepository interface {
 	GetEmployeeByID(ctx context.Context, id uuid.UUID) (*Employee, error)
 	GetEmployeeByUserID(ctx context.Context, userID uuid.UUID) (*Employee, error)
-	ListEmployees(ctx context.Context, offset, limit int, search, departmentID, status string) ([]*Employee, int, error)
-	GetAttendanceByRange(ctx context.Context, employeeID uuid.UUID, from, to time.Time) ([]*StaffAttendance, error)
+	ListEmployees(ctx context.Context, offset, limit int, search, departmentID, status, sortBy, sortDir string) ([]*Employee, int, error)
+	GetAttendanceByRange(ctx context.Context, employeeID uuid.UUID, from, to time.Time, sortBy, sortDir string) ([]*StaffAttendance, error)
 	GetAttendanceSummary(ctx context.Context, period string) ([]*AttendanceSummary, error)
-	ListLeaveRequests(ctx context.Context, employeeID *uuid.UUID, status string, offset, limit int) ([]*LeaveRequest, int, error)
+	ListLeaveRequests(ctx context.Context, employeeID *uuid.UUID, status, sortBy, sortDir string, offset, limit int) ([]*LeaveRequest, int, error)
 	GetLeaveRequestByID(ctx context.Context, id uuid.UUID) (*LeaveRequest, error)
 	GetPayrollPeriodByID(ctx context.Context, id uuid.UUID) (*PayrollPeriod, error)
-	ListPayrollPeriods(ctx context.Context, status string, offset, limit int) ([]*PayrollPeriod, int, error)
+	ListPayrollPeriods(ctx context.Context, status, sortBy, sortDir string, offset, limit int) ([]*PayrollPeriod, int, error)
 	GetPayrollItemsByPeriod(ctx context.Context, payrollPeriodID uuid.UUID) ([]*PayrollItem, error)
 	GetPayrollItemByID(ctx context.Context, id uuid.UUID) (*PayrollItem, error)
 }

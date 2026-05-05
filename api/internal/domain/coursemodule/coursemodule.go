@@ -131,6 +131,6 @@ type WriteRepository interface {
 // Diimplementasikan di layer infrastructure/database (dengan Redis cache opsional).
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*CourseModule, error)
-	ListByVersion(ctx context.Context, courseVersionID uuid.UUID) ([]*CourseModule, error)
+	ListByVersion(ctx context.Context, courseVersionID uuid.UUID, sortBy, sortDir string) ([]*CourseModule, error)
 	GetByCode(ctx context.Context, courseVersionID uuid.UUID, moduleCode string) (*CourseModule, error)
 }

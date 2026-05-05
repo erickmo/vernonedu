@@ -53,7 +53,7 @@ function buildQS(params?: Record<string, any>): string {
   if (!params) return ''
   const q = new URLSearchParams()
   Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') q.set(k, String(v))
+    if (v !== undefined && v !== null && v !== '') q.set(k, Array.isArray(v) ? JSON.stringify(v) : String(v))
   })
   const s = q.toString()
   return s ? `?${s}` : ''

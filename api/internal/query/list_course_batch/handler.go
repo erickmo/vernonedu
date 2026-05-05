@@ -9,8 +9,11 @@ import (
 )
 
 type ListCourseBatchQuery struct {
-	Offset int
-	Limit  int
+	Offset  int
+	Limit   int
+	Search  string
+	SortBy  string
+	SortDir string
 }
 
 type CourseBatchReadModel struct {
@@ -58,7 +61,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	batches, total, err := h.courseBatchReadRepo.ListEnriched(ctx, q.Offset, q.Limit)
+	batches, total, err := h.courseBatchReadRepo.ListEnriched(ctx, q.Offset, q.Limit, q.Search, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list course batches")
 		return nil, err

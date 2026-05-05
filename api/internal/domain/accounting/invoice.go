@@ -233,6 +233,8 @@ type InvoiceFilters struct {
 	DateTo        *time.Time
 	Month         int
 	Year          int
+	SortBy        string
+	SortDir       string
 }
 
 type InvoiceStats struct {

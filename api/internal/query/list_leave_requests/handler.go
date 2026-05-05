@@ -12,6 +12,8 @@ import (
 type ListLeaveRequestsQuery struct {
 	EmployeeID string
 	Status     string
+	SortBy     string
+	SortDir    string
 	Offset     int
 	Limit      int
 }
@@ -60,7 +62,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		employeeID = &parsed
 	}
 
-	requests, total, err := h.readRepo.ListLeaveRequests(ctx, employeeID, q.Status, q.Offset, q.Limit)
+	requests, total, err := h.readRepo.ListLeaveRequests(ctx, employeeID, q.Status, q.SortBy, q.SortDir, q.Offset, q.Limit)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list leave requests")
 		return nil, err
