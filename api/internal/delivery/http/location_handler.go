@@ -72,8 +72,9 @@ type UpdateRoomRequest struct {
 // @Description  Retrieve a paginated list of buildings.
 // @Tags         locations
 // @Produce      json
-// @Param        offset  query  int  false  "Pagination offset"
-// @Param        limit   query  int  false  "Pagination limit (default 20)"
+// @Param        offset  query  int     false  "Pagination offset"
+// @Param        limit   query  int     false  "Pagination limit (default 20)"
+// @Param        search  query  string  false  "Search buildings by name or address"
 // @Success      200  {object}  map[string]interface{}
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth
@@ -84,8 +85,13 @@ func (h *LocationHandler) ListBuildings(w http.ResponseWriter, r *http.Request) 
 	if limit == 0 {
 		limit = 20
 	}
+	search := r.URL.Query().Get("search")
 
-	result, err := h.qryBus.Execute(r.Context(), &listbuildings.ListBuildingsQuery{Offset: offset, Limit: limit})
+	result, err := h.qryBus.Execute(r.Context(), &listbuildings.ListBuildingsQuery{
+		Offset: offset,
+		Limit:  limit,
+		Search: search,
+	})
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list buildings")
 		writeError(w, http.StatusInternalServerError, "failed to list buildings")
@@ -150,7 +156,7 @@ func (h *LocationHandler) CreateBuilding(w http.ResponseWriter, r *http.Request)
 		writeError(w, http.StatusInternalServerError, "failed to create building")
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]string{"message": "building created successfully"})
+	writeJSON(w, http.StatusCreated, map[string]interface{}{"id": cmd.ResultID.String(), "message": "building created successfully"})
 }
 
 // UpdateBuilding godoc
