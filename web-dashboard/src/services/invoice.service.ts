@@ -24,6 +24,9 @@ export const invoiceService = {
 
   createManual: (data: any) =>
     apiClient.post<any>('/finance/invoices', data),
+
+  delete: (id: string) =>
+    apiClient.delete<any>(`/finance/invoices/${id}`),
 }
 
 function buildQS(params?: Record<string, any>): string {
