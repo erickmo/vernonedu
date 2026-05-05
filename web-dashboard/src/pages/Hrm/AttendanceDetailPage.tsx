@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { CalendarCheck, Pencil, User, Clock, FileText } from 'lucide-react'
+import { CalendarCheck, Pencil, User, Clock, FileText, Trash2 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { hrmService } from '@/services/hrm.service'
@@ -66,6 +66,21 @@ export default function AttendanceDetailPage() {
       label: 'Edit Kehadiran',
       icon: <Pencil size={14} />,
       onClick: () => navigate(`/hrm/attendance/${attendanceId}/edit`),
+    },
+    {
+      label: 'Hapus',
+      icon: <Trash2 size={14} />,
+      onClick: async () => {
+        if (!window.confirm('Yakin ingin menghapus absensi ini?')) return
+        try {
+          await hrmService.deleteAttendance(attendanceId!)
+          toast.success('Absensi berhasil dihapus')
+          navigate('/hrm/attendance')
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : 'Gagal menghapus absensi')
+        }
+      },
+      variant: 'danger' as const,
     },
   ]
 
