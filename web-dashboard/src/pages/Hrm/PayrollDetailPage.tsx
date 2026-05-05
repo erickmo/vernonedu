@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { Wallet, Pencil, CheckCircle, SendHorizonal, Clock, User, CreditCard } from 'lucide-react'
+import { Wallet, Pencil, CheckCircle, SendHorizonal, Clock, User, CreditCard, Trash2 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { hrmService } from '@/services/hrm.service'
@@ -118,6 +118,21 @@ export default function PayrollDetailPage() {
       onClick: handleDisburse,
       variant: 'primary' as const,
     }] : []),
+    {
+      label: 'Hapus',
+      icon: <Trash2 size={14} />,
+      onClick: async () => {
+        if (!window.confirm('Yakin ingin menghapus periode payroll ini?')) return
+        try {
+          await hrmService.deletePayrollPeriod(periodId!)
+          toast.success('Periode payroll berhasil dihapus')
+          navigate('/hrm/payroll')
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : 'Gagal menghapus periode payroll')
+        }
+      },
+      variant: 'danger' as const,
+    },
   ]
 
   const summaryTab = (
