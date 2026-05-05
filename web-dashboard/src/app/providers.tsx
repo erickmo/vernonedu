@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ToastProvider } from '@/widgets/Toast/Toast'
+import { DeleteConfirmModalProvider } from '@/widgets/Modals/DeleteConfirmModal'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,6 +21,7 @@ export function Providers({ children }: ProvidersProps) {
     <QueryClientProvider client={queryClient}>
       {children}
       <ToastProvider />
+      <DeleteConfirmModalProvider />
     </QueryClientProvider>
   )
 }
