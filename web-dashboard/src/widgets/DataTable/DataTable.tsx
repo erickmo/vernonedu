@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronUp, ChevronDown, ChevronsUpDown, Search, X, Columns3, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SlidersHorizontal } from 'lucide-react'
 import { EmptyState } from '@/widgets/EmptyState/EmptyState'
@@ -82,6 +82,8 @@ interface DataTableProps<T> {
   inlineFilter?: boolean
   /** Custom export handler untuk PDF. Jika disediakan, akan dipanggil untuk ekspor PDF. */
   onExportPDF?: (filename: string, data: T[]) => void
+  /** When provided, rows become expandable. Clicking the chevron toggles an extra row below. */
+  expandedRow?: (row: T) => React.ReactNode
 }
 
 const PAGE_SIZE_OPTIONS = [50, 100, 250, 500, 1000]
@@ -156,8 +158,10 @@ export function DataTable<T extends Record<string, any>>({
   searchDebounceMs = 400,
   inlineFilter,
   onExportPDF,
+  expandedRow,
 }: DataTableProps<T>) {
   const [pendingSearch, setPendingSearch] = useState(search)
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Sync input value ketika parent mengubah search dari luar (mis. clear)
@@ -218,8 +222,6 @@ export function DataTable<T extends Record<string, any>>({
   )
   const [showColToggle, setShowColToggle] = useState(false)
 
-  const columns = initialColumns.filter((c) => colVisibility[c.key] !== false)
-
   const getRowKey = useCallback(
     (row: T): string => {
       if (typeof rowKey === 'function') return rowKey(row)
@@ -227,6 +229,39 @@ export function DataTable<T extends Record<string, any>>({
     },
     [rowKey],
   )
+
+  const visibleColumns = initialColumns.filter((c) => colVisibility[c.key] !== false)
+  const columns: ColumnDef<T>[] = expandedRow
+    ? [
+        {
+          key: '__expand__',
+          header: '',
+          width: 40,
+          render: (_v: unknown, row: T) => {
+            const rowId = getRowKey(row)
+            const isOpen = expandedRowId === rowId
+            return (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setExpandedRowId(isOpen ? null : rowId)
+                }}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--color-text-secondary)', padding: '2px 4px',
+                  display: 'flex', alignItems: 'center',
+                  transition: 'transform 0.15s',
+                  transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                }}
+              >
+                <ChevronRight size={16} />
+              </button>
+            )
+          },
+        },
+        ...visibleColumns,
+      ]
+    : visibleColumns
 
   const handleSort = (col: ColumnDef<T>) => {
     if (!onSortChange) return
@@ -510,41 +545,53 @@ export function DataTable<T extends Record<string, any>>({
               data.map((row, rowIndex) => {
                 const key = getRowKey(row)
                 const isSelected = selected.includes(key)
+                const isExpanded = expandedRow !== undefined && expandedRowId === key
                 return (
-                  <tr
-                    key={key}
-                    className={cn(
-                      styles.tr,
-                      rowIndex % 2 === 1 && styles.stripe,
-                      isSelected && styles.selectedRow,
-                      onRowClick && styles.clickable,
+                  <React.Fragment key={key}>
+                    <tr
+                      className={cn(
+                        styles.tr,
+                        rowIndex % 2 === 1 && styles.stripe,
+                        isSelected && styles.selectedRow,
+                        onRowClick && styles.clickable,
+                      )}
+                      onClick={() => onRowClick?.(row)}
+                    >
+                      {selectable && (
+                        <td className={cn(styles.td, styles.checkboxCell)} onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleSelectRow(key)}
+                          />
+                        </td>
+                      )}
+                      {columns.map((col) => (
+                        <td
+                          key={col.key}
+                          className={cn(
+                            styles.td,
+                            col.align === 'right' && styles.right,
+                            col.align === 'center' && styles.center,
+                          )}
+                        >
+                          {col.render
+                            ? col.render(row[col.key], row, rowIndex)
+                            : String(row[col.key] ?? '')}
+                        </td>
+                      ))}
+                    </tr>
+                    {isExpanded && (
+                      <tr>
+                        <td
+                          colSpan={columns.length + (selectable ? 1 : 0)}
+                          style={{ padding: 0, background: 'var(--color-surface-alt)', borderBottom: '1px solid var(--color-border)' }}
+                        >
+                          {expandedRow(row)}
+                        </td>
+                      </tr>
                     )}
-                    onClick={() => onRowClick?.(row)}
-                  >
-                    {selectable && (
-                      <td className={cn(styles.td, styles.checkboxCell)} onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleSelectRow(key)}
-                        />
-                      </td>
-                    )}
-                    {columns.map((col) => (
-                      <td
-                        key={col.key}
-                        className={cn(
-                          styles.td,
-                          col.align === 'right' && styles.right,
-                          col.align === 'center' && styles.center,
-                        )}
-                      >
-                        {col.render
-                          ? col.render(row[col.key], row, rowIndex)
-                          : String(row[col.key] ?? '')}
-                      </td>
-                    ))}
-                  </tr>
+                  </React.Fragment>
                 )
               })
             )}
