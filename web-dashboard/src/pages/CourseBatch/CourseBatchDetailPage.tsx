@@ -4,10 +4,12 @@ import { useQuery } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { courseBatchService } from '@/services/course-batch.service'
 import { toast } from '@/widgets/Toast/Toast'
+import { useDeleteConfirmModal } from '@/widgets/Modals/DeleteConfirmModal'
 
 export default function CourseBatchDetailPage() {
   const { batchId } = useParams<{ batchId: string }>()
   const navigate = useNavigate()
+  const confirmDelete = useDeleteConfirmModal()
 
   const { data: batch, isLoading } = useQuery({
     queryKey: ['course-batch', batchId],
@@ -24,16 +26,11 @@ export default function CourseBatchDetailPage() {
     {
       label: 'Hapus',
       icon: <Trash2 size={14} />,
-      onClick: async () => {
-        if (!window.confirm('Yakin ingin menghapus batch ini?')) return
-        try {
-          await courseBatchService.delete(batchId!)
-          toast.success('Batch berhasil dihapus')
-          navigate('/course-batches')
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : 'Gagal menghapus batch')
-        }
-      },
+      onClick: () => confirmDelete('Hapus Batch', 'Yakin ingin menghapus batch ini?', async () => {
+        await courseBatchService.delete(batchId!)
+        toast.success('Batch berhasil dihapus')
+        navigate('/course-batches')
+      }),
       variant: 'danger' as const,
     },
   ]
