@@ -45,4 +45,7 @@ export const enrollmentService = {
 
   updatePaymentStatus: (id: string, paymentStatus: string) =>
     apiClient.put<any>(`enrollments/${id}/payment-status`, { payment_status: paymentStatus }),
+
+  delete: (id: string) =>
+    apiClient.delete<any>(`enrollments/${id}`),
 }

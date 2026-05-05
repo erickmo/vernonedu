@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { FileText, CheckCircle, Send, XCircle, Clock, User, BookOpen, Calendar, DollarSign } from 'lucide-react'
+import { FileText, CheckCircle, Send, XCircle, Clock, User, BookOpen, Calendar, DollarSign, Trash2 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { invoiceService } from '@/services/invoice.service'
@@ -129,6 +129,21 @@ export default function InvoiceDetailPage() {
           disabled: actionLoading,
         }
       ] : []),
+    {
+      label: 'Hapus',
+      icon: <Trash2 size={14} />,
+      onClick: async () => {
+        if (!window.confirm('Yakin ingin menghapus invoice ini?')) return
+        try {
+          await invoiceService.delete(invoiceId!)
+          toast.success('Invoice berhasil dihapus')
+          navigate('/finance/invoices')
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : 'Gagal menghapus invoice')
+        }
+      },
+      variant: 'danger' as const,
+    },
   ]
 
   const summaryTab = (

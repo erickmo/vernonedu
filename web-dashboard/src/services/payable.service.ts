@@ -15,6 +15,9 @@ export const payableService = {
 
   markAsPaid: (id: string) =>
     apiClient.put<any>(`/finance/payables/${id}/pay`, {}),
+
+  delete: (id: string) =>
+    apiClient.delete<any>(`/finance/payables/${id}`),
 }
 
 function buildQS(params?: Record<string, any>): string {

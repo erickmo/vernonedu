@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   UserCog, Pencil, Mail, Phone, MapPin, Building2, Calendar,
-  CreditCard, FileText, Clock, User, Ban,
+  CreditCard, FileText, Clock, User, Ban, Trash2,
 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { hrmService } from '@/services/hrm.service'
+import { userService } from '@/services/user.service'
 import { toast } from '@/widgets/Toast/Toast'
 import {
   EMPLOYEE_STATUS_LABELS, EMPLOYEE_STATUS_COLORS,
@@ -130,6 +131,21 @@ export default function SdmDetailPage() {
       icon: <Ban size={14} />,
       onClick: handleDeactivate,
       variant: emp?.status === 'active' ? 'warning' : 'success',
+    },
+    {
+      label: 'Hapus',
+      icon: <Trash2 size={14} />,
+      onClick: async () => {
+        if (!window.confirm('Yakin ingin menghapus karyawan ini?')) return
+        try {
+          await userService.delete(employeeId!)
+          toast.success('Karyawan berhasil dihapus')
+          navigate('/hrm')
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : 'Gagal menghapus karyawan')
+        }
+      },
+      variant: 'danger' as const,
     },
   ]
 

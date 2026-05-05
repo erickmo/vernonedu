@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Handshake, Pencil, Plus, FileText, StickyNote, X } from 'lucide-react'
+import { Handshake, Pencil, Plus, FileText, StickyNote, X, Trash2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { partnerService } from '@/services/partner.service'
@@ -80,6 +80,21 @@ export default function PartnerDetailPage() {
       icon: <Plus size={14} />,
       onClick: () => setShowMOUDialog(true),
       variant: 'default',
+    },
+    {
+      label: 'Hapus',
+      icon: <Trash2 size={14} />,
+      onClick: async () => {
+        if (!window.confirm('Yakin ingin menghapus partner ini?')) return
+        try {
+          await partnerService.delete(partnerId!)
+          toast.success('Partner berhasil dihapus')
+          navigate('/business-dev/partners')
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : 'Gagal menghapus partner')
+        }
+      },
+      variant: 'danger' as const,
     },
   ]
 
