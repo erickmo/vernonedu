@@ -72,7 +72,7 @@ func (row *leadRow) toDomain() (*lead.Lead, error) {
 }
 
 func (r *LeadRepository) Save(ctx context.Context, l *lead.Lead) error {
-	var sourceID, picID interface{}
+	var sourceID, picID any
 	if l.SourceID != nil {
 		sourceID = l.SourceID.String()
 	}
@@ -94,7 +94,7 @@ func (r *LeadRepository) Save(ctx context.Context, l *lead.Lead) error {
 }
 
 func (r *LeadRepository) Update(ctx context.Context, l *lead.Lead) error {
-	var sourceID, picID interface{}
+	var sourceID, picID any
 	if l.SourceID != nil {
 		sourceID = l.SourceID.String()
 	}
@@ -218,7 +218,7 @@ func (row *leadCrmLogRow) toDomain() (*lead.CrmLog, error) {
 }
 
 func (r *LeadRepository) SaveCrmLog(ctx context.Context, l *lead.CrmLog) error {
-	var followUpDate interface{}
+	var followUpDate any
 	if l.FollowUpDate != nil {
 		followUpDate = *l.FollowUpDate
 	}
