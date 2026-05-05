@@ -59,14 +59,6 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 
 	items := make([]*BuildingListItem, 0, len(buildings))
 	for _, b := range buildings {
-		rooms := make([]RoomItem, 0, len(b.Rooms))
-		for _, r := range b.Rooms {
-			rooms = append(rooms, RoomItem{
-				ID:       r.ID.String(),
-				Name:     r.Name,
-				Capacity: r.Capacity,
-			})
-		}
 		items = append(items, &BuildingListItem{
 			ID:            b.ID,
 			Name:          b.Name,
@@ -74,11 +66,23 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 			Description:   b.Description,
 			RoomCount:     b.RoomCount,
 			TotalCapacity: b.TotalCapacity,
-			Rooms:         rooms,
+			Rooms:         toRoomItems(b.Rooms),
 			CreatedAt:     b.CreatedAt.Unix(),
 			UpdatedAt:     b.UpdatedAt.Unix(),
 		})
 	}
 
 	return &ListBuildingsResult{Data: items, Total: total}, nil
+}
+
+func toRoomItems(rooms []building.RoomSummary) []RoomItem {
+	items := make([]RoomItem, 0, len(rooms))
+	for _, r := range rooms {
+		items = append(items, RoomItem{
+			ID:       r.ID.String(),
+			Name:     r.Name,
+			Capacity: r.Capacity,
+		})
+	}
+	return items
 }
