@@ -6,6 +6,7 @@ import {
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { hrmService } from '@/services/hrm.service'
+import { userService } from '@/services/user.service'
 import { toast } from '@/widgets/Toast/Toast'
 import {
   EMPLOYEE_STATUS_LABELS, EMPLOYEE_STATUS_COLORS,
@@ -137,7 +138,7 @@ export default function SdmDetailPage() {
       onClick: async () => {
         if (!window.confirm('Yakin ingin menghapus karyawan ini?')) return
         try {
-          await hrmService.deleteEmployee(employeeId!)
+          await userService.delete(employeeId!)
           toast.success('Karyawan berhasil dihapus')
           navigate('/hrm')
         } catch (err) {
