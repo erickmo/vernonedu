@@ -584,7 +584,7 @@ export function DataTable<T extends Record<string, any>>({
                     {isExpanded && (
                       <tr>
                         <td
-                          colSpan={columns.length + (selectable ? 1 : 0)}
+                          colSpan={columns.length + (rowActions?.length > 0 ? 1 : 0) + (selectable ? 1 : 0)}
                           style={{ padding: 0, background: 'var(--color-surface-alt)', borderBottom: '1px solid var(--color-border)' }}
                         >
                           {expandedRow(row)}
