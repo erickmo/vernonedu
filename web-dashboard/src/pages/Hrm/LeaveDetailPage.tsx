@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { CalendarOff, User, Calendar, FileText, CheckCircle, XCircle } from 'lucide-react'
+import { CalendarOff, User, Calendar, FileText, CheckCircle, XCircle, Trash2 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { hrmService } from '@/services/hrm.service'
@@ -104,6 +104,21 @@ export default function LeaveDetailPage() {
         variant: 'warning' as const,
       },
     ] : []),
+    {
+      label: 'Hapus',
+      icon: <Trash2 size={14} />,
+      onClick: async () => {
+        if (!window.confirm('Yakin ingin menghapus permohonan cuti ini?')) return
+        try {
+          await hrmService.deleteLeaveRequest(leaveId!)
+          toast.success('Permohonan cuti berhasil dihapus')
+          navigate('/hrm/leaves')
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : 'Gagal menghapus permohonan cuti')
+        }
+      },
+      variant: 'danger' as const,
+    },
   ]
 
   const duration = leave ? calcDuration(leave.start_date, leave.end_date) : 0
