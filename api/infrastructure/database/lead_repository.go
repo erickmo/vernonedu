@@ -25,8 +25,7 @@ type leadRow struct {
 	Name      string         `db:"name"`
 	Email     string         `db:"email"`
 	Phone     string         `db:"phone"`
-	Interest  string         `db:"interest"`
-	Source    string         `db:"source"`
+	SourceID  sql.NullString `db:"source_id"`
 	Notes     string         `db:"notes"`
 	Status    string         `db:"status"`
 	PicID     sql.NullString `db:"pic_id"`
@@ -38,6 +37,15 @@ func (row *leadRow) toDomain() (*lead.Lead, error) {
 	id, err := uuid.Parse(row.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse lead id: %w", err)
+	}
+
+	var sourceID *uuid.UUID
+	if row.SourceID.Valid && row.SourceID.String != "" {
+		parsed, err := uuid.Parse(row.SourceID.String)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse lead source_id: %w", err)
+		}
+		sourceID = &parsed
 	}
 
 	var picID *uuid.UUID
@@ -54,8 +62,7 @@ func (row *leadRow) toDomain() (*lead.Lead, error) {
 		Name:      row.Name,
 		Email:     row.Email,
 		Phone:     row.Phone,
-		Interest:  row.Interest,
-		Source:    row.Source,
+		SourceID:  sourceID,
 		Notes:     row.Notes,
 		Status:    row.Status,
 		PicID:     picID,
@@ -65,16 +72,19 @@ func (row *leadRow) toDomain() (*lead.Lead, error) {
 }
 
 func (r *LeadRepository) Save(ctx context.Context, l *lead.Lead) error {
-	var picID interface{}
+	var sourceID, picID interface{}
+	if l.SourceID != nil {
+		sourceID = l.SourceID.String()
+	}
 	if l.PicID != nil {
 		picID = l.PicID.String()
 	}
 	query := `
-		INSERT INTO leads (id, name, email, phone, interest, source, notes, status, pic_id, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		INSERT INTO leads (id, name, email, phone, source_id, notes, status, pic_id, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	`
 	_, err := r.db.ExecContext(ctx, query,
-		l.ID.String(), l.Name, l.Email, l.Phone, l.Interest, l.Source, l.Notes, l.Status, picID,
+		l.ID.String(), l.Name, l.Email, l.Phone, sourceID, l.Notes, l.Status, picID,
 		l.CreatedAt, l.UpdatedAt,
 	)
 	if err != nil {
@@ -84,17 +94,20 @@ func (r *LeadRepository) Save(ctx context.Context, l *lead.Lead) error {
 }
 
 func (r *LeadRepository) Update(ctx context.Context, l *lead.Lead) error {
-	var picID interface{}
+	var sourceID, picID interface{}
+	if l.SourceID != nil {
+		sourceID = l.SourceID.String()
+	}
 	if l.PicID != nil {
 		picID = l.PicID.String()
 	}
 	query := `
 		UPDATE leads
-		SET name=$1, email=$2, phone=$3, interest=$4, source=$5, notes=$6, status=$7, pic_id=$8, updated_at=$9
-		WHERE id=$10
+		SET name=$1, email=$2, phone=$3, source_id=$4, notes=$5, status=$6, pic_id=$7, updated_at=$8
+		WHERE id=$9
 	`
 	_, err := r.db.ExecContext(ctx, query,
-		l.Name, l.Email, l.Phone, l.Interest, l.Source, l.Notes, l.Status, picID, l.UpdatedAt,
+		l.Name, l.Email, l.Phone, sourceID, l.Notes, l.Status, picID, l.UpdatedAt,
 		l.ID.String(),
 	)
 	if err != nil {
@@ -104,8 +117,7 @@ func (r *LeadRepository) Update(ctx context.Context, l *lead.Lead) error {
 }
 
 func (r *LeadRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	query := `DELETE FROM leads WHERE id=$1`
-	_, err := r.db.ExecContext(ctx, query, id.String())
+	_, err := r.db.ExecContext(ctx, `DELETE FROM leads WHERE id=$1`, id.String())
 	if err != nil {
 		return fmt.Errorf("failed to delete lead: %w", err)
 	}
@@ -114,7 +126,7 @@ func (r *LeadRepository) Delete(ctx context.Context, id uuid.UUID) error {
 
 func (r *LeadRepository) GetByID(ctx context.Context, id uuid.UUID) (*lead.Lead, error) {
 	var row leadRow
-	query := `SELECT id, name, email, phone, interest, source, notes, status, pic_id, created_at, updated_at FROM leads WHERE id=$1`
+	query := `SELECT id, name, email, phone, source_id, notes, status, pic_id, created_at, updated_at FROM leads WHERE id=$1`
 	if err := r.db.GetContext(ctx, &row, query, id.String()); err != nil {
 		return nil, fmt.Errorf("failed to get lead: %w", err)
 	}
@@ -124,33 +136,39 @@ func (r *LeadRepository) GetByID(ctx context.Context, id uuid.UUID) (*lead.Lead,
 var leadListSortCols = map[string]string{
 	"name":       "name",
 	"status":     "status",
-	"source":     "source",
 	"created_at": "created_at",
 	"updated_at": "updated_at",
 }
 
-func (r *LeadRepository) List(ctx context.Context, offset, limit int, status, source, interest, search, sortBy, sortDir string) ([]*lead.Lead, int, error) {
+func (r *LeadRepository) List(ctx context.Context, offset, limit int, status, sourceID, search, sortBy, sortDir string) ([]*lead.Lead, int, error) {
 	searchPattern := ""
 	if search != "" {
 		searchPattern = "%" + search + "%"
 	}
 
 	var total int
-	countQuery := `SELECT COUNT(*) FROM leads WHERE ($1='' OR status=$1) AND ($2='' OR source=$2) AND ($3='' OR interest=$3) AND ($4='' OR name ILIKE $4)`
-	if err := r.db.GetContext(ctx, &total, countQuery, status, source, interest, searchPattern); err != nil {
+	countQuery := `
+		SELECT COUNT(*) FROM leads
+		WHERE ($1='' OR status=$1)
+		AND ($2='' OR source_id::text=$2)
+		AND ($3='' OR name ILIKE $3)
+	`
+	if err := r.db.GetContext(ctx, &total, countQuery, status, sourceID, searchPattern); err != nil {
 		return nil, 0, fmt.Errorf("failed to count leads: %w", err)
 	}
 
 	var rows []leadRow
 	orderBy := buildOrderBy(sortBy, sortDir, leadListSortCols, "created_at DESC")
 	query := fmt.Sprintf(`
-		SELECT id, name, email, phone, interest, source, notes, status, pic_id, created_at, updated_at
+		SELECT id, name, email, phone, source_id, notes, status, pic_id, created_at, updated_at
 		FROM leads
-		WHERE ($1='' OR status=$1) AND ($2='' OR source=$2) AND ($3='' OR interest=$3) AND ($4='' OR name ILIKE $4)
+		WHERE ($1='' OR status=$1)
+		AND ($2='' OR source_id::text=$2)
+		AND ($3='' OR name ILIKE $3)
 		%s
-		LIMIT $5 OFFSET $6
+		LIMIT $4 OFFSET $5
 	`, orderBy)
-	if err := r.db.SelectContext(ctx, &rows, query, status, source, interest, searchPattern, limit, offset); err != nil {
+	if err := r.db.SelectContext(ctx, &rows, query, status, sourceID, searchPattern, limit, offset); err != nil {
 		return nil, 0, fmt.Errorf("failed to list leads: %w", err)
 	}
 
@@ -165,7 +183,7 @@ func (r *LeadRepository) List(ctx context.Context, offset, limit int, status, so
 	return leads, total, nil
 }
 
-// CrmLog rows
+// ─── CRM Logs ──────────────────────────────────────────────────────────────
 
 type leadCrmLogRow struct {
 	ID            string       `db:"id"`
@@ -178,18 +196,9 @@ type leadCrmLogRow struct {
 }
 
 func (row *leadCrmLogRow) toDomain() (*lead.CrmLog, error) {
-	id, err := uuid.Parse(row.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse crm log id: %w", err)
-	}
-	leadID, err := uuid.Parse(row.LeadID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse crm log lead_id: %w", err)
-	}
-	contactedByID, err := uuid.Parse(row.ContactedByID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse crm log contacted_by_id: %w", err)
-	}
+	id, _ := uuid.Parse(row.ID)
+	leadID, _ := uuid.Parse(row.LeadID)
+	contactedByID, _ := uuid.Parse(row.ContactedByID)
 
 	var followUpDate *time.Time
 	if row.FollowUpDate.Valid {
