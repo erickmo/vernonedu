@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { hrmService } from '@/services/hrm.service'
 import { toast } from '@/widgets/Toast/Toast'
+import { useDeleteConfirmModal } from '@/widgets/Modals/DeleteConfirmModal'
 import { ATTENDANCE_STATUS_LABELS, ATTENDANCE_STATUS_COLORS } from '@/types/hrm.types'
 import type { AttendanceStatus } from '@/types/hrm.types'
 
@@ -51,6 +52,7 @@ export default function AttendanceDetailPage() {
   const { attendanceId } = useParams<{ attendanceId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const confirmDelete = useDeleteConfirmModal()
 
   const { data: record, isLoading } = useQuery<any>({
     queryKey: ['hrm-attendance-detail', attendanceId],
@@ -70,16 +72,11 @@ export default function AttendanceDetailPage() {
     {
       label: 'Hapus',
       icon: <Trash2 size={14} />,
-      onClick: async () => {
-        if (!window.confirm('Yakin ingin menghapus absensi ini?')) return
-        try {
-          await hrmService.deleteAttendance(attendanceId!)
-          toast.success('Absensi berhasil dihapus')
-          navigate('/hrm/attendance')
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : 'Gagal menghapus absensi')
-        }
-      },
+      onClick: () => confirmDelete('Hapus Absensi', 'Yakin ingin menghapus absensi ini?', async () => {
+        await hrmService.deleteAttendance(attendanceId!)
+        toast.success('Absensi berhasil dihapus')
+        navigate('/hrm/attendance')
+      }),
       variant: 'danger' as const,
     },
   ]
