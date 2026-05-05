@@ -110,4 +110,13 @@ export const hrmService = {
       const d = unwrap(r)
       return Array.isArray(d) ? d : (d as Record<string, unknown>)?.items ?? []
     }),
+
+  deleteAttendance: (id: string) =>
+    apiClient.delete<any>(`/hrm/attendance/${id}`),
+
+  deleteLeaveRequest: (id: string) =>
+    apiClient.delete<any>(`/hrm/leave-requests/${id}`),
+
+  deletePayrollPeriod: (id: string) =>
+    apiClient.delete<any>(`/hrm/payroll-periods/${id}`),
 }
