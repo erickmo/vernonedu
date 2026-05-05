@@ -97,6 +97,6 @@ type WriteRepository interface {
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
-	List(ctx context.Context, offset, limit int) ([]*User, error)
+	List(ctx context.Context, offset, limit int, sortBy, sortDir string) ([]*User, error)
 	Search(ctx context.Context, name string, offset, limit int) ([]*User, error)
 }

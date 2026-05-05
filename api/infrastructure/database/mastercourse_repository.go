@@ -162,7 +162,16 @@ func (r *MasterCourseRepository) GetByCode(ctx context.Context, code string) (*m
 
 // List mengambil daftar MasterCourse dengan pagination dan filter opsional berdasarkan status dan field.
 // Filter status dan field dilewati jika nilai kosong ("").
-func (r *MasterCourseRepository) List(ctx context.Context, offset, limit int, status, field string) ([]*mastercourse.MasterCourse, int, error) {
+// masterCourseAllowedSortCols defines the whitelist of sortable columns for MasterCourse.
+var masterCourseAllowedSortCols = map[string]string{
+	"name":        "course_name",
+	"course_code": "course_code",
+	"field":       "field",
+	"status":      "status",
+	"created_at":  "created_at",
+}
+
+func (r *MasterCourseRepository) List(ctx context.Context, offset, limit int, status, field, sortBy, sortDir string) ([]*mastercourse.MasterCourse, int, error) {
 	// Bangun kondisi WHERE secara dinamis
 	conditions := []string{}
 	args := []interface{}{}
@@ -184,6 +193,8 @@ func (r *MasterCourseRepository) List(ctx context.Context, offset, limit int, st
 		whereClause = "WHERE " + strings.Join(conditions, " AND ")
 	}
 
+	orderByClause := buildOrderBy(sortBy, sortDir, masterCourseAllowedSortCols, "created_at DESC")
+
 	// Hitung total
 	var total int
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM master_courses %s", whereClause)
@@ -195,8 +206,8 @@ func (r *MasterCourseRepository) List(ctx context.Context, offset, limit int, st
 	listArgs := append(args, limit, offset)
 	selectQuery := fmt.Sprintf(
 		`SELECT id, course_code, course_name, field, core_competencies, description, status, supporting_app_url, created_at, updated_at
-		 FROM master_courses %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d`,
-		whereClause, argIdx, argIdx+1,
+		 FROM master_courses %s %s LIMIT $%d OFFSET $%d`,
+		whereClause, orderByClause, argIdx, argIdx+1,
 	)
 	var recs []masterCourseRecord
 	if err := r.db.SelectContext(ctx, &recs, selectQuery, listArgs...); err != nil {

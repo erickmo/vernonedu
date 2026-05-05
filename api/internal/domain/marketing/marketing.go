@@ -61,19 +61,19 @@ type PrSchedule struct {
 }
 
 type ReferralPartner struct {
-	ID               uuid.UUID
-	Name             string
-	ContactEmail     string
-	ReferralCode     string
-	CommissionType   string // percentage|fixed
-	CommissionValue  float64
-	IsActive         bool
-	TotalReferrals   int
-	TotalEnrolled    int
-	TotalCommission  float64
+	ID                uuid.UUID
+	Name              string
+	ContactEmail      string
+	ReferralCode      string
+	CommissionType    string // percentage|fixed
+	CommissionValue   float64
+	IsActive          bool
+	TotalReferrals    int
+	TotalEnrolled     int
+	TotalCommission   float64
 	PendingCommission float64
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 type Referral struct {
@@ -116,7 +116,9 @@ type WriteRepository interface {
 
 type ReadRepository interface {
 	GetPostByID(ctx context.Context, id uuid.UUID) (*SocialMediaPost, error)
-	ListPosts(ctx context.Context, offset, limit int, platform, status, month string) ([]*SocialMediaPost, int, error)
+	// ListPosts returns paginated social media posts with optional filters.
+	// sortBy and sortDir control ordering (sortBy: "platform"|"status"|"created_at", sortDir: "ASC"|"DESC").
+	ListPosts(ctx context.Context, offset, limit int, platform, status, month, sortBy, sortDir string) ([]*SocialMediaPost, int, error)
 	ListClassDocs(ctx context.Context, offset, limit int, status string) ([]*ClassDocPost, int, error)
 	GetPrByID(ctx context.Context, id uuid.UUID) (*PrSchedule, error)
 	ListPr(ctx context.Context, offset, limit int, status, prType string) ([]*PrSchedule, int, error)

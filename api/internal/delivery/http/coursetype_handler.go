@@ -16,6 +16,7 @@ import (
 	list_coursetype "github.com/vernonedu/entrepreneurship-api/internal/query/list_coursetype"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 // CourseTypeHandler menangani request HTTP untuk resource CourseType.
@@ -131,7 +132,17 @@ func (h *CourseTypeHandler) ListByMasterCourse(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	query := &list_coursetype.ListCourseTypeQuery{MasterCourseID: courseID}
+	var sortBy, sortDir string
+	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
+		sortBy = s.Column
+		sortDir = s.Dir
+	}
+
+	query := &list_coursetype.ListCourseTypeQuery{
+		MasterCourseID: courseID,
+		SortBy:         sortBy,
+		SortDir:        sortDir,
+	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to execute list course type query")

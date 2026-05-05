@@ -130,7 +130,7 @@ type BatchDetailInfo struct {
 
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*CourseBatch, error)
-	List(ctx context.Context, offset, limit int) ([]*CourseBatch, int, error)
-	ListEnriched(ctx context.Context, offset, limit int) ([]*EnrichedCourseBatch, int, error)
+	List(ctx context.Context, offset, limit int, sortBy, sortDir string) ([]*CourseBatch, int, error)
+	ListEnriched(ctx context.Context, offset, limit int, sortBy, sortDir string) ([]*EnrichedCourseBatch, int, error)
 	GetBatchDetail(ctx context.Context, batchID uuid.UUID) (*BatchDetailInfo, error)
 }

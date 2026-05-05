@@ -10,8 +10,10 @@ import (
 )
 
 type ListUserQuery struct {
-	Offset int
-	Limit  int
+	Offset  int
+	Limit   int
+	SortBy  string
+	SortDir string
 }
 
 type UserReadModel struct {
@@ -46,7 +48,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	users, err := h.userReadRepo.List(ctx, q.Offset, q.Limit)
+	users, err := h.userReadRepo.List(ctx, q.Offset, q.Limit, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list users")
 		return nil, err

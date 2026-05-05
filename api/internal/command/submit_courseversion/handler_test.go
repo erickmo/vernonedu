@@ -34,7 +34,7 @@ func (m *mockRepo) GetByID(_ context.Context, _ uuid.UUID) (*courseversion.Cours
 	}
 	return m.current, nil
 }
-func (m *mockRepo) ListByType(_ context.Context, _ uuid.UUID) ([]*courseversion.CourseVersion, error) {
+func (m *mockRepo) ListByType(_ context.Context, _ uuid.UUID, _, _ string) ([]*courseversion.CourseVersion, error) {
 	return nil, nil
 }
 func (m *mockRepo) GetApproved(_ context.Context, _ uuid.UUID) (*courseversion.CourseVersion, error) {

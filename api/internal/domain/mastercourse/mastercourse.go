@@ -106,5 +106,5 @@ type WriteRepository interface {
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*MasterCourse, error)
 	GetByCode(ctx context.Context, code string) (*MasterCourse, error)
-	List(ctx context.Context, offset, limit int, status, field string) ([]*MasterCourse, int, error)
+	List(ctx context.Context, offset, limit int, status, field, sortBy, sortDir string) ([]*MasterCourse, int, error)
 }

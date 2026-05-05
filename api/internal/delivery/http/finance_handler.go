@@ -20,6 +20,7 @@ import (
 	listjournalentries "github.com/vernonedu/entrepreneurship-api/internal/query/list_journal_entries"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 type FinanceHandler struct {
@@ -213,10 +214,17 @@ func (h *FinanceHandler) listTransactions(w http.ResponseWriter, r *http.Request
 		limit = 25
 	}
 
+	sortBy, sortDir := "", ""
+	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
+		sortBy, sortDir = s.Column, s.Dir
+	}
+
 	q := &listfinancetransactions.ListFinanceTransactionsQuery{
-		Offset: offset,
-		Limit:  limit,
-		Source: r.URL.Query().Get("source"),
+		Offset:  offset,
+		Limit:   limit,
+		Source:  r.URL.Query().Get("source"),
+		SortBy:  sortBy,
+		SortDir: sortDir,
 	}
 	if s := r.URL.Query().Get("account_id"); s != "" {
 		if id, err := uuid.Parse(s); err == nil {

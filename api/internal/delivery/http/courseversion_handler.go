@@ -19,6 +19,7 @@ import (
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/middleware"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 // Role keys yang digunakan untuk gating workflow approval (mirror dari pkg/middleware).
@@ -121,7 +122,17 @@ func (h *CourseVersionHandler) ListByType(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	query := &list_courseversion.ListCourseVersionQuery{CourseTypeID: typeID}
+	var sortBy, sortDir string
+	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
+		sortBy = s.Column
+		sortDir = s.Dir
+	}
+
+	query := &list_courseversion.ListCourseVersionQuery{
+		CourseTypeID: typeID,
+		SortBy:       sortBy,
+		SortDir:      sortDir,
+	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to execute list course version query")

@@ -10,8 +10,10 @@ import (
 )
 
 type ListEnrollmentQuery struct {
-	Offset int
-	Limit  int
+	Offset  int
+	Limit   int
+	SortBy  string
+	SortDir string
 }
 
 type EnrollmentReadModel struct {
@@ -50,7 +52,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	enrollments, total, err := h.readRepo.ListEnriched(ctx, q.Offset, q.Limit)
+	enrollments, total, err := h.readRepo.ListEnriched(ctx, q.Offset, q.Limit, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list enrollments")
 		return nil, err

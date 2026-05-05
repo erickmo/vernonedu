@@ -6,4 +6,6 @@ type ListLeadQuery struct {
 	Status   string
 	Source   string
 	Interest string
+	SortBy   string
+	SortDir  string
 }

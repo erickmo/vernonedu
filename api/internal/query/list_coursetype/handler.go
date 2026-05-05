@@ -16,6 +16,8 @@ var ErrInvalidQuery = errors.New("invalid query type")
 // ListCourseTypeQuery adalah query untuk mengambil semua CourseType dari satu MasterCourse.
 type ListCourseTypeQuery struct {
 	MasterCourseID uuid.UUID
+	SortBy         string
+	SortDir        string
 }
 
 // CourseTypeReadModel adalah model baca untuk CourseType.
@@ -58,7 +60,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	types, err := h.readRepo.ListByMasterCourse(ctx, q.MasterCourseID)
+	types, err := h.readRepo.ListByMasterCourse(ctx, q.MasterCourseID, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Str("master_course_id", q.MasterCourseID.String()).Msg("failed to list course types")
 		return nil, err

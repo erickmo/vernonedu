@@ -17,6 +17,8 @@ type ListNotificationsQuery struct {
 	Limit       int
 	OnlyUnread  bool
 	Type        string
+	SortBy      string
+	SortDir     string
 }
 
 // NotificationReadModel is the API response shape.
@@ -59,7 +61,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		limit = 20
 	}
 
-	items, total, err := h.readRepo.ListByRecipient(ctx, q.RecipientID, q.Offset, limit, q.OnlyUnread, q.Type)
+	items, total, err := h.readRepo.ListByRecipient(ctx, q.RecipientID, q.Offset, limit, q.OnlyUnread, q.Type, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Str("recipient_id", q.RecipientID.String()).Msg("failed to list notifications")
 		return nil, err

@@ -127,5 +127,5 @@ type WriteRepository interface {
 
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*ApprovalRequest, error)
-	List(ctx context.Context, offset, limit int, status string, approverID *uuid.UUID) ([]*ApprovalRequest, int, error)
+	List(ctx context.Context, offset, limit int, status string, approverID *uuid.UUID, sortBy, sortDir string) ([]*ApprovalRequest, int, error)
 }

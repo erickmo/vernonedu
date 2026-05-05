@@ -204,15 +204,23 @@ func (r *FinanceTransactionRepository) List(ctx context.Context, opts finance.Tr
 		return nil, 0, fmt.Errorf("failed to count finance transactions: %w", err)
 	}
 
+	finTxnSortCols := map[string]string{
+		"amount":           "amount",
+		"transaction_date": "created_at",
+		"type":             "source",
+		"created_at":       "created_at",
+	}
+	orderBy := buildOrderBy(opts.SortBy, opts.SortDir, finTxnSortCols, "created_at DESC")
+
 	args = append(args, opts.Limit, opts.Offset)
 	listSQL := fmt.Sprintf(`
 		SELECT id, code, description, account_debit_id, account_credit_id, amount,
 		       COALESCE(reference,'') AS reference, branch_id, source,
 		       COALESCE(attachment_url,'') AS attachment_url, created_by, created_at
 		FROM finance_transactions %s
-		ORDER BY created_at DESC
+		%s
 		LIMIT $%d OFFSET $%d
-	`, where, i, i+1)
+	`, where, orderBy, i, i+1)
 
 	var rows []financeTransactionRecord
 	if err := r.db.SelectContext(ctx, &rows, listSQL, args...); err != nil {

@@ -10,6 +10,8 @@ import (
 
 type ListMOUsQuery struct {
 	PartnerIDStr string
+	SortBy       string
+	SortDir      string
 }
 
 type MOUReadModel struct {
@@ -42,7 +44,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 	if err != nil {
 		return nil, ErrInvalidPartnerID
 	}
-	mous, err := h.readRepo.ListMOUs(ctx, partnerID)
+	mous, err := h.readRepo.ListMOUs(ctx, partnerID, q.SortBy, q.SortDir)
 	if err != nil {
 		return nil, err
 	}

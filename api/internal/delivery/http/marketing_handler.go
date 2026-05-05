@@ -26,6 +26,7 @@ import (
 	listreferrals       "github.com/vernonedu/entrepreneurship-api/internal/query/list_referrals"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 // MarketingHandler handles all marketing-related HTTP endpoints.
@@ -87,12 +88,20 @@ func (h *MarketingHandler) ListPosts(w http.ResponseWriter, r *http.Request) {
 		limit = 20
 	}
 
+	sort := sortutil.Parse(r.URL.Query().Get("sort"))
+	sortBy, sortDir := "", ""
+	if sort != nil {
+		sortBy, sortDir = sort.Column, sort.Dir
+	}
+
 	q := &listposts.ListPostsQuery{
 		Offset:   offset,
 		Limit:    limit,
 		Platform: r.URL.Query().Get("platform"),
 		Status:   r.URL.Query().Get("status"),
 		Month:    r.URL.Query().Get("month"),
+		SortBy:   sortBy,
+		SortDir:  sortDir,
 	}
 
 	result, err := h.qryBus.Execute(r.Context(), q)

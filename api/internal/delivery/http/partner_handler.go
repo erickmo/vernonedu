@@ -23,6 +23,7 @@ import (
 	listpartnersqry "github.com/vernonedu/entrepreneurship-api/internal/query/list_partners"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 type PartnerHandler struct {
@@ -82,8 +83,13 @@ func (h *PartnerHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 	status := r.URL.Query().Get("status")
 
+	sortBy, sortDir := "", ""
+	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
+		sortBy, sortDir = s.Column, s.Dir
+	}
+
 	result, err := h.qryBus.Execute(r.Context(), &listpartnersqry.ListPartnersQuery{
-		Offset: offset, Limit: limit, Status: status,
+		Offset: offset, Limit: limit, Status: status, SortBy: sortBy, SortDir: sortDir,
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list partners")
@@ -299,7 +305,13 @@ func (h *PartnerHandler) AddMOU(w http.ResponseWriter, r *http.Request) {
 // @Router       /partners/{id}/mous [get]
 func (h *PartnerHandler) ListMOUs(w http.ResponseWriter, r *http.Request) {
 	partnerID := chi.URLParam(r, "id")
-	result, err := h.qryBus.Execute(r.Context(), &listmousqry.ListMOUsQuery{PartnerIDStr: partnerID})
+
+	sortBy, sortDir := "", ""
+	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
+		sortBy, sortDir = s.Column, s.Dir
+	}
+
+	result, err := h.qryBus.Execute(r.Context(), &listmousqry.ListMOUsQuery{PartnerIDStr: partnerID, SortBy: sortBy, SortDir: sortDir})
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list MOUs")
 		writeError(w, http.StatusInternalServerError, "failed to list MOUs")

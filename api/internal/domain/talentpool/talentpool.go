@@ -100,6 +100,7 @@ type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*TalentPool, error)
 	// List mengembalikan daftar entri talent pool dengan filter opsional berdasarkan status dan master_course_id.
 	// Gunakan string kosong ("") untuk status atau uuid.Nil untuk master_course_id jika tidak ingin filter.
-	List(ctx context.Context, offset, limit int, status string, masterCourseID uuid.UUID) ([]*TalentPool, int, error)
+	// sortBy dan sortDir mengontrol urutan hasil (sortBy: "status"|"joined_at"|"created_at", sortDir: "ASC"|"DESC").
+	List(ctx context.Context, offset, limit int, status string, masterCourseID uuid.UUID, sortBy, sortDir string) ([]*TalentPool, int, error)
 	GetByParticipantAndVersion(ctx context.Context, participantID, courseVersionID uuid.UUID) (*TalentPool, error)
 }

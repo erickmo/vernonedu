@@ -19,6 +19,7 @@ import (
 	verifycertificate "github.com/vernonedu/entrepreneurship-api/internal/query/verify_certificate"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 type CertificateHandler struct {
@@ -113,6 +114,12 @@ func (h *CertificateHandler) List(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
+	sort := sortutil.Parse(r.URL.Query().Get("sort"))
+	sortBy, sortDir := "", ""
+	if sort != nil {
+		sortBy, sortDir = sort.Column, sort.Dir
+	}
+
 	query := &listcertificates.ListCertificatesQuery{
 		StudentID: r.URL.Query().Get("student_id"),
 		BatchID:   r.URL.Query().Get("batch_id"),
@@ -120,6 +127,8 @@ func (h *CertificateHandler) List(w http.ResponseWriter, r *http.Request) {
 		Status:    r.URL.Query().Get("status"),
 		Offset:    offset,
 		Limit:     limit,
+		SortBy:    sortBy,
+		SortDir:   sortDir,
 	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {

@@ -78,7 +78,7 @@ type EnrichedEnrollment struct {
 
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Enrollment, error)
-	List(ctx context.Context, offset, limit int) ([]*Enrollment, int, error)
-	ListEnriched(ctx context.Context, offset, limit int) ([]*EnrichedEnrollment, int, error)
+	List(ctx context.Context, offset, limit int, sortBy, sortDir string) ([]*Enrollment, int, error)
+	ListEnriched(ctx context.Context, offset, limit int, sortBy, sortDir string) ([]*EnrichedEnrollment, int, error)
 	ListBatchSummary(ctx context.Context) ([]*BatchSummary, error)
 }

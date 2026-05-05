@@ -15,6 +15,7 @@ import (
 	list_talentpool "github.com/vernonedu/entrepreneurship-api/internal/query/list_talentpool"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 // TalentPoolHandler menangani request HTTP untuk resource TalentPool.
@@ -70,11 +71,19 @@ func (h *TalentPoolHandler) List(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	sort := sortutil.Parse(r.URL.Query().Get("sort"))
+	sortBy, sortDir := "", ""
+	if sort != nil {
+		sortBy, sortDir = sort.Column, sort.Dir
+	}
+
 	query := &list_talentpool.ListTalentPoolQuery{
 		Offset:         offset,
 		Limit:          limit,
 		Status:         status,
 		MasterCourseID: masterCourseID,
+		SortBy:         sortBy,
+		SortDir:        sortDir,
 	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {

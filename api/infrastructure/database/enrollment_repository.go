@@ -85,15 +85,23 @@ func (r *EnrollmentRepository) GetByID(ctx context.Context, id uuid.UUID) (*enro
 	return rec.toDomain(), nil
 }
 
-func (r *EnrollmentRepository) List(ctx context.Context, offset, limit int) ([]*enrollment.Enrollment, int, error) {
+var enrollmentSortCols = map[string]string{
+	"status":         "status",
+	"payment_status": "payment_status",
+	"enrolled_at":    "enrolled_at",
+	"created_at":     "created_at",
+}
+
+func (r *EnrollmentRepository) List(ctx context.Context, offset, limit int, sortBy, sortDir string) ([]*enrollment.Enrollment, int, error) {
 	var total int
 	countQuery := `SELECT COUNT(*) FROM enrollments`
 	if err := r.db.GetContext(ctx, &total, countQuery); err != nil {
 		return nil, 0, fmt.Errorf("failed to count enrollments: %w", err)
 	}
 
+	orderBy := buildOrderBy(sortBy, sortDir, enrollmentSortCols, "enrolled_at DESC")
 	var recs []enrollmentRecord
-	query := `SELECT id, student_id, course_batch_id, enrolled_at, status, payment_status, created_at, updated_at FROM enrollments ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	query := `SELECT id, student_id, course_batch_id, enrolled_at, status, payment_status, created_at, updated_at FROM enrollments ` + orderBy + ` LIMIT $1 OFFSET $2`
 	if err := r.db.SelectContext(ctx, &recs, query, limit, offset); err != nil {
 		return nil, 0, fmt.Errorf("failed to list enrollments: %w", err)
 	}
@@ -120,13 +128,21 @@ type enrichedEnrollmentRecord struct {
 	UpdatedAt     time.Time `db:"updated_at"`
 }
 
-func (r *EnrollmentRepository) ListEnriched(ctx context.Context, offset, limit int) ([]*enrollment.EnrichedEnrollment, int, error) {
+var enrichedEnrollmentSortCols = map[string]string{
+	"status":         "e.status",
+	"payment_status": "e.payment_status",
+	"enrolled_at":    "e.enrolled_at",
+	"created_at":     "e.created_at",
+}
+
+func (r *EnrollmentRepository) ListEnriched(ctx context.Context, offset, limit int, sortBy, sortDir string) ([]*enrollment.EnrichedEnrollment, int, error) {
 	var total int
 	countQuery := `SELECT COUNT(*) FROM enrollments`
 	if err := r.db.GetContext(ctx, &total, countQuery); err != nil {
 		return nil, 0, fmt.Errorf("failed to count enrollments: %w", err)
 	}
 
+	orderBy := buildOrderBy(sortBy, sortDir, enrichedEnrollmentSortCols, "e.enrolled_at DESC")
 	query := `
 		SELECT
 			e.id,
@@ -145,7 +161,7 @@ func (r *EnrollmentRepository) ListEnriched(ctx context.Context, offset, limit i
 		LEFT JOIN students s    ON s.id  = e.student_id
 		LEFT JOIN course_batches cb ON cb.id = e.course_batch_id
 		LEFT JOIN courses c     ON c.id  = cb.course_id
-		ORDER BY e.created_at DESC
+		` + orderBy + `
 		LIMIT $1 OFFSET $2
 	`
 

@@ -88,12 +88,15 @@ type WriteRepository interface {
 // ReadRepository defines read operations for notifications.
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Notification, error)
+	// ListByRecipient returns paginated notifications for a recipient.
+	// sortBy and sortDir control ordering (sortBy: "type"|"read"|"created_at", sortDir: "ASC"|"DESC").
 	ListByRecipient(
 		ctx context.Context,
 		recipientID uuid.UUID,
 		offset, limit int,
 		onlyUnread bool,
 		notifType string,
+		sortBy, sortDir string,
 	) ([]*Notification, int, error)
 	GetUnreadCount(ctx context.Context, recipientID uuid.UUID) (int, error)
 }

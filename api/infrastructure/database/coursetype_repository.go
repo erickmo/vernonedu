@@ -179,16 +179,23 @@ func (r *CourseTypeRepository) GetByID(ctx context.Context, id uuid.UUID) (*cour
 	return rec.toDomain()
 }
 
-// ListByMasterCourse mengambil semua CourseType yang terkait dengan satu MasterCourse.
-func (r *CourseTypeRepository) ListByMasterCourse(ctx context.Context, masterCourseID uuid.UUID) ([]*coursetype.CourseType, error) {
+// courseTypeAllowedSortCols defines the whitelist of sortable columns for CourseType.
+var courseTypeAllowedSortCols = map[string]string{
+	"name":       "type_name",
+	"created_at": "created_at",
+}
+
+// ListByMasterCourse mengambil semua CourseType yang terkait dengan satu MasterCourse dengan dynamic sort.
+func (r *CourseTypeRepository) ListByMasterCourse(ctx context.Context, masterCourseID uuid.UUID, sortBy, sortDir string) ([]*coursetype.CourseType, error) {
+	orderByClause := buildOrderBy(sortBy, sortDir, courseTypeAllowedSortCols, "created_at ASC")
 	var recs []courseTypeRecord
-	query := `
+	query := fmt.Sprintf(`
 		SELECT id, master_course_id, type_name, is_active, price_type, price_min, price_max,
 		       price_currency, price_notes, target_audience, extra_docs, certification_type,
 		       component_failure_config, normal_price, min_price, min_participants, max_participants,
 		       created_at, updated_at
-		FROM course_types WHERE master_course_id = $1 ORDER BY created_at ASC
-	`
+		FROM course_types WHERE master_course_id = $1 %s
+	`, orderByClause)
 	if err := r.db.SelectContext(ctx, &recs, query, masterCourseID); err != nil {
 		return nil, fmt.Errorf("failed to list course types by master course: %w", err)
 	}

@@ -334,7 +334,9 @@ func (r *HrmRepository) GetEmployeeByUserID(ctx context.Context, userID uuid.UUI
 	return rec.toDomain(), nil
 }
 
-func (r *HrmRepository) ListEmployees(ctx context.Context, offset, limit int, search, departmentID, status string) ([]*hrm.Employee, int, error) {
+func (r *HrmRepository) ListEmployees(ctx context.Context, offset, limit int, search, departmentID, status, sortBy, sortDir string) ([]*hrm.Employee, int, error) {
+	_ = sortBy  // reserved for future dynamic sort support
+	_ = sortDir // reserved for future dynamic sort support
 	baseWhere := "WHERE 1=1"
 	args := []interface{}{}
 	argIdx := 1
@@ -383,7 +385,9 @@ func (r *HrmRepository) ListEmployees(ctx context.Context, offset, limit int, se
 	return result, total, nil
 }
 
-func (r *HrmRepository) GetAttendanceByRange(ctx context.Context, employeeID uuid.UUID, from, to time.Time) ([]*hrm.StaffAttendance, error) {
+func (r *HrmRepository) GetAttendanceByRange(ctx context.Context, employeeID uuid.UUID, from, to time.Time, sortBy, sortDir string) ([]*hrm.StaffAttendance, error) {
+	_ = sortBy  // reserved for future dynamic sort support
+	_ = sortDir // reserved for future dynamic sort support
 	query := `SELECT * FROM staff_attendance WHERE employee_id = $1 AND date >= $2 AND date <= $3 ORDER BY date DESC`
 	var recs []staffAttendanceRecord
 	if err := r.db.SelectContext(ctx, &recs, query, employeeID, from, to); err != nil {
@@ -446,7 +450,9 @@ func (r *HrmRepository) GetAttendanceSummary(ctx context.Context, period string)
 	return result, nil
 }
 
-func (r *HrmRepository) ListLeaveRequests(ctx context.Context, employeeID *uuid.UUID, status string, offset, limit int) ([]*hrm.LeaveRequest, int, error) {
+func (r *HrmRepository) ListLeaveRequests(ctx context.Context, employeeID *uuid.UUID, status, sortBy, sortDir string, offset, limit int) ([]*hrm.LeaveRequest, int, error) {
+	_ = sortBy  // reserved for future dynamic sort support
+	_ = sortDir // reserved for future dynamic sort support
 	baseWhere := "WHERE 1=1"
 	args := []interface{}{}
 	argIdx := 1
@@ -508,7 +514,9 @@ func (r *HrmRepository) GetPayrollPeriodByID(ctx context.Context, id uuid.UUID) 
 	return rec.toDomain(), nil
 }
 
-func (r *HrmRepository) ListPayrollPeriods(ctx context.Context, status string, offset, limit int) ([]*hrm.PayrollPeriod, int, error) {
+func (r *HrmRepository) ListPayrollPeriods(ctx context.Context, status, sortBy, sortDir string, offset, limit int) ([]*hrm.PayrollPeriod, int, error) {
+	_ = sortBy  // reserved for future dynamic sort support
+	_ = sortDir // reserved for future dynamic sort support
 	baseWhere := "WHERE 1=1"
 	args := []interface{}{}
 	argIdx := 1

@@ -9,12 +9,14 @@ import (
 )
 
 
-// ListMasterCourseQuery adalah query untuk mengambil daftar MasterCourse dengan filter.
+// ListMasterCourseQuery adalah query untuk mengambil daftar MasterCourse dengan filter dan sort.
 type ListMasterCourseQuery struct {
-	Offset int
-	Limit  int
-	Status string
-	Field  string
+	Offset  int
+	Limit   int
+	Status  string
+	Field   string
+	SortBy  string
+	SortDir string
 }
 
 // MasterCourseReadModel adalah model baca untuk MasterCourse.
@@ -56,7 +58,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	courses, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Status, q.Field)
+	courses, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Status, q.Field, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list master courses")
 		return nil, err

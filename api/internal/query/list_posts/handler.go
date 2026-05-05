@@ -14,6 +14,8 @@ type ListPostsQuery struct {
 	Platform string
 	Status   string
 	Month    string // YYYY-MM
+	SortBy   string
+	SortDir  string
 }
 
 type PostReadModel struct {
@@ -50,7 +52,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	posts, total, err := h.readRepo.ListPosts(ctx, q.Offset, q.Limit, q.Platform, q.Status, q.Month)
+	posts, total, err := h.readRepo.ListPosts(ctx, q.Offset, q.Limit, q.Platform, q.Status, q.Month, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list posts")
 		return nil, err

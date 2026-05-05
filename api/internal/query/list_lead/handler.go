@@ -46,7 +46,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	leads, total, err := h.leadReadRepo.List(ctx, q.Offset, q.Limit, q.Status, q.Source, q.Interest)
+	leads, total, err := h.leadReadRepo.List(ctx, q.Offset, q.Limit, q.Status, q.Source, q.Interest, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list leads")
 		return nil, err

@@ -104,9 +104,16 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*user.Us
 	return rec.toDomain(), nil
 }
 
-func (r *UserRepository) List(ctx context.Context, offset, limit int) ([]*user.User, error) {
+var userListSortCols = map[string]string{
+	"name":       "name",
+	"email":      "email",
+	"created_at": "created_at",
+}
+
+func (r *UserRepository) List(ctx context.Context, offset, limit int, sortBy, sortDir string) ([]*user.User, error) {
 	var recs []userRecord
-	query := `SELECT id, name, email, password_hash, roles, created_at, updated_at FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	orderBy := buildOrderBy(sortBy, sortDir, userListSortCols, "created_at DESC")
+	query := fmt.Sprintf(`SELECT id, name, email, password_hash, roles, created_at, updated_at FROM users %s LIMIT $1 OFFSET $2`, orderBy)
 	if err := r.db.SelectContext(ctx, &recs, query, limit, offset); err != nil {
 		return nil, fmt.Errorf("failed to list users: %w", err)
 	}

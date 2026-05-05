@@ -15,6 +15,8 @@ type ListAttendanceQuery struct {
 	From       string
 	To         string
 	Status     string
+	SortBy     string
+	SortDir    string
 	Offset     int
 	Limit      int
 }
@@ -76,7 +78,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		}
 	}
 
-	records, err := h.readRepo.GetAttendanceByRange(ctx, employeeID, from, to)
+	records, err := h.readRepo.GetAttendanceByRange(ctx, employeeID, from, to, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list attendance")
 		return nil, err

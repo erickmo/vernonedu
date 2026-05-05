@@ -157,5 +157,7 @@ type ReadRepository interface {
 	ListTemplates(ctx context.Context) ([]*CertificateTemplate, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*Certificate, error)
 	GetByCode(ctx context.Context, code string) (*Certificate, error)
-	List(ctx context.Context, studentID, batchID *uuid.UUID, certType, status string, offset, limit int) ([]*Certificate, int, error)
+	// List returns paginated certificates with optional filters.
+	// sortBy and sortDir control ordering (sortBy: "type"|"issued_at"|"created_at", sortDir: "ASC"|"DESC").
+	List(ctx context.Context, studentID, batchID *uuid.UUID, certType, status string, offset, limit int, sortBy, sortDir string) ([]*Certificate, int, error)
 }

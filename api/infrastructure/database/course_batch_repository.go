@@ -260,15 +260,23 @@ func (r *CourseBatchRepository) AssignFacilitator(ctx context.Context, batchID u
 	return nil
 }
 
-func (r *CourseBatchRepository) List(ctx context.Context, offset, limit int) ([]*coursebatch.CourseBatch, int, error) {
+var courseBatchSortCols = map[string]string{
+	"name":       "cb.name",
+	"status":     "cb.status",
+	"start_date": "cb.start_date",
+	"created_at": "cb.created_at",
+}
+
+func (r *CourseBatchRepository) List(ctx context.Context, offset, limit int, sortBy, sortDir string) ([]*coursebatch.CourseBatch, int, error) {
 	var total int
 	countQuery := `SELECT COUNT(*) FROM course_batches`
 	if err := r.db.GetContext(ctx, &total, countQuery); err != nil {
 		return nil, 0, fmt.Errorf("failed to count course batches: %w", err)
 	}
 
+	orderBy := buildOrderBy(sortBy, sortDir, courseBatchSortCols, "cb.created_at DESC")
 	var recs []courseBatchRecord
-	query := `SELECT id, course_id, COALESCE(master_course_id, NULL) as master_course_id, branch_id, COALESCE(code, '') as code, name, start_date, end_date, facilitator_id, COALESCE(min_participants, 0) as min_participants, max_participants, COALESCE(website_visible, true) as website_visible, COALESCE(price, 0) as price, COALESCE(payment_method, 'upfront') as payment_method, is_active, COALESCE(status, 'active') as status, created_at, updated_at FROM course_batches ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	query := `SELECT id, course_id, COALESCE(master_course_id, NULL) as master_course_id, branch_id, COALESCE(code, '') as code, name, start_date, end_date, facilitator_id, COALESCE(min_participants, 0) as min_participants, max_participants, COALESCE(website_visible, true) as website_visible, COALESCE(price, 0) as price, COALESCE(payment_method, 'upfront') as payment_method, is_active, COALESCE(status, 'active') as status, created_at, updated_at FROM course_batches cb ` + orderBy + ` LIMIT $1 OFFSET $2`
 	if err := r.db.SelectContext(ctx, &recs, query, limit, offset); err != nil {
 		return nil, 0, fmt.Errorf("failed to list course batches: %w", err)
 	}
@@ -280,13 +288,14 @@ func (r *CourseBatchRepository) List(ctx context.Context, offset, limit int) ([]
 	return batches, total, nil
 }
 
-func (r *CourseBatchRepository) ListEnriched(ctx context.Context, offset, limit int) ([]*coursebatch.EnrichedCourseBatch, int, error) {
+func (r *CourseBatchRepository) ListEnriched(ctx context.Context, offset, limit int, sortBy, sortDir string) ([]*coursebatch.EnrichedCourseBatch, int, error) {
 	var total int
 	countQuery := `SELECT COUNT(*) FROM course_batches`
 	if err := r.db.GetContext(ctx, &total, countQuery); err != nil {
 		return nil, 0, fmt.Errorf("failed to count course batches: %w", err)
 	}
 
+	orderBy := buildOrderBy(sortBy, sortDir, courseBatchSortCols, "cb.created_at DESC")
 	var recs []enrichedBatchRecord
 	query := `
 		SELECT
@@ -308,7 +317,7 @@ func (r *CourseBatchRepository) ListEnriched(ctx context.Context, offset, limit 
 		LEFT JOIN users u ON u.id = cb.facilitator_id
 		LEFT JOIN enrollments e ON e.course_batch_id = cb.id
 		GROUP BY cb.id, u.name
-		ORDER BY cb.created_at DESC
+		` + orderBy + `
 		LIMIT $1 OFFSET $2
 	`
 	if err := r.db.SelectContext(ctx, &recs, query, limit, offset); err != nil {

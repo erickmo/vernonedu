@@ -9,9 +9,11 @@ import (
 )
 
 type ListPayrollPeriodsQuery struct {
-	Status string
-	Offset int
-	Limit  int
+	Status  string
+	Offset  int
+	Limit   int
+	SortBy  string
+	SortDir string
 }
 
 type PayrollPeriodReadModel struct {
@@ -49,7 +51,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	periods, total, err := h.readRepo.ListPayrollPeriods(ctx, q.Status, q.Offset, q.Limit)
+	periods, total, err := h.readRepo.ListPayrollPeriods(ctx, q.Status, q.SortBy, q.SortDir, q.Offset, q.Limit)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list payroll periods")
 		return nil, err

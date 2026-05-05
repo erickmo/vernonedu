@@ -16,6 +16,8 @@ var ErrInvalidQuery = errors.New("invalid query type")
 // ListCourseVersionQuery adalah query untuk mengambil daftar CourseVersion dari satu CourseType.
 type ListCourseVersionQuery struct {
 	CourseTypeID uuid.UUID
+	SortBy       string
+	SortDir      string
 }
 
 // CourseVersionReadModel adalah model baca untuk CourseVersion.
@@ -51,7 +53,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	versions, err := h.readRepo.ListByType(ctx, q.CourseTypeID)
+	versions, err := h.readRepo.ListByType(ctx, q.CourseTypeID, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Str("course_type_id", q.CourseTypeID.String()).Msg("failed to list course versions")
 		return nil, err

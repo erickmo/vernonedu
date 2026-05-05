@@ -16,6 +16,8 @@ type ListTalentPoolQuery struct {
 	Limit          int
 	Status         string
 	MasterCourseID uuid.UUID // uuid.Nil jika tidak ingin filter
+	SortBy         string
+	SortDir        string
 }
 
 // TalentPoolReadModel adalah model baca untuk TalentPool.
@@ -60,7 +62,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	entries, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Status, q.MasterCourseID)
+	entries, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Status, q.MasterCourseID, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list talent pool entries")
 		return nil, err

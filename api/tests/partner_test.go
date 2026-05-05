@@ -101,13 +101,13 @@ func (m *mockReadRepo) GetByID(ctx context.Context, id uuid.UUID) (*partner.Part
 	}
 	return nil, partner.ErrPartnerNotFound
 }
-func (m *mockReadRepo) List(ctx context.Context, offset, limit int, status string) ([]*partner.Partner, int, error) {
+func (m *mockReadRepo) List(ctx context.Context, offset, limit int, status, _, _ string) ([]*partner.Partner, int, error) {
 	return m.partners, len(m.partners), nil
 }
 func (m *mockReadRepo) ListGroups(ctx context.Context) ([]*partner.PartnerGroup, error) {
 	return m.groups, nil
 }
-func (m *mockReadRepo) ListMOUs(ctx context.Context, partnerID uuid.UUID) ([]*partner.MOU, error) {
+func (m *mockReadRepo) ListMOUs(ctx context.Context, partnerID uuid.UUID, _, _ string) ([]*partner.MOU, error) {
 	var result []*partner.MOU
 	for _, mou := range m.mous {
 		if mou.PartnerID == partnerID {

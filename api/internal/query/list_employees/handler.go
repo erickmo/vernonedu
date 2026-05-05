@@ -14,6 +14,8 @@ type ListEmployeesQuery struct {
 	Search       string
 	DepartmentID string
 	Status       string
+	SortBy       string
+	SortDir      string
 }
 
 type EmployeeReadModel struct {
@@ -57,7 +59,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	employees, total, err := h.readRepo.ListEmployees(ctx, q.Offset, q.Limit, q.Search, q.DepartmentID, q.Status)
+	employees, total, err := h.readRepo.ListEmployees(ctx, q.Offset, q.Limit, q.Search, q.DepartmentID, q.Status, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list employees")
 		return nil, err

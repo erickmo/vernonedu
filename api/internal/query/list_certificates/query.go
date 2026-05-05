@@ -7,4 +7,6 @@ type ListCertificatesQuery struct {
 	Status    string
 	Offset    int
 	Limit     int
+	SortBy    string
+	SortDir   string
 }

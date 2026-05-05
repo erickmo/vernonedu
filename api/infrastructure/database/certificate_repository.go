@@ -257,7 +257,7 @@ func (r *CertificateRepository) GetByCode(ctx context.Context, code string) (*ce
 	return row.toDomain()
 }
 
-func (r *CertificateRepository) List(ctx context.Context, studentID, batchID *uuid.UUID, certType, status string, offset, limit int) ([]*certificate.Certificate, int, error) {
+func (r *CertificateRepository) List(ctx context.Context, studentID, batchID *uuid.UUID, certType, status string, offset, limit int, sortBy, sortDir string) ([]*certificate.Certificate, int, error) {
 	args := []interface{}{}
 	conditions := []string{}
 	argIdx := 1
@@ -300,13 +300,20 @@ func (r *CertificateRepository) List(ctx context.Context, studentID, batchID *uu
 		return nil, 0, fmt.Errorf("failed to count certificates: %w", err)
 	}
 
+	allowedCols := map[string]string{
+		"type":       "type",
+		"issued_at":  "issued_at",
+		"created_at": "created_at",
+	}
+	orderBy := buildOrderBy(sortBy, sortDir, allowedCols, "created_at DESC")
+
 	args = append(args, limit, offset)
 	listQuery := fmt.Sprintf(`
 		SELECT id, template_id, student_id, batch_id, course_id, type, certificate_code, qr_code_url, status, revoked_at, revocation_reason, issued_at, created_at, updated_at
 		FROM certificates %s
-		ORDER BY issued_at DESC
+		%s
 		LIMIT $%d OFFSET $%d
-	`, where, argIdx, argIdx+1)
+	`, where, orderBy, argIdx, argIdx+1)
 
 	var rows []certRow
 	if err := r.db.SelectContext(ctx, &rows, listQuery, args...); err != nil {

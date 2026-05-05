@@ -28,6 +28,7 @@ import (
 	listpayrollperiods "github.com/vernonedu/entrepreneurship-api/internal/query/list_payroll_periods"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 type HrmHandler struct {
@@ -187,10 +188,17 @@ func (h *HrmHandler) ListEmployees(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
+	sort := sortutil.Parse(r.URL.Query().Get("sort"))
+	sortBy, sortDir := "", ""
+	if sort != nil {
+		sortBy, sortDir = sort.Column, sort.Dir
+	}
+
 	query := &listemployees.ListEmployeesQuery{
 		Offset: offset, Limit: limit,
 		Search: r.URL.Query().Get("search"), DepartmentID: r.URL.Query().Get("department_id"),
 		Status: r.URL.Query().Get("status"),
+		SortBy: sortBy, SortDir: sortDir,
 	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {
@@ -332,10 +340,17 @@ func (h *HrmHandler) ListAttendance(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
+	sort := sortutil.Parse(r.URL.Query().Get("sort"))
+	sortBy, sortDir := "", ""
+	if sort != nil {
+		sortBy, sortDir = sort.Column, sort.Dir
+	}
+
 	query := &listattendance.ListAttendanceQuery{
 		EmployeeID: r.URL.Query().Get("employee_id"),
 		From: r.URL.Query().Get("from"), To: r.URL.Query().Get("to"),
 		Status: r.URL.Query().Get("status"), Offset: offset, Limit: limit,
+		SortBy: sortBy, SortDir: sortDir,
 	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {
@@ -431,9 +446,16 @@ func (h *HrmHandler) ListLeaveRequests(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
+	sort := sortutil.Parse(r.URL.Query().Get("sort"))
+	sortBy, sortDir := "", ""
+	if sort != nil {
+		sortBy, sortDir = sort.Column, sort.Dir
+	}
+
 	query := &listleaverequests.ListLeaveRequestsQuery{
 		EmployeeID: r.URL.Query().Get("employee_id"),
 		Status: r.URL.Query().Get("status"), Offset: offset, Limit: limit,
+		SortBy: sortBy, SortDir: sortDir,
 	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {
@@ -537,8 +559,15 @@ func (h *HrmHandler) ListPayrollPeriods(w http.ResponseWriter, r *http.Request) 
 		limit = 10
 	}
 
+	sort := sortutil.Parse(r.URL.Query().Get("sort"))
+	sortBy, sortDir := "", ""
+	if sort != nil {
+		sortBy, sortDir = sort.Column, sort.Dir
+	}
+
 	query := &listpayrollperiods.ListPayrollPeriodsQuery{
 		Status: r.URL.Query().Get("status"), Offset: offset, Limit: limit,
+		SortBy: sortBy, SortDir: sortDir,
 	}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {

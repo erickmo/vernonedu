@@ -216,7 +216,7 @@ type WriteRepository interface {
 // Diimplementasikan di layer infrastructure/database (dengan Redis cache opsional).
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*CourseVersion, error)
-	ListByType(ctx context.Context, courseTypeID uuid.UUID) ([]*CourseVersion, error)
+	ListByType(ctx context.Context, courseTypeID uuid.UUID, sortBy, sortDir string) ([]*CourseVersion, error)
 	// GetApproved mengembalikan versi yang sedang aktif (status approved) untuk satu CourseType.
 	GetApproved(ctx context.Context, courseTypeID uuid.UUID) (*CourseVersion, error)
 	// ListPending mengembalikan versi dengan ApprovalStatus = submitted.

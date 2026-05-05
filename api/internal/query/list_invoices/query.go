@@ -17,4 +17,6 @@ type ListInvoicesQuery struct {
 	PaymentMethod string
 	DateFrom      *time.Time
 	DateTo        *time.Time
+	SortBy        string
+	SortDir       string
 }

@@ -364,7 +364,7 @@ func (r *MarketingRepository) GetPostByID(ctx context.Context, id uuid.UUID) (*m
 	return rec.toDomain(), nil
 }
 
-func (r *MarketingRepository) ListPosts(ctx context.Context, offset, limit int, platform, status, month string) ([]*marketing.SocialMediaPost, int, error) {
+func (r *MarketingRepository) ListPosts(ctx context.Context, offset, limit int, platform, status, month, sortBy, sortDir string) ([]*marketing.SocialMediaPost, int, error) {
 	conditions := []string{}
 	args := []interface{}{}
 	argIdx := 1
@@ -405,6 +405,13 @@ func (r *MarketingRepository) ListPosts(ctx context.Context, offset, limit int, 
 		limit = 20
 	}
 
+	allowedCols := map[string]string{
+		"platform":   "p.platforms",
+		"status":     "p.status",
+		"created_at": "p.created_at",
+	}
+	orderBy := buildOrderBy(sortBy, sortDir, allowedCols, "p.created_at DESC")
+
 	dataQuery := fmt.Sprintf(`
 		SELECT p.id, p.platforms, p.scheduled_at, p.content_type, p.caption,
 		       p.media_url, p.batch_id, COALESCE(cb.name, '') AS batch_name,
@@ -412,9 +419,9 @@ func (r *MarketingRepository) ListPosts(ctx context.Context, offset, limit int, 
 		FROM social_media_posts p
 		LEFT JOIN course_batches cb ON cb.id = p.batch_id
 		%s
-		ORDER BY p.scheduled_at DESC
+		%s
 		LIMIT $%d OFFSET $%d
-	`, where, argIdx, argIdx+1)
+	`, where, orderBy, argIdx, argIdx+1)
 
 	args = append(args, limit, offset)
 	rows, err := r.db.QueryxContext(ctx, dataQuery, args...)

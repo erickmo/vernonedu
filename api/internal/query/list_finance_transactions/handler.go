@@ -53,6 +53,8 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		BranchID:  q.BranchID,
 		DateFrom:  q.DateFrom,
 		DateTo:    q.DateTo,
+		SortBy:    q.SortBy,
+		SortDir:   q.SortDir,
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list finance transactions")
