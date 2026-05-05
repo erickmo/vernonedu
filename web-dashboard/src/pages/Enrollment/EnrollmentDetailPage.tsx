@@ -4,6 +4,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { enrollmentService } from '@/services/enrollment.service'
 import { toast } from '@/widgets/Toast/Toast'
+import { useDeleteConfirmModal } from '@/widgets/Modals/DeleteConfirmModal'
 
 function formatDate(dateStr?: string | null) {
   if (!dateStr) return '—'
@@ -58,6 +59,7 @@ export default function EnrollmentDetailPage() {
   const { enrollmentId } = useParams<{ enrollmentId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const confirmDelete = useDeleteConfirmModal()
 
   const { data } = useQuery({
     queryKey: ['enrollment', enrollmentId],
@@ -107,16 +109,11 @@ export default function EnrollmentDetailPage() {
     {
       label: 'Hapus',
       icon: <Trash2 size={14} />,
-      onClick: async () => {
-        if (!window.confirm('Yakin ingin menghapus enrollment ini?')) return
-        try {
-          await enrollmentService.delete(enrollmentId!)
-          toast.success('Enrollment berhasil dihapus')
-          navigate('/enrollments')
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : 'Gagal menghapus enrollment')
-        }
-      },
+      onClick: () => confirmDelete('Hapus Enrollment', 'Yakin ingin menghapus enrollment ini?', async () => {
+        await enrollmentService.delete(enrollmentId!)
+        toast.success('Enrollment berhasil dihapus')
+        navigate('/enrollments')
+      }),
       variant: 'danger' as const,
     },
   ]
