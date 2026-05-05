@@ -10,6 +10,7 @@ type ListPartnersQuery struct {
 	Offset  int
 	Limit   int
 	Status  string
+	Search  string
 	SortBy  string
 	SortDir string
 }
@@ -56,7 +57,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 	if !ok {
 		return nil, ErrInvalidQuery
 	}
-	partners, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Status, q.SortBy, q.SortDir)
+	partners, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Status, q.Search, q.SortBy, q.SortDir)
 	if err != nil {
 		return nil, err
 	}

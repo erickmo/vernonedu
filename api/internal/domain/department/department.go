@@ -112,7 +112,7 @@ type WriteRepository interface {
 
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Department, error)
-	List(ctx context.Context, offset, limit int) ([]*Department, int, error)
+	List(ctx context.Context, offset, limit int, search, sort string) ([]*Department, int, error)
 	GetSummaries(ctx context.Context) ([]*DepartmentSummary, error)
 	GetBatches(ctx context.Context, departmentID uuid.UUID) ([]*DepartmentBatch, error)
 	GetCourses(ctx context.Context, departmentID uuid.UUID) ([]*DepartmentCourse, error)

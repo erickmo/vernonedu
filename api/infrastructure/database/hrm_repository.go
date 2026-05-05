@@ -334,9 +334,15 @@ func (r *HrmRepository) GetEmployeeByUserID(ctx context.Context, userID uuid.UUI
 	return rec.toDomain(), nil
 }
 
+var employeeSortCols = map[string]string{
+	"name":       "u.name",
+	"email":      "u.email",
+	"status":     "e.status",
+	"created_at": "e.created_at",
+	"updated_at": "e.updated_at",
+}
+
 func (r *HrmRepository) ListEmployees(ctx context.Context, offset, limit int, search, departmentID, status, sortBy, sortDir string) ([]*hrm.Employee, int, error) {
-	_ = sortBy  // reserved for future dynamic sort support
-	_ = sortDir // reserved for future dynamic sort support
 	baseWhere := "WHERE 1=1"
 	args := []interface{}{}
 	argIdx := 1
@@ -367,11 +373,12 @@ func (r *HrmRepository) ListEmployees(ctx context.Context, offset, limit int, se
 		return nil, 0, fmt.Errorf("failed to count employees: %w", err)
 	}
 
+	orderBy := buildOrderBy(sortBy, sortDir, employeeSortCols, "e.created_at DESC")
 	listArgs := append(args, limit, offset)
 	query := fmt.Sprintf(`
 		SELECT e.* FROM employees e
 		LEFT JOIN users u ON u.id = e.user_id
-		%s ORDER BY e.created_at DESC LIMIT $%d OFFSET $%d`, baseWhere, argIdx, argIdx+1)
+		%s %s LIMIT $%d OFFSET $%d`, baseWhere, orderBy, argIdx, argIdx+1)
 
 	var recs []employeeRecord
 	if err := r.db.SelectContext(ctx, &recs, query, listArgs...); err != nil {

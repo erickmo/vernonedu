@@ -123,17 +123,21 @@ func (r *LeadRepository) GetByID(ctx context.Context, id uuid.UUID) (*lead.Lead,
 
 var leadListSortCols = map[string]string{
 	"name":       "name",
-	"email":      "email",
-	"phone":      "phone",
 	"status":     "status",
 	"source":     "source",
 	"created_at": "created_at",
+	"updated_at": "updated_at",
 }
 
-func (r *LeadRepository) List(ctx context.Context, offset, limit int, status, source, interest, sortBy, sortDir string) ([]*lead.Lead, int, error) {
+func (r *LeadRepository) List(ctx context.Context, offset, limit int, status, source, interest, search, sortBy, sortDir string) ([]*lead.Lead, int, error) {
+	searchPattern := ""
+	if search != "" {
+		searchPattern = "%" + search + "%"
+	}
+
 	var total int
-	countQuery := `SELECT COUNT(*) FROM leads WHERE ($1='' OR status=$1) AND ($2='' OR source=$2) AND ($3='' OR interest=$3)`
-	if err := r.db.GetContext(ctx, &total, countQuery, status, source, interest); err != nil {
+	countQuery := `SELECT COUNT(*) FROM leads WHERE ($1='' OR status=$1) AND ($2='' OR source=$2) AND ($3='' OR interest=$3) AND ($4='' OR name ILIKE $4)`
+	if err := r.db.GetContext(ctx, &total, countQuery, status, source, interest, searchPattern); err != nil {
 		return nil, 0, fmt.Errorf("failed to count leads: %w", err)
 	}
 
@@ -142,11 +146,11 @@ func (r *LeadRepository) List(ctx context.Context, offset, limit int, status, so
 	query := fmt.Sprintf(`
 		SELECT id, name, email, phone, interest, source, notes, status, pic_id, created_at, updated_at
 		FROM leads
-		WHERE ($1='' OR status=$1) AND ($2='' OR source=$2) AND ($3='' OR interest=$3)
+		WHERE ($1='' OR status=$1) AND ($2='' OR source=$2) AND ($3='' OR interest=$3) AND ($4='' OR name ILIKE $4)
 		%s
-		LIMIT $4 OFFSET $5
+		LIMIT $5 OFFSET $6
 	`, orderBy)
-	if err := r.db.SelectContext(ctx, &rows, query, status, source, interest, limit, offset); err != nil {
+	if err := r.db.SelectContext(ctx, &rows, query, status, source, interest, searchPattern, limit, offset); err != nil {
 		return nil, 0, fmt.Errorf("failed to list leads: %w", err)
 	}
 

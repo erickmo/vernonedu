@@ -13,6 +13,7 @@ import (
 type ListMasterCourseQuery struct {
 	Offset  int
 	Limit   int
+	Search  string
 	Status  string
 	Field   string
 	SortBy  string
@@ -58,7 +59,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	courses, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Status, q.Field, q.SortBy, q.SortDir)
+	courses, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Search, q.Status, q.Field, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list master courses")
 		return nil, err

@@ -169,14 +169,20 @@ var masterCourseAllowedSortCols = map[string]string{
 	"field":       "field",
 	"status":      "status",
 	"created_at":  "created_at",
+	"updated_at":  "updated_at",
 }
 
-func (r *MasterCourseRepository) List(ctx context.Context, offset, limit int, status, field, sortBy, sortDir string) ([]*mastercourse.MasterCourse, int, error) {
+func (r *MasterCourseRepository) List(ctx context.Context, offset, limit int, search, status, field, sortBy, sortDir string) ([]*mastercourse.MasterCourse, int, error) {
 	// Bangun kondisi WHERE secara dinamis
 	conditions := []string{}
 	args := []interface{}{}
 	argIdx := 1
 
+	if search != "" {
+		conditions = append(conditions, fmt.Sprintf("course_name ILIKE $%d", argIdx))
+		args = append(args, "%"+search+"%")
+		argIdx++
+	}
 	if status != "" {
 		conditions = append(conditions, fmt.Sprintf("status = $%d", argIdx))
 		args = append(args, status)

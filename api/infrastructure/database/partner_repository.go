@@ -247,51 +247,40 @@ func (r *PartnerRepository) GetByID(ctx context.Context, id uuid.UUID) (*partner
 
 var partnerSortCols = map[string]string{
 	"name":       "p.name",
+	"is_active":  "p.status",
 	"status":     "p.status",
 	"created_at": "p.created_at",
+	"updated_at": "p.updated_at",
 }
 
-func (r *PartnerRepository) List(ctx context.Context, offset, limit int, status, sortBy, sortDir string) ([]*partner.Partner, int, error) {
+func (r *PartnerRepository) List(ctx context.Context, offset, limit int, status, search, sortBy, sortDir string) ([]*partner.Partner, int, error) {
 	var total int
-	countArgs := []interface{}{}
-	countQuery := `SELECT COUNT(*) FROM partners`
-	if status != "" {
-		countQuery += ` WHERE status = $1`
-		countArgs = append(countArgs, status)
+	var countArgs []interface{}
+	countQuery := `SELECT COUNT(*) FROM partners p WHERE ($1='' OR p.status=$1) AND ($2='' OR p.name ILIKE $2)`
+	searchPattern := ""
+	if search != "" {
+		searchPattern = "%" + search + "%"
 	}
+	countArgs = []interface{}{status, searchPattern}
 	if err := r.db.GetContext(ctx, &total, countQuery, countArgs...); err != nil {
 		return nil, 0, fmt.Errorf("failed to count partners: %w", err)
 	}
 
 	orderBy := buildOrderBy(sortBy, sortDir, partnerSortCols, "p.created_at DESC")
 
+	listQuery := fmt.Sprintf(`
+		SELECT p.id, p.name, p.industry, p.address, p.contact_person, p.contact_email, p.contact_phone,
+		       p.website, p.logo_url, p.group_id, COALESCE(pg.name, '') AS group_name, p.status,
+		       p.partner_since, p.notes, p.created_at, p.updated_at
+		FROM partners p
+		LEFT JOIN partner_groups pg ON pg.id = p.group_id
+		WHERE ($1='' OR p.status=$1) AND ($2='' OR p.name ILIKE $2)
+		%s
+		LIMIT $3 OFFSET $4
+	`, orderBy)
+	listArgs := []interface{}{status, searchPattern, limit, offset}
+
 	var recs []partnerRecord
-	var listQuery string
-	var listArgs []interface{}
-	if status != "" {
-		listQuery = fmt.Sprintf(`
-			SELECT p.id, p.name, p.industry, p.address, p.contact_person, p.contact_email, p.contact_phone,
-			       p.website, p.logo_url, p.group_id, COALESCE(pg.name, '') AS group_name, p.status,
-			       p.partner_since, p.notes, p.created_at, p.updated_at
-			FROM partners p
-			LEFT JOIN partner_groups pg ON pg.id = p.group_id
-			WHERE p.status = $1
-			%s
-			LIMIT $2 OFFSET $3
-		`, orderBy)
-		listArgs = []interface{}{status, limit, offset}
-	} else {
-		listQuery = fmt.Sprintf(`
-			SELECT p.id, p.name, p.industry, p.address, p.contact_person, p.contact_email, p.contact_phone,
-			       p.website, p.logo_url, p.group_id, COALESCE(pg.name, '') AS group_name, p.status,
-			       p.partner_since, p.notes, p.created_at, p.updated_at
-			FROM partners p
-			LEFT JOIN partner_groups pg ON pg.id = p.group_id
-			%s
-			LIMIT $1 OFFSET $2
-		`, orderBy)
-		listArgs = []interface{}{limit, offset}
-	}
 	if err := r.db.SelectContext(ctx, &recs, listQuery, listArgs...); err != nil {
 		return nil, 0, fmt.Errorf("failed to list partners: %w", err)
 	}

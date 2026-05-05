@@ -82,6 +82,7 @@ func (h *PartnerHandler) List(w http.ResponseWriter, r *http.Request) {
 		limit = 20
 	}
 	status := r.URL.Query().Get("status")
+	search := r.URL.Query().Get("search")
 
 	sortBy, sortDir := "", ""
 	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
@@ -89,7 +90,7 @@ func (h *PartnerHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := h.qryBus.Execute(r.Context(), &listpartnersqry.ListPartnersQuery{
-		Offset: offset, Limit: limit, Status: status, SortBy: sortBy, SortDir: sortDir,
+		Offset: offset, Limit: limit, Status: status, Search: search, SortBy: sortBy, SortDir: sortDir,
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list partners")

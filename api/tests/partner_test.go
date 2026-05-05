@@ -101,7 +101,7 @@ func (m *mockReadRepo) GetByID(ctx context.Context, id uuid.UUID) (*partner.Part
 	}
 	return nil, partner.ErrPartnerNotFound
 }
-func (m *mockReadRepo) List(ctx context.Context, offset, limit int, status, _, _ string) ([]*partner.Partner, int, error) {
+func (m *mockReadRepo) List(ctx context.Context, offset, limit int, status, _, _, _ string) ([]*partner.Partner, int, error) {
 	return m.partners, len(m.partners), nil
 }
 func (m *mockReadRepo) ListGroups(ctx context.Context) ([]*partner.PartnerGroup, error) {

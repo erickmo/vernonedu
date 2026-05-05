@@ -165,6 +165,7 @@ func (h *LeadHandler) List(w http.ResponseWriter, r *http.Request) {
 	status := r.URL.Query().Get("status")
 	source := r.URL.Query().Get("source")
 	interest := r.URL.Query().Get("interest")
+	search := r.URL.Query().Get("search")
 
 	sort := sortutil.Parse(r.URL.Query().Get("sort"))
 	var sortBy, sortDir string
@@ -179,6 +180,7 @@ func (h *LeadHandler) List(w http.ResponseWriter, r *http.Request) {
 		Status:   status,
 		Source:   source,
 		Interest: interest,
+		Search:   search,
 		SortBy:   sortBy,
 		SortDir:  sortDir,
 	}

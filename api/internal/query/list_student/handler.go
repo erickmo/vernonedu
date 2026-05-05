@@ -12,6 +12,8 @@ import (
 type ListStudentQuery struct {
 	Offset int
 	Limit  int
+	Search string
+	Sort   string
 }
 
 type StudentReadModel struct {
@@ -49,7 +51,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	students, total, err := h.readRepo.ListWithCounts(ctx, q.Offset, q.Limit)
+	students, total, err := h.readRepo.ListWithCounts(ctx, q.Offset, q.Limit, q.Search, q.Sort)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list students")
 		return nil, err

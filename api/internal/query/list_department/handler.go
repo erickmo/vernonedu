@@ -11,6 +11,8 @@ import (
 type ListDepartmentQuery struct {
 	Offset int
 	Limit  int
+	Search string
+	Sort   string // raw JSON: [["name",1],["created_at",-1]]
 }
 
 type DepartmentReadModel struct {
@@ -46,7 +48,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	departments, total, err := h.departmentReadRepo.List(ctx, q.Offset, q.Limit)
+	departments, total, err := h.departmentReadRepo.List(ctx, q.Offset, q.Limit, q.Search, q.Sort)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list departments")
 		return nil, err

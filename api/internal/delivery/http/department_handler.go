@@ -135,7 +135,9 @@ func (h *DepartmentHandler) List(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
-	query := &list_department.ListDepartmentQuery{Offset: offset, Limit: limit}
+	search := r.URL.Query().Get("search")
+	sort := r.URL.Query().Get("sort")
+	query := &list_department.ListDepartmentQuery{Offset: offset, Limit: limit, Search: search, Sort: sort}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to execute list department query")

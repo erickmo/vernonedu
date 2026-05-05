@@ -226,7 +226,7 @@ func (h *CourseBatchHandler) List(w http.ResponseWriter, r *http.Request) {
 		sortBy, sortDir = s.Column, s.Dir
 	}
 
-	query := &list_course_batch.ListCourseBatchQuery{Offset: offset, Limit: limit, SortBy: sortBy, SortDir: sortDir}
+	query := &list_course_batch.ListCourseBatchQuery{Offset: offset, Limit: limit, Search: r.URL.Query().Get("search"), SortBy: sortBy, SortDir: sortDir}
 	result, err := h.qryBus.Execute(r.Context(), query)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to execute list course batch query")

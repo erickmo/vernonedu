@@ -2,7 +2,9 @@ package database
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -113,32 +115,79 @@ func (r *StudentRepository) List(ctx context.Context, offset, limit int) ([]*stu
 	return students, total, nil
 }
 
+var studentSortableColumns = map[string]string{
+	"name":       "s.name",
+	"email":      "s.email",
+	"phone":      "s.phone",
+	"is_active":  "s.is_active",
+	"created_at": "s.created_at",
+	"updated_at": "s.updated_at",
+}
+
+func buildStudentOrderBy(sortJSON string) string {
+	if sortJSON == "" {
+		return "ORDER BY s.created_at DESC"
+	}
+	var tuples [][2]any
+	if err := json.Unmarshal([]byte(sortJSON), &tuples); err != nil {
+		return "ORDER BY s.created_at DESC"
+	}
+	var parts []string
+	for _, t := range tuples {
+		col, ok := t[0].(string)
+		if !ok {
+			continue
+		}
+		dbCol, allowed := studentSortableColumns[col]
+		if !allowed {
+			continue
+		}
+		dir := "ASC"
+		if n, ok := t[1].(float64); ok && n < 0 {
+			dir = "DESC"
+		}
+		parts = append(parts, dbCol+" "+dir)
+	}
+	if len(parts) == 0 {
+		return "ORDER BY s.created_at DESC"
+	}
+	return "ORDER BY " + strings.Join(parts, ", ")
+}
+
 type studentListRecord struct {
 	studentRecord
 	ActiveBatchCount     int `db:"active_batch_count"`
 	CompletedCourseCount int `db:"completed_course_count"`
 }
 
-func (r *StudentRepository) ListWithCounts(ctx context.Context, offset, limit int) ([]*student.StudentListEntry, int, error) {
+func (r *StudentRepository) ListWithCounts(ctx context.Context, offset, limit int, search, sort string) ([]*student.StudentListEntry, int, error) {
+	searchPattern := ""
+	if search != "" {
+		searchPattern = "%" + search + "%"
+	}
+
 	var total int
-	if err := r.db.GetContext(ctx, &total, `SELECT COUNT(*) FROM students`); err != nil {
+	countQuery := `SELECT COUNT(*) FROM students s WHERE ($1='' OR s.name ILIKE $1)`
+	if err := r.db.GetContext(ctx, &total, countQuery, searchPattern); err != nil {
 		return nil, 0, fmt.Errorf("failed to count students: %w", err)
 	}
 
-	query := `
+	orderBy := buildStudentOrderBy(sort)
+	query := fmt.Sprintf(`
 		SELECT s.id, s.name, s.email, s.phone, s.department_id,
 		       s.joined_at, s.is_active, s.created_at, s.updated_at,
 		       COUNT(CASE WHEN e.status = 'active' THEN 1 END)     AS active_batch_count,
 		       COUNT(CASE WHEN e.status = 'completed' THEN 1 END)  AS completed_course_count
 		FROM students s
 		LEFT JOIN enrollments e ON e.student_id = s.id
+		WHERE ($1='' OR s.name ILIKE $1)
 		GROUP BY s.id, s.name, s.email, s.phone, s.department_id,
 		         s.joined_at, s.is_active, s.created_at, s.updated_at
-		ORDER BY s.created_at DESC
-		LIMIT $1 OFFSET $2`
+		%s
+		LIMIT $2 OFFSET $3`, orderBy)
 
 	var recs []studentListRecord
-	if err := r.db.SelectContext(ctx, &recs, query, limit, offset); err != nil {
+	if err := r.db.SelectContext(ctx, &recs, query, searchPattern, limit, offset); err != nil {
 		return nil, 0, fmt.Errorf("failed to list students with counts: %w", err)
 	}
 

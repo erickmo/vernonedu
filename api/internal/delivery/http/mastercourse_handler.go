@@ -120,6 +120,7 @@ func (h *MasterCourseHandler) List(w http.ResponseWriter, r *http.Request) {
 	query := &list_mastercourse.ListMasterCourseQuery{
 		Offset:  offset,
 		Limit:   limit,
+		Search:  r.URL.Query().Get("search"),
 		Status:  status,
 		Field:   field,
 		SortBy:  sortBy,
