@@ -73,6 +73,7 @@ export default function DepartmentFormPage() {
         toast.success('Departemen berhasil dibuat')
       }
       await queryClient.invalidateQueries({ queryKey: ['departments'] })
+      if (isEdit) await queryClient.invalidateQueries({ queryKey: ['department', deptId] })
       navigate(isEdit ? `/pengembangan/departments/${deptId}` : '/pengembangan/departments')
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Gagal menyimpan data')

@@ -298,13 +298,14 @@ export default function DepartmentDashboardPage() {
       title={loadingDept ? 'Memuat...' : (dept?.name ?? 'Departemen')}
       badges={
         <>
-          {!dept?.is_active && (
+          {dept && (
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 10px', borderRadius: 'var(--radius-full)',
               fontSize: 'var(--font-xs)', fontWeight: 600,
-              background: 'var(--color-surface-alt)', color: 'var(--color-text-tertiary)',
+              background: dept.is_active ? 'var(--color-success-light)' : 'var(--color-surface-alt)',
+              color: dept.is_active ? 'var(--color-success-dark)' : 'var(--color-text-tertiary)',
             }}>
-              Nonaktif
+              {dept.is_active ? 'Aktif' : 'Nonaktif'}
             </span>
           )}
           {dept?.leader_id ? (
