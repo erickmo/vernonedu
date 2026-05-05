@@ -371,14 +371,14 @@ import (
 
 // queryHandlerAdapter adapts handlers that accept interface{} to querybus.QueryHandler
 type queryHandlerAdapter struct {
-	fn func(ctx context.Context, q interface{}) (interface{}, error)
+	fn func(ctx context.Context, q any) (any, error)
 }
 
-func (a *queryHandlerAdapter) Handle(ctx context.Context, q querybus.Query) (interface{}, error) {
+func (a *queryHandlerAdapter) Handle(ctx context.Context, q querybus.Query) (any, error) {
 	return a.fn(ctx, q)
 }
 
-func adaptQueryHandler(fn func(ctx context.Context, q interface{}) (interface{}, error)) querybus.QueryHandler {
+func adaptQueryHandler(fn func(ctx context.Context, q any) (any, error)) querybus.QueryHandler {
 	return &queryHandlerAdapter{fn: fn}
 }
 
