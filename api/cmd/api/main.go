@@ -358,6 +358,13 @@ import (
 	listleaverequests  "github.com/vernonedu/entrepreneurship-api/internal/query/list_leave_requests"
 	listpayrollitems   "github.com/vernonedu/entrepreneurship-api/internal/query/list_payroll_items"
 	listpayrollperiods "github.com/vernonedu/entrepreneurship-api/internal/query/list_payroll_periods"
+	// calendar commands
+	createcalendarevent "github.com/vernonedu/entrepreneurship-api/internal/command/create_calendar_event"
+	deletecalendarevent "github.com/vernonedu/entrepreneurship-api/internal/command/delete_calendar_event"
+	updatecalendarevent "github.com/vernonedu/entrepreneurship-api/internal/command/update_calendar_event"
+	// calendar queries
+	getcalendarevent   "github.com/vernonedu/entrepreneurship-api/internal/query/get_calendar_event"
+	listcalendarevents "github.com/vernonedu/entrepreneurship-api/internal/query/list_calendar_events"
 	// handlers
 	httphandler "github.com/vernonedu/entrepreneurship-api/internal/delivery/http"
 )
@@ -525,6 +532,7 @@ func main() {
 			},
 			newFinanceHTTPHandler,
 			newHrmHTTPHandler,
+			newCalendarHTTPHandler,
 			// Approval repository
 			func(db *sqlx.DB) *database.ApprovalRepository {
 				return database.NewApprovalRepository(db)
@@ -573,6 +581,10 @@ func main() {
 			// HRM repository
 			func(db *sqlx.DB) *database.HrmRepository {
 				return database.NewHrmRepository(db)
+			},
+			// Calendar repository
+			func(db *sqlx.DB) *database.CalendarRepository {
+				return database.NewCalendarRepository(db)
 			},
 
 			// HTTP handlers
@@ -814,6 +826,10 @@ func newHrmHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *
 	return httphandler.NewHrmHandler(cmdBus, qryBus)
 }
 
+func newCalendarHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.CalendarHandler {
+	return httphandler.NewCalendarHandler(cmdBus, qryBus)
+}
+
 func newRouter(
 	userHandler *httphandler.UserHandler,
 	businessHandler *httphandler.BusinessHandler,
@@ -852,6 +868,7 @@ func newRouter(
 	financeHandler *httphandler.FinanceHandler,
 	marketingHandler *httphandler.MarketingHandler,
 	hrmHandler *httphandler.HrmHandler,
+	calendarHandler *httphandler.CalendarHandler,
 	jwtUtil *jwtutil.JWTUtil,
 ) *chi.Mux {
 	r := chi.NewRouter()
@@ -929,6 +946,8 @@ func newRouter(
 		httphandler.RegisterMarketingRoutes(marketingHandler, r)
 		// HRM routes
 		httphandler.RegisterHrmRoutes(hrmHandler, r)
+		// Calendar routes
+		httphandler.RegisterCalendarRoutes(calendarHandler, r)
 	})
 
 	// Certificate public routes (no auth)
@@ -1007,6 +1026,8 @@ type registerParams struct {
 	AppAccessRepo   *database.StudentAppAccessRepository
 	// HRM repository
 	HrmRepo         *database.HrmRepository
+	// Calendar repository
+	CalendarRepo    *database.CalendarRepository
 	EventBus eventbus.EventBus
 }
 
@@ -2355,6 +2376,31 @@ func registerHandlers(p registerParams) error {
 	}
 	listPayrollItemsH := listpayrollitems.NewHandler(p.HrmRepo)
 	if err := p.QryBus.Register(&listpayrollitems.ListPayrollItemsQuery{}, adaptQueryHandler(listPayrollItemsH.Handle)); err != nil {
+		return err
+	}
+
+	// ===== CALENDAR =====
+
+	if err := p.CmdBus.Register(&createcalendarevent.CreateCalendarEventCommand{},
+		createcalendarevent.NewHandler(p.CalendarRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatecalendarevent.UpdateCalendarEventCommand{},
+		updatecalendarevent.NewHandler(p.CalendarRepo, p.CalendarRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletecalendarevent.DeleteCalendarEventCommand{},
+		deletecalendarevent.NewHandler(p.CalendarRepo, p.CalendarRepo, p.EventBus)); err != nil {
+		return err
+	}
+	listCalendarEventsH := listcalendarevents.NewHandler(p.CalendarRepo)
+	if err := p.QryBus.Register(&listcalendarevents.ListCalendarEventsQuery{},
+		adaptQueryHandler(listCalendarEventsH.Handle)); err != nil {
+		return err
+	}
+	getCalendarEventH := getcalendarevent.NewHandler(p.CalendarRepo)
+	if err := p.QryBus.Register(&getcalendarevent.GetCalendarEventQuery{},
+		adaptQueryHandler(getCalendarEventH.Handle)); err != nil {
 		return err
 	}
 
