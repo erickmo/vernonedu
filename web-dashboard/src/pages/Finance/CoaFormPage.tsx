@@ -13,6 +13,10 @@ import { accountingService } from '@/services/accounting.service'
 import { apiClient } from '@/services/api.client'
 import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
 
+function flattenCoaForSelect(nodes: any[]): any[] {
+  return nodes.flatMap(n => [n, ...flattenCoaForSelect(n.children ?? [])])
+}
+
 const TYPE_OPTIONS = [
   { value: 'aset', label: 'Aset' },
   { value: 'kewajiban', label: 'Kewajiban' },
@@ -45,14 +49,15 @@ export default function CoaFormPage() {
 
   const { data: accounts } = useQuery({
     queryKey: ['coa'],
-    queryFn: () => accountingService.listCoa(),
+    queryFn: () => accountingService.getCoaTree(),
   })
 
   const { data: coaItem } = useQuery({
     queryKey: ['coa', id],
     queryFn: async () => {
-      const all = await accountingService.listCoa()
-      const items: any[] = Array.isArray(all) ? all : (all as any)?.items ?? []
+      const all = await accountingService.getCoaTree()
+      const roots: any[] = Array.isArray(all) ? all : (all as any)?.items ?? []
+      const items = flattenCoaForSelect(roots)
       return items.find((a: any) => a.id === id) ?? null
     },
     enabled: isEdit,
@@ -96,10 +101,10 @@ export default function CoaFormPage() {
       }
 
       if (isEdit) {
-        await apiClient.put(`/accounting/coa/${id}`, payload)
+        await apiClient.put(`/finance/coa/${id}`, payload)
         toast.success('Akun berhasil diperbarui')
       } else {
-        await apiClient.post('/accounting/coa', payload)
+        await apiClient.post('/finance/coa', payload)
         toast.success('Akun berhasil dibuat')
       }
 
@@ -112,7 +117,8 @@ export default function CoaFormPage() {
     }
   }
 
-  const allAccounts: any[] = Array.isArray(accounts) ? accounts : (accounts as any)?.items ?? []
+  const accountRoots: any[] = Array.isArray(accounts) ? accounts : (accounts as any)?.items ?? []
+  const allAccounts: any[] = flattenCoaForSelect(accountRoots)
 
   return (
     <FormPageTemplate

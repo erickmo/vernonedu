@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { Pencil, Landmark } from 'lucide-react'
+import { Pencil, Landmark, Trash2 } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
 import type { ColumnDef, RowActionDef } from '@/widgets/DataTable/DataTable'
 import { accountingService } from '@/services/accounting.service'
@@ -111,6 +112,7 @@ const columns: ColumnDef<BankAccount>[] = [
 
 export default function BankAccountsPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const rowActions: RowActionDef<BankAccount>[] = [
     {
@@ -119,13 +121,25 @@ export default function BankAccountsPage() {
       icon: <Pencil size={14} />,
       onClick: (row) => navigate(`/finance/bank-accounts/${row.id}/edit`),
     },
+    {
+      key: 'delete',
+      label: 'Hapus',
+      icon: <Trash2 size={14} />,
+      variant: 'danger',
+      onClick: async (row) => {
+        if (!confirm(`Hapus rekening "${row.name}"?`)) return
+        await accountingService.deleteBankAccount(row.id)
+        queryClient.invalidateQueries({ queryKey: ['finance/bank-accounts'] })
+        toast.success('Rekening dihapus')
+      },
+    },
   ]
 
   return (
     <ListPageTemplate<BankAccount>
       title="Rekening Bank"
       addLabel="Tambah Rekening"
-      onAdd={() => toast.info('Formulir tambah rekening segera hadir')}
+      onAdd={() => navigate('/finance/bank-accounts/new')}
       queryKey="finance/bank-accounts"
       fetcher={(params) => accountingService.listBankAccounts(params as any)}
       columns={columns}

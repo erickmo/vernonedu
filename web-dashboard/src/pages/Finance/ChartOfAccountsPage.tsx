@@ -14,6 +14,15 @@ interface CoaAccount {
   normal_balance: string
   description: string
   parent_id?: string
+  children?: CoaAccount[]
+  depth?: number
+}
+
+function flattenCoa(nodes: CoaAccount[], depth = 0): Array<CoaAccount & { depth: number }> {
+  return nodes.flatMap(n => [
+    { ...n, depth },
+    ...flattenCoa(n.children ?? [], depth + 1),
+  ])
 }
 
 const TYPE_BADGE_STYLES: Record<string, { bg: string; color: string; label: string }> = {
@@ -41,8 +50,8 @@ const columns: ColumnDef<CoaAccount>[] = [
     header: 'Nama Akun',
     sortable: true,
     render: (_v, row) => (
-      <div>
-        <div style={{ fontWeight: 600, fontSize: 'var(--font-base)' }}>{row.name}</div>
+      <div style={{ paddingLeft: (row.depth ?? 0) * 20 }}>
+        <div style={{ fontWeight: (row.depth ?? 0) === 0 ? 700 : 500, fontSize: 'var(--font-base)' }}>{row.name}</div>
       </div>
     ),
   },
@@ -101,8 +110,9 @@ const columns: ColumnDef<CoaAccount>[] = [
 ]
 
 async function coaFetcher(_params: ListParams): Promise<PaginatedResponse<CoaAccount>> {
-  const data = await accountingService.listCoa()
-  const items: CoaAccount[] = Array.isArray(data) ? data : (data as any)?.items ?? []
+  const data = await accountingService.getCoaTree()
+  const roots: CoaAccount[] = Array.isArray(data) ? data : (data as any)?.items ?? []
+  const items = flattenCoa(roots)
   return { items, total: items.length, limit: 9999, offset: 0 }
 }
 
