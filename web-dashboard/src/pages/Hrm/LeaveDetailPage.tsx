@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { hrmService } from '@/services/hrm.service'
 import { toast } from '@/widgets/Toast/Toast'
+import { useDeleteConfirmModal } from '@/widgets/Modals/DeleteConfirmModal'
 import {
   LEAVE_TYPE_LABELS, LEAVE_STATUS_LABELS, LEAVE_STATUS_COLORS,
 } from '@/types/hrm.types'
@@ -67,6 +68,7 @@ export default function LeaveDetailPage() {
   const { leaveId } = useParams<{ leaveId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const confirmDelete = useDeleteConfirmModal()
 
   const { data: leave, isLoading } = useQuery<any>({
     queryKey: ['hrm-leave-detail', leaveId],
@@ -107,16 +109,11 @@ export default function LeaveDetailPage() {
     {
       label: 'Hapus',
       icon: <Trash2 size={14} />,
-      onClick: async () => {
-        if (!window.confirm('Yakin ingin menghapus permohonan cuti ini?')) return
-        try {
-          await hrmService.deleteLeaveRequest(leaveId!)
-          toast.success('Permohonan cuti berhasil dihapus')
-          navigate('/hrm/leaves')
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : 'Gagal menghapus permohonan cuti')
-        }
-      },
+      onClick: () => confirmDelete('Hapus Cuti', 'Yakin ingin menghapus permohonan cuti ini?', async () => {
+        await hrmService.deleteLeaveRequest(leaveId!)
+        toast.success('Permohonan cuti berhasil dihapus')
+        navigate('/hrm/leaves')
+      }),
       variant: 'danger' as const,
     },
   ]
