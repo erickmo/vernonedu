@@ -78,7 +78,7 @@ export default function StudentFormPage() {
         toast.success('Siswa berhasil ditambahkan')
       }
       await queryClient.invalidateQueries({ queryKey: ['students'] })
-      navigate('/students')
+      navigate(isEdit ? `/students/${studentId}` : '/students')
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Gagal menyimpan data')
     } finally {
@@ -118,7 +118,7 @@ export default function StudentFormPage() {
     <FormPageTemplate
       title={isEdit ? 'Edit Siswa' : 'Tambah Siswa'}
       icon={<User size={20} />}
-      onBack={() => navigate('/students')}
+      onBack={() => navigate(isEdit ? `/students/${studentId}` : '/students')}
       tabs={[
         {
           id: 'general',
@@ -161,7 +161,7 @@ export default function StudentFormPage() {
         },
       ]}
       onSubmit={handleSubmit}
-      onCancel={() => navigate('/students')}
+      onCancel={() => navigate(isEdit ? `/students/${studentId}` : '/students')}
       isSubmitting={isSubmitting}
       serverError={serverError}
     />

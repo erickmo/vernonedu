@@ -100,7 +100,7 @@ export default function LeadFormPage() {
         toast.success('Lead berhasil dibuat')
       }
       await queryClient.invalidateQueries({ queryKey: ['leads'] })
-      navigate('/leads')
+      navigate(isEdit ? `/leads/${leadId}` : '/leads')
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Gagal menyimpan data')
     } finally {
@@ -112,7 +112,7 @@ export default function LeadFormPage() {
     <FormPageTemplate
       title={isEdit ? 'Edit Lead' : 'Tambah Lead'}
       icon={<User size={20} />}
-      onBack={() => navigate('/leads')}
+      onBack={() => navigate(isEdit ? `/leads/${leadId}` : '/leads')}
       tabs={[
         {
           id: 'general',
@@ -210,7 +210,7 @@ export default function LeadFormPage() {
         },
       ]}
       onSubmit={handleSubmit}
-      onCancel={() => navigate('/leads')}
+      onCancel={() => navigate(isEdit ? `/leads/${leadId}` : '/leads')}
       isSubmitting={isSubmitting}
       serverError={serverError}
     />

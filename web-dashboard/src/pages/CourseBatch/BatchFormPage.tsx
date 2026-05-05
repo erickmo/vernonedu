@@ -105,7 +105,7 @@ export default function BatchFormPage() {
         toast.success('Batch kelas berhasil dibuat')
       }
       await queryClient.invalidateQueries({ queryKey: ['course-batches'] })
-      navigate('/course-batches')
+      navigate(isEdit ? `/course-batches/${batchId}` : '/course-batches')
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Gagal menyimpan data')
     } finally {
@@ -117,7 +117,7 @@ export default function BatchFormPage() {
     <FormPageTemplate
       title={isEdit ? 'Edit Batch Kelas' : 'Tambah Batch Kelas'}
       icon={<Calendar size={20} />}
-      onBack={() => navigate('/course-batches')}
+      onBack={() => navigate(isEdit ? `/course-batches/${batchId}` : '/course-batches')}
       tabs={[
         {
           id: 'general',
@@ -235,7 +235,7 @@ export default function BatchFormPage() {
         },
       ]}
       onSubmit={handleSubmit}
-      onCancel={() => navigate('/course-batches')}
+      onCancel={() => navigate(isEdit ? `/course-batches/${batchId}` : '/course-batches')}
       isSubmitting={isSubmitting}
       serverError={serverError}
     />
