@@ -36,6 +36,19 @@ func NewBuilding(name, address, description string) (*Building, error) {
 	}, nil
 }
 
+type RoomSummary struct {
+	ID       uuid.UUID
+	Name     string
+	Capacity int
+}
+
+type BuildingWithRooms struct {
+	Building
+	RoomCount     int
+	TotalCapacity int
+	Rooms         []RoomSummary
+}
+
 type WriteRepository interface {
 	Save(ctx context.Context, b *Building) error
 	Update(ctx context.Context, b *Building) error
@@ -45,4 +58,5 @@ type WriteRepository interface {
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*Building, error)
 	List(ctx context.Context, offset, limit int) ([]*Building, int, error)
+	ListWithRooms(ctx context.Context, offset, limit int, search string) ([]BuildingWithRooms, int, error)
 }
