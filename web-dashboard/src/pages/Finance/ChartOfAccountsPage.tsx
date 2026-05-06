@@ -11,7 +11,6 @@ interface CoaAccount {
   code: string
   name: string
   type: string
-  normal_balance: string
   description: string
   parent_id?: string
   children?: CoaAccount[]
@@ -26,11 +25,11 @@ function flattenCoa(nodes: CoaAccount[], depth = 0): Array<CoaAccount & { depth:
 }
 
 const TYPE_BADGE_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-  aset: { bg: 'var(--color-info-light)', color: 'var(--color-info-dark)', label: 'Aset' },
-  kewajiban: { bg: 'var(--color-warning-light)', color: 'var(--color-warning-dark)', label: 'Kewajiban' },
-  ekuitas: { bg: 'var(--color-success-light)', color: 'var(--color-success-dark)', label: 'Ekuitas' },
-  pendapatan: { bg: 'var(--color-success-light)', color: 'var(--color-success-dark)', label: 'Pendapatan' },
-  beban: { bg: 'var(--color-error-light)', color: 'var(--color-error-dark)', label: 'Beban' },
+  asset: { bg: 'var(--color-info-light)', color: 'var(--color-info-dark)', label: 'Aset' },
+  liability: { bg: 'var(--color-warning-light)', color: 'var(--color-warning-dark)', label: 'Kewajiban' },
+  equity: { bg: 'var(--color-success-light)', color: 'var(--color-success-dark)', label: 'Ekuitas' },
+  revenue: { bg: 'var(--color-success-light)', color: 'var(--color-success-dark)', label: 'Pendapatan' },
+  expense: { bg: 'var(--color-danger-light)', color: 'var(--color-danger-dark)', label: 'Beban' },
 }
 
 const columns: ColumnDef<CoaAccount>[] = [
@@ -73,23 +72,6 @@ const columns: ColumnDef<CoaAccount>[] = [
           background: style.bg, color: style.color,
         }}>
           {style.label}
-        </span>
-      )
-    },
-  },
-  {
-    key: 'normal_balance',
-    header: 'Saldo Normal',
-    width: 120,
-    align: 'center',
-    render: (_v, row) => {
-      const isDebit = row.normal_balance?.toLowerCase() === 'debit'
-      return (
-        <span style={{
-          fontSize: 'var(--font-sm)', fontWeight: 500,
-          color: isDebit ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-        }}>
-          {isDebit ? 'Debit' : 'Kredit'}
         </span>
       )
     },
@@ -143,7 +125,7 @@ export default function ChartOfAccountsPage() {
       emptyTitle="Belum ada akun"
       emptyDescription="Buat akun pertama untuk mulai mengelola pembukuan."
       helpTitle="Chart of Accounts"
-      helpText="Daftar akun yang digunakan dalam pembukuan. Setiap akun memiliki kode, jenis (Aset, Kewajiban, Ekuitas, Pendapatan, Beban), dan saldo normal (Debit/Kredit)."
+      helpText="Daftar akun yang digunakan dalam pembukuan. Setiap akun memiliki kode dan jenis (Aset, Kewajiban, Ekuitas, Pendapatan, Beban)."
     />
   )
 }

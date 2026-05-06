@@ -8,6 +8,8 @@ import {
   FormGrid,
   FormColumn,
 } from '@/widgets/FormPageTemplate'
+import { SearchableSelect } from '@/widgets/SearchableSelect/SearchableSelect'
+import type { SelectOption } from '@/widgets/SearchableSelect/SearchableSelect'
 import { toast } from '@/widgets/Toast/Toast'
 import { accountingService } from '@/services/accounting.service'
 import { apiClient } from '@/services/api.client'
@@ -18,16 +20,11 @@ function flattenCoaForSelect(nodes: any[]): any[] {
 }
 
 const TYPE_OPTIONS = [
-  { value: 'aset', label: 'Aset' },
-  { value: 'kewajiban', label: 'Kewajiban' },
-  { value: 'ekuitas', label: 'Ekuitas' },
-  { value: 'pendapatan', label: 'Pendapatan' },
-  { value: 'beban', label: 'Beban' },
-]
-
-const BALANCE_OPTIONS = [
-  { value: 'debit', label: 'Debit' },
-  { value: 'kredit', label: 'Kredit' },
+  { value: 'asset', label: 'Aset' },
+  { value: 'liability', label: 'Kewajiban' },
+  { value: 'equity', label: 'Ekuitas' },
+  { value: 'revenue', label: 'Pendapatan' },
+  { value: 'expense', label: 'Beban' },
 ]
 
 export default function CoaFormPage() {
@@ -40,8 +37,8 @@ export default function CoaFormPage() {
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
   const [type, setType] = useState('')
-  const [normalBalance, setNormalBalance] = useState('')
   const [parentId, setParentId] = useState('')
+  const [parentLabel, setParentLabel] = useState('')
   const [description, setDescription] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -68,9 +65,20 @@ export default function CoaFormPage() {
     setCode(coaItem.code ?? '')
     setName(coaItem.name ?? '')
     setType(coaItem.type ?? '')
-    setNormalBalance(coaItem.normal_balance ?? '')
     setParentId(coaItem.parent_id ?? '')
     setDescription(coaItem.description ?? '')
+  }
+
+  const accountRoots: any[] = Array.isArray(accounts) ? accounts : (accounts as any)?.items ?? []
+  const allAccounts: any[] = flattenCoaForSelect(accountRoots)
+
+  async function fetchParentOptions(search: string): Promise<SelectOption[]> {
+    const q = search.toLowerCase()
+    return allAccounts
+      .filter(a => a.id !== id)
+      .filter(a => !q || a.code?.toLowerCase().includes(q) || a.name?.toLowerCase().includes(q))
+      .slice(0, 50)
+      .map(a => ({ value: a.id, label: a.name, meta: a.code }))
   }
 
   function validate(): boolean {
@@ -78,7 +86,6 @@ export default function CoaFormPage() {
     if (!code.trim()) e.code = 'Kode akun wajib diisi'
     if (!name.trim()) e.name = 'Nama akun wajib diisi'
     if (!type) e.type = 'Jenis akun wajib dipilih'
-    if (!normalBalance) e.normal_balance = 'Saldo normal wajib dipilih'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -95,9 +102,7 @@ export default function CoaFormPage() {
         code: code.trim(),
         name: name.trim(),
         type,
-        normal_balance: normalBalance,
-        parent_id: parentId.trim() || undefined,
-        description: description.trim() || undefined,
+        parent_id: parentId || undefined,
       }
 
       if (isEdit) {
@@ -117,9 +122,6 @@ export default function CoaFormPage() {
     }
   }
 
-  const accountRoots: any[] = Array.isArray(accounts) ? accounts : (accounts as any)?.items ?? []
-  const allAccounts: any[] = flattenCoaForSelect(accountRoots)
-
   return (
     <FormPageTemplate
       title={isEdit ? 'Edit Akun' : 'Tambah Akun'}
@@ -132,12 +134,12 @@ export default function CoaFormPage() {
           content: (
             <FormGrid>
               <FormColumn>
-                <Field label="Kode Akun" required error={errors.code}>
+                <Field label="Kode Akun" required error={errors.code} hint="Gunakan format hierarki, cth. 1100, 1110">
                   <input
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    placeholder="cth. 1.1.01"
+                    placeholder="cth. 1110"
                     className={`${formStyles.input} ${formStyles.inputMono} ${errors.code ? formStyles.inputError : ''}`}
                     autoFocus
                   />
@@ -163,44 +165,28 @@ export default function CoaFormPage() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Saldo Normal" required error={errors.normal_balance}>
-                  <select
-                    value={normalBalance}
-                    onChange={(e) => setNormalBalance(e.target.value)}
-                    className={`${formStyles.input} ${errors.normal_balance ? formStyles.inputError : ''}`}
-                  >
-                    <option value="">Pilih saldo normal...</option>
-                    {BALANCE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
+              </FormColumn>
+              <FormColumn>
+                <Field label="Akun Induk" hint="Opsional. Pilih akun induk jika ini adalah sub-akun.">
+                  <SearchableSelect
+                    value={parentId}
+                    displayLabel={parentLabel}
+                    placeholder="Cari akun induk..."
+                    fetchOptions={fetchParentOptions}
+                    onSelect={(opt) => {
+                      setParentId(opt?.value ?? '')
+                      setParentLabel(opt ? `${opt.meta} — ${opt.label}` : '')
+                    }}
+                  />
                 </Field>
                 <Field label="Deskripsi" hint="Opsional. Jelaskan kegunaan akun ini.">
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Jelaskan kegunaan akun ini..."
-                    rows={4}
+                    rows={5}
                     className={formStyles.textarea}
                   />
-                </Field>
-              </FormColumn>
-              <FormColumn>
-                <Field label="Akun Induk" hint="Opsional. Pilih akun induk jika ini adalah sub-akun.">
-                  <select
-                    value={parentId}
-                    onChange={(e) => setParentId(e.target.value)}
-                    className={formStyles.input}
-                  >
-                    <option value="">Tanpa akun induk (akun utama)</option>
-                    {allAccounts
-                      .filter((a) => a.id !== id)
-                      .map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.code} — {a.name}
-                        </option>
-                      ))}
-                  </select>
                 </Field>
               </FormColumn>
             </FormGrid>
