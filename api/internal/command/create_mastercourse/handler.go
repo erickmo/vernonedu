@@ -17,7 +17,6 @@ import (
 type CreateMasterCourseCommand struct {
 	CourseCode       string    `validate:"required"`
 	CourseName       string    `validate:"required,min=1"`
-	Field            string    `validate:"required"`
 	CoreCompetencies []string
 	Description      string
 	SupportingAppUrl string
@@ -43,7 +42,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		return ErrInvalidCommand
 	}
 
-	mc, err := mastercourse.NewMasterCourse(c.CourseCode, c.CourseName, c.Field, c.Description, c.CoreCompetencies)
+	mc, err := mastercourse.NewMasterCourse(c.CourseCode, c.CourseName, c.Description, c.CoreCompetencies)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create master course entity")
 		return err
@@ -66,7 +65,6 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		MasterCourseID: mc.ID,
 		CourseCode:     mc.CourseCode,
 		CourseName:     mc.CourseName,
-		Field:          mc.Field,
 		Timestamp:      time.Now().Unix(),
 	}
 	if err := h.eventBus.Publish(ctx, event); err != nil {

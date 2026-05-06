@@ -16,15 +16,17 @@ var (
 )
 
 type Franchisee struct {
-	ID         uuid.UUID
-	Name       string
-	BranchName string
-	Location   string
-	Contact    string
-	Status     string
-	CreatedBy  *uuid.UUID
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID                 uuid.UUID
+	Name               string
+	BranchName         string
+	Location           string
+	Contact            string
+	Status             string
+	CreatedBy          *uuid.UUID
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	AgreementStartDate string
+	AgreementEndDate   string
 }
 
 type FranchiseAgreement struct {

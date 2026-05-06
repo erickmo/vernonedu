@@ -20,7 +20,6 @@ type MasterCourseReadModel struct {
 	ID               string   `json:"id"`
 	CourseCode       string   `json:"course_code"`
 	CourseName       string   `json:"course_name"`
-	Field            string   `json:"field"`
 	CoreCompetencies []string `json:"core_competencies"`
 	Description      string   `json:"description"`
 	Status           string   `json:"status"`
@@ -72,7 +71,6 @@ func toReadModel(mc *mastercourse.MasterCourse) *MasterCourseReadModel {
 		ID:               mc.ID.String(),
 		CourseCode:       mc.CourseCode,
 		CourseName:       mc.CourseName,
-		Field:            mc.Field,
 		CoreCompetencies: mc.CoreCompetencies,
 		Description:      mc.Description,
 		Status:           mc.Status,

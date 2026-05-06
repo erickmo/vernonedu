@@ -7,7 +7,6 @@ type MasterCourseCreated struct {
 	MasterCourseID uuid.UUID `json:"master_course_id"`
 	CourseCode     string    `json:"course_code"`
 	CourseName     string    `json:"course_name"`
-	Field          string    `json:"field"`
 	Timestamp      int64     `json:"timestamp"`
 }
 

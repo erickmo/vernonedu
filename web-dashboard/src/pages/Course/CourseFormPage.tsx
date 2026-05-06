@@ -269,7 +269,7 @@ export default function CourseFormPage() {
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Deskripsi singkat tentang kursus ini..."
                       className={`${formStyles.input} ${errors.description ? formStyles.inputError : ''}`}
-                      rows={4}
+                      rows={8}
                       style={{ resize: 'vertical' }}
                     />
                   </Field>

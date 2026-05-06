@@ -101,6 +101,7 @@ export default function TalentPoolLowonganPage() {
       fetcher={fetchLowongan}
       columns={columns}
       rowActions={rowActions}
+      onRowClick={(row) => navigate(`/talentpool/lowongan/${row.id}`)}
       searchPlaceholder="Cari lowongan..."
       exportFilename="talentpool-lowongan"
       emptyTitle="Belum ada lowongan"

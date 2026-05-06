@@ -15,7 +15,6 @@ type ListMasterCourseQuery struct {
 	Limit   int
 	Search  string
 	Status  string
-	Field   string
 	SortBy  string
 	SortDir string
 }
@@ -25,7 +24,6 @@ type MasterCourseReadModel struct {
 	ID               string   `json:"id"`
 	CourseCode       string   `json:"course_code"`
 	CourseName       string   `json:"course_name"`
-	Field            string   `json:"field"`
 	CoreCompetencies []string `json:"core_competencies"`
 	Description      string   `json:"description"`
 	Status           string   `json:"status"`
@@ -59,7 +57,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	courses, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Search, q.Status, q.Field, q.SortBy, q.SortDir)
+	courses, total, err := h.readRepo.List(ctx, q.Offset, q.Limit, q.Search, q.Status, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list master courses")
 		return nil, err
@@ -71,7 +69,6 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 			ID:               mc.ID.String(),
 			CourseCode:       mc.CourseCode,
 			CourseName:       mc.CourseName,
-			Field:            mc.Field,
 			CoreCompetencies: mc.CoreCompetencies,
 			Description:      mc.Description,
 			Status:           mc.Status,

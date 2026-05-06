@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Store } from 'lucide-react'
+import { formatDate } from '@/utils/format'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
 import type { ColumnDef } from '@/widgets/DataTable/DataTable'
 import { franchiseeService, type Franchisee } from '@/services/franchisee.service'
@@ -41,6 +42,18 @@ const columns: ColumnDef<Franchisee>[] = [
     header: 'Lokasi',
     width: 200,
     render: (_v, row) => <span>{row.location || '—'}</span>,
+  },
+  {
+    key: 'agreement_start_date',
+    header: 'Tanggal Aktif',
+    width: 140,
+    render: (_v, row) => <span>{formatDate(row.agreement_start_date as string | undefined)}</span>,
+  },
+  {
+    key: 'agreement_end_date',
+    header: 'Tanggal Berakhir',
+    width: 150,
+    render: (_v, row) => <span>{formatDate(row.agreement_end_date as string | undefined)}</span>,
   },
   {
     key: 'status',

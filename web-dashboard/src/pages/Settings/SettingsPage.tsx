@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Settings, Plus, Trash2 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -56,6 +56,22 @@ function BasisSelect({
   )
 }
 
+const CARD_STYLE: React.CSSProperties = {
+  border: '1px solid var(--color-border)',
+  borderRadius: 'var(--radius-lg)',
+  padding: 'var(--space-5)',
+  background: 'var(--color-surface)',
+}
+
+const CARD_TITLE_STYLE: React.CSSProperties = {
+  fontWeight: 600,
+  fontSize: 'var(--font-sm)',
+  color: 'var(--color-text-secondary)',
+  marginBottom: 'var(--space-4)',
+  paddingBottom: 'var(--space-3)',
+  borderBottom: '1px solid var(--color-border-subtle)',
+}
+
 function CommissionTab() {
   const queryClient = useQueryClient()
   const [form, setForm] = useState<CommissionSettings>({
@@ -69,25 +85,35 @@ function CommissionTab() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverError, setServerError] = useState('')
 
+  const loaded = useRef(false)
   const { data } = useQuery({
     queryKey: ['settings-commission'],
     queryFn: () => apiClient.get<{ data: CommissionSettings }>('/settings/commission'),
+    refetchOnWindowFocus: false,
   })
 
   useEffect(() => {
-    if (data?.data) setForm(data.data)
+    if (data?.data && !loaded.current) {
+      setForm(data.data)
+      loaded.current = true
+    }
   }, [data])
 
   function setField<K extends keyof CommissionSettings>(key: K, value: CommissionSettings[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSubmit() {
     setIsSubmitting(true)
     setServerError('')
     try {
-      await apiClient.put('/settings/commission', form)
+      const payload = {
+        ...form,
+        op_leader_pct: isNaN(form.op_leader_pct) ? 0 : form.op_leader_pct,
+        dept_leader_pct: isNaN(form.dept_leader_pct) ? 0 : form.dept_leader_pct,
+        course_creator_pct: isNaN(form.course_creator_pct) ? 0 : form.course_creator_pct,
+      }
+      await apiClient.put('/settings/commission', payload)
       await queryClient.invalidateQueries({ queryKey: ['settings-commission'] })
       toast.success('Pengaturan komisi berhasil disimpan')
     } catch (err) {
@@ -99,76 +125,72 @@ function CommissionTab() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <div>
       {serverError && (
         <p style={{ color: 'var(--color-danger)', marginBottom: 'var(--space-4)', fontSize: 'var(--font-sm)' }}>
           {serverError}
         </p>
       )}
-      <FormGrid>
-        <FormColumn>
-          <Field label="Komisi Operation Leader (%)" required>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-5)' }}>
+        <div style={CARD_STYLE}>
+          <p style={CARD_TITLE_STYLE}>Operation Leader</p>
+          <Field label="Komisi (%)" required>
             <input
-              type="number"
-              min={0}
-              max={100}
-              step={0.1}
+              type="number" min={0} max={100} step={0.1}
               value={form.op_leader_pct}
-              onChange={(e) => setField('op_leader_pct', parseFloat(e.target.value) || 0)}
+              onChange={(e) => setField('op_leader_pct', e.target.valueAsNumber)}
               className={formStyles.input}
             />
           </Field>
-          <Field label="Basis Komisi Operation Leader" required>
+          <Field label="Basis" required>
             <BasisSelect value={form.op_leader_basis} onChange={(v) => setField('op_leader_basis', v)} />
           </Field>
-          <Field label="Komisi Kepala Departemen (%)" required>
+        </div>
+        <div style={CARD_STYLE}>
+          <p style={CARD_TITLE_STYLE}>Kepala Departemen</p>
+          <Field label="Komisi (%)" required>
             <input
-              type="number"
-              min={0}
-              max={100}
-              step={0.1}
+              type="number" min={0} max={100} step={0.1}
               value={form.dept_leader_pct}
-              onChange={(e) => setField('dept_leader_pct', parseFloat(e.target.value) || 0)}
+              onChange={(e) => setField('dept_leader_pct', e.target.valueAsNumber)}
               className={formStyles.input}
             />
           </Field>
-          <Field label="Basis Komisi Kepala Departemen" required>
+          <Field label="Basis" required>
             <BasisSelect value={form.dept_leader_basis} onChange={(v) => setField('dept_leader_basis', v)} />
           </Field>
-        </FormColumn>
-        <FormColumn>
-          <Field label="Komisi Course Creator (%)" required>
+        </div>
+        <div style={CARD_STYLE}>
+          <p style={CARD_TITLE_STYLE}>Course Creator</p>
+          <Field label="Komisi (%)" required>
             <input
-              type="number"
-              min={0}
-              max={100}
-              step={0.1}
+              type="number" min={0} max={100} step={0.1}
               value={form.course_creator_pct}
-              onChange={(e) => setField('course_creator_pct', parseFloat(e.target.value) || 0)}
+              onChange={(e) => setField('course_creator_pct', e.target.valueAsNumber)}
               className={formStyles.input}
             />
           </Field>
-          <Field label="Basis Komisi Course Creator" required>
+          <Field label="Basis" required>
             <BasisSelect value={form.course_creator_basis} onChange={(v) => setField('course_creator_basis', v)} />
           </Field>
-          <div style={{ marginTop: 'var(--space-4)' }}>
-            <button
-              type="submit"
-              className={formStyles.btnPrimary ?? ''}
-              disabled={isSubmitting}
-              style={{
-                padding: '8px 20px', borderRadius: 'var(--radius-md)',
-                background: 'var(--color-primary)', color: '#fff',
-                border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                fontWeight: 600, fontSize: 'var(--font-sm)',
-              }}
-            >
-              {isSubmitting ? 'Menyimpan...' : 'Simpan Komisi'}
-            </button>
-          </div>
-        </FormColumn>
-      </FormGrid>
-    </form>
+        </div>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          style={{
+            padding: '8px 20px', borderRadius: 'var(--radius-md)',
+            background: 'var(--color-primary)', color: '#fff',
+            border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer',
+            fontWeight: 600, fontSize: 'var(--font-sm)',
+          }}
+        >
+          {isSubmitting ? 'Menyimpan...' : 'Simpan Komisi'}
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -207,46 +229,49 @@ function FacilitatorLevelsTab() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-sm)' }}>
-        <thead>
-          <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-            <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>Nama Level</th>
-            <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>Fee per Sesi (Rp)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {levels.length === 0 ? (
-            <tr>
-              <td colSpan={2} style={{ padding: '16px 12px', color: 'var(--color-text-tertiary)', textAlign: 'center' }}>
-                Belum ada level fasilitator
-              </td>
+      <div style={CARD_STYLE}>
+        <p style={CARD_TITLE_STYLE}>Level Fasilitator</p>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-sm)' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+              <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>Nama Level</th>
+              <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 600 }}>Fee per Sesi (Rp)</th>
             </tr>
-          ) : (
-            levels.map((level, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                <td style={{ padding: '8px 12px' }}>
-                  <input
-                    type="text"
-                    value={level.name}
-                    onChange={(e) => updateLevel(i, 'name', e.target.value)}
-                    className={formStyles.input}
-                  />
-                </td>
-                <td style={{ padding: '8px 12px' }}>
-                  <input
-                    type="number"
-                    min={0}
-                    value={level.fee_per_session}
-                    onChange={(e) => updateLevel(i, 'fee_per_session', parseInt(e.target.value) || 0)}
-                    className={formStyles.input}
-                  />
+          </thead>
+          <tbody>
+            {levels.length === 0 ? (
+              <tr>
+                <td colSpan={2} style={{ padding: '16px 12px', color: 'var(--color-text-tertiary)', textAlign: 'center' }}>
+                  Belum ada level fasilitator
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-      <div>
+            ) : (
+              levels.map((level, i) => (
+                <tr key={i} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                  <td style={{ padding: '8px 12px' }}>
+                    <input
+                      type="text"
+                      value={level.name}
+                      onChange={(e) => updateLevel(i, 'name', e.target.value)}
+                      className={formStyles.input}
+                    />
+                  </td>
+                  <td style={{ padding: '8px 12px' }}>
+                    <input
+                      type="number"
+                      min={0}
+                      value={level.fee_per_session}
+                      onChange={(e) => updateLevel(i, 'fee_per_session', parseInt(e.target.value) || 0)}
+                      className={formStyles.input}
+                    />
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <button
           type="button"
           onClick={handleSave}
@@ -306,74 +331,76 @@ function HolidaysTab() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <label style={{ fontSize: 'var(--font-sm)', fontWeight: 500 }}>Tahun:</label>
-          <select
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-            className={formStyles.input}
-            style={{ width: 'auto' }}
+      <div style={CARD_STYLE}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)', paddingBottom: 'var(--space-3)', borderBottom: '1px solid var(--color-border-subtle)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <span style={{ fontWeight: 600, fontSize: 'var(--font-sm)', color: 'var(--color-text-secondary)' }}>Hari Libur</span>
+            <select
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              className={formStyles.input}
+              style={{ width: 'auto', marginLeft: 'var(--space-2)' }}
+            >
+              {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 1 + i).map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '8px 16px', borderRadius: 'var(--radius-md)',
+              background: 'var(--color-primary)', color: '#fff',
+              border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 'var(--font-sm)',
+            }}
           >
-            {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 1 + i).map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
+            <Plus size={16} /> Tambah Hari Libur
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '8px 16px', borderRadius: 'var(--radius-md)',
-            background: 'var(--color-primary)', color: '#fff',
-            border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 'var(--font-sm)',
-          }}
-        >
-          <Plus size={16} /> Tambah Hari Libur
-        </button>
-      </div>
 
-      {isLoading ? (
-        <p style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text-secondary)' }}>Memuat...</p>
-      ) : (
-        <table style={TABLE_STYLE}>
-          <thead>
-            <tr>
-              <th style={TH_STYLE}>Tanggal</th>
-              <th style={TH_STYLE}>Nama</th>
-              <th style={{ ...TH_STYLE, width: '60px' }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {holidays.length === 0 ? (
+        {isLoading ? (
+          <p style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text-secondary)' }}>Memuat...</p>
+        ) : (
+          <table style={TABLE_STYLE}>
+            <thead>
               <tr>
-                <td colSpan={3} style={{ ...TD_STYLE, color: 'var(--color-text-tertiary)', textAlign: 'center' }}>
-                  Belum ada hari libur untuk tahun {year}
-                </td>
+                <th style={TH_STYLE}>Tanggal</th>
+                <th style={TH_STYLE}>Nama</th>
+                <th style={{ ...TH_STYLE, width: '60px' }}></th>
               </tr>
-            ) : (
-              holidays.map((h) => (
-                <tr key={h.id}>
-                  <td style={TD_STYLE}>{h.date}</td>
-                  <td style={TD_STYLE}>{h.name}</td>
-                  <td style={TD_STYLE}>
-                    <button
-                      type="button"
-                      onClick={() => deleteMutation.mutate(h.id)}
-                      disabled={deleteMutation.isPending}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-danger)', padding: 4 }}
-                      title="Hapus"
-                    >
-                      <Trash2 size={15} />
-                    </button>
+            </thead>
+            <tbody>
+              {holidays.length === 0 ? (
+                <tr>
+                  <td colSpan={3} style={{ ...TD_STYLE, color: 'var(--color-text-tertiary)', textAlign: 'center' }}>
+                    Belum ada hari libur untuk tahun {year}
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      )}
+              ) : (
+                holidays.map((h) => (
+                  <tr key={h.id}>
+                    <td style={TD_STYLE}>{h.date}</td>
+                    <td style={TD_STYLE}>{h.name}</td>
+                    <td style={TD_STYLE}>
+                      <button
+                        type="button"
+                        onClick={() => deleteMutation.mutate(h.id)}
+                        disabled={deleteMutation.isPending}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-danger)', padding: 4 }}
+                        title="Hapus"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
 
       <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setForm(EMPTY_HOLIDAY) }} title="Tambah Hari Libur" size="sm">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>

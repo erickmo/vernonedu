@@ -17,7 +17,6 @@ import (
 type UpdateMasterCourseCommand struct {
 	MasterCourseID   uuid.UUID  `validate:"required"`
 	CourseName       string     `validate:"required,min=1"`
-	Field            string     `validate:"required"`
 	CoreCompetencies []string
 	Description      string
 	SupportingAppUrl string
@@ -56,7 +55,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		supportingAppUrl = &url
 	}
 
-	if err := mc.Update(c.CourseName, c.Field, c.Description, c.CoreCompetencies, supportingAppUrl); err != nil {
+	if err := mc.Update(c.CourseName, c.Description, c.CoreCompetencies, supportingAppUrl); err != nil {
 		log.Error().Err(err).Msg("failed to update master course entity")
 		return err
 	}

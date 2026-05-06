@@ -11,7 +11,6 @@ import (
 // Sentinel error untuk validasi dan operasi pada MasterCourse
 var (
 	ErrInvalidName     = errors.New("nama master course tidak boleh kosong")
-	ErrInvalidField    = errors.New("bidang (field) tidak boleh kosong")
 	ErrCourseNotFound  = errors.New("master course tidak ditemukan")
 	ErrAlreadyArchived = errors.New("master course sudah diarsipkan")
 )
@@ -23,7 +22,6 @@ type MasterCourse struct {
 	ID               uuid.UUID
 	CourseCode       string
 	CourseName       string
-	Field            string    // bidang kursus: coding, culinary, barber, dst
 	CoreCompetencies []string  // daftar kompetensi utama yang diajarkan
 	Description      string
 	Status           string    // active | archived
@@ -36,12 +34,9 @@ type MasterCourse struct {
 
 // NewMasterCourse membuat entitas MasterCourse baru dengan validasi awal.
 // Status awal selalu "active".
-func NewMasterCourse(courseCode, courseName, field, description string, coreCompetencies []string) (*MasterCourse, error) {
+func NewMasterCourse(courseCode, courseName, description string, coreCompetencies []string) (*MasterCourse, error) {
 	if courseName == "" {
 		return nil, ErrInvalidName
-	}
-	if field == "" {
-		return nil, ErrInvalidField
 	}
 	if coreCompetencies == nil {
 		coreCompetencies = []string{}
@@ -50,7 +45,6 @@ func NewMasterCourse(courseCode, courseName, field, description string, coreComp
 		ID:               uuid.New(),
 		CourseCode:       courseCode,
 		CourseName:       courseName,
-		Field:            field,
 		Description:      description,
 		CoreCompetencies: coreCompetencies,
 		Status:           "active",
@@ -92,16 +86,11 @@ func (mc *MasterCourse) AssignOwner(id *uuid.UUID) {
 }
 
 // Update memperbarui data master course.
-// Validasi nama dan field wajib dilakukan sebelum update disimpan.
-func (mc *MasterCourse) Update(courseName, field, description string, coreCompetencies []string, supportingAppUrl *string) error {
+func (mc *MasterCourse) Update(courseName, description string, coreCompetencies []string, supportingAppUrl *string) error {
 	if courseName == "" {
 		return ErrInvalidName
 	}
-	if field == "" {
-		return ErrInvalidField
-	}
 	mc.CourseName = courseName
-	mc.Field = field
 	mc.Description = description
 	mc.CoreCompetencies = coreCompetencies
 	mc.SupportingAppUrl = supportingAppUrl
@@ -122,5 +111,5 @@ type WriteRepository interface {
 type ReadRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*MasterCourse, error)
 	GetByCode(ctx context.Context, code string) (*MasterCourse, error)
-	List(ctx context.Context, offset, limit int, search, status, field, sortBy, sortDir string) ([]*MasterCourse, int, error)
+	List(ctx context.Context, offset, limit int, search, status, sortBy, sortDir string) ([]*MasterCourse, int, error)
 }

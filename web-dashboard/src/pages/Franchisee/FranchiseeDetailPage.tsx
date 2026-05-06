@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import type { PaginatedResponse } from '@/types/api.types'
 import { toast } from '@/widgets/Toast/Toast'
+import { DatePicker } from '@/widgets/DatePicker/DatePicker'
 import {
   franchiseeService,
   type Franchisee,
@@ -251,6 +252,16 @@ function OtherRevenueContent({
   )
 }
 
+function formatCurrencyInput(value: string): string {
+  const digits = value.replace(/\D/g, '')
+  if (!digits) return ''
+  return Number(digits).toLocaleString('id-ID')
+}
+
+function parseCurrencyInput(value: string): number {
+  return Number(value.replace(/\D/g, ''))
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function FranchiseeDetailPage() {
@@ -287,6 +298,7 @@ export default function FranchiseeDetailPage() {
     queryKey: ['franchisee-agreement', id],
     queryFn: () => franchiseeService.getAgreement(id!),
     enabled: Boolean(id),
+    retry: false,
   })
 
   const { data: royaltyData } = useQuery({
@@ -308,11 +320,11 @@ export default function FranchiseeDetailPage() {
   function openAgreementModal() {
     if (agreement) {
       setAgreementForm({
-        buy_in_fee: String(agreement.buy_in_fee ?? ''),
-        monthly_royalty: String(agreement.monthly_royalty ?? ''),
+        buy_in_fee: agreement.buy_in_fee != null ? Number(agreement.buy_in_fee).toLocaleString('id-ID') : '',
+        monthly_royalty: agreement.monthly_royalty != null ? Number(agreement.monthly_royalty).toLocaleString('id-ID') : '',
         revenue_royalty_pct: String(agreement.revenue_royalty_pct ?? ''),
-        start_date: agreement.start_date ?? '',
-        end_date: agreement.end_date ?? '',
+        start_date: (agreement.start_date ?? '').slice(0, 10),
+        end_date: (agreement.end_date ?? '').slice(0, 10),
         status: agreement.status ?? 'active',
       })
     } else {
@@ -325,8 +337,8 @@ export default function FranchiseeDetailPage() {
     setAgreementSaving(true)
     try {
       const payload = {
-        buy_in_fee: Number(agreementForm.buy_in_fee),
-        monthly_royalty: Number(agreementForm.monthly_royalty),
+        buy_in_fee: parseCurrencyInput(agreementForm.buy_in_fee),
+        monthly_royalty: parseCurrencyInput(agreementForm.monthly_royalty),
         revenue_royalty_pct: Number(agreementForm.revenue_royalty_pct),
         start_date: agreementForm.start_date,
         end_date: agreementForm.end_date || undefined,
@@ -524,19 +536,21 @@ export default function FranchiseeDetailPage() {
             </div>
             <div style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
               {([
-                { label: 'Buy-in Fee (IDR)', name: 'buy_in_fee' as const, type: 'number' },
-                { label: 'Royalti Bulanan (IDR)', name: 'monthly_royalty' as const, type: 'number' },
-                { label: 'Royalti Pendapatan (%)', name: 'revenue_royalty_pct' as const, type: 'number' },
-                { label: 'Tanggal Mulai', name: 'start_date' as const, type: 'date' },
-                { label: 'Tanggal Berakhir (opsional)', name: 'end_date' as const, type: 'date' },
-              ]).map(({ label, name, type }) => (
+                { label: 'Buy-in Fee (IDR)', name: 'buy_in_fee' as const, currency: true },
+                { label: 'Royalti Bulanan (IDR)', name: 'monthly_royalty' as const, currency: true },
+                { label: 'Royalti Pendapatan (%)', name: 'revenue_royalty_pct' as const, currency: false },
+              ]).map(({ label, name, currency }) => (
                 <div key={name}>
                   <label style={{ display: 'block', fontSize: 'var(--font-sm)', fontWeight: 500, marginBottom: 4 }}>{label}</label>
                   <input
-                    type={type}
+                    type="text"
+                    inputMode={currency ? 'numeric' : 'decimal'}
                     name={name}
                     value={agreementForm[name]}
-                    onChange={(e) => setAgreementForm(f => ({ ...f, [e.target.name]: e.target.value }))}
+                    onChange={(e) => {
+                      const val = currency ? formatCurrencyInput(e.target.value) : e.target.value
+                      setAgreementForm(f => ({ ...f, [name]: val }))
+                    }}
                     style={{
                       width: '100%', padding: '8px 10px', borderRadius: 'var(--radius-md)',
                       border: '1px solid var(--color-border)', fontSize: 'var(--font-sm)',
@@ -545,20 +559,39 @@ export default function FranchiseeDetailPage() {
                   />
                 </div>
               ))}
+              {([
+                { label: 'Tanggal Mulai', name: 'start_date' as const },
+                { label: 'Tanggal Berakhir (opsional)', name: 'end_date' as const },
+              ]).map(({ label, name }) => (
+                <div key={name}>
+                  <label style={{ display: 'block', fontSize: 'var(--font-sm)', fontWeight: 500, marginBottom: 4 }}>{label}</label>
+                  <DatePicker
+                    value={agreementForm[name]}
+                    onChange={(v) => setAgreementForm(f => ({ ...f, [name]: v }))}
+                  />
+                </div>
+              ))}
               <div>
                 <label style={{ display: 'block', fontSize: 'var(--font-sm)', fontWeight: 500, marginBottom: 4 }}>Status</label>
-                <select
-                  value={agreementForm.status}
-                  onChange={(e) => setAgreementForm(f => ({ ...f, status: e.target.value }))}
-                  style={{
-                    width: '100%', padding: '8px 10px', borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)', fontSize: 'var(--font-sm)',
-                    background: 'var(--color-surface)',
-                  }}
-                >
-                  <option value="active">Aktif</option>
-                  <option value="terminated">Diakhiri</option>
-                </select>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {([{ value: 'active', label: 'Aktif' }, { value: 'terminated', label: 'Diakhiri' }] as const).map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setAgreementForm(f => ({ ...f, status: opt.value }))}
+                      style={{
+                        flex: 1, padding: '8px 16px', borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--color-border)', cursor: 'pointer',
+                        fontSize: 'var(--font-sm)', fontWeight: agreementForm.status === opt.value ? 600 : 400,
+                        background: agreementForm.status === opt.value ? 'var(--color-primary)' : 'var(--color-surface)',
+                        color: agreementForm.status === opt.value ? '#fff' : 'var(--color-text)',
+                        transition: 'background 0.15s, color 0.15s',
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             <div style={{
@@ -675,7 +708,6 @@ export default function FranchiseeDetailPage() {
               {([
                 { label: 'Keterangan', name: 'label', type: 'text' },
                 { label: 'Jumlah (IDR)', name: 'amount', type: 'number' },
-                { label: 'Tanggal', name: 'revenue_date', type: 'date' },
               ] as const).map(({ label, name, type }) => (
                 <div key={name}>
                   <label style={{ display: 'block', fontSize: 'var(--font-sm)', fontWeight: 500, marginBottom: 4 }}>{label}</label>
@@ -689,6 +721,13 @@ export default function FranchiseeDetailPage() {
                   />
                 </div>
               ))}
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--font-sm)', fontWeight: 500, marginBottom: 4 }}>Tanggal</label>
+                <DatePicker
+                  value={otherRevenueForm.revenue_date}
+                  onChange={(v) => setOtherRevenueForm(f => ({ ...f, revenue_date: v }))}
+                />
+              </div>
             </div>
             <div style={{ padding: 'var(--space-4) var(--space-5)', borderTop: '1px solid var(--color-border)',
               display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)' }}>

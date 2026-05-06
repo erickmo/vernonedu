@@ -104,6 +104,7 @@ export function DatePicker({
   const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({})
   const wrapperRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
 
   // Calculate fixed position when opened — prevents clipping inside overflow:hidden cards
   useEffect(() => {
@@ -126,9 +127,9 @@ export function DatePicker({
   useEffect(() => {
     if (!open) return
     function handle(e: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
+      const inWrapper = wrapperRef.current?.contains(e.target as Node)
+      const inPopover = popoverRef.current?.contains(e.target as Node)
+      if (!inWrapper && !inPopover) setOpen(false)
     }
     document.addEventListener('mousedown', handle)
     return () => document.removeEventListener('mousedown', handle)
@@ -188,7 +189,7 @@ export function DatePicker({
       </button>
 
       {open && createPortal(
-        <div className={styles.popover} style={popoverStyle}>
+        <div className={styles.popover} style={popoverStyle} ref={popoverRef}>
           {/* Month navigation */}
           <div className={styles.header}>
             <button type="button" className={styles.navBtn} onClick={prevMonth}>

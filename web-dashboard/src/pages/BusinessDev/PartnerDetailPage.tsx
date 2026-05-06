@@ -9,6 +9,7 @@ import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageT
 import { partnerService } from '@/services/partner.service'
 import { toast } from '@/widgets/Toast/Toast'
 import { useDeleteConfirmModal } from '@/widgets/Modals/DeleteConfirmModal'
+import { DatePicker } from '@/widgets/DatePicker/DatePicker'
 import type { MOU, MOUPayload, MOUStatus, Partner } from '@/types/partner.types'
 
 const MOU_STATUSES: { value: MOUStatus; label: string }[] = [
@@ -163,34 +164,46 @@ function MOUFormModal({ partnerId, mou, onClose }: MOUFormModalProps) {
             />
           ))}
           {renderField('start_date', 'Tanggal Mulai', (
-            <input
+            <DatePicker
               id="start_date"
-              type="date"
               value={form.start_date}
-              onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
-              required
-              style={INPUT_STYLE}
+              onChange={v => setForm(f => ({ ...f, start_date: v }))}
             />
           ))}
           {renderField('end_date', 'Tanggal Berakhir (opsional)', (
-            <input
+            <DatePicker
               id="end_date"
-              type="date"
               value={form.end_date ?? ''}
-              onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
-              style={INPUT_STYLE}
+              onChange={v => setForm(f => ({ ...f, end_date: v }))}
             />
           ))}
           {renderField('status', 'Status', (
-            <select
-              id="status"
-              value={form.status}
-              onChange={e => setForm(f => ({ ...f, status: e.target.value as MOUStatus }))}
-              required
-              style={INPUT_STYLE}
-            >
-              {MOU_STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
+            <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+              {MOU_STATUSES.map(s => {
+                const active = form.status === s.value
+                const colors = MOU_BADGE_COLOR[s.value]
+                return (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, status: s.value }))}
+                    style={{
+                      padding: '5px 14px',
+                      borderRadius: 'var(--radius-full)',
+                      border: active ? '2px solid transparent' : '2px solid var(--color-border)',
+                      background: active ? colors.bg : 'transparent',
+                      color: active ? colors.color : 'var(--color-text-secondary)',
+                      fontSize: 'var(--font-sm)',
+                      fontWeight: active ? 600 : 400,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {s.label}
+                  </button>
+                )
+              })}
+            </div>
           ))}
           {renderField('document_url', 'URL Dokumen (opsional)', (
             <input
@@ -495,10 +508,25 @@ export default function PartnerDetailPage() {
         title={isLoading ? 'Memuat...' : (p?.name ?? 'Partner')}
         badges={<StatusBadge status={p?.mou_status} />}
         actions={actions}
-        tabs={[
-          { id: 'overview', label: 'Ringkasan', icon: <Handshake size={14} />, content: overviewTab },
-          { id: 'mou', label: 'MOU', icon: <FileText size={14} />, content: mouTab },
-          { id: 'notes', label: 'Catatan', icon: <StickyNote size={14} />, content: notesTab },
+        sections={[
+          {
+            id: 'overview',
+            label: 'Ringkasan',
+            icon: <Handshake size={14} />,
+            tabs: [{ id: 'detail', label: 'Ringkasan', content: overviewTab }],
+          },
+          {
+            id: 'mou',
+            label: 'MOU',
+            icon: <FileText size={14} />,
+            tabs: [{ id: 'list', label: 'Daftar MOU', content: mouTab }],
+          },
+          {
+            id: 'notes',
+            label: 'Catatan',
+            icon: <StickyNote size={14} />,
+            tabs: [{ id: 'list', label: 'Catatan', content: notesTab }],
+          },
         ]}
       />
 

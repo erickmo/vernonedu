@@ -11,6 +11,8 @@ export interface Franchisee {
   status: 'active' | 'inactive' | 'terminated'
   created_at: string
   updated_at?: string
+  agreement_start_date?: string
+  agreement_end_date?: string
   [key: string]: unknown
 }
 
@@ -93,8 +95,13 @@ export const franchiseeService = {
     apiClient.put<{ data: Franchisee }>(`/franchisees/${id}`, data),
 
   // Agreement endpoints
-  getAgreement: (franchiseeId: string): Promise<FranchiseAgreement> =>
-    apiClient.get<{ data: FranchiseAgreement }>(`/franchisees/${franchiseeId}/agreement`).then((r) => r?.data ?? r),
+  getAgreement: (franchiseeId: string): Promise<FranchiseAgreement | null> =>
+    apiClient.get<{ data: FranchiseAgreement }>(`/franchisees/${franchiseeId}/agreement`)
+      .then((r) => r?.data ?? r)
+      .catch((err) => {
+        if (err?.status === 404) return null
+        throw err
+      }),
 
   createAgreement: (franchiseeId: string, data: CreateAgreementPayload): Promise<{ data: FranchiseAgreement }> =>
     apiClient.post<{ data: FranchiseAgreement }>(`/franchisees/${franchiseeId}/agreement`, data),

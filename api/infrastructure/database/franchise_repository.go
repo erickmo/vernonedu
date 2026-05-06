@@ -35,6 +35,12 @@ type franchiseeRecord struct {
 	UpdatedAt  time.Time  `db:"updated_at"`
 }
 
+type franchiseeListRecord struct {
+	franchiseeRecord
+	AgreementStartDate sql.NullString `db:"agreement_start_date"`
+	AgreementEndDate   sql.NullString `db:"agreement_end_date"`
+}
+
 type franchiseAgreementRecord struct {
 	ID                uuid.UUID      `db:"id"`
 	FranchiseeID      uuid.UUID      `db:"franchisee_id"`
@@ -170,36 +176,45 @@ func (r *FranchiseRepository) ListFranchisees(ctx context.Context, offset, limit
 	where := "WHERE 1=1"
 	idx := 1
 	if status != "" {
-		where += " AND status=$" + strconv.Itoa(idx)
+		where += " AND f.status=$" + strconv.Itoa(idx)
 		args = append(args, status)
 		idx++
 	}
 	if search != "" {
-		where += " AND (name ILIKE $" + strconv.Itoa(idx) + " OR branch_name ILIKE $" + strconv.Itoa(idx) + ")"
+		where += " AND (f.name ILIKE $" + strconv.Itoa(idx) + " OR f.branch_name ILIKE $" + strconv.Itoa(idx) + ")"
 		args = append(args, "%"+search+"%")
 		idx++
 	}
 	var total int
-	err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM franchisees "+where, args...).Scan(&total)
+	countSQL := "SELECT COUNT(*) FROM franchisees f LEFT JOIN franchise_agreements fa ON fa.franchisee_id = f.id " + where
+	err := r.db.QueryRowContext(ctx, countSQL, args...).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
 	args = append(args, limit, offset)
-	rows, err := r.db.QueryxContext(ctx,
-		"SELECT * FROM franchisees "+where+" ORDER BY created_at DESC LIMIT $"+strconv.Itoa(idx)+" OFFSET $"+strconv.Itoa(idx+1),
-		args...,
-	)
+	sql := `SELECT f.*, fa.start_date AS agreement_start_date, fa.end_date AS agreement_end_date
+		FROM franchisees f
+		LEFT JOIN franchise_agreements fa ON fa.franchisee_id = f.id
+		` + where + ` ORDER BY f.created_at DESC LIMIT $` + strconv.Itoa(idx) + ` OFFSET $` + strconv.Itoa(idx+1)
+	rows, err := r.db.QueryxContext(ctx, sql, args...)
 	if err != nil {
 		return nil, 0, err
 	}
 	defer rows.Close()
 	var result []*franchise.Franchisee
 	for rows.Next() {
-		var rec franchiseeRecord
+		var rec franchiseeListRecord
 		if err := rows.StructScan(&rec); err != nil {
 			return nil, 0, err
 		}
-		result = append(result, franchiseeFromRecord(&rec))
+		f := franchiseeFromRecord(&rec.franchiseeRecord)
+		if rec.AgreementStartDate.Valid {
+			f.AgreementStartDate = rec.AgreementStartDate.String
+		}
+		if rec.AgreementEndDate.Valid {
+			f.AgreementEndDate = rec.AgreementEndDate.String
+		}
+		result = append(result, f)
 	}
 	return result, total, nil
 }

@@ -37,7 +37,6 @@ func NewMasterCourseHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryB
 type CreateMasterCourseRequest struct {
 	CourseCode       string   `json:"course_code" validate:"required"`
 	CourseName       string   `json:"course_name" validate:"required,min=1"`
-	Field            string   `json:"field" validate:"required"`
 	CoreCompetencies []string `json:"core_competencies"`
 	Description      string   `json:"description"`
 	SupportingAppUrl string   `json:"supporting_app_url"`
@@ -48,7 +47,6 @@ type CreateMasterCourseRequest struct {
 // UpdateMasterCourseRequest adalah request body untuk memperbarui MasterCourse.
 type UpdateMasterCourseRequest struct {
 	CourseName       string   `json:"course_name" validate:"required,min=1"`
-	Field            string   `json:"field" validate:"required"`
 	CoreCompetencies []string `json:"core_competencies"`
 	Description      string   `json:"description"`
 	SupportingAppUrl string   `json:"supporting_app_url"`
@@ -97,7 +95,6 @@ func (h *MasterCourseHandler) Create(w http.ResponseWriter, r *http.Request) {
 	cmd := &create_mastercourse.CreateMasterCourseCommand{
 		CourseCode:       req.CourseCode,
 		CourseName:       req.CourseName,
-		Field:            req.Field,
 		CoreCompetencies: req.CoreCompetencies,
 		Description:      req.Description,
 		SupportingAppUrl: req.SupportingAppUrl,
@@ -134,7 +131,6 @@ func (h *MasterCourseHandler) List(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 	status := r.URL.Query().Get("status")
-	field := r.URL.Query().Get("field")
 
 	var sortBy, sortDir string
 	if s := sortutil.Parse(r.URL.Query().Get("sort")); s != nil {
@@ -147,7 +143,6 @@ func (h *MasterCourseHandler) List(w http.ResponseWriter, r *http.Request) {
 		Limit:   limit,
 		Search:  r.URL.Query().Get("search"),
 		Status:  status,
-		Field:   field,
 		SortBy:  sortBy,
 		SortDir: sortDir,
 	}
@@ -241,7 +236,6 @@ func (h *MasterCourseHandler) Update(w http.ResponseWriter, r *http.Request) {
 	cmd := &update_mastercourse.UpdateMasterCourseCommand{
 		MasterCourseID:   id,
 		CourseName:       req.CourseName,
-		Field:            req.Field,
 		CoreCompetencies: req.CoreCompetencies,
 		Description:      req.Description,
 		SupportingAppUrl: req.SupportingAppUrl,

@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-06T04:21:05.515Z
-> Files: 1800 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-06T14:10:30.939Z
+> Files: 1823 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../.claude/plans/
 
@@ -2383,11 +2383,12 @@
 - `courseversion_repository.go` — Struct: CourseVersionRepository (~2547 tok)
 - `department_repository.go` — Struct: DepartmentRepository (~3704 tok)
 - `enrollment_repository.go` — Struct: EnrollmentRepository (~2438 tok)
+- `franchise_repository.go` — Struct: FranchiseRepository (~3659 tok)
 - `hrm_repository.go` — Struct: HrmRepository (~5373 tok)
 - `lead_repository.go` — Struct: LeadRepository (~1921 tok)
 - `lead_source_repository.go` — Struct: LeadSourceRepository (~863 tok)
 - `marketing_repository.go` — Struct: MarketingRepository (~6552 tok)
-- `mastercourse_repository.go` — Struct: BatchRecord (~2697 tok)
+- `mastercourse_repository.go` — Struct: BatchRecord (~2648 tok)
 - `notification_repository.go` — Struct: NotificationRepository (~1568 tok)
 - `partner_repository.go` — Struct: PartnerRepository (~4046 tok)
 - `report_repository.go` — Struct: ReportRepository (~3612 tok)
@@ -2436,6 +2437,10 @@
 - `errors.go` (~34 tok)
 - `handler.go` — Struct: CreateLeaveRequestCommand (~448 tok)
 
+## api/internal/command/create_mastercourse/
+
+- `handler.go` — Struct: CreateMasterCourseCommand (~574 tok)
+
 ## api/internal/command/create_payroll_item/
 
 - `errors.go` (~34 tok)
@@ -2477,6 +2482,10 @@
 
 - `errors.go` (~32 tok)
 - `handler.go` — Struct: UpdateEmployeeCommand (~604 tok)
+
+## api/internal/command/update_mastercourse/
+
+- `handler.go` — Struct: UpdateMasterCourseCommand (~635 tok)
 
 ## api/internal/command/update_payroll_item/
 
@@ -2520,7 +2529,7 @@
 - `lead_handler.go` — Struct: LeadHandler (~4330 tok)
 - `location_handler.go` — Struct: LocationHandler (~4583 tok)
 - `marketing_handler.go` — Struct: MarketingHandler (~6683 tok)
-- `mastercourse_handler.go` — Struct: MasterCourseHandler (~3950 tok)
+- `mastercourse_handler.go` — Struct: MasterCourseHandler (~4198 tok)
 - `notification_handler.go` — Struct: NotificationHandler (~1874 tok)
 - `okr_handler.go` — Struct: OkrHandler (~2305 tok)
 - `partner_handler.go` — Struct: PartnerHandler (~5058 tok)
@@ -2583,6 +2592,10 @@
 
 - `finance.go` — Interface: AccountWriteRepository (~1338 tok)
 
+## api/internal/domain/franchise/
+
+- `franchise.go` — Interface: WriteRepository (~820 tok)
+
 ## api/internal/domain/hrm/
 
 - `hrm.go` — Interface: WriteRepository (~1862 tok)
@@ -2597,7 +2610,8 @@
 
 ## api/internal/domain/mastercourse/
 
-- `mastercourse.go` — Interface: WriteRepository (~977 tok)
+- `events.go` — Struct: MasterCourseCreated (~334 tok)
+- `mastercourse.go` — Interface: WriteRepository (~1038 tok)
 
 ## api/internal/domain/notification/
 
@@ -2637,6 +2651,10 @@
 
 - `errors.go` (~27 tok)
 - `handler.go` — Struct: GetEmployeeQuery (~633 tok)
+
+## api/internal/query/get_mastercourse/
+
+- `handler.go` — Struct: GetMasterCourseQuery (~646 tok)
 
 ## api/internal/query/get_partner/
 
@@ -2707,6 +2725,10 @@
 - `handler.go` — Struct: TransactionReadModel (~635 tok)
 - `query.go` — Struct: ListFinanceTransactionsQuery (~80 tok)
 
+## api/internal/query/list_franchisees/
+
+- `query.go` — Struct: ListFranchiseesQuery (~540 tok)
+
 ## api/internal/query/list_invoices/
 
 - `handler.go` — Struct: InvoiceReadModel (~706 tok)
@@ -2729,7 +2751,7 @@
 
 ## api/internal/query/list_mastercourse/
 
-- `handler.go` — Struct: ListMasterCourseQuery (~689 tok)
+- `handler.go` — Struct: ListMasterCourseQuery (~663 tok)
 
 ## api/internal/query/list_mous/
 
@@ -2767,7 +2789,7 @@
 
 ## api/internal/query/list_student/
 
-- `handler.go` — Struct: ListStudentQuery (~625 tok)
+- `handler.go` — Struct: ListStudentQuery (~951 tok)
 
 ## api/internal/query/list_talentpool/
 
@@ -2787,6 +2809,7 @@
 - `076_create_hrm.sql` — 076: HRM Module — Employees, Staff Attendance, Leave Requests, Payroll (~1238 tok)
 - `077_create_calendar_events.sql` — SQL: tables: calendar_events (~210 tok)
 - `080_create_franchise_tables.sql` — 080_create_franchise_tables.sql (~747 tok)
+- `084_drop_mastercourse_field.sql` — Migration 084: Remove field column from master_courses (~83 tok)
 
 ## api/pkg/filterutil/
 
@@ -3282,6 +3305,7 @@
 - `2026-05-06-leads-phone-source-interest.md` — Leads: Phone Mandatory + Source Entity + Interest Multi-Link — Implementation Plan (~22955 tok)
 - `2026-05-06-location-ownership.md` — Location Ownership Implementation Plan (~6046 tok)
 - `2026-05-06-struktur-pendidikan.md` — Struktur Pendidikan Implementation Plan (~9157 tok)
+- `2026-05-06-student-form-card-layout.md` — Student Form Card Layout Implementation Plan (~4160 tok)
 - `2026-05-06-talentpool-job-vacancy.md` — TalentPool Job Vacancy Implementation Plan (~23041 tok)
 - `2026-05-06-talentpool-nav-section.md` — TalentPool Nav Section Implementation Plan (~2563 tok)
 
@@ -3307,6 +3331,7 @@
 - `2026-05-06-leads-phone-source-interest-design.md` — Leads: Phone Mandatory + Source Entity + Interest Multi-Link (~2097 tok)
 - `2026-05-06-location-ownership-design.md` — Location Ownership — Design Spec (~917 tok)
 - `2026-05-06-struktur-pendidikan-design.md` — Spec: Halaman Struktur Pendidikan (~1055 tok)
+- `2026-05-06-student-form-card-layout-design.md` — Student Form Card Layout — Design Spec (~440 tok)
 - `2026-05-06-talentpool-job-vacancy-design.md` — TalentPool — Job Vacancy Feature Design Spec (~1500 tok)
 - `2026-05-06-talentpool-nav-section-design.md` — TalentPool Nav Section — Design Spec (~796 tok)
 
@@ -3509,7 +3534,7 @@
 
 - `ProtectedRoute.tsx` — RootRedirect (~736 tok)
 - `providers.tsx` — queryClient (~187 tok)
-- `routes.tsx` — LoginPage (~7501 tok)
+- `routes.tsx` — LoginPage (~7982 tok)
 
 ## web-dashboard/src/hooks/
 
@@ -3537,7 +3562,7 @@
 
 - `AppSidebar.module.css` — Styles: 40 rules (~1956 tok)
 - `AppSidebar.tsx` — ─── Component ────────────────────────────────────────────────────────────────── (~1273 tok)
-- `navItems.ts` — Exports NavItem, NavSection, NAV_SECTIONS, getFilteredSections, getActive (~3341 tok)
+- `navItems.ts` — Exports NavItem, NavSection, NAV_SECTIONS (~3620 tok)
 
 ## web-dashboard/src/layouts/Navbar1/
 
@@ -3563,7 +3588,11 @@
 
 ## web-dashboard/src/pages/BusinessDev/
 
-- `PartnerDetailPage.tsx` — InfoRow (~2846 tok)
+- `PartnerDetailPage.tsx` — MOU_STATUSES — renders form, table (~5771 tok)
+
+## web-dashboard/src/pages/BusinessDev/__tests__/
+
+- `PartnerDetailPage.test.tsx` — wrapper (~1225 tok)
 
 ## web-dashboard/src/pages/Calendar/
 
@@ -3610,7 +3639,7 @@
 
 - `CourseApprovalsPage.tsx` — formatDate (~1026 tok)
 - `CourseDashboardPage.tsx` — CourseDashboardPage (~2458 tok)
-- `CourseFormPage.tsx` — Fields: course_code (create-only), course_name, field (SearchableSelect predefined), core_competencies (TagInput), description, supporting_app_url. Maps to /curriculum/courses API. (~2600 tok)
+- `CourseFormPage.tsx` — fetchDepartments — renders form (~3522 tok)
 - `CourseListPage.tsx` — columns (~1089 tok)
 - `CourseModulePage.tsx` — columns (~886 tok)
 - `CourseVersionPage.tsx` — columns (~1050 tok)
@@ -3651,6 +3680,14 @@
 - `InternshipConfigPage.tsx` — InternshipConfigPage — renders form (~293 tok)
 - `VersionFormPage.tsx` — formatDate — renders form (~1990 tok)
 
+## web-dashboard/src/pages/Dashboard/
+
+- `DashboardPage.tsx` — metrics (~2988 tok)
+
+## web-dashboard/src/pages/Dashboard/__tests__/
+
+- `ExpiringMOUWidget.test.tsx` — wrapper (~518 tok)
+
 ## web-dashboard/src/pages/Departments/
 
 - `DepartmentDashboardPage.tsx` — MGMT_ROLES (~5943 tok)
@@ -3690,6 +3727,11 @@
 - `TransactionFormPage.tsx` — formatDate — renders form (~2294 tok)
 - `TransactionListPage.tsx` — currencyFormatter (~1397 tok)
 - `TrialBalancePage.tsx` — currencyFmt — renders table (~1011 tok)
+
+## web-dashboard/src/pages/Franchisee/
+
+- `FranchiseeDetailPage.tsx` — formatCurrency — renders table (~9517 tok)
+- `FranchiseeListPage.tsx` — STATUS_CONFIG (~989 tok)
 
 ## web-dashboard/src/pages/Hrm/
 
@@ -3744,6 +3786,11 @@
 
 - `PartnerFormPage.tsx` — PARTNER_TYPES — renders form (~2464 tok)
 - `PartnerListPage.tsx` — MOU_STATUS_CONFIG (~1249 tok)
+- `PartnerMOUListPage.tsx` — MOU_BADGE_COLOR — renders table (~2849 tok)
+
+## web-dashboard/src/pages/Partners/__tests__/
+
+- `PartnerMOUListPage.test.tsx` — wrapper (~857 tok)
 
 ## web-dashboard/src/pages/Profile/
 
@@ -3759,16 +3806,19 @@
 
 - `LeadSourceDetailPage.tsx` — InfoCard (~1099 tok)
 - `LeadSourceListPage.tsx` — columns (~844 tok)
-- `SettingsPage.tsx` — BasisSelect — renders form, table (~2821 tok)
+- `SettingsPage.tsx` — BasisSelect — renders table (~4980 tok)
 
 ## web-dashboard/src/pages/Students/
 
 - `StudentDashboardPage.tsx` — StudentDashboardPage (~3120 tok)
-- `StudentFormPage.tsx` — formatDate — renders form (~1782 tok)
+- `StudentFormPage.module.css` — Styles: 1 rules (~24 tok)
+- `StudentFormPage.tsx` — GENDER_OPTIONS — renders form (~4048 tok)
 - `StudentListPage.tsx` — columns (~1035 tok)
 
 ## web-dashboard/src/pages/TalentPool/
 
+- `TalentPoolLowonganFormPage.tsx` — formatRupiah — renders form (~3901 tok)
+- `TalentPoolLowonganPage.tsx` — columns (~932 tok)
 - `TalentPoolPage.tsx` — STATUS_CONFIG (~1388 tok)
 - `TalentPoolPlacedPage.tsx` — columns (~819 tok)
 
@@ -3797,6 +3847,7 @@
 - `enrollment.service.ts` — Exports enrollmentService (~309 tok)
 - `finance-analysis.service.ts` — Exports financeAnalysisService (~386 tok)
 - `finance-reports.service.ts` — Exports financeReportsService (~356 tok)
+- `franchisee.service.ts` — Exports Franchisee, FranchiseAgreement, RoyaltyPayment, OtherRevenue + 5 more (~1356 tok)
 - `hrm.service.ts` — ─── Employees ───────────────────────────────────────────────────────────────── (~1110 tok)
 - `investment.service.ts` — Exports investmentService (~114 tok)
 - `invoice.service.ts` — Exports invoiceService (~305 tok)
@@ -3807,7 +3858,7 @@
 - `media.service.ts` — Media service untuk menangani file upload ke endpoint /api/v1/media/upload (~840 tok)
 - `notification.service.ts` — Exports Notification, notificationService (~215 tok)
 - `okr.service.ts` — Exports okrService (~66 tok)
-- `partner.service.ts` — Exports partnerService (~258 tok)
+- `partner.service.ts` — Exports partnerService (~536 tok)
 - `payable.service.ts` — Exports payableService (~224 tok)
 - `project.service.ts` — API routes: DELETE (1 endpoints) (~206 tok)
 - `query-keys.ts` — Exports QK, QueryKeyValue (~795 tok)
@@ -3831,6 +3882,7 @@
 - `auth.types.ts` — VernonEdu staff roles (~745 tok)
 - `calendar.types.ts` — Exports EventType, CalendarEvent, EVENT_TYPE_COLORS, EVENT_TYPE_LABELS, CreateCalendarEventPayload (~369 tok)
 - `hrm.types.ts` — ─── Employee ────────────────────────────────────────────────────────────────── (~1708 tok)
+- `partner.types.ts` — Exports MOUStatus, MOU, ExpiringMOU, MOUPayload, Partner (~234 tok)
 
 ## web-dashboard/src/widgets/ChatWidget/
 
@@ -3848,7 +3900,8 @@
 
 ## web-dashboard/src/widgets/DatePicker/
 
-- `DatePicker.tsx` — ─── Constants ──────────────────────────────────────────────────────────────── (~2355 tok)
+- `DatePicker.module.css` — Styles: 21 rules (~956 tok)
+- `DatePicker.tsx` — ─── Constants ──────────────────────────────────────────────────────────────── (~2311 tok)
 
 ## web-dashboard/src/widgets/DetailPageTemplate/
 
