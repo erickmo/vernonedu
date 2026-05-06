@@ -5,6 +5,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   FormPageTemplate,
   Field,
+  FieldRow,
+  FieldSection,
   FormGrid,
   FormColumn,
 } from '@/widgets/FormPageTemplate'
@@ -192,98 +194,121 @@ export default function CourseFormPage() {
           content: (
             <FormGrid>
               <FormColumn>
-                {!isEdit && (
-                  <Field label="Kode Kursus" required error={errors.course_code} hint="Kode unik, tidak bisa diubah setelah disimpan. Contoh: WD-001">
-                    <input
-                      type="text"
-                      value={courseCode}
-                      onChange={(e) => setCourseCode(e.target.value)}
-                      placeholder="cth. WD-001"
-                      className={`${formStyles.input} ${errors.course_code ? formStyles.inputError : ''}`}
-                      autoFocus
+                <FieldSection title="Identitas Kursus">
+                  {!isEdit ? (
+                    <FieldRow>
+                      <div style={{ flex: '0 0 160px' }}>
+                        <Field label="Kode Kursus" required error={errors.course_code} hint="Kode unik, tidak bisa diubah setelah disimpan.">
+                          <input
+                            type="text"
+                            value={courseCode}
+                            onChange={(e) => setCourseCode(e.target.value)}
+                            placeholder="cth. WD-001"
+                            className={`${formStyles.input} ${errors.course_code ? formStyles.inputError : ''}`}
+                            autoFocus
+                          />
+                        </Field>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Field label="Nama Kursus" required error={errors.course_name}>
+                          <input
+                            type="text"
+                            value={courseName}
+                            onChange={(e) => setCourseName(e.target.value)}
+                            placeholder="cth. Web Development Fundamentals"
+                            className={`${formStyles.input} ${errors.course_name ? formStyles.inputError : ''}`}
+                          />
+                        </Field>
+                      </div>
+                    </FieldRow>
+                  ) : (
+                    <Field label="Nama Kursus" required error={errors.course_name}>
+                      <input
+                        type="text"
+                        value={courseName}
+                        onChange={(e) => setCourseName(e.target.value)}
+                        placeholder="cth. Web Development Fundamentals"
+                        className={`${formStyles.input} ${errors.course_name ? formStyles.inputError : ''}`}
+                        autoFocus
+                      />
+                    </Field>
+                  )}
+                  <Field label="Bidang Studi" required error={errors.field}>
+                    <SearchableSelect
+                      value={field}
+                      displayLabel={fieldLabel}
+                      placeholder="— Pilih Bidang Studi —"
+                      error={errors.field}
+                      fetchOptions={fetchFieldOptions}
+                      onSelect={(opt) => {
+                        setField(opt?.value ?? '')
+                        setFieldLabel(opt?.label ?? '')
+                      }}
                     />
                   </Field>
-                )}
+                </FieldSection>
 
-                <Field label="Nama Kursus" required error={errors.course_name}>
-                  <input
-                    type="text"
-                    value={courseName}
-                    onChange={(e) => setCourseName(e.target.value)}
-                    placeholder="cth. Web Development Fundamentals"
-                    className={`${formStyles.input} ${errors.course_name ? formStyles.inputError : ''}`}
-                    autoFocus={isEdit}
-                  />
-                </Field>
+                <FieldSection title="Organisasi & Konfigurasi">
+                  <FieldRow>
+                    <div style={{ flex: 1 }}>
+                      <Field label="Departemen">
+                        <SearchableSelect
+                          value={departmentId}
+                          displayLabel={departmentLabel}
+                          placeholder="Cari departemen..."
+                          fetchOptions={fetchDepartments}
+                          onSelect={(opt) => {
+                            setDepartmentId(opt?.value ?? '')
+                            setDepartmentLabel(opt?.label ?? '')
+                          }}
+                        />
+                      </Field>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <Field label="Course Owner">
+                        <SearchableSelect
+                          value={ownerId}
+                          displayLabel={ownerLabel}
+                          placeholder="Cari course owner..."
+                          fetchOptions={fetchOwners}
+                          onSelect={(opt) => {
+                            setOwnerId(opt?.value ?? '')
+                            setOwnerLabel(opt?.label ?? '')
+                          }}
+                        />
+                      </Field>
+                    </div>
+                  </FieldRow>
+                  <Field label="URL Supporting App" hint="Opsional. Link ke aplikasi pendukung (contoh: app-entrepreneur).">
+                    <input
+                      type="url"
+                      value={supportingAppUrl}
+                      onChange={(e) => setSupportingAppUrl(e.target.value)}
+                      placeholder="https://..."
+                      className={formStyles.input}
+                    />
+                  </Field>
+                </FieldSection>
 
-                <Field label="Bidang Studi" required error={errors.field}>
-                  <SearchableSelect
-                    value={field}
-                    displayLabel={fieldLabel}
-                    placeholder="— Pilih Bidang Studi —"
-                    error={errors.field}
-                    fetchOptions={fetchFieldOptions}
-                    onSelect={(opt) => {
-                      setField(opt?.value ?? '')
-                      setFieldLabel(opt?.label ?? '')
-                    }}
-                  />
-                </Field>
-
-                <Field label="Kompetensi Inti" hint="Ketik lalu tekan Enter untuk menambah.">
-                  <TagInput
-                    value={coreCompetencies}
-                    onChange={setCoreCompetencies}
-                    placeholder="cth. Problem Solving, Teamwork..."
-                  />
-                </Field>
-
-                <Field label="Deskripsi">
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Deskripsi singkat tentang kursus ini..."
-                    className={formStyles.input}
-                    rows={4}
-                    style={{ resize: 'vertical' }}
-                  />
-                </Field>
-
-                <Field label="URL Supporting App" hint="Opsional. Link ke aplikasi pendukung (contoh: app-entrepreneur).">
-                  <input
-                    type="url"
-                    value={supportingAppUrl}
-                    onChange={(e) => setSupportingAppUrl(e.target.value)}
-                    placeholder="https://..."
-                    className={formStyles.input}
-                  />
-                </Field>
-
-                <Field label="Departemen">
-                  <SearchableSelect
-                    value={departmentId}
-                    displayLabel={departmentLabel}
-                    placeholder="Cari departemen..."
-                    fetchOptions={fetchDepartments}
-                    onSelect={(opt) => {
-                      setDepartmentId(opt?.value ?? '')
-                      setDepartmentLabel(opt?.label ?? '')
-                    }}
-                  />
-                </Field>
-
-                <Field label="Course Owner">
-                  <SearchableSelect
-                    value={ownerId}
-                    displayLabel={ownerLabel}
-                    placeholder="Cari course owner..."
-                    fetchOptions={fetchOwners}
-                    onSelect={(opt) => {
-                      setOwnerId(opt?.value ?? '')
-                      setOwnerLabel(opt?.label ?? '')
-                    }}
-                  />
-                </Field>
+                <FieldSection title="Konten Kurikulum">
+                  <Field label="Kompetensi Inti" hint="Ketik lalu tekan Enter untuk menambah.">
+                    <TagInput
+                      value={coreCompetencies}
+                      onChange={setCoreCompetencies}
+                      placeholder="cth. Problem Solving, Teamwork..."
+                    />
+                  </Field>
+                  <Field label="Deskripsi">
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Deskripsi singkat tentang kursus ini..."
+                      className={formStyles.input}
+                      rows={4}
+                      style={{ resize: 'vertical' }}
+                    />
+                  </Field>
+                </FieldSection>
               </FormColumn>
               {sidebarContent}
             </FormGrid>
