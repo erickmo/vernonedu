@@ -33,8 +33,11 @@ export const marketingService = {
   deletePr: (id: string) =>
     apiClient.delete(`/marketing/pr/${id}`),
 
-  listReferralPartners: () =>
-    apiClient.get<any>('/marketing/referral-partners').then((r: any) => r?.data ?? r),
+  listReferralPartners: (params?: ListParams): Promise<PaginatedResponse<any>> =>
+    apiClient.get<any>(`/marketing/referral-partners${buildQueryString(params)}`).then((r: any) => {
+      const items = Array.isArray(r?.data) ? r.data : (Array.isArray(r) ? r : [])
+      return { items, total: items.length, limit: 9999, offset: 0 }
+    }),
 
   createReferralPartner: (data: any) =>
     apiClient.post<any>('/marketing/referral-partners', data),

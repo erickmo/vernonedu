@@ -135,6 +135,7 @@ func (r *LeadRepository) GetByID(ctx context.Context, id uuid.UUID) (*lead.Lead,
 
 var leadListSortCols = map[string]string{
 	"name":       "name",
+	"phone":      "phone",
 	"status":     "status",
 	"created_at": "created_at",
 	"updated_at": "updated_at",
@@ -151,7 +152,7 @@ func (r *LeadRepository) List(ctx context.Context, offset, limit int, status, so
 		SELECT COUNT(*) FROM leads
 		WHERE ($1='' OR status=$1)
 		AND ($2='' OR source_id::text=$2)
-		AND ($3='' OR name ILIKE $3)
+		AND ($3='' OR name ILIKE $3 OR phone ILIKE $3 OR email ILIKE $3)
 	`
 	if err := r.db.GetContext(ctx, &total, countQuery, status, sourceID, searchPattern); err != nil {
 		return nil, 0, fmt.Errorf("failed to count leads: %w", err)
@@ -164,7 +165,7 @@ func (r *LeadRepository) List(ctx context.Context, offset, limit int, status, so
 		FROM leads
 		WHERE ($1='' OR status=$1)
 		AND ($2='' OR source_id::text=$2)
-		AND ($3='' OR name ILIKE $3)
+		AND ($3='' OR name ILIKE $3 OR phone ILIKE $3 OR email ILIKE $3)
 		%s
 		LIMIT $4 OFFSET $5
 	`, orderBy)

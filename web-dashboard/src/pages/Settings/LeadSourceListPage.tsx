@@ -58,7 +58,7 @@ export default function LeadSourceListPage() {
       addLabel="Tambah Sumber"
       onAdd={() => navigate('/settings/lead-sources/new')}
       queryKey="lead-sources"
-      fetcher={() => leadSourceService.list().then(items => ({ items, total: items.length, limit: 9999, offset: 0 }))}
+      fetcher={(params) => leadSourceService.list(params)}
       columns={columns}
       rowActions={rowActions}
       onRowClick={(row) => navigate(`/settings/lead-sources/${row.id}/edit`)}

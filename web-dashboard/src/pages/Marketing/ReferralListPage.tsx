@@ -132,11 +132,7 @@ export default function ReferralListPage() {
       addLabel="Tambah Partner Referral"
       onAdd={() => navigate('/marketing/referral/new')}
       queryKey="marketing-referral-partners"
-      fetcher={async () => {
-        const raw = await marketingService.listReferralPartners()
-        const items = Array.isArray(raw) ? raw : (raw as any)?.items ?? []
-        return { items, total: items.length, limit: 9999, offset: 0 }
-      }}
+      fetcher={(params) => marketingService.listReferralPartners(params)}
       columns={columns}
       rowActions={rowActions}
       onRowClick={(row) => navigate(`/marketing/referral/${row.id}/edit`)}

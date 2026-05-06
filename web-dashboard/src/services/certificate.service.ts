@@ -18,8 +18,11 @@ export const certificateService = {
   revoke: (id: string, reason: string) =>
     apiClient.post<any>(`/certificates/${id}/revoke`, { reason }),
 
-  getTemplates: () =>
-    apiClient.get<any>('/certificate-templates').then((r: any) => r?.data ?? r),
+  getTemplates: (params?: ListParams): Promise<PaginatedResponse<any>> =>
+    apiClient.get<any>(`/certificate-templates${buildQueryString(params)}`).then((r: any) => {
+      const items = Array.isArray(r?.data) ? r.data : (Array.isArray(r) ? r : [])
+      return { items, total: items.length, limit: 9999, offset: 0 }
+    }),
 
   createTemplate: (data: any) =>
     apiClient.post<any>('/certificate-templates', data),

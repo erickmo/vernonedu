@@ -91,7 +91,7 @@ export default function CertificateTemplateListPage() {
       addLabel="Tambah Template"
       onAdd={() => navigate('/certificates/templates/new')}
       queryKey={QK.certificateTemplates}
-      fetcher={() => certificateService.getTemplates()}
+      fetcher={(params) => certificateService.getTemplates(params)}
       columns={columns}
       rowActions={rowActions}
       onRowClick={(row) => navigate(`/certificates/templates/${row.id}/edit`)}

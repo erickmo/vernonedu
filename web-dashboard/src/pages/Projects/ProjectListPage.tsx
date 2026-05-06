@@ -2,6 +2,8 @@ import { FolderKanban } from 'lucide-react'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
 import type { ColumnDef } from '@/widgets/DataTable/DataTable'
 import { apiClient } from '@/services/api.client'
+import { buildQueryString } from '@/services/createEntityService'
+import type { ListParams } from '@/services/createEntityService'
 
 interface Project {
   id: string
@@ -106,9 +108,9 @@ export default function ProjectListPage() {
     <ListPageTemplate<Project>
       title="Proyek"
       queryKey="projects"
-      fetcher={async () => {
-        const data = await apiClient.get<any>('/projects')
-        const items = Array.isArray(data) ? data : (data as any)?.items ?? []
+      fetcher={async (params: ListParams) => {
+        const data = await apiClient.get<any>(`/projects${buildQueryString(params)}`)
+        const items = Array.isArray(data) ? data : ((data as any)?.data ?? [])
         return { items, total: items.length, limit: 9999, offset: 0 }
       }}
       columns={columns}

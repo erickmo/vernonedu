@@ -60,7 +60,6 @@ const columns: ColumnDef<Lead>[] = [
   {
     key: 'source',
     header: 'Sumber',
-    sortable: true,
     width: 120,
     render: (_v, row) => row.source?.name ?? '—',
   },
