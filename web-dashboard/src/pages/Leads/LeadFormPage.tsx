@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { User } from 'lucide-react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { User, X, Plus } from 'lucide-react'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import {
   FormPageTemplate,
   Field,
@@ -10,14 +10,14 @@ import {
 } from '@/widgets/FormPageTemplate'
 import { toast } from '@/widgets/Toast/Toast'
 import { leadService } from '@/services/lead.service'
+import { leadSourceService } from '@/services/lead-source.service'
+import { apiClient } from '@/services/api.client'
 import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
 
-const SOURCE_OPTIONS = [
-  { value: 'referral', label: 'Referral' },
-  { value: 'social_media', label: 'Media Sosial' },
-  { value: 'walk_in', label: 'Walk In' },
-  { value: 'website', label: 'Website' },
-  { value: 'other', label: 'Lainnya' },
+const ENTITY_TYPES = [
+  { value: 'master_course', label: 'Master Course' },
+  { value: 'course_type', label: 'Course Type' },
+  { value: 'course_batch', label: 'Batch' },
 ]
 
 const STATUS_OPTIONS = [
@@ -29,6 +29,12 @@ const STATUS_OPTIONS = [
   { value: 'not_interested', label: 'Tidak Tertarik' },
 ]
 
+const ENTITY_TYPE_LABELS: Record<string, string> = {
+  master_course: 'Master Course',
+  course_type: 'Course Type',
+  course_batch: 'Batch',
+}
+
 export default function LeadFormPage() {
   const navigate = useNavigate()
   const { leadId } = useParams<{ leadId: string }>()
@@ -38,13 +44,15 @@ export default function LeadFormPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [interest, setInterest] = useState('')
-  const [source, setSource] = useState('referral')
+  const [sourceId, setSourceId] = useState('')
   const [status, setStatus] = useState('new')
   const [notes, setNotes] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverError, setServerError] = useState('')
+
+  const [interestEntityType, setInterestEntityType] = useState('master_course')
+  const [interestEntityId, setInterestEntityId] = useState('')
 
   const { data: lead } = useQuery({
     queryKey: ['lead', leadId],
@@ -52,25 +60,105 @@ export default function LeadFormPage() {
     enabled: isEdit,
   })
 
+  const { data: sources = [] } = useQuery({
+    queryKey: ['lead-sources'],
+    queryFn: () => leadSourceService.list(),
+  })
+
+  const activeSources = sources.filter((s) => s.is_active)
+
+  const { data: masterCourses = [] } = useQuery({
+    queryKey: ['master-courses-simple'],
+    queryFn: () =>
+      apiClient.get<any>('master-courses?limit=200').then((r: any) => {
+        const d = r?.data ?? r
+        return Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []
+      }),
+    enabled: isEdit,
+  })
+
+  const { data: courseTypes = [] } = useQuery({
+    queryKey: ['course-types-simple'],
+    queryFn: () =>
+      apiClient.get<any>('course-types?limit=200').then((r: any) => {
+        const d = r?.data ?? r
+        return Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []
+      }),
+    enabled: isEdit,
+  })
+
+  const { data: courseBatches = [] } = useQuery({
+    queryKey: ['course-batches-simple'],
+    queryFn: () =>
+      apiClient.get<any>('course-batches?limit=200').then((r: any) => {
+        const d = r?.data ?? r
+        return Array.isArray(d?.data) ? d.data : Array.isArray(d) ? d : []
+      }),
+    enabled: isEdit,
+  })
+
   useEffect(() => {
     if (lead) {
-      setName(lead.name ?? '')
-      setEmail(lead.email ?? '')
-      setPhone(lead.phone ?? '')
-      setInterest(lead.interest ?? '')
-      setSource(lead.source ?? 'referral')
-      setStatus(lead.status ?? 'new')
-      setNotes(lead.notes ?? '')
+      setName((lead as any).name ?? '')
+      setEmail((lead as any).email ?? '')
+      setPhone((lead as any).phone ?? '')
+      setSourceId((lead as any).source?.id ?? '')
+      setStatus((lead as any).status ?? 'new')
+      setNotes((lead as any).notes ?? '')
     }
   }, [lead])
+
+  const interests: any[] = (lead as any)?.interests ?? []
+
+  const addInterestMutation = useMutation({
+    mutationFn: () =>
+      leadService.addInterest(leadId!, {
+        entity_type: interestEntityType,
+        entity_id: interestEntityId,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lead', leadId] })
+      setInterestEntityId('')
+      toast.success('Minat ditambahkan')
+    },
+    onError: () => toast.error('Gagal menambah minat'),
+  })
+
+  const removeInterestMutation = useMutation({
+    mutationFn: (interestId: string) => leadService.removeInterest(leadId!, interestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lead', leadId] })
+      toast.success('Minat dihapus')
+    },
+    onError: () => toast.error('Gagal menghapus minat'),
+  })
+
+  function getEntityOptions(): Array<{ value: string; label: string }> {
+    if (interestEntityType === 'master_course') {
+      return (masterCourses as any[]).map((c: any) => ({
+        value: c.id,
+        label: c.course_name ?? c.name ?? c.id,
+      }))
+    }
+    if (interestEntityType === 'course_type') {
+      return (courseTypes as any[]).map((c: any) => ({
+        value: c.id,
+        label: c.type_name ?? c.name ?? c.id,
+      }))
+    }
+    return (courseBatches as any[]).map((c: any) => ({
+      value: c.id,
+      label: c.name ?? c.id,
+    }))
+  }
 
   function validate(): boolean {
     const e: Record<string, string> = {}
     if (!name.trim()) e.name = 'Nama wajib diisi'
     else if (name.trim().length < 2) e.name = 'Minimal 2 karakter'
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!phone.trim()) e.phone = 'Telepon wajib diisi'
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       e.email = 'Format email tidak valid'
-    }
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -81,14 +169,12 @@ export default function LeadFormPage() {
 
     setIsSubmitting(true)
     setServerError('')
-
     try {
       const payload = {
         name: name.trim(),
+        phone: phone.trim(),
         email: email.trim() || undefined,
-        phone: phone.trim() || undefined,
-        interest: interest.trim() || undefined,
-        source,
+        source_id: sourceId || undefined,
         notes: notes.trim() || undefined,
         ...(isEdit && { status }),
       }
@@ -107,6 +193,118 @@ export default function LeadFormPage() {
       setIsSubmitting(false)
     }
   }
+
+  const interestsSection = isEdit ? (
+    <FormColumn style={{ gridColumn: '1 / -1' }}>
+      <Field label="Minat" hint="Kursus atau batch yang diminati lead ini.">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+          {interests.length === 0 && (
+            <span
+              style={{
+                color: 'var(--color-text-tertiary)',
+                fontSize: 'var(--font-sm)',
+              }}
+            >
+              Belum ada minat
+            </span>
+          )}
+          {interests.map((i: any) => (
+            <span
+              key={i.id}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-full)',
+                background: 'var(--color-primary-subtle)',
+                color: 'var(--color-primary)',
+                fontSize: 'var(--font-xs)',
+                fontWeight: 600,
+              }}
+            >
+              <span style={{ opacity: 0.7 }}>
+                [{ENTITY_TYPE_LABELS[i.entity_type] ?? i.entity_type}]
+              </span>
+              {i.entity_name ?? i.entity_id}
+              <button
+                type="button"
+                onClick={() => removeInterestMutation.mutate(i.id)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  lineHeight: 1,
+                  color: 'inherit',
+                }}
+              >
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            gap: 8,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <select
+            value={interestEntityType}
+            onChange={(e) => {
+              setInterestEntityType(e.target.value)
+              setInterestEntityId('')
+            }}
+            className={formStyles.select}
+            style={{ width: 150 }}
+          >
+            {ENTITY_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={interestEntityId}
+            onChange={(e) => setInterestEntityId(e.target.value)}
+            className={formStyles.select}
+            style={{ flex: 1, minWidth: 200 }}
+          >
+            <option value="">Pilih...</option>
+            {getEntityOptions().map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => interestEntityId && addInterestMutation.mutate()}
+            disabled={!interestEntityId || addInterestMutation.isPending}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--color-primary)',
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 'var(--font-sm)',
+              fontWeight: 600,
+              opacity: !interestEntityId || addInterestMutation.isPending ? 0.5 : 1,
+            }}
+          >
+            <Plus size={14} /> Tambah
+          </button>
+        </div>
+      </Field>
+    </FormColumn>
+  ) : null
 
   return (
     <FormPageTemplate
@@ -130,7 +328,21 @@ export default function LeadFormPage() {
                     autoFocus
                   />
                 </Field>
-                <Field label="Email" error={errors.email} hint="Opsional. Digunakan untuk mengirim notifikasi.">
+                <Field
+                  label="Telepon"
+                  required
+                  error={errors.phone}
+                  hint="Digunakan untuk menghubungi prospek."
+                >
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+62 xxx xxxx xxxx"
+                    className={`${formStyles.input} ${errors.phone ? formStyles.inputError : ''}`}
+                  />
+                </Field>
+                <Field label="Email" error={errors.email} hint="Opsional.">
                   <input
                     type="email"
                     value={email}
@@ -139,38 +351,21 @@ export default function LeadFormPage() {
                     className={`${formStyles.input} ${errors.email ? formStyles.inputError : ''}`}
                   />
                 </Field>
-                <Field label="Telepon" hint="Opsional. Digunakan untuk menghubungi prospek.">
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+62 xxx xxxx xxxx"
-                    className={formStyles.input}
-                  />
-                </Field>
               </FormColumn>
               <FormColumn>
                 <Field label="Sumber" hint="Dari mana prospek mengetahui layanan kami.">
                   <select
-                    value={source}
-                    onChange={(e) => setSource(e.target.value)}
+                    value={sourceId}
+                    onChange={(e) => setSourceId(e.target.value)}
                     className={formStyles.select}
                   >
-                    {SOURCE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
+                    <option value="">— Pilih Sumber —</option>
+                    {activeSources.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
                       </option>
                     ))}
                   </select>
-                </Field>
-                <Field label="Minat" hint="Opsional. Jenis kursus atau program yang diminati.">
-                  <input
-                    type="text"
-                    value={interest}
-                    onChange={(e) => setInterest(e.target.value)}
-                    placeholder="cth. Programming, Digital Marketing"
-                    className={formStyles.input}
-                  />
                 </Field>
                 {isEdit && (
                   <Field label="Status" hint="Tahap prospek saat ini.">
@@ -188,8 +383,9 @@ export default function LeadFormPage() {
                   </Field>
                 )}
               </FormColumn>
+              {interestsSection}
               <FormColumn style={{ gridColumn: '1 / -1' }}>
-                <Field label="Catatan" hint="Opsional. Tambahkan catatan tentang prospek ini.">
+                <Field label="Catatan" hint="Opsional.">
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
@@ -197,10 +393,15 @@ export default function LeadFormPage() {
                     rows={5}
                     className={formStyles.textarea}
                   />
-                  <span style={{
-                    fontSize: 'var(--font-min)', color: 'var(--color-text-tertiary)',
-                    textAlign: 'right', display: 'block', marginTop: 2,
-                  }}>
+                  <span
+                    style={{
+                      fontSize: 'var(--font-min)',
+                      color: 'var(--color-text-tertiary)',
+                      textAlign: 'right',
+                      display: 'block',
+                      marginTop: 2,
+                    }}
+                  >
                     {notes.length} karakter
                   </span>
                 </Field>
