@@ -35,6 +35,10 @@ func (m *mockBuildingRepo) ListWithRooms(ctx context.Context, offset, limit int,
 	return nil, 0, nil
 }
 
+func (m *mockBuildingRepo) GetByIDWithPartner(ctx context.Context, id uuid.UUID) (*building.BuildingWithPartner, error) {
+	return nil, nil
+}
+
 func TestHandle_ValidQuery_ReturnsBuildingsWithRooms(t *testing.T) {
 	id := uuid.New()
 	roomID := uuid.New()

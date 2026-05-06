@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewBuilding_Success(t *testing.T) {
-	b, err := building.NewBuilding("Gedung A", "Jl. Contoh No. 1", "Gedung utama kampus")
+	b, err := building.NewBuilding("Gedung A", "Jl. Contoh No. 1", "Gedung utama kampus", "self", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -27,7 +27,7 @@ func TestNewBuilding_Success(t *testing.T) {
 }
 
 func TestNewBuilding_EmptyName(t *testing.T) {
-	_, err := building.NewBuilding("", "Jl. Contoh", "desc")
+	_, err := building.NewBuilding("", "Jl. Contoh", "desc", "self", nil)
 	if err == nil {
 		t.Fatal("expected error for empty name, got nil")
 	}
@@ -37,7 +37,7 @@ func TestNewBuilding_EmptyName(t *testing.T) {
 }
 
 func TestNewBuilding_OptionalFields(t *testing.T) {
-	b, err := building.NewBuilding("Gedung B", "", "")
+	b, err := building.NewBuilding("Gedung B", "", "", "self", nil)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -50,8 +50,8 @@ func TestNewBuilding_OptionalFields(t *testing.T) {
 }
 
 func TestNewBuilding_IDIsUnique(t *testing.T) {
-	b1, _ := building.NewBuilding("Gedung A", "", "")
-	b2, _ := building.NewBuilding("Gedung B", "", "")
+	b1, _ := building.NewBuilding("Gedung A", "", "", "self", nil)
+	b2, _ := building.NewBuilding("Gedung B", "", "", "self", nil)
 	if b1.ID == b2.ID {
 		t.Error("expected unique IDs for different buildings")
 	}
