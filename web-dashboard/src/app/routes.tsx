@@ -30,6 +30,7 @@ const InternshipConfigPage     = lazy(() => import('@/pages/Course/InternshipCon
 const CharacterTestConfigPage  = lazy(() => import('@/pages/Course/CharacterTestConfigPage'))
 const CourseApprovalsPage      = lazy(() => import('@/pages/Course/CourseApprovalsPage'))
 const CourseDashboardPage      = lazy(() => import('@/pages/Course/CourseDashboardPage'))
+const StrukturPage             = lazy(() => import('@/pages/Course/StrukturPage'))
 
 // Course Batches
 const CourseBatchListPage   = lazy(() => import('@/pages/CourseBatch/CourseBatchListPage'))
@@ -182,6 +183,7 @@ const singleTenantRoutes = [
 
       // ── Course ─────────────────────────────────────────────────────────────
       { path: 'course',                               element: <S><CourseListPage /></S> },
+      { path: 'pendidikan/struktur',                  element: <S><StrukturPage /></S> },
       { path: 'course/new',                           element: <S><CourseFormPage /></S> },
       { path: 'course/:courseId',                     element: <S><CourseDashboardPage /></S> },
       { path: 'course/:courseId/edit',                element: <S><CourseFormPage /></S> },

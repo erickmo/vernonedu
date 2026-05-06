@@ -31,6 +31,7 @@ import {
   BarChart2,
   CalendarCheck,
   CalendarOff,
+  Network,
 } from 'lucide-react'
 
 // ─── Permission helpers ─────────────────────────────────────────────────────────
@@ -177,6 +178,13 @@ const ALL_ITEMS: NavItem[] = [
     label: 'Kurikulum',
     icon: BookOpen,
     path: '/course',
+    hasAccess: (ctx) => canManageCourse(ctx) || hasRole(ctx, 'facilitator'),
+  },
+  {
+    key: 'struktur',
+    label: 'Struktur',
+    icon: Network,
+    path: '/pendidikan/struktur',
     hasAccess: (ctx) => canManageCourse(ctx) || hasRole(ctx, 'facilitator'),
   },
   {
@@ -439,19 +447,19 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'pendidikan',
     label: 'Pendidikan',
     icon: BookOpen,
-    items: ALL_ITEMS.slice(1, 7), // Kurikulum..Sertifikat
+    items: ALL_ITEMS.slice(1, 8), // Kurikulum..Sertifikat
   },
   {
     key: 'operasi',
     label: 'Operasi',
     icon: MapPin,
-    items: [ALL_ITEMS[8], ALL_ITEMS[10]], // Leads, Pembayaran
+    items: [ALL_ITEMS[9], ALL_ITEMS[11]], // Leads, Pembayaran
   },
   {
     key: 'marketing',
     label: 'Marketing',
     icon: Megaphone,
-    items: ALL_ITEMS.slice(11, 14), // Marketing, CRM, Partner
+    items: ALL_ITEMS.slice(12, 15), // Marketing, CRM, Partner
   },
   {
     key: 'keuangan',
@@ -469,13 +477,13 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'pengembangan',
     label: 'Pengembangan',
     icon: Rocket,
-    items: [ALL_ITEMS[7], ALL_ITEMS[9], ...ALL_ITEMS.slice(16, 18)], // Departemen, Lokasi, Proyek, Business Dev
+    items: [ALL_ITEMS[8], ALL_ITEMS[10], ...ALL_ITEMS.slice(17, 19)], // Departemen, Lokasi, Proyek, Business Dev
   },
   {
     key: 'sistem',
     label: 'Sistem',
     icon: Settings,
-    items: ALL_ITEMS.slice(18), // CMS, Persetujuan, Notifikasi, Pengaturan
+    items: ALL_ITEMS.slice(19), // CMS, Persetujuan, Notifikasi, Pengaturan
   },
 ]
 
