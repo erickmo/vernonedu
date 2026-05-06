@@ -11,9 +11,11 @@ import (
 	"github.com/rs/zerolog/log"
 
 	addcrmlog "github.com/vernonedu/entrepreneurship-api/internal/command/add_crm_log"
+	addleadinterest "github.com/vernonedu/entrepreneurship-api/internal/command/add_lead_interest"
 	convertlead "github.com/vernonedu/entrepreneurship-api/internal/command/convert_lead_to_student"
 	createlead "github.com/vernonedu/entrepreneurship-api/internal/command/create_lead"
 	deletelead "github.com/vernonedu/entrepreneurship-api/internal/command/delete_lead"
+	removeleadinterest "github.com/vernonedu/entrepreneurship-api/internal/command/remove_lead_interest"
 	updatelead "github.com/vernonedu/entrepreneurship-api/internal/command/update_lead"
 	getlead "github.com/vernonedu/entrepreneurship-api/internal/query/get_lead"
 	listcrmlogs "github.com/vernonedu/entrepreneurship-api/internal/query/list_crm_logs"
@@ -52,6 +54,11 @@ type UpdateLeadRequest struct {
 	Notes    string  `json:"notes"`
 	Status   string  `json:"status"`
 	PicID    *string `json:"pic_id"`
+}
+
+type AddLeadInterestRequest struct {
+	EntityType string `json:"entity_type"`
+	EntityID   string `json:"entity_id"`
 }
 
 type AddCrmLogRequest struct {
@@ -414,6 +421,72 @@ func (h *LeadHandler) ConvertLead(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "lead converted to student successfully"})
 }
 
+func (h *LeadHandler) AddInterest(w http.ResponseWriter, r *http.Request) {
+	leadIDStr := chi.URLParam(r, "id")
+	leadID, err := uuid.Parse(leadIDStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid lead id")
+		return
+	}
+
+	var req AddLeadInterestRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	entityID, err := uuid.Parse(req.EntityID)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid entity_id")
+		return
+	}
+
+	validTypes := map[string]bool{"master_course": true, "course_type": true, "course_batch": true}
+	if !validTypes[req.EntityType] {
+		writeError(w, http.StatusBadRequest, "entity_type must be master_course, course_type, or course_batch")
+		return
+	}
+
+	cmd := &addleadinterest.AddLeadInterestCommand{
+		LeadID:     leadID,
+		EntityType: req.EntityType,
+		EntityID:   entityID,
+	}
+	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
+		log.Error().Err(err).Msg("failed to add lead interest")
+		writeError(w, http.StatusInternalServerError, "failed to add interest")
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]string{"message": "interest added"})
+}
+
+func (h *LeadHandler) RemoveInterest(w http.ResponseWriter, r *http.Request) {
+	leadIDStr := chi.URLParam(r, "id")
+	leadID, err := uuid.Parse(leadIDStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid lead id")
+		return
+	}
+
+	interestIDStr := chi.URLParam(r, "interestId")
+	interestID, err := uuid.Parse(interestIDStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid interest id")
+		return
+	}
+
+	cmd := &removeleadinterest.RemoveLeadInterestCommand{
+		LeadID:     leadID,
+		InterestID: interestID,
+	}
+	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
+		log.Error().Err(err).Msg("failed to remove lead interest")
+		writeError(w, http.StatusInternalServerError, "failed to remove interest")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"message": "interest removed"})
+}
+
 func RegisterLeadRoutes(h *LeadHandler, r chi.Router) {
 	r.Post("/api/v1/leads", h.Create)
 	r.Get("/api/v1/leads", h.List)
@@ -423,4 +496,6 @@ func RegisterLeadRoutes(h *LeadHandler, r chi.Router) {
 	r.Post("/api/v1/leads/{id}/convert", h.ConvertLead)
 	r.Get("/api/v1/leads/{id}/crm-logs", h.ListCrmLogs)
 	r.Post("/api/v1/leads/{id}/crm-logs", h.AddCrmLog)
+	r.Post("/api/v1/leads/{id}/interests", h.AddInterest)
+	r.Delete("/api/v1/leads/{id}/interests/{interestId}", h.RemoveInterest)
 }
