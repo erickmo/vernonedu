@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Handshake, Pencil, Plus, FileText, StickyNote,
-  X, Trash2, Pencil as EditIcon, ExternalLink,
+  X, Trash2, ExternalLink,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
@@ -293,7 +293,7 @@ function MOUTable({ mous, onEdit, onDelete }: {
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)' }}
                     title="Edit MOU"
                   >
-                    <EditIcon size={14} />
+                    <Pencil size={14} />
                   </button>
                   <button
                     data-testid={`delete-mou-${mou.id}`}
@@ -325,6 +325,7 @@ export default function PartnerDetailPage() {
   const { data: partner, isLoading } = useQuery({
     queryKey: ['partner', partnerId],
     queryFn: () => partnerService.getById(partnerId!),
+    enabled: !!partnerId,
   })
 
   const { data: mous = [] } = useQuery({
@@ -375,9 +376,13 @@ export default function PartnerDetailPage() {
       label: 'Hapus',
       icon: <Trash2 size={14} />,
       onClick: () => confirmDelete('Hapus Partner', 'Yakin ingin menghapus partner ini?', async () => {
-        await partnerService.delete(partnerId!)
-        toast.success('Partner berhasil dihapus')
-        navigate('/partners')
+        try {
+          await partnerService.delete(partnerId!)
+          toast.success('Partner berhasil dihapus')
+          navigate('/partners')
+        } catch {
+          toast.error('Gagal menghapus partner')
+        }
       }),
       variant: 'danger' as const,
     },
@@ -396,11 +401,11 @@ export default function PartnerDetailPage() {
           Informasi Partner
         </h3>
         <InfoRow label="Nama" value={p?.name} />
-        <InfoRow label="Tipe" value={p?.type as string} />
-        <InfoRow label="Kontak Person" value={p?.contact_person as string} />
-        <InfoRow label="Email" value={p?.email as string} />
-        <InfoRow label="Telepon" value={p?.phone as string} />
-        <InfoRow label="Alamat" value={p?.address as string} />
+        <InfoRow label="Tipe" value={p?.type} />
+        <InfoRow label="Kontak Person" value={p?.contact_person} />
+        <InfoRow label="Email" value={p?.email} />
+        <InfoRow label="Telepon" value={p?.phone} />
+        <InfoRow label="Alamat" value={p?.address} />
       </div>
 
       <div style={{
