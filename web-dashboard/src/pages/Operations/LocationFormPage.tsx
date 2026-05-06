@@ -10,6 +10,8 @@ import {
 } from '@/widgets/FormPageTemplate'
 import { toast } from '@/widgets/Toast/Toast'
 import { locationService } from '@/services/location.service'
+import { SearchableSelect } from '@/widgets/SearchableSelect/SearchableSelect'
+import { partnerService } from '@/services/partner.service'
 import { RoomsManager } from './RoomsManager'
 import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
 
@@ -30,6 +32,9 @@ export default function LocationFormPage() {
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [description, setDescription] = useState('')
+  const [ownership, setOwnership] = useState<'self' | 'partner'>('self')
+  const [partnerId, setPartnerId] = useState('')
+  const [partnerLabel, setPartnerLabel] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverError, setServerError] = useState('')
@@ -45,6 +50,9 @@ export default function LocationFormPage() {
       setName((building as any).name ?? '')
       setAddress((building as any).address ?? '')
       setDescription((building as any).description ?? '')
+      setOwnership((building as any).ownership ?? 'self')
+      setPartnerId((building as any).partner?.id ?? '')
+      setPartnerLabel((building as any).partner?.name ?? '')
     }
   }, [building])
 
@@ -52,6 +60,9 @@ export default function LocationFormPage() {
     const e: Record<string, string> = {}
     if (!name.trim()) e.name = 'Nama gedung wajib diisi'
     else if (name.trim().length < 2) e.name = 'Minimal 2 karakter'
+    if (ownership === 'partner' && !partnerId) {
+      e.partner_id = 'Partner wajib dipilih'
+    }
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -68,6 +79,8 @@ export default function LocationFormPage() {
         name: name.trim(),
         address: address.trim(),
         description: description.trim(),
+        ownership,
+        partner_id: ownership === 'partner' ? partnerId : null,
       }
       if (isEdit) {
         await locationService.updateBuilding(buildingId!, payload)
@@ -149,6 +162,46 @@ export default function LocationFormPage() {
                 className={formStyles.textarea}
               />
             </Field>
+            <Field label="Kepemilikan" required>
+              <div style={{ display: 'flex', gap: 'var(--space-4)' }}>
+                {(['self', 'partner'] as const).map((opt) => (
+                  <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="ownership"
+                      value={opt}
+                      checked={ownership === opt}
+                      onChange={() => {
+                        setOwnership(opt)
+                        if (opt === 'self') { setPartnerId(''); setPartnerLabel('') }
+                      }}
+                    />
+                    {opt === 'self' ? 'Milik Sendiri' : 'Milik Partner'}
+                  </label>
+                ))}
+              </div>
+            </Field>
+
+            {ownership === 'partner' && (
+              <Field label="Partner" required error={errors.partner_id}>
+                <SearchableSelect
+                  value={partnerId}
+                  displayLabel={partnerLabel}
+                  placeholder="Cari partner..."
+                  fetchOptions={async (search) => {
+                    const res = await partnerService.list({ search, limit: 20 } as any)
+                    return ((res as any).items ?? []).map((p: any) => ({
+                      value: p.id,
+                      label: p.name,
+                    }))
+                  }}
+                  onSelect={(opt) => {
+                    setPartnerId(opt?.value ?? '')
+                    setPartnerLabel(opt?.label ?? '')
+                  }}
+                />
+              </Field>
+            )}
           </FormColumn>
           {sidebarContent}
         </FormGrid>
