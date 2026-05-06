@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth.store'
 import { hasAnyRole } from '@/types/auth.types'
@@ -40,50 +41,42 @@ export default function StrukturPage() {
     const saved = localStorage.getItem(VIEW_KEY)
     return saved === 'tree' ? 'tree' : 'card'
   })
-  const [depts, setDepts] = useState<DeptSummary[]>([])
-  const [loading, setLoading] = useState(true)
-
   const canAddDept = hasAnyRole(user, CAN_ADD_DEPT)
 
-  useEffect(() => {
-    const loadAll = async () => {
-      setLoading(true)
-      try {
-        const [deptsRaw, coursesRaw, batchesRaw] = await Promise.all([
-          departmentService.list(),
-          courseService.list({ limit: 9999 }),
-          courseBatchService.list({ limit: 9999 }),
-        ])
+  const { data: depts = [], isLoading: loading } = useQuery<DeptSummary[]>({
+    queryKey: ['struktur'],
+    queryFn: async () => {
+      const [deptsRaw, coursesRaw, batchesRaw] = await Promise.all([
+        departmentService.list(),
+        courseService.list({ limit: 9999 }),
+        courseBatchService.list({ limit: 9999 }),
+      ])
 
-        const deptList: any[] = deptsRaw.items ?? []
-        const courseList: any[] = (coursesRaw as any).data ?? (coursesRaw as any).items ?? []
-        const batchList: any[] = (batchesRaw as any).items ?? (batchesRaw as any).data?.data ?? (batchesRaw as any).data ?? []
+      const deptList: any[] = deptsRaw.items ?? []
+      const courseList: any[] = (coursesRaw as any).data ?? (coursesRaw as any).items ?? []
+      const batchList: any[] = (batchesRaw as any).items ?? (batchesRaw as any).data?.data ?? (batchesRaw as any).data ?? []
 
-        const batchesByCourse = batchList.reduce<Record<string, BatchSummary[]>>((acc, b) => {
-          const cid: string = b.course_id ?? b.courseId ?? ''
-          if (!acc[cid]) acc[cid] = []
-          acc[cid].push(toBatchSummary(b))
-          return acc
-        }, {})
+      const batchesByCourse = batchList.reduce<Record<string, BatchSummary[]>>((acc, b) => {
+        const cid: string = b.course_id ?? b.courseId ?? ''
+        if (!acc[cid]) acc[cid] = []
+        acc[cid].push(toBatchSummary(b))
+        return acc
+      }, {})
 
-        const coursesByDept = courseList.reduce<Record<string, CourseSummary[]>>((acc, c) => {
-          const did: string = c.department_id ?? c.departmentId ?? ''
-          if (!acc[did]) acc[did] = []
-          acc[did].push({ id: c.id, name: c.name, batches: batchesByCourse[c.id] ?? [] })
-          return acc
-        }, {})
+      const coursesByDept = courseList.reduce<Record<string, CourseSummary[]>>((acc, c) => {
+        const did: string = c.department_id ?? c.departmentId ?? ''
+        if (!acc[did]) acc[did] = []
+        acc[did].push({ id: c.id, name: c.name, batches: batchesByCourse[c.id] ?? [] })
+        return acc
+      }, {})
 
-        setDepts(deptList.map(d => ({
-          id: d.id,
-          name: d.name,
-          courses: coursesByDept[d.id] ?? [],
-        })))
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadAll()
-  }, [])
+      return deptList.map(d => ({
+        id: d.id,
+        name: d.name,
+        courses: coursesByDept[d.id] ?? [],
+      }))
+    },
+  })
 
   const handleSetView = (v: 'card' | 'tree') => {
     setView(v)
