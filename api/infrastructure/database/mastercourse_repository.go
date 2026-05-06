@@ -179,7 +179,7 @@ var masterCourseAllowedSortCols = map[string]string{
 func (r *MasterCourseRepository) List(ctx context.Context, offset, limit int, search, status, field, sortBy, sortDir string) ([]*mastercourse.MasterCourse, int, error) {
 	// Bangun kondisi WHERE secara dinamis
 	conditions := []string{}
-	args := []interface{}{}
+	args := []any{}
 	argIdx := 1
 
 	if search != "" {
