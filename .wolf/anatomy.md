@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-06T03:05:37.811Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-06T03:23:14.974Z
 > Files: 1735 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../.claude/plans/
@@ -18,7 +18,7 @@
 ## ./
 
 - `.gitignore` — Git ignore rules (~39 tok)
-- `CLAUDE.md` — OpenWolf (~3273 tok)
+- `CLAUDE.md` — OpenWolf (~3347 tok)
 - `docker-compose.yml` — Docker Compose services (~227 tok)
 - `go.work` (~7 tok)
 - `go.work.sum` (~397 tok)
@@ -3364,7 +3364,7 @@
 
 - `ProtectedRoute.tsx` — RootRedirect (~736 tok)
 - `providers.tsx` — queryClient (~189 tok)
-- `routes.tsx` — LoginPage (~7443 tok)
+- `routes.tsx` — LoginPage (~7392 tok)
 
 ## web-dashboard/src/hooks/
 
@@ -3392,7 +3392,7 @@
 
 - `AppSidebar.module.css` — Styles: 40 rules (~1956 tok)
 - `AppSidebar.tsx` — ─── Component ────────────────────────────────────────────────────────────────── (~1273 tok)
-- `navItems.ts` — Exports NavItem, NavSection, NAV_SECTIONS, getFilteredSections, getActiveSection (~3244 tok)
+- `navItems.ts` — Exports NavItem, NavSection, NAV_SECTIONS, getFilteredSections, getActiveSection (~3175 tok)
 
 ## web-dashboard/src/layouts/Navbar1/
 
@@ -3469,8 +3469,8 @@
 - `CourseListPage.tsx` — columns (~1089 tok)
 - `CourseModulePage.tsx` — columns (~886 tok)
 - `CourseVersionPage.tsx` — columns (~1050 tok)
-- `StrukturPage.module.css` — Styles: 15 rules (~518 tok)
-- `StrukturPage.tsx` — VIEW_KEY (~1425 tok)
+- `StrukturPage.module.css` — Styles: 11 rules (~400 tok)
+- `StrukturPage.tsx` — VIEW_KEY (~1364 tok)
 - `VersionFormPage.tsx` — formatDate — renders form (~1986 tok)
 
 ## web-dashboard/src/pages/Course/__tests__/
@@ -3565,7 +3565,7 @@
 
 - `LeadDetailPage.tsx` — Detail page for lead using DetailPageTemplate; shows lead info + CRM activity logs, actions: edit/convert-to-student/delete, status color badges, 2-section layout (~195 tok)
 - `LeadFormPage.tsx` — SOURCE_OPTIONS — renders form (~2229 tok)
-- `LeadListPage.tsx` — SOURCE_LABELS (~1520 tok)
+- `LeadListPage.tsx` — STATUS_COLORS (~1433 tok)
 
 ## web-dashboard/src/pages/Login/
 
@@ -3626,45 +3626,45 @@
 
 ## web-dashboard/src/services/
 
-- `accounting.service.ts` — API routes: DELETE (2 endpoints) (~765 tok)
+- `accounting.service.ts` — API routes: DELETE (2 endpoints) (~701 tok)
 - `api.client.ts` — Exports apiClient, apiClientWithToken (~1026 tok)
-- `approval.service.ts` — Exports Approval, approvalService (~431 tok)
+- `approval.service.ts` — Exports Approval, approvalService (~294 tok)
 - `audit-log.service.ts` — ─── Paginated response (inline — not yet in api.types) ─────────────────────── (~190 tok)
 - `auth.service.ts` — API routes: GET (1 endpoints) (~118 tok)
 - `branch.service.ts` — Exports branchService (~48 tok)
 - `calendar.service.ts` — API routes: DELETE (1 endpoints) (~263 tok)
-- `certificate.service.ts` — Exports certificateService (~377 tok)
+- `certificate.service.ts` — Exports certificateService (~324 tok)
 - `chat.service.ts` — ─── Types ────────────────────────────────────────────────────────────────────── (~2387 tok)
-- `cms.service.ts` — API routes: DELETE (4 endpoints) (~598 tok)
+- `cms.service.ts` — API routes: DELETE (4 endpoints) (~544 tok)
 - `company-group.service.ts` — Multi-tenant service — not used in VernonEdu (single-tenant mode) (~35 tok)
-- `course-batch.service.ts` — API routes: DELETE (1 endpoints) (~519 tok)
+- `course-batch.service.ts` — API routes: DELETE (1 endpoints) (~306 tok)
 - `course-module.service.ts` — API routes: DELETE (1 endpoints) (~284 tok)
 - `course-type.service.ts` — Exports courseTypeService (~186 tok)
 - `course-version.service.ts` — Exports courseVersionService (~451 tok)
-- `course.service.ts` — API routes: GET (1 endpoints) (~317 tok)
-- `createEntityService.ts` — Exports SortTuple, FilterTuple, ListParams, createEntityService (~531 tok)
+- `course.service.ts` — Exports courseService (~248 tok)
+- `createEntityService.ts` — Build URL query string from ListParams. (~697 tok)
 - `dashboard.service.ts` — Exports DashboardSummary, DashboardActivity, dashboardService (~492 tok)
-- `delegation.service.ts` — Exports delegationService (~167 tok)
-- `department.service.ts` — API routes: PUT (1 endpoints) (~678 tok)
-- `enrollment.service.ts` — Exports enrollmentService (~497 tok)
-- `finance-analysis.service.ts` — Exports financeAnalysisService (~443 tok)
-- `finance-reports.service.ts` — Exports financeReportsService (~412 tok)
-- `hrm.service.ts` — Exports hrmService (~1237 tok)
-- `investment.service.ts` — Exports investmentService (~167 tok)
-- `invoice.service.ts` — Exports invoiceService (~335 tok)
-- `lead.service.ts` — API routes: DELETE (1 endpoints) (~522 tok)
+- `delegation.service.ts` — Exports delegationService (~114 tok)
+- `department.service.ts` — API routes: PUT (1 endpoints) (~512 tok)
+- `enrollment.service.ts` — Exports enrollmentService (~309 tok)
+- `finance-analysis.service.ts` — Exports financeAnalysisService (~386 tok)
+- `finance-reports.service.ts` — Exports financeReportsService (~356 tok)
+- `hrm.service.ts` — ─── Employees ───────────────────────────────────────────────────────────────── (~1110 tok)
+- `investment.service.ts` — Exports investmentService (~114 tok)
+- `invoice.service.ts` — Exports invoiceService (~305 tok)
+- `lead.service.ts` — API routes: DELETE (2 endpoints) (~561 tok)
 - `location.service.ts` — API routes: DELETE (2 endpoints) (~435 tok)
-- `marketing.service.ts` — API routes: DELETE (2 endpoints) (~559 tok)
+- `marketing.service.ts` — API routes: DELETE (2 endpoints) (~510 tok)
 - `media.service.ts` — Media service untuk menangani file upload ke endpoint /api/v1/media/upload (~840 tok)
-- `notification.service.ts` — Exports Notification, notificationService (~360 tok)
+- `notification.service.ts` — Exports Notification, notificationService (~215 tok)
 - `okr.service.ts` — Exports okrService (~66 tok)
-- `partner.service.ts` — API routes: DELETE (1 endpoints) (~615 tok)
-- `payable.service.ts` — Exports payableService: getStats, list, getById, markAsPaid, approve, cancel, create, update (~420 tok)
-- `project.service.ts` — API routes: DELETE (1 endpoints) (~415 tok)
+- `partner.service.ts` — Exports partnerService (~258 tok)
+- `payable.service.ts` — Exports payableService (~224 tok)
+- `project.service.ts` — API routes: DELETE (1 endpoints) (~206 tok)
 - `query-keys.ts` — Exports QK, QueryKeyValue (~795 tok)
-- `student.service.ts` — API routes: DELETE (1 endpoints) (~598 tok)
+- `student.service.ts` — API routes: DELETE (1 endpoints) (~396 tok)
 - `superuser-company-group.service.ts` — Multi-tenant service — not used in VernonEdu (single-tenant mode) (~37 tok)
-- `talentpool.service.ts` — Exports talentPoolService (~387 tok)
+- `talentpool.service.ts` — Exports talentPoolService (~175 tok)
 - `tenant-owner.service.ts` — Multi-tenant service — not used in VernonEdu (single-tenant mode) (~34 tok)
 - `user.service.ts` — API routes: DELETE (1 endpoints) (~373 tok)
 

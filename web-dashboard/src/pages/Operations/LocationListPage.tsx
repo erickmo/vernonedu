@@ -145,9 +145,19 @@ export default function LocationListPage() {
           offset: params.offset,
           limit: params.limit,
         })
-        const items: Building[] = Array.isArray(data)
+        let items: Building[] = Array.isArray(data)
           ? data
           : (data as any)?.data ?? (data as any)?.items ?? []
+        if (params.sort && params.sort.length > 0) {
+          const [sortKey, sortDir] = params.sort[0]
+          items = [...items].sort((a, b) => {
+            const av = a[sortKey] ?? ''
+            const bv = b[sortKey] ?? ''
+            if (av < bv) return sortDir === 1 ? -1 : 1
+            if (av > bv) return sortDir === 1 ? 1 : -1
+            return 0
+          })
+        }
         const total = (data as any)?.total ?? items.length
         return { items, total, limit: params.limit ?? 9999, offset: params.offset ?? 0 }
       }}
@@ -162,7 +172,6 @@ export default function LocationListPage() {
       onAdd={() => navigate('/pengembangan/locations/new')}
       addLabel="Tambah Gedung"
       onRowClick={row => navigate(`/pengembangan/locations/${row.id}`)}
-      expandedRow={(row) => <RoomList rooms={row.rooms ?? []} />}
     />
   )
 }

@@ -275,6 +275,25 @@ cd app-mentors && flutter run --dart-define=BASE_URL=http://localhost:8081/api/v
 
 ---
 
+## File Lock Policy
+
+**LOCKED FILES** — Wajib minta konfirmasi user sebelum edit file apapun di entitas ini.
+
+| Entity | Paths |
+|--------|-------|
+| Department (API) | `api/internal/Departments/**`, `api/infrastructure/**/department*`, `api/internal/**/*department*` |
+| Department (Dashboard) | `web-dashboard/src/**/*[Dd]epartment*` |
+| Location (API) | `api/internal/domain/building/**`, `api/internal/command/*building*/**`, `api/internal/command/*room*/**`, `api/internal/query/*building*/**`, `api/internal/query/*room*/**`, `api/internal/delivery/http/location_handler*`, `api/infrastructure/database/*building*`, `api/infrastructure/database/*room*` |
+| Location (Dashboard) | `web-dashboard/src/**/*[Ll]ocation*`, `web-dashboard/src/**/*[Rr]oom*` |
+| COA (API) | `api/internal/domain/coa/**`, `api/internal/command/*coa*/**`, `api/internal/query/*coa*/**`, `api/internal/delivery/http/coa_handler*`, `api/infrastructure/database/*coa*` |
+| COA (Dashboard) | `web-dashboard/src/**/*[Cc]oa*`, `web-dashboard/src/**/*[Cc]hart[Oo]f[Aa]ccounts*` |
+
+> **Rule:** Sebelum mengedit file apapun yang termasuk dalam LOCKED FILES, tampilkan file yang akan diubah dan tanyakan konfirmasi terlebih dahulu. Jangan langsung edit.
+
+**UNLOCKED FILES** — Semua file lain boleh diedit tanpa konfirmasi tambahan (kecuali permission deny di settings.json).
+
+---
+
 ## Key Development Rules
 
 1. **SEMUA code ditulis oleh AI** — developer tidak menulis code manual

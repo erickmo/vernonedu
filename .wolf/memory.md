@@ -3528,3 +3528,66 @@
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
 | 11:10 | Implement Struktur Pendidikan page: DeptCard+CourseRow+BatchChip+TreeView+StrukturPage+route+nav | 10 files | completed | ~800 tok |
+| 11:11 | Edited CLAUDE.md | 1→3 lines | ~105 |
+| 11:11 | Session end: 1 writes across 1 files (CLAUDE.md) | 4 reads | ~3766 tok |
+| 11:13 | Edited web-dashboard/src/pages/Course/StrukturPage.tsx | added 1 import(s) | ~207 |
+| 11:13 | Edited web-dashboard/src/pages/Course/StrukturPage.tsx | 24→26 lines | ~191 |
+
+## Session: 2026-05-06 11:13
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:13 | Edited web-dashboard/src/pages/Course/StrukturPage.module.css | removed 25 lines | ~1 |
+| 11:14 | Created web-dashboard/src/services/lead.service.ts | — | ~561 |
+| 11:14 | Edited web-dashboard/src/pages/Leads/LeadListPage.tsx | "/leads/${row.id}/edit" → "/leads/${row.id}" | ~16 |
+| 11:14 | fix leadService.list data extraction + onRowClick to detail | lead.service.ts, LeadListPage.tsx | done | ~70 |
+| 11:14 | Session end: 3 writes across 3 files (StrukturPage.module.css, lead.service.ts, LeadListPage.tsx) | 4 reads | ~12305 tok |
+| 11:14 | Edited web-dashboard/src/app/routes.tsx | 5→4 lines | ~178 |
+| 11:15 | Session end: 4 writes across 4 files (StrukturPage.module.css, lead.service.ts, LeadListPage.tsx, routes.tsx) | 4 reads | ~12483 tok |
+| 11:16 | Edited web-dashboard/src/layouts/AppSidebar/navItems.ts | removed 10 lines | ~6 |
+| 11:16 | Edited web-dashboard/src/layouts/AppSidebar/navItems.ts | inline fix | ~18 |
+| 11:16 | Edited web-dashboard/src/layouts/AppSidebar/navItems.ts | inline fix | ~18 |
+| 11:16 | Edited web-dashboard/src/layouts/AppSidebar/navItems.ts | inline fix | ~25 |
+| 11:16 | Session end: 8 writes across 5 files (StrukturPage.module.css, lead.service.ts, LeadListPage.tsx, routes.tsx, navItems.ts) | 5 reads | ~15897 tok |
+| 11:16 | Edited web-dashboard/src/layouts/AppSidebar/navItems.ts | 19 → 18 | ~22 |
+| 11:16 | Session end: 9 writes across 5 files (StrukturPage.module.css, lead.service.ts, LeadListPage.tsx, routes.tsx, navItems.ts) | 5 reads | ~15850 tok |
+
+## Session: 2026-05-06 11:16
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:20 | Created web-dashboard/src/services/createEntityService.ts | — | ~697 |
+| 11:20 | Session end: 1 writes across 1 files (createEntityService.ts) | 3 reads | ~3310 tok |
+| 11:20 | Edited web-dashboard/src/pages/Course/StrukturPage.tsx | added 1 import(s) | ~55 |
+| 11:21 | Edited web-dashboard/src/pages/Course/StrukturPage.tsx | CSS: courseList, cid, did | ~403 |
+| 11:21 | Created web-dashboard/src/services/project.service.ts | — | ~206 |
+| 11:21 | Session end: 4 writes across 3 files (createEntityService.ts, StrukturPage.tsx, project.service.ts) | 23 reads | ~13759 tok |
+| 11:21 | Created web-dashboard/src/services/course-batch.service.ts | — | ~306 |
+| 11:21 | Created web-dashboard/src/services/delegation.service.ts | — | ~114 |
+| 11:21 | Created web-dashboard/src/services/enrollment.service.ts | — | ~309 |
+| 11:21 | Created web-dashboard/src/services/finance-analysis.service.ts | — | ~386 |
+| 11:21 | Session end: 8 writes across 7 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 23 reads | ~14874 tok |
+| 11:21 | Session end: 8 writes across 7 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 23 reads | ~14874 tok |
+| 11:21 | Created web-dashboard/src/services/approval.service.ts | — | ~294 |
+| 11:21 | Created web-dashboard/src/services/certificate.service.ts | — | ~324 |
+| 11:21 | Created web-dashboard/src/services/department.service.ts | — | ~512 |
+| 11:21 | Created web-dashboard/src/services/payable.service.ts | — | ~224 |
+| 11:21 | Created web-dashboard/src/services/finance-reports.service.ts | — | ~356 |
+| 11:21 | Created web-dashboard/src/services/talentpool.service.ts | — | ~175 |
+| 11:21 | Created web-dashboard/src/services/investment.service.ts | — | ~114 |
+| 11:21 | Created web-dashboard/src/services/marketing.service.ts | — | ~510 |
+| 11:22 | Created web-dashboard/src/services/notification.service.ts | — | ~215 |
+| 11:22 | Created web-dashboard/src/services/cms.service.ts | — | ~544 |
+| 11:22 | Created web-dashboard/src/services/invoice.service.ts | — | ~305 |
+| 11:22 | Created web-dashboard/src/services/student.service.ts | — | ~396 |
+| 11:22 | Created web-dashboard/src/services/course.service.ts | — | ~248 |
+| 11:22 | Created web-dashboard/src/services/accounting.service.ts | — | ~701 |
+| 11:22 | Created web-dashboard/src/services/hrm.service.ts | — | ~1110 |
+| 11:22 | Created web-dashboard/src/services/partner.service.ts | — | ~258 |
+| 11:23 | Edited web-dashboard/src/pages/Course/StrukturPage.tsx | added 1 import(s) | ~37 |
+| 11:23 | systemic fix: export buildQueryString+extractPaginated, update 21 services | createEntityService.ts + all services | done | ~200 |
+| 11:23 | Edited web-dashboard/src/pages/Course/StrukturPage.tsx | reduced (-8 lines) | ~396 |
+| 11:23 | Session end: 26 writes across 23 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 24 reads | ~24940 tok |
+| 11:24 | Session end: 26 writes across 23 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 24 reads | ~24940 tok |
+| 11:24 | Session end: 26 writes across 23 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 24 reads | ~24940 tok |
+| 11:25 | Session end: 26 writes across 23 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 24 reads | ~24940 tok |

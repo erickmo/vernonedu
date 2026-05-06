@@ -1,5 +1,23 @@
 {
   "permissions": {
+    "ask": [
+      "Edit(**/Departments/**)",
+      "Write(**/Departments/**)",
+      "Edit(**/*department*)",
+      "Write(**/*department*)",
+      "Edit(api/internal/**/*department*/**)",
+      "Write(api/internal/**/*department*/**)",
+      "Edit(api/infrastructure/**/*department*)",
+      "Write(api/infrastructure/**/*department*)",
+      "Edit(**/Locations/**)",
+      "Write(**/Locations/**)",
+      "Edit(**/*location*)",
+      "Write(**/*location*)",
+      "Edit(api/internal/**/*location*/**)",
+      "Write(api/internal/**/*location*/**)",
+      "Edit(api/infrastructure/**/*location*)",
+      "Write(api/infrastructure/**/*location*)"
+    ],
     "allow": [
       "Read(**)",
       "Read(~/.claude/**)",
