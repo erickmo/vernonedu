@@ -112,7 +112,10 @@ export default function StudentFormPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!validate()) return
+    if (!validate()) {
+      setServerError('Isi field wajib pada tab Informasi Umum sebelum menyimpan.')
+      return
+    }
     setIsSubmitting(true)
     setServerError('')
     try {
