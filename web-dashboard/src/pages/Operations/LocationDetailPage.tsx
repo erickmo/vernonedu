@@ -48,6 +48,26 @@ export default function LocationDetailPage() {
 
   const overviewContent = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      {/* Ownership */}
+      <div style={{ marginBottom: 'var(--space-3)' }}>
+        <span style={{
+          display: 'inline-block', padding: '2px 10px', borderRadius: 'var(--radius-full)',
+          fontSize: 'var(--font-xs)', fontWeight: 600,
+          background: (b as any)?.ownership === 'partner' ? 'var(--color-info-light)' : 'var(--color-surface-alt)',
+          color: (b as any)?.ownership === 'partner' ? 'var(--color-info-dark)' : 'var(--color-text-secondary)',
+        }}>
+          {(b as any)?.ownership === 'partner' ? 'Milik Partner' : 'Milik Sendiri'}
+        </span>
+        {(b as any)?.partner && (
+          <span style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text-secondary)', marginLeft: 8 }}>
+            Partner:{' '}
+            <a href={`/business-dev/partners/${(b as any).partner.id}`}
+               style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+              {(b as any).partner.name}
+            </a>
+          </span>
+        )}
+      </div>
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
         gap: 'var(--space-3)',
