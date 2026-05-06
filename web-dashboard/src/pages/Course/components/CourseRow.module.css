@@ -1,0 +1,130 @@
+.row {
+  background: var(--color-surface-alt);
+  border: 1px solid rgba(77, 41, 117, 0.15);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.rowHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.rowHeaderCollapsed {
+  margin-bottom: 0;
+}
+
+.courseInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.courseName {
+  font-weight: 600;
+  font-size: var(--font-sm);
+  color: var(--color-primary);
+}
+
+.badge {
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.badgeActive {
+  background: var(--color-success-light);
+  color: var(--color-success-dark);
+}
+
+.badgeDone {
+  background: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.badgeEmpty {
+  background: var(--color-border);
+  color: var(--color-text-tertiary);
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detailLink {
+  font-size: var(--font-xs);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.detailLink:hover {
+  color: var(--color-primary);
+}
+
+.addBatchBtn {
+  font-size: var(--font-xs);
+  color: var(--color-primary);
+  border: 1px solid rgba(77, 41, 117, 0.2);
+  background: none;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.addBatchBtn:hover {
+  background: var(--color-primary-subtle);
+}
+
+.batchList {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  align-items: stretch;
+}
+
+.batchList::-webkit-scrollbar {
+  height: 3px;
+}
+
+.batchList::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+.addBatchChip {
+  display: flex;
+  align-items: center;
+  background: var(--color-surface-elevated);
+  border: 1px dashed var(--color-primary);
+  border-radius: 7px;
+  padding: 5px 12px;
+  font-size: var(--font-xs);
+  color: var(--color-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.addBatchChip:hover {
+  background: var(--color-primary-subtle);
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  padding: 0 4px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
