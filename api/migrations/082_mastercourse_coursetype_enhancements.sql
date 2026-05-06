@@ -15,6 +15,17 @@ ALTER TABLE course_types DROP CONSTRAINT IF EXISTS course_types_price_type_check
 ALTER TABLE course_types ADD CONSTRAINT course_types_price_type_check
   CHECK (price_type IN ('fixed', 'range', 'by_request', 'per_batch', 'per_student'));
 
+-- Validate no unexpected price_type values before migrating
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM course_types
+    WHERE price_type NOT IN ('fixed', 'range', 'by_request')
+  ) THEN
+    RAISE EXCEPTION 'Unexpected price_type values found in course_types. Manual review required before migration.';
+  END IF;
+END $$;
+
 -- migrate existing price_type values to new enum
 UPDATE course_types SET price_type = 'per_batch'   WHERE price_type = 'fixed';
 UPDATE course_types SET price_type = 'per_student'  WHERE price_type = 'range';
@@ -23,8 +34,8 @@ UPDATE course_types SET price_type = 'per_student'  WHERE price_type = 'range';
 ALTER TABLE course_batches
   ADD COLUMN IF NOT EXISTS course_type_id    UUID REFERENCES course_types(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS price_type_batch  VARCHAR(50),
-  ADD COLUMN IF NOT EXISTS actual_price      BIGINT,
-  ADD COLUMN IF NOT EXISTS discounted_price  BIGINT,
+  ADD COLUMN IF NOT EXISTS actual_price      BIGINT CHECK (actual_price >= 0),
+  ADD COLUMN IF NOT EXISTS discounted_price  BIGINT CHECK (discounted_price >= 0),
   ADD COLUMN IF NOT EXISTS num_sessions      INT NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS num_students      INT NOT NULL DEFAULT 0;
 
