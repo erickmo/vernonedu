@@ -37,15 +37,19 @@ func NewLocationHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) 
 // ─── Request bodies ───────────────────────────────────────────────────────────
 
 type CreateBuildingRequest struct {
-	Name        string `json:"name" validate:"required"`
-	Address     string `json:"address"`
-	Description string `json:"description"`
+	Name        string  `json:"name" validate:"required"`
+	Address     string  `json:"address"`
+	Description string  `json:"description"`
+	Ownership   string  `json:"ownership" validate:"required"`
+	PartnerID   *string `json:"partner_id"`
 }
 
 type UpdateBuildingRequest struct {
-	Name        string `json:"name" validate:"required"`
-	Address     string `json:"address"`
-	Description string `json:"description"`
+	Name        string  `json:"name" validate:"required"`
+	Address     string  `json:"address"`
+	Description string  `json:"description"`
+	Ownership   string  `json:"ownership" validate:"required"`
+	PartnerID   *string `json:"partner_id"`
 }
 
 type CreateRoomRequest struct {
@@ -146,10 +150,32 @@ func (h *LocationHandler) CreateBuilding(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// Validate ownership
+	if req.Ownership != "self" && req.Ownership != "partner" {
+		writeError(w, http.StatusBadRequest, "ownership must be 'self' or 'partner'")
+		return
+	}
+	if req.Ownership == "partner" && (req.PartnerID == nil || *req.PartnerID == "") {
+		writeError(w, http.StatusBadRequest, "partner_id is required when ownership is 'partner'")
+		return
+	}
+
+	var partnerID *uuid.UUID
+	if req.PartnerID != nil && *req.PartnerID != "" {
+		pid, err := uuid.Parse(*req.PartnerID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "invalid partner_id")
+			return
+		}
+		partnerID = &pid
+	}
+
 	cmd := &createbuilding.CreateBuildingCommand{
 		Name:        req.Name,
 		Address:     req.Address,
 		Description: req.Description,
+		Ownership:   req.Ownership,
+		PartnerID:   partnerID,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to create building")
@@ -185,11 +211,33 @@ func (h *LocationHandler) UpdateBuilding(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// Validate ownership
+	if req.Ownership != "self" && req.Ownership != "partner" {
+		writeError(w, http.StatusBadRequest, "ownership must be 'self' or 'partner'")
+		return
+	}
+	if req.Ownership == "partner" && (req.PartnerID == nil || *req.PartnerID == "") {
+		writeError(w, http.StatusBadRequest, "partner_id is required when ownership is 'partner'")
+		return
+	}
+
+	var partnerID *uuid.UUID
+	if req.PartnerID != nil && *req.PartnerID != "" {
+		pid, err := uuid.Parse(*req.PartnerID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "invalid partner_id")
+			return
+		}
+		partnerID = &pid
+	}
+
 	cmd := &updatebuilding.UpdateBuildingCommand{
 		ID:          id,
 		Name:        req.Name,
 		Address:     req.Address,
 		Description: req.Description,
+		Ownership:   req.Ownership,
+		PartnerID:   partnerID,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to update building")
