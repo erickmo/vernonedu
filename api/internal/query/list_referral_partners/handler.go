@@ -12,6 +12,9 @@ type ListReferralPartnersQuery struct {
 	Offset   int
 	Limit    int
 	IsActive *bool
+	Search   string
+	SortBy   string
+	SortDir  string
 }
 
 type ReferralPartnerReadModel struct {
@@ -49,7 +52,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	partners, total, err := h.readRepo.ListReferralPartners(ctx, q.Offset, q.Limit, q.IsActive)
+	partners, total, err := h.readRepo.ListReferralPartners(ctx, q.Offset, q.Limit, q.IsActive, q.Search, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list referral partners")
 		return nil, err

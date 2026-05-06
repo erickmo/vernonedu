@@ -21,6 +21,7 @@ import (
 	listcrmlogs "github.com/vernonedu/entrepreneurship-api/internal/query/list_crm_logs"
 	listlead "github.com/vernonedu/entrepreneurship-api/internal/query/list_lead"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/filterutil"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
@@ -176,8 +177,11 @@ func (h *LeadHandler) List(w http.ResponseWriter, r *http.Request) {
 	if limit == 0 {
 		limit = 10
 	}
-	status := r.URL.Query().Get("status")
 	search := r.URL.Query().Get("search")
+
+	filters := filterutil.Parse(r.URL.Query().Get("filters"))
+	status := filterutil.Get(filters, "status")
+	sourceID := filterutil.Get(filters, "source_id")
 
 	sort := sortutil.Parse(r.URL.Query().Get("sort"))
 	var sortBy, sortDir string
@@ -190,7 +194,7 @@ func (h *LeadHandler) List(w http.ResponseWriter, r *http.Request) {
 		Offset:   offset,
 		Limit:    limit,
 		Status:   status,
-		SourceID: r.URL.Query().Get("source_id"),
+		SourceID: sourceID,
 		Search:   search,
 		SortBy:   sortBy,
 		SortDir:  sortDir,

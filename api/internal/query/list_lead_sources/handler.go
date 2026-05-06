@@ -24,10 +24,11 @@ func NewHandler(sourceReadRepo lead.SourceReadRepository) *Handler {
 }
 
 func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, error) {
-	if _, ok := query.(*ListLeadSourcesQuery); !ok {
+	q, ok := query.(*ListLeadSourcesQuery)
+	if !ok {
 		return nil, ErrInvalidQuery
 	}
-	sources, err := h.sourceReadRepo.ListSources(ctx)
+	sources, err := h.sourceReadRepo.ListSources(ctx, q.Search, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list lead sources")
 		return nil, err

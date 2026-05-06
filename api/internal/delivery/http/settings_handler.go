@@ -25,7 +25,9 @@ import (
 	listholidays "github.com/vernonedu/entrepreneurship-api/internal/query/list_holidays"
 	listleadsources "github.com/vernonedu/entrepreneurship-api/internal/query/list_lead_sources"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/filterutil"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
 
 // SettingsHandler handles all /api/v1/settings/* endpoints.
@@ -415,7 +417,20 @@ func (h *SettingsHandler) DeleteHoliday(w http.ResponseWriter, r *http.Request) 
 // ─── Lead Sources ─────────────────────────────────────────────────────────────
 
 func (h *SettingsHandler) ListLeadSources(w http.ResponseWriter, r *http.Request) {
-	result, err := h.qryBus.Execute(r.Context(), &listleadsources.ListLeadSourcesQuery{})
+	filters := filterutil.Parse(r.URL.Query().Get("filters"))
+	sort := sortutil.Parse(r.URL.Query().Get("sort"))
+	var sortBy, sortDir string
+	if sort != nil {
+		sortBy = sort.Column
+		sortDir = sort.Dir
+	}
+	q := &listleadsources.ListLeadSourcesQuery{
+		Search:  r.URL.Query().Get("search"),
+		SortBy:  sortBy,
+		SortDir: sortDir,
+	}
+	_ = filters // no filter fields for lead sources yet
+	result, err := h.qryBus.Execute(r.Context(), q)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list lead sources")
 		writeError(w, http.StatusInternalServerError, "failed to list lead sources")

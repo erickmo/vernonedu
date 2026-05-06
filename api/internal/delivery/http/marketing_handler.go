@@ -25,6 +25,7 @@ import (
 	listrefpartners     "github.com/vernonedu/entrepreneurship-api/internal/query/list_referral_partners"
 	listreferrals       "github.com/vernonedu/entrepreneurship-api/internal/query/list_referrals"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
+	"github.com/vernonedu/entrepreneurship-api/pkg/filterutil"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/sortutil"
 )
@@ -528,10 +529,22 @@ func (h *MarketingHandler) ListReferralPartners(w http.ResponseWriter, r *http.R
 		}
 	}
 
+	filters := filterutil.Parse(r.URL.Query().Get("filters"))
+	_ = filters // extend with filter fields as needed
+	sort := sortutil.Parse(r.URL.Query().Get("sort"))
+	var sortBy, sortDir string
+	if sort != nil {
+		sortBy = sort.Column
+		sortDir = sort.Dir
+	}
+
 	q := &listrefpartners.ListReferralPartnersQuery{
 		Offset:   offset,
 		Limit:    limit,
 		IsActive: isActive,
+		Search:   r.URL.Query().Get("search"),
+		SortBy:   sortBy,
+		SortDir:  sortDir,
 	}
 
 	result, err := h.qryBus.Execute(r.Context(), q)

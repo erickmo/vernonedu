@@ -55,7 +55,7 @@ func (h *Handler) Handle(ctx context.Context, query any) (any, error) {
 		return nil, err
 	}
 
-	allSources, _ := h.sourceReadRepo.ListSources(ctx)
+	allSources, _ := h.sourceReadRepo.ListSources(ctx, "", "", "")
 	sourceMap := make(map[uuid.UUID]*lead.LeadSource, len(allSources))
 	for _, s := range allSources {
 		sourceMap[s.ID] = s

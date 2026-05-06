@@ -79,10 +79,25 @@ func (r *LeadSourceRepository) GetSourceByID(ctx context.Context, id uuid.UUID) 
 	return row.toDomain()
 }
 
-func (r *LeadSourceRepository) ListSources(ctx context.Context) ([]*lead.LeadSource, error) {
+var leadSourceSortCols = map[string]string{
+	"name":       "name",
+	"is_active":  "is_active",
+	"created_at": "created_at",
+}
+
+func (r *LeadSourceRepository) ListSources(ctx context.Context, search, sortBy, sortDir string) ([]*lead.LeadSource, error) {
+	searchPattern := ""
+	if search != "" {
+		searchPattern = "%" + search + "%"
+	}
+	orderBy := buildOrderBy(sortBy, sortDir, leadSourceSortCols, "name ASC")
+	q := fmt.Sprintf(`
+		SELECT id, name, is_active, created_at, updated_at FROM lead_sources
+		WHERE ($1='' OR name ILIKE $1)
+		%s
+	`, orderBy)
 	var rows []leadSourceRow
-	query := `SELECT id, name, is_active, created_at, updated_at FROM lead_sources ORDER BY name`
-	if err := r.db.SelectContext(ctx, &rows, query); err != nil {
+	if err := r.db.SelectContext(ctx, &rows, q, searchPattern); err != nil {
 		return nil, fmt.Errorf("failed to list lead sources: %w", err)
 	}
 	sources := make([]*lead.LeadSource, 0, len(rows))

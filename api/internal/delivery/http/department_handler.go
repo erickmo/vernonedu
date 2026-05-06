@@ -40,7 +40,7 @@ func NewDepartmentHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus
 type CreateDepartmentRequest struct {
 	Name        string `json:"name" validate:"required,min=1"`
 	Description string `json:"description"`
-	IsActive    bool   `json:"is_active"`
+	IsActive    *bool  `json:"is_active"`
 }
 
 type UpdateDepartmentRequest struct {
@@ -72,10 +72,14 @@ func (h *DepartmentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isActive := true
+	if req.IsActive != nil {
+		isActive = *req.IsActive
+	}
 	cmd := &create_department.CreateDepartmentCommand{
 		Name:        req.Name,
 		Description: req.Description,
-		IsActive:    req.IsActive,
+		IsActive:    isActive,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute create department command")

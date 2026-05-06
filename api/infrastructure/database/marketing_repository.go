@@ -594,7 +594,14 @@ func (r *MarketingRepository) GetReferralPartnerByID(ctx context.Context, id uui
 	return rec.toDomain(), nil
 }
 
-func (r *MarketingRepository) ListReferralPartners(ctx context.Context, offset, limit int, isActive *bool) ([]*marketing.ReferralPartner, int, error) {
+var referralPartnerSortCols = map[string]string{
+	"name":             "rp.name",
+	"created_at":       "rp.created_at",
+	"total_referrals":  "total_referrals",
+	"total_commission": "total_commission",
+}
+
+func (r *MarketingRepository) ListReferralPartners(ctx context.Context, offset, limit int, isActive *bool, search, sortBy, sortDir string) ([]*marketing.ReferralPartner, int, error) {
 	conditions := []string{}
 	args := []interface{}{}
 	argIdx := 1
@@ -602,6 +609,12 @@ func (r *MarketingRepository) ListReferralPartners(ctx context.Context, offset, 
 	if isActive != nil {
 		conditions = append(conditions, fmt.Sprintf("rp.is_active = $%d", argIdx))
 		args = append(args, *isActive)
+		argIdx++
+	}
+
+	if search != "" {
+		conditions = append(conditions, fmt.Sprintf("(rp.name ILIKE $%d OR rp.referral_code ILIKE $%d)", argIdx, argIdx))
+		args = append(args, "%"+search+"%")
 		argIdx++
 	}
 
@@ -622,6 +635,7 @@ func (r *MarketingRepository) ListReferralPartners(ctx context.Context, offset, 
 		limit = 20
 	}
 
+	orderBy := buildOrderBy(sortBy, sortDir, referralPartnerSortCols, "rp.created_at DESC")
 	dataQuery := fmt.Sprintf(`
 		SELECT rp.id, rp.name, rp.contact_email, rp.referral_code, rp.commission_type,
 		       rp.commission_value, rp.is_active, rp.created_at, rp.updated_at,
@@ -633,9 +647,9 @@ func (r *MarketingRepository) ListReferralPartners(ctx context.Context, offset, 
 		LEFT JOIN referrals ref ON ref.referral_partner_id = rp.id
 		%s
 		GROUP BY rp.id
-		ORDER BY rp.created_at DESC
+		%s
 		LIMIT $%d OFFSET $%d
-	`, where, argIdx, argIdx+1)
+	`, where, orderBy, argIdx, argIdx+1)
 
 	args = append(args, limit, offset)
 	rows, err := r.db.QueryxContext(ctx, dataQuery, args...)

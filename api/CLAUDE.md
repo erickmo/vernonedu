@@ -499,6 +499,59 @@ PUT    /api/v1/delegations/{id}/cancel
 
 ---
 
+## Standard Query Params (WAJIB — semua list endpoint)
+
+**SELALU gunakan format ini. JANGAN gunakan `?sort=`, `?sortby=`, `?sort_by=`, atau filter individual.**
+
+### Sort
+```
+?sort=[["field",1]]       // ascending
+?sort=[["field",-1]]      // descending
+```
+`1` = ASC, `-1` = DESC. Parse di handler dengan `sortutil.Parse(r.URL.Query().Get("sort"))`.
+
+### Filters
+```
+?filters=[["field","=","value"]]
+?filters=[["status","=","active"],["name","like","John"]]
+```
+Operators: `=`, `!=`, `like`, `in`, `>`, `>=`, `<`, `<=`, `between`, `is`.
+Parse di handler dengan `filterutil.Parse(r.URL.Query().Get("filters"))` + `filterutil.Get(filters, "field")`.
+
+### Search & Pagination
+```
+?search=keyword
+?offset=0&limit=20
+```
+
+### Handler boilerplate (copy untuk setiap list handler)
+```go
+filters := filterutil.Parse(r.URL.Query().Get("filters"))
+sort    := sortutil.Parse(r.URL.Query().Get("sort"))
+search  := r.URL.Query().Get("search")
+offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+limit, _  := strconv.Atoi(r.URL.Query().Get("limit"))
+if limit <= 0 { limit = 20 }
+
+var sortBy, sortDir string
+if sort != nil { sortBy, sortDir = sort.Column, sort.Dir }
+
+// Extract filter fields:
+status := filterutil.Get(filters, "status")
+```
+
+### Repository boilerplate
+```go
+var myEntitySortCols = map[string]string{
+    "name":       "name",
+    "created_at": "created_at",
+}
+// In List method:
+orderBy := buildOrderBy(sortBy, sortDir, myEntitySortCols, "created_at DESC")
+```
+
+---
+
 ## Key Architecture Rules (WAJIB)
 
 1. Domain Layer → ZERO external dependencies

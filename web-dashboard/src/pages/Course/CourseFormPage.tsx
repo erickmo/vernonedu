@@ -8,11 +8,31 @@ import {
   FormGrid,
   FormColumn,
 } from '@/widgets/FormPageTemplate'
+import { SearchableSelect, type SelectOption } from '@/widgets/SearchableSelect/SearchableSelect'
+import { TagInput } from '@/widgets/TagInput/TagInput'
 import { toast } from '@/widgets/Toast/Toast'
 import { courseService } from '@/services/course.service'
-import { departmentService } from '@/services/department.service'
-import { userService } from '@/services/user.service'
 import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
+
+const FIELD_OPTIONS: SelectOption[] = [
+  { value: 'Teknologi', label: 'Teknologi' },
+  { value: 'Bisnis & Kewirausahaan', label: 'Bisnis & Kewirausahaan' },
+  { value: 'Desain', label: 'Desain' },
+  { value: 'Seni & Kreatif', label: 'Seni & Kreatif' },
+  { value: 'Sains', label: 'Sains' },
+  { value: 'Kesehatan', label: 'Kesehatan' },
+  { value: 'Pendidikan', label: 'Pendidikan' },
+  { value: 'Sosial & Komunikasi', label: 'Sosial & Komunikasi' },
+  { value: 'Hukum', label: 'Hukum' },
+  { value: 'Pertanian', label: 'Pertanian' },
+]
+
+async function fetchFieldOptions(search: string): Promise<SelectOption[]> {
+  const q = search.toLowerCase()
+  return q
+    ? FIELD_OPTIONS.filter(o => o.label.toLowerCase().includes(q))
+    : FIELD_OPTIONS
+}
 
 function formatDate(ts: number | undefined) {
   if (!ts) return '—'
@@ -28,11 +48,13 @@ export default function CourseFormPage() {
   const queryClient = useQueryClient()
   const isEdit = Boolean(courseId)
 
-  const [name, setName] = useState('')
-  const [departmentId, setDepartmentId] = useState('')
-  const [courseCreatorId, setCourseCreatorId] = useState('')
-  const [basePrice, setBasePrice] = useState('')
-  const [minPrice, setMinPrice] = useState('')
+  const [courseCode, setCourseCode] = useState('')
+  const [courseName, setCourseName] = useState('')
+  const [field, setField] = useState('')
+  const [fieldLabel, setFieldLabel] = useState('')
+  const [coreCompetencies, setCoreCompetencies] = useState<string[]>([])
+  const [description, setDescription] = useState('')
+  const [supportingAppUrl, setSupportingAppUrl] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverError, setServerError] = useState('')
@@ -43,39 +65,24 @@ export default function CourseFormPage() {
     enabled: isEdit,
   })
 
-  const { data: departmentsData, isLoading: loadingDepts } = useQuery({
-    queryKey: ['departments', 'all'],
-    queryFn: () => departmentService.list({ limit: 999 } as any),
-  })
-
-  const { data: creatorsData, isLoading: loadingCreators } = useQuery({
-    queryKey: ['users', 'course_creator'],
-    queryFn: () => userService.list({ role: 'course_creator', limit: 999 }),
-  })
-
   useEffect(() => {
     if (course) {
-      setName(course.name ?? '')
-      setDepartmentId(course.department_id ?? '')
-      setCourseCreatorId(course.course_creator_id ?? '')
-      setBasePrice(course.base_price != null ? String(course.base_price) : '')
-      setMinPrice(course.min_price != null ? String(course.min_price) : '')
+      setCourseCode(course.course_code ?? '')
+      setCourseName(course.course_name ?? '')
+      setField(course.field ?? '')
+      setFieldLabel(course.field ?? '')
+      setCoreCompetencies(course.core_competencies ?? [])
+      setDescription(course.description ?? '')
+      setSupportingAppUrl(course.supporting_app_url ?? '')
     }
   }, [course])
 
   function validate(): boolean {
     const e: Record<string, string> = {}
-    if (!name.trim()) e.name = 'Nama kursus wajib diisi'
-    else if (name.trim().length < 2) e.name = 'Minimal 2 karakter'
-    if (!departmentId) e.department_id = 'Departemen wajib diisi'
-    if (!courseCreatorId) e.course_creator_id = 'Course Creator wajib diisi'
-    const bp = parseFloat(basePrice)
-    if (basePrice === '' || isNaN(bp)) e.base_price = 'Harga dasar wajib diisi'
-    else if (bp < 0) e.base_price = 'Harga dasar tidak boleh negatif'
-    const mp = parseFloat(minPrice)
-    if (minPrice === '' || isNaN(mp)) e.min_price = 'Harga minimum wajib diisi'
-    else if (mp < 0) e.min_price = 'Harga minimum tidak boleh negatif'
-    else if (!isNaN(bp) && mp > bp) e.min_price = 'Harga minimum tidak boleh melebihi harga dasar'
+    if (!isEdit && !courseCode.trim()) e.course_code = 'Kode kursus wajib diisi'
+    if (!courseName.trim()) e.course_name = 'Nama kursus wajib diisi'
+    else if (courseName.trim().length < 2) e.course_name = 'Minimal 2 karakter'
+    if (!field) e.field = 'Bidang studi wajib dipilih'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -88,18 +95,24 @@ export default function CourseFormPage() {
     setServerError('')
 
     try {
-      const payload = {
-        name: name.trim(),
-        department_id: departmentId,
-        course_creator_id: courseCreatorId,
-        base_price: parseFloat(basePrice),
-        min_price: parseFloat(minPrice),
-      }
       if (isEdit) {
-        await courseService.update(courseId!, payload)
+        await courseService.update(courseId!, {
+          course_name: courseName.trim(),
+          field,
+          core_competencies: coreCompetencies,
+          description: description.trim(),
+          supporting_app_url: supportingAppUrl.trim() || undefined,
+        })
         toast.success('Kursus berhasil diperbarui')
       } else {
-        await courseService.create(payload)
+        await courseService.create({
+          course_code: courseCode.trim(),
+          course_name: courseName.trim(),
+          field,
+          core_competencies: coreCompetencies,
+          description: description.trim(),
+          supporting_app_url: supportingAppUrl.trim() || undefined,
+        })
         toast.success('Kursus berhasil dibuat')
       }
       await queryClient.invalidateQueries({ queryKey: ['courses'] })
@@ -110,9 +123,6 @@ export default function CourseFormPage() {
       setIsSubmitting(false)
     }
   }
-
-  const departments = (departmentsData as any)?.items ?? (departmentsData as any)?.data ?? []
-  const creators = (creatorsData as any)?.data ?? []
 
   const sidebarContent = (
     <FormColumn>
@@ -151,109 +161,71 @@ export default function CourseFormPage() {
           content: (
             <FormGrid>
               <FormColumn>
-                <Field label="Nama Kursus" required error={errors.name}>
+                {!isEdit && (
+                  <Field label="Kode Kursus" required error={errors.course_code} hint="Kode unik, tidak bisa diubah setelah disimpan. Contoh: WD-001">
+                    <input
+                      type="text"
+                      value={courseCode}
+                      onChange={(e) => setCourseCode(e.target.value)}
+                      placeholder="cth. WD-001"
+                      className={`${formStyles.input} ${errors.course_code ? formStyles.inputError : ''}`}
+                      autoFocus
+                    />
+                  </Field>
+                )}
+
+                <Field label="Nama Kursus" required error={errors.course_name}>
                   <input
                     type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={courseName}
+                    onChange={(e) => setCourseName(e.target.value)}
                     placeholder="cth. Web Development Fundamentals"
-                    className={`${formStyles.input} ${errors.name ? formStyles.inputError : ''}`}
-                    autoFocus
+                    className={`${formStyles.input} ${errors.course_name ? formStyles.inputError : ''}`}
+                    autoFocus={isEdit}
                   />
                 </Field>
 
-                <Field label="Departemen" required error={errors.department_id}>
-                  <select
-                    value={departmentId}
-                    onChange={(e) => setDepartmentId(e.target.value)}
-                    className={`${formStyles.input} ${errors.department_id ? formStyles.inputError : ''}`}
-                    disabled={loadingDepts}
-                  >
-                    <option value="">
-                      {loadingDepts ? 'Memuat...' : '— Pilih Departemen —'}
-                    </option>
-                    {(departments as any[]).map((dept: any) => (
-                      <option key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </option>
-                    ))}
-                  </select>
+                <Field label="Bidang Studi" required error={errors.field}>
+                  <SearchableSelect
+                    value={field}
+                    displayLabel={fieldLabel}
+                    placeholder="— Pilih Bidang Studi —"
+                    error={errors.field}
+                    fetchOptions={fetchFieldOptions}
+                    onSelect={(opt) => {
+                      setField(opt?.value ?? '')
+                      setFieldLabel(opt?.label ?? '')
+                    }}
+                  />
                 </Field>
 
-                <Field label="Course Creator" required error={errors.course_creator_id}>
-                  <select
-                    value={courseCreatorId}
-                    onChange={(e) => setCourseCreatorId(e.target.value)}
-                    className={`${formStyles.input} ${errors.course_creator_id ? formStyles.inputError : ''}`}
-                    disabled={loadingCreators}
-                  >
-                    <option value="">
-                      {loadingCreators ? 'Memuat...' : '— Pilih Course Creator —'}
-                    </option>
-                    {(creators as any[]).map((user: any) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name}
-                      </option>
-                    ))}
-                  </select>
+                <Field label="Kompetensi Inti" hint="Ketik lalu tekan Enter untuk menambah.">
+                  <TagInput
+                    value={coreCompetencies}
+                    onChange={setCoreCompetencies}
+                    placeholder="cth. Problem Solving, Teamwork..."
+                  />
                 </Field>
 
-                <Field label="Harga Dasar" required error={errors.base_price}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <span style={{
-                      padding: '0 var(--space-3)',
-                      background: 'var(--color-surface-elevated)',
-                      border: '1px solid var(--color-border)',
-                      borderRight: 'none',
-                      borderRadius: 'var(--radius-md) 0 0 var(--radius-md)',
-                      fontSize: 'var(--font-sm)',
-                      color: 'var(--color-text-secondary)',
-                      height: '36px',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}>
-                      Rp
-                    </span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="1000"
-                      value={basePrice}
-                      onChange={(e) => setBasePrice(e.target.value)}
-                      placeholder="0"
-                      className={`${formStyles.input} ${errors.base_price ? formStyles.inputError : ''}`}
-                      style={{ borderRadius: '0 var(--radius-md) var(--radius-md) 0', flex: 1 }}
-                    />
-                  </div>
+                <Field label="Deskripsi">
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Deskripsi singkat tentang kursus ini..."
+                    className={formStyles.input}
+                    rows={4}
+                    style={{ resize: 'vertical' }}
+                  />
                 </Field>
 
-                <Field label="Harga Minimum" required error={errors.min_price} hint="Harga batch tidak boleh di bawah nilai ini.">
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <span style={{
-                      padding: '0 var(--space-3)',
-                      background: 'var(--color-surface-elevated)',
-                      border: '1px solid var(--color-border)',
-                      borderRight: 'none',
-                      borderRadius: 'var(--radius-md) 0 0 var(--radius-md)',
-                      fontSize: 'var(--font-sm)',
-                      color: 'var(--color-text-secondary)',
-                      height: '36px',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}>
-                      Rp
-                    </span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="1000"
-                      value={minPrice}
-                      onChange={(e) => setMinPrice(e.target.value)}
-                      placeholder="0"
-                      className={`${formStyles.input} ${errors.min_price ? formStyles.inputError : ''}`}
-                      style={{ borderRadius: '0 var(--radius-md) var(--radius-md) 0', flex: 1 }}
-                    />
-                  </div>
+                <Field label="URL Supporting App" hint="Opsional. Link ke aplikasi pendukung (contoh: app-entrepreneur).">
+                  <input
+                    type="url"
+                    value={supportingAppUrl}
+                    onChange={(e) => setSupportingAppUrl(e.target.value)}
+                    placeholder="https://..."
+                    className={formStyles.input}
+                  />
                 </Field>
               </FormColumn>
               {sidebarContent}

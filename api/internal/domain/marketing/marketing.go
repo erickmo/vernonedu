@@ -123,7 +123,7 @@ type ReadRepository interface {
 	GetPrByID(ctx context.Context, id uuid.UUID) (*PrSchedule, error)
 	ListPr(ctx context.Context, offset, limit int, status, prType string) ([]*PrSchedule, int, error)
 	GetReferralPartnerByID(ctx context.Context, id uuid.UUID) (*ReferralPartner, error)
-	ListReferralPartners(ctx context.Context, offset, limit int, isActive *bool) ([]*ReferralPartner, int, error)
+	ListReferralPartners(ctx context.Context, offset, limit int, isActive *bool, search, sortBy, sortDir string) ([]*ReferralPartner, int, error)
 	ListReferrals(ctx context.Context, partnerID uuid.UUID) ([]*Referral, error)
 	GetStats(ctx context.Context) (*MarketingStats, error)
 }

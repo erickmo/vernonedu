@@ -128,7 +128,7 @@ type SourceWriteRepository interface {
 
 type SourceReadRepository interface {
 	GetSourceByID(ctx context.Context, id uuid.UUID) (*LeadSource, error)
-	ListSources(ctx context.Context) ([]*LeadSource, error)
+	ListSources(ctx context.Context, search, sortBy, sortDir string) ([]*LeadSource, error)
 }
 
 type InterestWriteRepository interface {

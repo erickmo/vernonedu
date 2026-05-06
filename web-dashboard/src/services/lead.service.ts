@@ -3,21 +3,9 @@ import { buildQueryString, extractPaginated } from './createEntityService'
 import type { ListParams } from './createEntityService'
 import type { PaginatedResponse } from '@/types/api.types'
 
-function toLeadsParams(params?: ListParams): Record<string, unknown> {
-  if (!params) return {}
-  const { filters, ...rest } = params
-  const extra: Record<string, unknown> = {}
-  if (filters) {
-    for (const [key, , value] of filters) {
-      if (key === 'status' || key === 'source_id') extra[key] = value
-    }
-  }
-  return { ...rest, ...extra }
-}
-
 export const leadService = {
   list: (params?: ListParams): Promise<PaginatedResponse<any>> =>
-    apiClient.get<unknown>(`/leads${buildQueryString(toLeadsParams(params))}`).then(extractPaginated),
+    apiClient.get<unknown>(`/leads${buildQueryString(params)}`).then(extractPaginated),
 
   getById: (id: string) =>
     apiClient.get<any>(`/leads/${id}`).then((r: any) => r?.data ?? r),
