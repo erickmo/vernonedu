@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
 	"github.com/vernonedu/entrepreneurship-api/internal/domain/mastercourse"
@@ -14,12 +15,14 @@ import (
 
 // CreateMasterCourseCommand adalah command untuk membuat MasterCourse baru.
 type CreateMasterCourseCommand struct {
-	CourseCode       string   `validate:"required"`
-	CourseName       string   `validate:"required,min=1"`
-	Field            string   `validate:"required"`
+	CourseCode       string    `validate:"required"`
+	CourseName       string    `validate:"required,min=1"`
+	Field            string    `validate:"required"`
 	CoreCompetencies []string
 	Description      string
 	SupportingAppUrl string
+	DepartmentID     *uuid.UUID
+	OwnerID          *uuid.UUID
 }
 
 // Handler menangani CreateMasterCourseCommand.
@@ -50,6 +53,9 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		url := c.SupportingAppUrl
 		mc.SupportingAppUrl = &url
 	}
+
+	mc.AssignDepartment(c.DepartmentID)
+	mc.AssignOwner(c.OwnerID)
 
 	if err := h.writeRepo.Save(ctx, mc); err != nil {
 		log.Error().Err(err).Msg("failed to save master course")

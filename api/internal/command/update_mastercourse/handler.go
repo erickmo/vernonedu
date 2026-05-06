@@ -15,12 +15,14 @@ import (
 
 // UpdateMasterCourseCommand adalah command untuk memperbarui MasterCourse.
 type UpdateMasterCourseCommand struct {
-	MasterCourseID   uuid.UUID `validate:"required"`
-	CourseName       string    `validate:"required,min=1"`
-	Field            string    `validate:"required"`
+	MasterCourseID   uuid.UUID  `validate:"required"`
+	CourseName       string     `validate:"required,min=1"`
+	Field            string     `validate:"required"`
 	CoreCompetencies []string
 	Description      string
 	SupportingAppUrl string
+	DepartmentID     *uuid.UUID
+	OwnerID          *uuid.UUID
 }
 
 // Handler menangani UpdateMasterCourseCommand.
@@ -58,6 +60,9 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		log.Error().Err(err).Msg("failed to update master course entity")
 		return err
 	}
+
+	mc.AssignDepartment(c.DepartmentID)
+	mc.AssignOwner(c.OwnerID)
 
 	if err := h.writeRepo.Update(ctx, mc); err != nil {
 		log.Error().Err(err).Msg("failed to persist master course update")
