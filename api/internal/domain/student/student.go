@@ -22,8 +22,21 @@ type Student struct {
 	DepartmentID *uuid.UUID
 	JoinedAt     time.Time
 	IsActive     bool
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	// Profile fields
+	Address               string
+	City                  string
+	Province              string
+	PostalCode            string
+	BirthDate             *time.Time
+	Gender                string
+	NIK                   string
+	PhotoURL              string
+	EducationLevel        string
+	SchoolName            string
+	EmergencyContactName  string
+	EmergencyContactPhone string
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
 }
 
 func NewStudent(name, email, phone string, departmentID *uuid.UUID) (*Student, error) {
