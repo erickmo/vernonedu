@@ -1,17 +1,16 @@
 import { apiClient } from './api.client'
-import type { ListParams } from './createEntityService'
+import { buildQueryString, extractPaginated, type ListParams } from './createEntityService'
+import type { PaginatedResponse } from '@/types/api.types'
 
 export const invoiceService = {
   getStats: () =>
-    apiClient.get<any>('/finance/invoices/stats').then(r => (r as any).data ?? r),
+    apiClient.get<any>('/finance/invoices/stats').then((r: any) => r?.data ?? r),
 
-  list: (params?: ListParams) => {
-    const qs = buildQS(params)
-    return apiClient.get<any>(`/finance/invoices${qs}`).then(r => (r as any).data ?? r)
-  },
+  list: (params?: ListParams): Promise<PaginatedResponse<any>> =>
+    apiClient.get<unknown>(`/finance/invoices${buildQueryString(params)}`).then(r => extractPaginated(r)),
 
   getDetail: (id: string) =>
-    apiClient.get<any>(`/finance/invoices/${id}`).then(r => (r as any).data ?? r),
+    apiClient.get<any>(`/finance/invoices/${id}`).then((r: any) => r?.data ?? r),
 
   markAsPaid: (id: string) =>
     apiClient.put<any>(`/finance/invoices/${id}/pay`, {}),
@@ -27,14 +26,4 @@ export const invoiceService = {
 
   delete: (id: string) =>
     apiClient.delete<any>(`/finance/invoices/${id}`),
-}
-
-function buildQS(params?: Record<string, any>): string {
-  if (!params) return ''
-  const q = new URLSearchParams()
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') q.set(k, Array.isArray(v) ? JSON.stringify(v) : String(v))
-  })
-  const s = q.toString()
-  return s ? `?${s}` : ''
 }

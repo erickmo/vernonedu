@@ -1,20 +1,19 @@
 import { apiClient } from './api.client'
-import type { ListParams } from './createEntityService'
+import { buildQueryString, extractPaginated, type ListParams } from './createEntityService'
+import type { PaginatedResponse } from '@/types/api.types'
 
 export const cmsService = {
   listPages: () =>
-    apiClient.get<any>('/cms/pages').then(r => (r as any).data ?? r),
+    apiClient.get<any>('/cms/pages').then((r: any) => r?.data ?? r),
 
   getPage: (slug: string) =>
-    apiClient.get<any>(`/cms/pages/${slug}`).then(r => (r as any).data ?? r),
+    apiClient.get<any>(`/cms/pages/${slug}`).then((r: any) => r?.data ?? r),
 
   updatePage: (slug: string, data: any) =>
     apiClient.put<any>(`/cms/pages/${slug}`, data),
 
-  listArticles: (params?: ListParams) => {
-    const qs = buildQS(params)
-    return apiClient.get<any>(`/cms/articles${qs}`).then(r => (r as any).data ?? r)
-  },
+  listArticles: (params?: ListParams): Promise<PaginatedResponse<any>> =>
+    apiClient.get<unknown>(`/cms/articles${buildQueryString(params)}`).then(r => extractPaginated(r)),
 
   createArticle: (data: any) =>
     apiClient.post<any>('/cms/articles', data),
@@ -26,7 +25,7 @@ export const cmsService = {
     apiClient.delete(`/cms/articles/${id}`),
 
   listTestimonials: () =>
-    apiClient.get<any>('/cms/testimonials').then(r => (r as any).data ?? r),
+    apiClient.get<any>('/cms/testimonials').then((r: any) => r?.data ?? r),
 
   createTestimonial: (data: any) =>
     apiClient.post<any>('/cms/testimonials', data),
@@ -39,7 +38,7 @@ export const cmsService = {
 
   listFaq: (category?: string) => {
     const qs = category ? `?category=${category}` : ''
-    return apiClient.get<any>(`/cms/faq${qs}`).then(r => (r as any).data ?? r)
+    return apiClient.get<any>(`/cms/faq${qs}`).then((r: any) => r?.data ?? r)
   },
 
   createFaq: (data: any) =>
@@ -52,18 +51,8 @@ export const cmsService = {
     apiClient.delete(`/cms/faq/${id}`),
 
   listMedia: () =>
-    apiClient.get<any>('/cms/media').then(r => (r as any).data ?? r),
+    apiClient.get<any>('/cms/media').then((r: any) => r?.data ?? r),
 
   deleteMedia: (id: string) =>
     apiClient.delete(`/cms/media/${id}`),
-}
-
-function buildQS(params?: Record<string, any>): string {
-  if (!params) return ''
-  const q = new URLSearchParams()
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') q.set(k, Array.isArray(v) ? JSON.stringify(v) : String(v))
-  })
-  const s = q.toString()
-  return s ? `?${s}` : ''
 }

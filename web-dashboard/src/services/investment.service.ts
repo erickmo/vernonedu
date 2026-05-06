@@ -1,19 +1,8 @@
 import { apiClient } from './api.client'
-import type { ListParams } from './createEntityService'
+import { buildQueryString, extractPaginated, type ListParams } from './createEntityService'
+import type { PaginatedResponse } from '@/types/api.types'
 
 export const investmentService = {
-  list: (params?: ListParams) => {
-    const qs = buildQS(params)
-    return apiClient.get<any>(`/investments${qs}`).then(r => (r as any).data ?? r)
-  },
-}
-
-function buildQS(params?: Record<string, any>): string {
-  if (!params) return ''
-  const q = new URLSearchParams()
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') q.set(k, Array.isArray(v) ? JSON.stringify(v) : String(v))
-  })
-  const s = q.toString()
-  return s ? `?${s}` : ''
+  list: (params?: ListParams): Promise<PaginatedResponse<any>> =>
+    apiClient.get<unknown>(`/investments${buildQueryString(params)}`).then(r => extractPaginated(r)),
 }

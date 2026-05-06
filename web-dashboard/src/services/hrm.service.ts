@@ -1,28 +1,6 @@
 import { apiClient } from './api.client'
-import type { ListParams } from './createEntityService'
+import { buildQueryString, extractPaginated, type ListParams } from './createEntityService'
 import type { PaginatedResponse } from '@/types/api.types'
-
-function toPaginated<T>(raw: unknown, fallback: T[]): PaginatedResponse<T> {
-  const r = raw as Record<string, unknown>
-  if (r && typeof r === 'object' && 'items' in r) return r as unknown as PaginatedResponse<T>
-  const list = Array.isArray(raw) ? raw : fallback
-  return { items: list as T[], total: list.length, limit: 9999, offset: 0 }
-}
-
-function buildQS(params?: Record<string, unknown>): string {
-  if (!params) return ''
-  const q = new URLSearchParams()
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') q.set(k, Array.isArray(v) ? JSON.stringify(v) : String(v))
-  })
-  const s = q.toString()
-  return s ? `?${s}` : ''
-}
-
-function unwrap<T>(res: unknown): T {
-  const r = res as Record<string, unknown>
-  return (r?.data ?? res) as T
-}
 
 // ─── Employees ─────────────────────────────────────────────────────────────────
 
@@ -30,11 +8,10 @@ export const hrmService = {
   // ── Employees ────────────────────────────────────────────────────────────────
 
   listEmployees: (params?: ListParams): Promise<PaginatedResponse<any>> =>
-    apiClient.get<any>(`/hrm/employees${buildQS(params)}`)
-      .then(r => toPaginated(unwrap(r), [])),
+    apiClient.get<unknown>(`/hrm/employees${buildQueryString(params)}`).then(r => extractPaginated(r)),
 
   getEmployee: (id: string) =>
-    apiClient.get<any>(`/hrm/employees/${id}`).then(r => unwrap(r)),
+    apiClient.get<any>(`/hrm/employees/${id}`).then((r: any) => r?.data ?? r),
 
   createEmployee: (data: unknown) =>
     apiClient.post<any>('/hrm/employees', data),
@@ -45,33 +22,30 @@ export const hrmService = {
   // ── Attendance ───────────────────────────────────────────────────────────────
 
   listAttendance: (params?: ListParams): Promise<PaginatedResponse<any>> =>
-    apiClient.get<any>(`/hrm/attendance${buildQS(params)}`)
-      .then(r => toPaginated(unwrap(r), [])),
+    apiClient.get<unknown>(`/hrm/attendance${buildQueryString(params)}`).then(r => extractPaginated(r)),
 
   createAttendance: (data: unknown) =>
     apiClient.post<any>('/hrm/attendance', data),
 
   getAttendance: (id: string) =>
-    apiClient.get<any>(`/hrm/attendance/${id}`).then(r => (r as any)?.data ?? r),
+    apiClient.get<any>(`/hrm/attendance/${id}`).then((r: any) => r?.data ?? r),
 
   updateAttendance: (id: string, data: unknown) =>
     apiClient.put<any>(`/hrm/attendance/${id}`, data),
 
   getAttendanceSummary: (params?: { employee_id?: string; month?: number; year?: number }) =>
-    apiClient.get<any>(`/hrm/attendance/summary${buildQS(params)}`)
-      .then(r => unwrap(r)),
+    apiClient.get<any>(`/hrm/attendance/summary${buildQueryString(params)}`).then((r: any) => r?.data ?? r),
 
   // ── Leave Requests ────────────────────────────────────────────────────────────
 
   listLeaves: (params?: ListParams): Promise<PaginatedResponse<any>> =>
-    apiClient.get<any>(`/hrm/leave-requests${buildQS(params)}`)
-      .then(r => toPaginated(unwrap(r), [])),
+    apiClient.get<unknown>(`/hrm/leave-requests${buildQueryString(params)}`).then(r => extractPaginated(r)),
 
   createLeave: (data: unknown) =>
     apiClient.post<any>('/hrm/leave-requests', data),
 
   getLeave: (id: string) =>
-    apiClient.get<any>(`/hrm/leave-requests/${id}`).then(r => (r as any)?.data ?? r),
+    apiClient.get<any>(`/hrm/leave-requests/${id}`).then((r: any) => r?.data ?? r),
 
   reviewLeave: (id: string, data: { status: 'approved' | 'rejected'; note?: string }) =>
     apiClient.put<any>(`/hrm/leave-requests/${id}/review`, data),
@@ -79,11 +53,10 @@ export const hrmService = {
   // ── Payroll Periods ─────────────────────────────────────────────────────────
 
   listPayrollPeriods: (params?: ListParams): Promise<PaginatedResponse<any>> =>
-    apiClient.get<any>(`/hrm/payroll-periods${buildQS(params)}`)
-      .then(r => toPaginated(unwrap(r), [])),
+    apiClient.get<unknown>(`/hrm/payroll-periods${buildQueryString(params)}`).then(r => extractPaginated(r)),
 
   getPayrollPeriod: (id: string) =>
-    apiClient.get<any>(`/hrm/payroll-periods/${id}`).then(r => unwrap(r)),
+    apiClient.get<any>(`/hrm/payroll-periods/${id}`).then((r: any) => r?.data ?? r),
 
   createPayrollPeriod: (data: unknown) =>
     apiClient.post<any>('/hrm/payroll-periods', data),
@@ -97,8 +70,7 @@ export const hrmService = {
   // ── Payroll Items ────────────────────────────────────────────────────────────
 
   getPayrollItems: (periodId: string): Promise<PaginatedResponse<any>> =>
-    apiClient.get<any>(`/hrm/payroll-periods/${periodId}/items`)
-      .then(r => toPaginated(unwrap(r), [])),
+    apiClient.get<unknown>(`/hrm/payroll-periods/${periodId}/items`).then(r => extractPaginated(r)),
 
   updatePayrollItem: (id: string, data: unknown) =>
     apiClient.put<any>(`/hrm/payroll-items/${id}`, data),
@@ -106,9 +78,9 @@ export const hrmService = {
   // ── Departments (for filters) ────────────────────────────────────────────────
 
   listDepartments: () =>
-    apiClient.get<any>('/departments').then(r => {
-      const d = unwrap(r)
-      return Array.isArray(d) ? d : (d as Record<string, unknown>)?.items ?? []
+    apiClient.get<any>('/departments').then((r: any) => {
+      const d = r?.data ?? r
+      return Array.isArray(d) ? d : d?.items ?? []
     }),
 
   deleteAttendance: (id: string) =>

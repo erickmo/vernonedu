@@ -14,7 +14,12 @@ export interface ListParams {
   [key: string]: unknown
 }
 
-function buildQueryString(params?: ListParams): string {
+/**
+ * Build URL query string from ListParams.
+ * Arrays (sort, filters) are JSON-stringified.
+ * Zero values (limit=0, offset=0) are included.
+ */
+export function buildQueryString(params?: ListParams | Record<string, unknown>): string {
   if (!params) return ''
   const q = new URLSearchParams()
   Object.entries(params).forEach(([k, v]) => {
@@ -26,28 +31,42 @@ function buildQueryString(params?: ListParams): string {
   return str ? `?${str}` : ''
 }
 
+/**
+ * Extract PaginatedResponse from Go API list response.
+ * API shape: { data: T[], total: number, offset: number, limit: number }
+ */
+export function extractPaginated<T>(
+  raw: unknown,
+  fallback: T[] = [],
+): PaginatedResponse<T> {
+  const r = raw as Record<string, unknown>
+  const items = Array.isArray(r?.data) ? (r.data as T[]) : fallback
+  return {
+    items,
+    total: (r?.total as number) ?? items.length,
+    limit: (r?.limit as number) ?? 9999,
+    offset: (r?.offset as number) ?? 0,
+  }
+}
+
 export function createEntityService<T, TApi = T>(
   basePath: string,
   transform?: (raw: TApi) => T,
-  responseWrapper?: string,
 ) {
   return {
     list: async (params?: ListParams): Promise<PaginatedResponse<T>> => {
-      const response = await apiClient.get<Record<string, PaginatedResponse<TApi>>>(
-        `${basePath}${buildQueryString(params)}`,
-      )
-      const raw: PaginatedResponse<TApi> = responseWrapper
-        ? response[responseWrapper]
-        : (response as unknown as PaginatedResponse<TApi>)
+      const raw = await apiClient.get<unknown>(`${basePath}${buildQueryString(params)}`)
+      const result = extractPaginated<TApi>(raw)
       return {
-        ...raw,
-        items: transform ? raw.items.map(transform) : (raw.items as unknown as T[]),
+        ...result,
+        items: transform ? result.items.map(transform) : (result.items as unknown as T[]),
       }
     },
 
     getById: async (id: string): Promise<T> => {
-      const raw = await apiClient.get<TApi>(`${basePath}/${id}`)
-      return transform ? transform(raw) : (raw as unknown as T)
+      const raw = await apiClient.get<Record<string, unknown>>(`${basePath}/${id}`)
+      const item = (raw?.data ?? raw) as TApi
+      return transform ? transform(item) : (item as unknown as T)
     },
 
     create: (data: Partial<T>): Promise<T> =>

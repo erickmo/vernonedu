@@ -1,5 +1,5 @@
 import { apiClient } from './api.client'
-import type { ListParams } from './createEntityService'
+import { buildQueryString, extractPaginated, type ListParams } from './createEntityService'
 import type { PaginatedResponse } from '@/types/api.types'
 
 export interface Notification {
@@ -12,24 +12,9 @@ export interface Notification {
   [key: string]: unknown
 }
 
-function buildQS(params?: Record<string, unknown>): string {
-  if (!params) return ''
-  const q = new URLSearchParams()
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') q.set(k, Array.isArray(v) ? JSON.stringify(v) : String(v))
-  })
-  const s = q.toString()
-  return s ? `?${s}` : ''
-}
-
 export const notificationService = {
-  list: async (params?: ListParams): Promise<PaginatedResponse<Notification>> => {
-    const qs = buildQS(params as Record<string, unknown>)
-    const r = await apiClient.get<any>(`/notifications${qs}`)
-    const raw = (r as any).data ?? r
-    const items = Array.isArray(raw.items) ? raw.items : (Array.isArray(raw) ? raw : [])
-    return { items, total: raw.total ?? items.length, offset: raw.offset ?? 0, limit: raw.limit ?? 100 }
-  },
+  list: (params?: ListParams): Promise<PaginatedResponse<Notification>> =>
+    apiClient.get<unknown>(`/notifications${buildQueryString(params)}`).then(r => extractPaginated<Notification>(r)),
 
   markRead: (id: string) =>
     apiClient.put<any>(`/notifications/${id}/read`, {}),

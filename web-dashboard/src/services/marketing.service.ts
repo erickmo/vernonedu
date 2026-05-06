@@ -1,14 +1,13 @@
 import { apiClient } from './api.client'
-import type { ListParams } from './createEntityService'
+import { buildQueryString, extractPaginated, type ListParams } from './createEntityService'
+import type { PaginatedResponse } from '@/types/api.types'
 
 export const marketingService = {
   getStats: () =>
-    apiClient.get<any>('/marketing/stats').then(r => (r as any).data ?? r),
+    apiClient.get<any>('/marketing/stats').then((r: any) => r?.data ?? r),
 
-  listPosts: (params?: ListParams) => {
-    const qs = buildQS(params)
-    return apiClient.get<any>(`/marketing/posts${qs}`).then(r => (r as any).data ?? r)
-  },
+  listPosts: (params?: ListParams): Promise<PaginatedResponse<any>> =>
+    apiClient.get<unknown>(`/marketing/posts${buildQueryString(params)}`).then(r => extractPaginated(r)),
 
   createPost: (data: any) =>
     apiClient.post<any>('/marketing/posts', data),
@@ -22,10 +21,8 @@ export const marketingService = {
   deletePost: (id: string) =>
     apiClient.delete(`/marketing/posts/${id}`),
 
-  listPr: (params?: ListParams) => {
-    const qs = buildQS(params)
-    return apiClient.get<any>(`/marketing/pr${qs}`).then(r => (r as any).data ?? r)
-  },
+  listPr: (params?: ListParams): Promise<PaginatedResponse<any>> =>
+    apiClient.get<unknown>(`/marketing/pr${buildQueryString(params)}`).then(r => extractPaginated(r)),
 
   createPr: (data: any) =>
     apiClient.post<any>('/marketing/pr', data),
@@ -37,7 +34,7 @@ export const marketingService = {
     apiClient.delete(`/marketing/pr/${id}`),
 
   listReferralPartners: () =>
-    apiClient.get<any>('/marketing/referral-partners').then(r => (r as any).data ?? r),
+    apiClient.get<any>('/marketing/referral-partners').then((r: any) => r?.data ?? r),
 
   createReferralPartner: (data: any) =>
     apiClient.post<any>('/marketing/referral-partners', data),
@@ -46,15 +43,5 @@ export const marketingService = {
     apiClient.put<any>(`/marketing/referral-partners/${id}`, data),
 
   getReferrals: (partnerId: string) =>
-    apiClient.get<any>(`/marketing/referral-partners/${partnerId}/referrals`).then(r => (r as any).data ?? r),
-}
-
-function buildQS(params?: Record<string, any>): string {
-  if (!params) return ''
-  const q = new URLSearchParams()
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') q.set(k, Array.isArray(v) ? JSON.stringify(v) : String(v))
-  })
-  const s = q.toString()
-  return s ? `?${s}` : ''
+    apiClient.get<any>(`/marketing/referral-partners/${partnerId}/referrals`).then((r: any) => r?.data ?? r),
 }
