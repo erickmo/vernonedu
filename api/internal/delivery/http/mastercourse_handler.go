@@ -41,6 +41,8 @@ type CreateMasterCourseRequest struct {
 	CoreCompetencies []string `json:"core_competencies"`
 	Description      string   `json:"description"`
 	SupportingAppUrl string   `json:"supporting_app_url"`
+	DepartmentID     *string  `json:"department_id"`
+	OwnerID          *string  `json:"owner_id"`
 }
 
 // UpdateMasterCourseRequest adalah request body untuk memperbarui MasterCourse.
@@ -50,6 +52,8 @@ type UpdateMasterCourseRequest struct {
 	CoreCompetencies []string `json:"core_competencies"`
 	Description      string   `json:"description"`
 	SupportingAppUrl string   `json:"supporting_app_url"`
+	DepartmentID     *string  `json:"department_id"`
+	OwnerID          *string  `json:"owner_id"`
 }
 
 // Create godoc
@@ -71,6 +75,25 @@ func (h *MasterCourseHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var deptID *uuid.UUID
+	if req.DepartmentID != nil && *req.DepartmentID != "" {
+		id, err := uuid.Parse(*req.DepartmentID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "invalid department_id")
+			return
+		}
+		deptID = &id
+	}
+	var ownerID *uuid.UUID
+	if req.OwnerID != nil && *req.OwnerID != "" {
+		id, err := uuid.Parse(*req.OwnerID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "invalid owner_id")
+			return
+		}
+		ownerID = &id
+	}
+
 	cmd := &create_mastercourse.CreateMasterCourseCommand{
 		CourseCode:       req.CourseCode,
 		CourseName:       req.CourseName,
@@ -78,6 +101,8 @@ func (h *MasterCourseHandler) Create(w http.ResponseWriter, r *http.Request) {
 		CoreCompetencies: req.CoreCompetencies,
 		Description:      req.Description,
 		SupportingAppUrl: req.SupportingAppUrl,
+		DepartmentID:     deptID,
+		OwnerID:          ownerID,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute create master course command")
@@ -194,6 +219,25 @@ func (h *MasterCourseHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var deptID *uuid.UUID
+	if req.DepartmentID != nil && *req.DepartmentID != "" {
+		pid, err := uuid.Parse(*req.DepartmentID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "invalid department_id")
+			return
+		}
+		deptID = &pid
+	}
+	var ownerID *uuid.UUID
+	if req.OwnerID != nil && *req.OwnerID != "" {
+		pid, err := uuid.Parse(*req.OwnerID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "invalid owner_id")
+			return
+		}
+		ownerID = &pid
+	}
+
 	cmd := &update_mastercourse.UpdateMasterCourseCommand{
 		MasterCourseID:   id,
 		CourseName:       req.CourseName,
@@ -201,6 +245,8 @@ func (h *MasterCourseHandler) Update(w http.ResponseWriter, r *http.Request) {
 		CoreCompetencies: req.CoreCompetencies,
 		Description:      req.Description,
 		SupportingAppUrl: req.SupportingAppUrl,
+		DepartmentID:     deptID,
+		OwnerID:          ownerID,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute update master course command")

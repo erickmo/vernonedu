@@ -43,6 +43,8 @@ type CreateCourseTypeRequest struct {
 	MinPrice               int64                              `json:"min_price"`
 	MinParticipants        int                                `json:"min_participants"`
 	MaxParticipants        int                                `json:"max_participants"`
+	MinSessions            int                                `json:"min_sessions"`
+	MaxSessions            int                                `json:"max_sessions"`
 }
 
 // UpdateCourseTypeRequest adalah request body untuk memperbarui CourseType.
@@ -60,6 +62,8 @@ type UpdateCourseTypeRequest struct {
 	MinPrice               int64                              `json:"min_price"`
 	MinParticipants        int                                `json:"min_participants"`
 	MaxParticipants        int                                `json:"max_participants"`
+	MinSessions            int                                `json:"min_sessions"`
+	MaxSessions            int                                `json:"max_sessions"`
 }
 
 // Create godoc
@@ -102,6 +106,8 @@ func (h *CourseTypeHandler) Create(w http.ResponseWriter, r *http.Request) {
 		MinPrice:               req.MinPrice,
 		MinParticipants:        req.MinParticipants,
 		MaxParticipants:        req.MaxParticipants,
+		MinSessions:            req.MinSessions,
+		MaxSessions:            req.MaxSessions,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute create course type command")
@@ -226,6 +232,8 @@ func (h *CourseTypeHandler) Update(w http.ResponseWriter, r *http.Request) {
 		MinPrice:               req.MinPrice,
 		MinParticipants:        req.MinParticipants,
 		MaxParticipants:        req.MaxParticipants,
+		MinSessions:            req.MinSessions,
+		MaxSessions:            req.MaxSessions,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute update course type command")
