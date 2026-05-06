@@ -79,6 +79,23 @@ const columns: ColumnDef<Building>[] = [
         : <span style={{ color: 'var(--color-text-tertiary)' }}>—</span>
     },
   },
+  {
+    key: 'ownership',
+    header: 'Kepemilikan',
+    width: 160,
+    render: (_v: any, row: any) => (
+      <span style={{
+        display: 'inline-block', padding: '2px 10px', borderRadius: 'var(--radius-full)',
+        fontSize: 'var(--font-xs)', fontWeight: 600,
+        background: row.ownership === 'partner' ? 'var(--color-info-light)' : 'var(--color-surface-alt)',
+        color: row.ownership === 'partner' ? 'var(--color-info-dark)' : 'var(--color-text-secondary)',
+      }}>
+        {row.ownership === 'partner'
+          ? (row.partner_name ? `Partner: ${row.partner_name}` : 'Milik Partner')
+          : 'Milik Sendiri'}
+      </span>
+    ),
+  },
 ]
 
 export function RoomList({ rooms }: { rooms: RoomItem[] }) {
