@@ -48,9 +48,11 @@ const StudentFormPage     = lazy(() => import('@/pages/Students/StudentFormPage'
 const StudentDashboardPage = lazy(() => import('@/pages/Students/StudentDashboardPage'))
 
 // Talent Pool
-const TalentPoolPage         = lazy(() => import('@/pages/TalentPool/TalentPoolPage'))
-const TalentPoolPlacedPage   = lazy(() => import('@/pages/TalentPool/TalentPoolPlacedPage'))
-const TalentPoolLowonganPage = lazy(() => import('@/pages/TalentPool/TalentPoolLowonganPage'))
+const TalentPoolPage                  = lazy(() => import('@/pages/TalentPool/TalentPoolPage'))
+const TalentPoolPlacedPage            = lazy(() => import('@/pages/TalentPool/TalentPoolPlacedPage'))
+const TalentPoolLowonganPage          = lazy(() => import('@/pages/TalentPool/TalentPoolLowonganPage'))
+const TalentPoolLowonganDetailPage    = lazy(() => import('@/pages/TalentPool/TalentPoolLowonganDetailPage'))
+const TalentPoolLowonganFormPage      = lazy(() => import('@/pages/TalentPool/TalentPoolLowonganFormPage'))
 
 // Certificates
 const CertificateListPage            = lazy(() => import('@/pages/Certificates/CertificateListPage'))
@@ -225,6 +227,9 @@ const singleTenantRoutes = [
       { path: 'talentpool',                           element: <S><TalentPoolPage /></S> },
       { path: 'talentpool/placed',                    element: <S><TalentPoolPlacedPage /></S> },
       { path: 'talentpool/lowongan',                  element: <S><TalentPoolLowonganPage /></S> },
+      { path: 'talentpool/lowongan/new',              element: <S><TalentPoolLowonganFormPage /></S> },
+      { path: 'talentpool/lowongan/:vacancyId',       element: <S><TalentPoolLowonganDetailPage /></S> },
+      { path: 'talentpool/lowongan/:vacancyId/edit',  element: <S><TalentPoolLowonganFormPage /></S> },
 
       // ── Certificates ───────────────────────────────────────────────────────
       { path: 'certificates',                         element: <S><CertificateListPage /></S> },

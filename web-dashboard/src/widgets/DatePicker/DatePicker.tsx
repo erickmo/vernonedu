@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import styles from './DatePicker.module.css'
 
@@ -100,13 +101,26 @@ export function DatePicker({
     const d = parseISO(value) ?? today
     return { year: d.getFullYear(), month: d.getMonth() }
   })
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({})
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
-  // Sync calendar view when controlled value changes
+  // Calculate fixed position when opened — prevents clipping inside overflow:hidden cards
   useEffect(() => {
-    const d = parseISO(value)
-    if (d) setView({ year: d.getFullYear(), month: d.getMonth() })
-  }, [value])
+    if (!open || !triggerRef.current) return
+    function updatePos() {
+      if (!triggerRef.current) return
+      const rect = triggerRef.current.getBoundingClientRect()
+      setPopoverStyle({ position: 'fixed', top: rect.bottom + 4, left: rect.left })
+    }
+    updatePos()
+    window.addEventListener('scroll', updatePos, true)
+    window.addEventListener('resize', updatePos)
+    return () => {
+      window.removeEventListener('scroll', updatePos, true)
+      window.removeEventListener('resize', updatePos)
+    }
+  }, [open])
 
   // Close on outside click
   useEffect(() => {
@@ -153,10 +167,18 @@ export function DatePicker({
   return (
     <div className={styles.wrapper} ref={wrapperRef}>
       <button
+        ref={triggerRef}
         id={id}
         type="button"
         className={`${styles.trigger} ${className ?? ''}`}
-        onClick={() => !disabled && setOpen(o => !o)}
+        onClick={() => {
+          if (disabled) return
+          if (!open) {
+            const d = parseISO(value)
+            if (d) setView({ year: d.getFullYear(), month: d.getMonth() })
+          }
+          setOpen(o => !o)
+        }}
         disabled={disabled}
       >
         <span className={value ? '' : styles.placeholderText}>
@@ -165,8 +187,8 @@ export function DatePicker({
         <Calendar size={14} className={styles.calIcon} />
       </button>
 
-      {open && (
-        <div className={styles.popover}>
+      {open && createPortal(
+        <div className={styles.popover} style={popoverStyle}>
           {/* Month navigation */}
           <div className={styles.header}>
             <button type="button" className={styles.navBtn} onClick={prevMonth}>
@@ -214,7 +236,8 @@ export function DatePicker({
               )
             })}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )

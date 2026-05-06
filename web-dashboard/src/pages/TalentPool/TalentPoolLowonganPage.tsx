@@ -1,4 +1,5 @@
-import { Briefcase } from 'lucide-react'
+import { Briefcase, Pencil } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
 import type { ColumnDef, RowActionDef } from '@/widgets/DataTable/DataTable'
 import { jobVacancyService } from '@/services/jobvacancy.service'
@@ -71,20 +72,28 @@ const columns: ColumnDef<Lowongan>[] = [
   },
 ]
 
-const rowActions: RowActionDef<Lowongan>[] = [
-  {
-    key: 'view',
-    label: 'Lihat Detail',
-    icon: <Briefcase size={14} />,
-    onClick: () => {},
-  },
-]
-
 function fetchLowongan(params: ListParams) {
   return jobVacancyService.list(params)
 }
 
 export default function TalentPoolLowonganPage() {
+  const navigate = useNavigate()
+
+  const rowActions: RowActionDef<Lowongan>[] = [
+    {
+      key: 'view',
+      label: 'Lihat Detail',
+      icon: <Briefcase size={14} />,
+      onClick: (row) => navigate(`/talentpool/lowongan/${row.id}`),
+    },
+    {
+      key: 'edit',
+      label: 'Edit',
+      icon: <Pencil size={14} />,
+      onClick: (row) => navigate(`/talentpool/lowongan/${row.id}/edit`),
+    },
+  ]
+
   return (
     <ListPageTemplate<Lowongan>
       title="Lowongan"
@@ -98,6 +107,8 @@ export default function TalentPoolLowonganPage() {
       emptyDescription="Lowongan dari perusahaan partner akan muncul di sini."
       helpTitle="Lowongan"
       helpText="Daftar lowongan pekerjaan dari perusahaan partner untuk kandidat Talent Pool."
+      addLabel="Tambah Lowongan"
+      onAdd={() => navigate('/talentpool/lowongan/new')}
     />
   )
 }

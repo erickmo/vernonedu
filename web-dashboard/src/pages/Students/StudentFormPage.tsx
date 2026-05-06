@@ -7,6 +7,7 @@ import {
   Field,
   FormGrid,
   FormColumn,
+  Toggle,
 } from '@/widgets/FormPageTemplate'
 import { toast } from '@/widgets/Toast/Toast'
 import { studentService } from '@/services/student.service'
@@ -29,6 +30,7 @@ export default function StudentFormPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [isActive, setIsActive] = useState(true)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverError, setServerError] = useState('')
@@ -44,6 +46,7 @@ export default function StudentFormPage() {
       setName(student.name ?? '')
       setEmail(student.email ?? '')
       setPhone(student.phone ?? '')
+      setIsActive(student.is_active ?? true)
     }
   }, [student])
 
@@ -65,16 +68,20 @@ export default function StudentFormPage() {
     setServerError('')
 
     try {
-      const payload = {
-        name: name.trim(),
-        email: email.trim(),
-        phone: phone.trim() || undefined,
-      }
       if (isEdit) {
-        await studentService.update(studentId!, payload)
+        await studentService.update(studentId!, {
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim() || undefined,
+          is_active: isActive,
+        })
         toast.success('Data siswa berhasil diperbarui')
       } else {
-        await studentService.create(payload)
+        await studentService.create({
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim() || undefined,
+        })
         toast.success('Siswa berhasil ditambahkan')
       }
       await queryClient.invalidateQueries({ queryKey: ['students'] })
@@ -105,10 +112,16 @@ export default function StudentFormPage() {
               <span style={{ color: 'var(--color-text-tertiary)' }}>Diperbarui</span>
               <span style={{ fontWeight: 500 }}>{formatDate(student.updated_at)}</span>
             </div>
-            <div style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text-secondary)' }}>
-              {student.is_active ? 'Status: Aktif' : 'Status: Alumni'}
-            </div>
           </div>
+        </Field>
+      )}
+      {isEdit && (
+        <Field label="Status Siswa" hint="Nonaktifkan jika siswa sudah alumni atau keluar.">
+          <Toggle
+            checked={isActive}
+            onChange={setIsActive}
+            label={isActive ? 'Aktif' : 'Alumni'}
+          />
         </Field>
       )}
     </FormColumn>

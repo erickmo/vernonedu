@@ -47,11 +47,8 @@
   flex-shrink: 0;
 }
 
-/* ─── Popover calendar ───────────────────────────────────────────────────────── */
+/* ─── Popover calendar — rendered via portal into document.body ──────────────── */
 .popover {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
   z-index: var(--z-dropdown);
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border-subtle);

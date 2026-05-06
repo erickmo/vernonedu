@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Settings } from 'lucide-react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Settings, Plus, Trash2 } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   FormPageTemplate,
   Field,
   FormGrid,
   FormColumn,
 } from '@/widgets/FormPageTemplate'
+import { Modal } from '@/widgets/Modal/Modal'
 import { toast } from '@/widgets/Toast/Toast'
 import { apiClient } from '@/services/api.client'
 import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
@@ -24,12 +25,16 @@ interface CommissionSettings {
 }
 
 interface FacilitatorLevel {
+  id?: string
+  level: number
   name: string
   fee_per_session: number
 }
 
-interface FacilitatorLevelsResponse {
-  levels: FacilitatorLevel[]
+interface Holiday {
+  id: string
+  date: string
+  name: string
 }
 
 function BasisSelect({
@@ -66,11 +71,11 @@ function CommissionTab() {
 
   const { data } = useQuery({
     queryKey: ['settings-commission'],
-    queryFn: () => apiClient.get<CommissionSettings>('/settings/commission'),
+    queryFn: () => apiClient.get<{ data: CommissionSettings }>('/settings/commission'),
   })
 
   useEffect(() => {
-    if (data) setForm(data)
+    if (data?.data) setForm(data.data)
   }, [data])
 
   function setField<K extends keyof CommissionSettings>(key: K, value: CommissionSettings[K]) {
@@ -174,11 +179,11 @@ function FacilitatorLevelsTab() {
 
   const { data } = useQuery({
     queryKey: ['settings-facilitator-levels'],
-    queryFn: () => apiClient.get<FacilitatorLevelsResponse>('/settings/facilitator-levels'),
+    queryFn: () => apiClient.get<{ data: FacilitatorLevel[] }>('/settings/facilitator-levels'),
   })
 
   useEffect(() => {
-    if (data?.levels) setLevels(data.levels)
+    if (data?.data) setLevels(data.data)
   }, [data])
 
   function updateLevel(index: number, field: keyof FacilitatorLevel, value: string | number) {
@@ -188,7 +193,9 @@ function FacilitatorLevelsTab() {
   async function handleSave() {
     setIsSubmitting(true)
     try {
-      await apiClient.put('/settings/facilitator-levels', { levels })
+      await apiClient.put('/settings/facilitator-levels', {
+        levels: levels.map((l, i) => ({ level: l.level ?? i + 1, name: l.name, fee_per_session: l.fee_per_session })),
+      })
       await queryClient.invalidateQueries({ queryKey: ['settings-facilitator-levels'] })
       toast.success('Level fasilitator berhasil disimpan')
     } catch (err) {
@@ -258,16 +265,154 @@ function FacilitatorLevelsTab() {
   )
 }
 
-function CompanyInfoTab() {
+const EMPTY_HOLIDAY = { date: '', name: '' }
+
+function HolidaysTab() {
+  const queryClient = useQueryClient()
+  const [year, setYear] = useState(new Date().getFullYear())
+  const [modalOpen, setModalOpen] = useState(false)
+  const [form, setForm] = useState(EMPTY_HOLIDAY)
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['settings-holidays', year],
+    queryFn: () => apiClient.get<{ data: Holiday[] }>(`/settings/holidays?year=${year}`),
+  })
+
+  const holidays = data?.data ?? []
+
+  const createMutation = useMutation({
+    mutationFn: (payload: typeof EMPTY_HOLIDAY) => apiClient.post('/settings/holidays', payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings-holidays', year] })
+      toast.success('Hari libur berhasil ditambahkan')
+      setModalOpen(false)
+      setForm(EMPTY_HOLIDAY)
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/settings/holidays/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings-holidays', year] })
+      toast.success('Hari libur berhasil dihapus')
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+
+  const TABLE_STYLE: React.CSSProperties = { width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-sm)' }
+  const TH_STYLE: React.CSSProperties = { textAlign: 'left', padding: '8px 12px', fontWeight: 600, borderBottom: '1px solid var(--color-border)' }
+  const TD_STYLE: React.CSSProperties = { padding: '8px 12px', borderBottom: '1px solid var(--color-border-subtle)' }
+
   return (
-    <div style={{
-      padding: 'var(--space-6)',
-      background: 'var(--color-surface-alt)',
-      borderRadius: 'var(--radius-lg)',
-      color: 'var(--color-text-secondary)',
-      fontSize: 'var(--font-sm)',
-    }}>
-      Pengaturan cabang dikelola di modul Business Development.
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <label style={{ fontSize: 'var(--font-sm)', fontWeight: 500 }}>Tahun:</label>
+          <select
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className={formStyles.input}
+            style={{ width: 'auto' }}
+          >
+            {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 1 + i).map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            padding: '8px 16px', borderRadius: 'var(--radius-md)',
+            background: 'var(--color-primary)', color: '#fff',
+            border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 'var(--font-sm)',
+          }}
+        >
+          <Plus size={16} /> Tambah Hari Libur
+        </button>
+      </div>
+
+      {isLoading ? (
+        <p style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text-secondary)' }}>Memuat...</p>
+      ) : (
+        <table style={TABLE_STYLE}>
+          <thead>
+            <tr>
+              <th style={TH_STYLE}>Tanggal</th>
+              <th style={TH_STYLE}>Nama</th>
+              <th style={{ ...TH_STYLE, width: '60px' }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {holidays.length === 0 ? (
+              <tr>
+                <td colSpan={3} style={{ ...TD_STYLE, color: 'var(--color-text-tertiary)', textAlign: 'center' }}>
+                  Belum ada hari libur untuk tahun {year}
+                </td>
+              </tr>
+            ) : (
+              holidays.map((h) => (
+                <tr key={h.id}>
+                  <td style={TD_STYLE}>{h.date}</td>
+                  <td style={TD_STYLE}>{h.name}</td>
+                  <td style={TD_STYLE}>
+                    <button
+                      type="button"
+                      onClick={() => deleteMutation.mutate(h.id)}
+                      disabled={deleteMutation.isPending}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-danger)', padding: 4 }}
+                      title="Hapus"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      )}
+
+      <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setForm(EMPTY_HOLIDAY) }} title="Tambah Hari Libur" size="sm">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <Field label="Tanggal" required>
+            <input
+              type="date"
+              value={form.date}
+              onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+              className={formStyles.input}
+            />
+          </Field>
+          <Field label="Nama Hari Libur" required>
+            <input
+              type="text"
+              value={form.name}
+              placeholder="contoh: Hari Kemerdekaan RI"
+              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+              className={formStyles.input}
+            />
+          </Field>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)' }}>
+            <button
+              type="button"
+              onClick={() => { setModalOpen(false); setForm(EMPTY_HOLIDAY) }}
+              style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', background: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', cursor: 'pointer', fontSize: 'var(--font-sm)' }}
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              onClick={() => createMutation.mutate(form)}
+              disabled={!form.date || !form.name || createMutation.isPending}
+              style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', background: 'var(--color-primary)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 'var(--font-sm)' }}
+            >
+              {createMutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
@@ -299,9 +444,9 @@ export default function SettingsPage() {
           content: <FacilitatorLevelsTab />,
         },
         {
-          id: 'company-info',
-          label: 'Info Perusahaan',
-          content: <CompanyInfoTab />,
+          id: 'holidays',
+          label: 'Hari Libur',
+          content: <HolidaysTab />,
         },
       ]}
     />

@@ -17,26 +17,6 @@ import { courseService } from '@/services/course.service'
 import { apiClient } from '@/services/api.client'
 import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
 
-const FIELD_OPTIONS: SelectOption[] = [
-  { value: 'Teknologi', label: 'Teknologi' },
-  { value: 'Bisnis & Kewirausahaan', label: 'Bisnis & Kewirausahaan' },
-  { value: 'Desain', label: 'Desain' },
-  { value: 'Seni & Kreatif', label: 'Seni & Kreatif' },
-  { value: 'Sains', label: 'Sains' },
-  { value: 'Kesehatan', label: 'Kesehatan' },
-  { value: 'Pendidikan', label: 'Pendidikan' },
-  { value: 'Sosial & Komunikasi', label: 'Sosial & Komunikasi' },
-  { value: 'Hukum', label: 'Hukum' },
-  { value: 'Pertanian', label: 'Pertanian' },
-]
-
-async function fetchFieldOptions(search: string): Promise<SelectOption[]> {
-  const q = search.toLowerCase()
-  return q
-    ? FIELD_OPTIONS.filter(o => o.label.toLowerCase().includes(q))
-    : FIELD_OPTIONS
-}
-
 async function fetchDepartments(search: string): Promise<SelectOption[]> {
   const params = search ? `?search=${encodeURIComponent(search)}&limit=20` : '?limit=20'
   const res = await apiClient.get<any>(`/departments${params}`)
@@ -71,8 +51,6 @@ export default function CourseFormPage() {
 
   const [courseCode, setCourseCode] = useState('')
   const [courseName, setCourseName] = useState('')
-  const [field, setField] = useState('')
-  const [fieldLabel, setFieldLabel] = useState('')
   const [coreCompetencies, setCoreCompetencies] = useState<string[]>([])
   const [description, setDescription] = useState('')
   const [supportingAppUrl, setSupportingAppUrl] = useState('')
@@ -94,8 +72,6 @@ export default function CourseFormPage() {
     if (course) {
       setCourseCode(course.course_code ?? '')
       setCourseName(course.course_name ?? '')
-      setField(course.field ?? '')
-      setFieldLabel(course.field ?? '')
       setCoreCompetencies(course.core_competencies ?? [])
       setDescription(course.description ?? '')
       setSupportingAppUrl(course.supporting_app_url ?? '')
@@ -111,7 +87,9 @@ export default function CourseFormPage() {
     if (!isEdit && !courseCode.trim()) e.course_code = 'Kode kursus wajib diisi'
     if (!courseName.trim()) e.course_name = 'Nama kursus wajib diisi'
     else if (courseName.trim().length < 2) e.course_name = 'Minimal 2 karakter'
-    if (!field) e.field = 'Bidang studi wajib dipilih'
+    if (!departmentId) e.department_id = 'Departemen wajib dipilih'
+    if (!ownerId) e.owner_id = 'Course Owner wajib dipilih'
+    if (!description.trim()) e.description = 'Deskripsi wajib diisi'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -127,24 +105,22 @@ export default function CourseFormPage() {
       if (isEdit) {
         await courseService.update(courseId!, {
           course_name: courseName.trim(),
-          field,
           core_competencies: coreCompetencies,
           description: description.trim(),
           supporting_app_url: supportingAppUrl.trim() || undefined,
-          department_id: departmentId || null,
-          owner_id: ownerId || null,
+          department_id: departmentId,
+          owner_id: ownerId,
         })
         toast.success('Kursus berhasil diperbarui')
       } else {
         await courseService.create({
           course_code: courseCode.trim(),
           course_name: courseName.trim(),
-          field,
           core_competencies: coreCompetencies,
           description: description.trim(),
           supporting_app_url: supportingAppUrl.trim() || undefined,
-          department_id: departmentId || null,
-          owner_id: ownerId || null,
+          department_id: departmentId,
+          owner_id: ownerId,
         })
         toast.success('Kursus berhasil dibuat')
       }
@@ -233,29 +209,17 @@ export default function CourseFormPage() {
                       />
                     </Field>
                   )}
-                  <Field label="Bidang Studi" required error={errors.field}>
-                    <SearchableSelect
-                      value={field}
-                      displayLabel={fieldLabel}
-                      placeholder="— Pilih Bidang Studi —"
-                      error={errors.field}
-                      fetchOptions={fetchFieldOptions}
-                      onSelect={(opt) => {
-                        setField(opt?.value ?? '')
-                        setFieldLabel(opt?.label ?? '')
-                      }}
-                    />
-                  </Field>
                 </FieldSection>
 
                 <FieldSection title="Organisasi & Konfigurasi">
                   <FieldRow>
                     <div style={{ flex: 1 }}>
-                      <Field label="Departemen">
+                      <Field label="Departemen" required error={errors.department_id}>
                         <SearchableSelect
                           value={departmentId}
                           displayLabel={departmentLabel}
                           placeholder="Cari departemen..."
+                          error={errors.department_id}
                           fetchOptions={fetchDepartments}
                           onSelect={(opt) => {
                             setDepartmentId(opt?.value ?? '')
@@ -265,11 +229,12 @@ export default function CourseFormPage() {
                       </Field>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <Field label="Course Owner">
+                      <Field label="Course Owner" required error={errors.owner_id}>
                         <SearchableSelect
                           value={ownerId}
                           displayLabel={ownerLabel}
                           placeholder="Cari course owner..."
+                          error={errors.owner_id}
                           fetchOptions={fetchOwners}
                           onSelect={(opt) => {
                             setOwnerId(opt?.value ?? '')
@@ -298,12 +263,12 @@ export default function CourseFormPage() {
                       placeholder="cth. Problem Solving, Teamwork..."
                     />
                   </Field>
-                  <Field label="Deskripsi">
+                  <Field label="Deskripsi" required error={errors.description}>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Deskripsi singkat tentang kursus ini..."
-                      className={formStyles.input}
+                      className={`${formStyles.input} ${errors.description ? formStyles.inputError : ''}`}
                       rows={4}
                       style={{ resize: 'vertical' }}
                     />
