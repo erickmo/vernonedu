@@ -141,7 +141,7 @@ export default function StrukturPage() {
         {!loading && canAddDept && (
           <button
             className={styles.addDeptBtn}
-            onClick={() => navigate('/pengembangan/departments/new')}
+            onClick={() => navigate('/pendidikan/struktur/departments/new')}
           >
             + Tambah Departemen
           </button>

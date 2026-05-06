@@ -106,7 +106,7 @@ export default function DepartmentDashboardPage() {
     {
       label: 'Edit Departemen',
       icon: <Pencil size={14} />,
-      onClick: () => navigate(`/pengembangan/departments/${deptId}/edit`),
+      onClick: () => navigate(`/pendidikan/struktur/departments/${deptId}/edit`),
       variant: 'default',
     },
     {
@@ -313,7 +313,7 @@ export default function DepartmentDashboardPage() {
   return (
     <>
     <DetailPageTemplate
-      onBack={() => navigate('/pengembangan/departments')}
+      onBack={() => navigate('/pendidikan/struktur')}
       icon={<Building2 size={20} />}
       title={loadingDept ? 'Memuat...' : (dept?.name ?? 'Departemen')}
       badges={

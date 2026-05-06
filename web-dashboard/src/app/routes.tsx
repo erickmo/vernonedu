@@ -224,11 +224,10 @@ const singleTenantRoutes = [
       { path: 'certificates/templates/new',           element: <S><CertificateTemplateEditorPage /></S> },
       { path: 'certificates/templates/:templateId/edit', element: <S><CertificateTemplateEditorPage /></S> },
 
-      // ── Departments (under Pengembangan) ──────────────────────────────────
-      { path: 'pengembangan/departments',             element: <RoleRoute role={['director','education_leader','dept_leader','course_owner','facilitator']}><S><DepartmentListPage /></S></RoleRoute> },
-      { path: 'pengembangan/departments/new',         element: <RoleRoute role={['director','education_leader']}><S><DepartmentFormPage /></S></RoleRoute> },
-      { path: 'pengembangan/departments/:deptId',     element: <RoleRoute role={['director','education_leader','dept_leader','course_owner','facilitator']}><S><DepartmentDashboardPage /></S></RoleRoute> },
-      { path: 'pengembangan/departments/:deptId/edit', element: <RoleRoute role={['director','education_leader']}><S><DepartmentFormPage /></S></RoleRoute> },
+      // ── Departments (under Pendidikan → Struktur) ─────────────────────────
+      { path: 'pendidikan/struktur/departments/new',         element: <RoleRoute role={['director','education_leader']}><S><DepartmentFormPage /></S></RoleRoute> },
+      { path: 'pendidikan/struktur/departments/:deptId',     element: <RoleRoute role={['director','education_leader','dept_leader','course_owner','facilitator']}><S><DepartmentDashboardPage /></S></RoleRoute> },
+      { path: 'pendidikan/struktur/departments/:deptId/edit', element: <RoleRoute role={['director','education_leader']}><S><DepartmentFormPage /></S></RoleRoute> },
 
       // ── Leads ──────────────────────────────────────────────────────────────
       { path: 'leads',                                element: <S><LeadListPage /></S> },

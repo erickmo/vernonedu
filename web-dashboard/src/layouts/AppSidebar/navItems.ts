@@ -32,6 +32,7 @@ import {
   CalendarCheck,
   CalendarOff,
   Network,
+  Tag,
 } from 'lucide-react'
 
 // ─── Permission helpers ─────────────────────────────────────────────────────────
@@ -224,14 +225,6 @@ const ALL_ITEMS: NavItem[] = [
     hasAccess: (ctx) => canManageCourse(ctx) || hasRole(ctx, 'customer_service'),
   },
   {
-    key: 'departments',
-    label: 'Departemen',
-    icon: Building2,
-    path: '/pengembangan/departments',
-    hasAccess: (ctx) =>
-      hasAnyRole(ctx, ['director', 'education_leader', 'dept_leader']),
-  },
-  {
     key: 'leads',
     label: 'Leads',
     icon: Magnet,
@@ -336,6 +329,13 @@ const ALL_ITEMS: NavItem[] = [
     label: 'Pengaturan',
     icon: Settings,
     path: '/settings',
+    hasAccess: (ctx) => hasRole(ctx, 'director'),
+  },
+  {
+    key: 'settings-lead-sources',
+    label: 'Sumber Lead',
+    icon: Tag,
+    path: '/settings/lead-sources',
     hasAccess: (ctx) => hasRole(ctx, 'director'),
   },
 ]
@@ -453,13 +453,13 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'operasi',
     label: 'Operasi',
     icon: MapPin,
-    items: [ALL_ITEMS[9], ALL_ITEMS[11]], // Leads, Pembayaran
+    items: [ALL_ITEMS[8], ALL_ITEMS[10]], // Leads, Pembayaran
   },
   {
     key: 'marketing',
     label: 'Marketing',
     icon: Megaphone,
-    items: ALL_ITEMS.slice(12, 15), // Marketing, CRM, Partner
+    items: ALL_ITEMS.slice(11, 14), // Marketing, CRM, Partner
   },
   {
     key: 'keuangan',
@@ -477,13 +477,13 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'pengembangan',
     label: 'Pengembangan',
     icon: Rocket,
-    items: [ALL_ITEMS[8], ALL_ITEMS[10], ...ALL_ITEMS.slice(17, 19)], // Departemen, Lokasi, Proyek, Business Dev
+    items: [ALL_ITEMS[9], ...ALL_ITEMS.slice(16, 18)], // Lokasi, Proyek, Business Dev
   },
   {
     key: 'sistem',
     label: 'Sistem',
     icon: Settings,
-    items: ALL_ITEMS.slice(19), // CMS, Persetujuan, Notifikasi, Pengaturan
+    items: ALL_ITEMS.slice(18), // CMS, Persetujuan, Notifikasi, Pengaturan
   },
 ]
 
