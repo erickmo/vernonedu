@@ -4,7 +4,7 @@ import type { PaginatedResponse } from '@/types/api.types'
 import type { MOU, MOUPayload, ExpiringMOU, Partner } from '@/types/partner.types'
 
 function extractList<T>(r: unknown): T[] {
-  const outer = (r as any)?.data ?? r
+  const outer = (r as Record<string, unknown>)?.data ?? r
   return Array.isArray(outer) ? outer : (outer?.data ?? outer?.items ?? [])
 }
 
