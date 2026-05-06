@@ -30,6 +30,8 @@ type CreateCourseTypeCommand struct {
 	MinPrice               int64
 	MinParticipants        int
 	MaxParticipants        int
+	MinSessions            int
+	MaxSessions            int
 }
 
 // Handler menangani CreateCourseTypeCommand.
@@ -54,6 +56,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		c.MasterCourseID, c.TypeName, c.PriceType, c.PriceCurrency,
 		c.TargetAudience, c.CertificationType, c.ExtraDocs, c.ComponentFailureConfig,
 		c.NormalPrice, c.MinPrice, c.MinParticipants, c.MaxParticipants,
+		c.MinSessions, c.MaxSessions,
 	)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create course type entity")
