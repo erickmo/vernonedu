@@ -42,6 +42,8 @@ type courseTypeRecord struct {
 	MinPrice               int64      `db:"min_price"`
 	MinParticipants        int        `db:"min_participants"`
 	MaxParticipants        int        `db:"max_participants"`
+	MinSessions            int        `db:"min_sessions"`
+	MaxSessions            int        `db:"max_sessions"`
 	CreatedAt              time.Time  `db:"created_at"`
 	UpdatedAt              time.Time  `db:"updated_at"`
 }
@@ -86,6 +88,8 @@ func (rec *courseTypeRecord) toDomain() (*coursetype.CourseType, error) {
 		MinPrice:               rec.MinPrice,
 		MinParticipants:        rec.MinParticipants,
 		MaxParticipants:        rec.MaxParticipants,
+		MinSessions:            rec.MinSessions,
+		MaxSessions:            rec.MaxSessions,
 		CreatedAt:              rec.CreatedAt,
 		UpdatedAt:              rec.UpdatedAt,
 	}, nil
@@ -106,15 +110,15 @@ func (r *CourseTypeRepository) Save(ctx context.Context, ct *coursetype.CourseTy
 		INSERT INTO course_types (id, master_course_id, type_name, is_active, price_type, price_min, price_max,
 		                          price_currency, price_notes, target_audience, extra_docs, certification_type,
 		                          component_failure_config, normal_price, min_price, min_participants, max_participants,
-		                          created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+		                          min_sessions, max_sessions, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
 	`
 	_, err = r.db.ExecContext(ctx, query,
 		ct.ID, ct.MasterCourseID, ct.TypeName, ct.IsActive, ct.PriceType,
 		ct.PriceMin, ct.PriceMax, ct.PriceCurrency, ct.PriceNotes, ct.TargetAudience,
 		extraDocsJSON, ct.CertificationType, failureConfigJSON,
 		ct.NormalPrice, ct.MinPrice, ct.MinParticipants, ct.MaxParticipants,
-		ct.CreatedAt, ct.UpdatedAt,
+		ct.MinSessions, ct.MaxSessions, ct.CreatedAt, ct.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to save course type: %w", err)
@@ -138,14 +142,15 @@ func (r *CourseTypeRepository) Update(ctx context.Context, ct *coursetype.Course
 		SET is_active = $1, price_type = $2, price_min = $3, price_max = $4, price_currency = $5,
 		    price_notes = $6, target_audience = $7, extra_docs = $8, certification_type = $9,
 		    component_failure_config = $10, normal_price = $11, min_price = $12,
-		    min_participants = $13, max_participants = $14, updated_at = $15
-		WHERE id = $16
+		    min_participants = $13, max_participants = $14, min_sessions = $15, max_sessions = $16,
+		    updated_at = $17
+		WHERE id = $18
 	`
 	_, err = r.db.ExecContext(ctx, query,
 		ct.IsActive, ct.PriceType, ct.PriceMin, ct.PriceMax, ct.PriceCurrency,
 		ct.PriceNotes, ct.TargetAudience, extraDocsJSON, ct.CertificationType,
 		failureConfigJSON, ct.NormalPrice, ct.MinPrice, ct.MinParticipants, ct.MaxParticipants,
-		ct.UpdatedAt, ct.ID,
+		ct.MinSessions, ct.MaxSessions, ct.UpdatedAt, ct.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update course type: %w", err)
@@ -170,7 +175,7 @@ func (r *CourseTypeRepository) GetByID(ctx context.Context, id uuid.UUID) (*cour
 		SELECT id, master_course_id, type_name, is_active, price_type, price_min, price_max,
 		       price_currency, price_notes, target_audience, extra_docs, certification_type,
 		       component_failure_config, normal_price, min_price, min_participants, max_participants,
-		       created_at, updated_at
+		       min_sessions, max_sessions, created_at, updated_at
 		FROM course_types WHERE id = $1
 	`
 	if err := r.db.GetContext(ctx, &rec, query, id); err != nil {
@@ -193,7 +198,7 @@ func (r *CourseTypeRepository) ListByMasterCourse(ctx context.Context, masterCou
 		SELECT id, master_course_id, type_name, is_active, price_type, price_min, price_max,
 		       price_currency, price_notes, target_audience, extra_docs, certification_type,
 		       component_failure_config, normal_price, min_price, min_participants, max_participants,
-		       created_at, updated_at
+		       min_sessions, max_sessions, created_at, updated_at
 		FROM course_types WHERE master_course_id = $1 %s
 	`, orderByClause)
 	if err := r.db.SelectContext(ctx, &recs, query, masterCourseID); err != nil {
@@ -218,7 +223,7 @@ func (r *CourseTypeRepository) GetByMasterCourseAndType(ctx context.Context, mas
 		SELECT id, master_course_id, type_name, is_active, price_type, price_min, price_max,
 		       price_currency, price_notes, target_audience, extra_docs, certification_type,
 		       component_failure_config, normal_price, min_price, min_participants, max_participants,
-		       created_at, updated_at
+		       min_sessions, max_sessions, created_at, updated_at
 		FROM course_types WHERE master_course_id = $1 AND type_name = $2
 	`
 	if err := r.db.GetContext(ctx, &rec, query, masterCourseID, typeName); err != nil {
