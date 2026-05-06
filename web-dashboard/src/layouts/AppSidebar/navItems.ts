@@ -33,6 +33,7 @@ import {
   CalendarOff,
   Network,
   Tag,
+  Store,
 } from 'lucide-react'
 
 // ─── Permission helpers ─────────────────────────────────────────────────────────
@@ -165,6 +166,14 @@ export interface NavSection {
 }
 
 // ─── All nav items ──────────────────────────────────────────────────────────────
+
+const FRANCHISEE_ITEM: NavItem = {
+  key: 'franchisees',
+  label: 'Franchisee',
+  icon: Store,
+  path: '/pengembangan/franchisees',
+  hasAccess: (ctx) => hasRole(ctx, 'director'),
+}
 
 const ALL_ITEMS: NavItem[] = [
   {
@@ -502,7 +511,7 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'pengembangan',
     label: 'Pengembangan',
     icon: Rocket,
-    items: [ALL_ITEMS[9], ...ALL_ITEMS.slice(16, 18)], // Lokasi, Proyek, Business Dev
+    items: [ALL_ITEMS[9], ...ALL_ITEMS.slice(16, 18), FRANCHISEE_ITEM], // Lokasi, Proyek, Business Dev, Franchisee
   },
   {
     key: 'sistem',

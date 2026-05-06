@@ -280,6 +280,22 @@ import (
 	listinvestments "github.com/vernonedu/entrepreneurship-api/internal/query/list_investment_plans"
 	getdelegation   "github.com/vernonedu/entrepreneurship-api/internal/query/get_delegation"
 	listdelegations  "github.com/vernonedu/entrepreneurship-api/internal/query/list_delegations"
+	// franchise commands
+	createfranchisee "github.com/vernonedu/entrepreneurship-api/internal/command/create_franchisee"
+	updatefranchisee "github.com/vernonedu/entrepreneurship-api/internal/command/update_franchisee"
+	createagreement  "github.com/vernonedu/entrepreneurship-api/internal/command/create_agreement"
+	updateagreement  "github.com/vernonedu/entrepreneurship-api/internal/command/update_agreement"
+	createroyaltypay "github.com/vernonedu/entrepreneurship-api/internal/command/create_royalty_payment"
+	markroyaltypaid  "github.com/vernonedu/entrepreneurship-api/internal/command/mark_royalty_paid"
+	createotherrev   "github.com/vernonedu/entrepreneurship-api/internal/command/create_other_revenue"
+	updateotherrev   "github.com/vernonedu/entrepreneurship-api/internal/command/update_other_revenue"
+	deleteotherrev   "github.com/vernonedu/entrepreneurship-api/internal/command/delete_other_revenue"
+	// franchise queries
+	listfranchisees  "github.com/vernonedu/entrepreneurship-api/internal/query/list_franchisees"
+	getfranchisee    "github.com/vernonedu/entrepreneurship-api/internal/query/get_franchisee"
+	getagreement     "github.com/vernonedu/entrepreneurship-api/internal/query/get_agreement"
+	listroyaltypays  "github.com/vernonedu/entrepreneurship-api/internal/query/list_royalty_payments"
+	listotherrev     "github.com/vernonedu/entrepreneurship-api/internal/query/list_other_revenue"
 	// settings commands
 	createholiday    "github.com/vernonedu/entrepreneurship-api/internal/command/create_holiday"
 	deleteholiday    "github.com/vernonedu/entrepreneurship-api/internal/command/delete_holiday"
@@ -485,6 +501,9 @@ func main() {
 			func(db *sqlx.DB) *database.PartnerRepository {
 				return database.NewPartnerRepository(db)
 			},
+			func(db *sqlx.DB) *database.FranchiseRepository {
+				return database.NewFranchiseRepository(db)
+			},
 			func(db *sqlx.DB) *database.BranchRepository {
 				return database.NewBranchRepository(db)
 			},
@@ -618,6 +637,7 @@ func main() {
 			newLocationHTTPHandler,
 			// BizDev HTTP handlers
 			newPartnerHTTPHandler,
+			newFranchiseHTTPHandler,
 			newBranchHTTPHandler,
 			newOkrHTTPHandler,
 			newInvestmentHTTPHandler,
@@ -791,6 +811,10 @@ func newPartnerHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBu
 	return httphandler.NewPartnerHandler(cmdBus, qryBus)
 }
 
+func newFranchiseHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.FranchiseHandler {
+	return httphandler.NewFranchiseHandler(cmdBus, qryBus)
+}
+
 func newBranchHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.BranchHandler {
 	return httphandler.NewBranchHandler(cmdBus, qryBus)
 }
@@ -865,6 +889,7 @@ func newRouter(
 	leadHandler *httphandler.LeadHandler,
 	locationHandler *httphandler.LocationHandler,
 	partnerHandler *httphandler.PartnerHandler,
+	franchiseHandler *httphandler.FranchiseHandler,
 	branchHandler *httphandler.BranchHandler,
 	okrHandler *httphandler.OkrHandler,
 	investmentHandler *httphandler.InvestmentHandler,
@@ -940,6 +965,7 @@ func newRouter(
 		httphandler.RegisterAccountingBankRoutes(accountingHandler, r)
 		// BizDev routes
 		httphandler.RegisterPartnerRoutes(partnerHandler, r)
+		httphandler.RegisterFranchiseRoutes(franchiseHandler, r)
 		httphandler.RegisterBranchRoutes(branchHandler, r)
 		httphandler.RegisterOkrRoutes(okrHandler, r)
 		httphandler.RegisterInvestmentRoutes(investmentHandler, r)
@@ -1001,6 +1027,7 @@ type registerParams struct {
 	BatchScheduleRepo *database.BatchScheduleRepository
 	// BizDev repositories
 	PartnerRepo    *database.PartnerRepository
+	FranchiseRepo  *database.FranchiseRepository
 	BranchRepo     *database.BranchRepository
 	OkrRepo        *database.OkrRepository
 	InvestmentRepo *database.InvestmentRepository
@@ -1686,6 +1713,64 @@ func registerHandlers(p registerParams) error {
 	}
 	listExpiringMOUsH := listexpiringmous.NewHandler(p.PartnerRepo)
 	if err := p.QryBus.Register(&listexpiringmous.ListExpiringMOUsQuery{}, adaptQueryHandler(listExpiringMOUsH.Handle)); err != nil {
+		return err
+	}
+
+	// Franchise
+	if err := p.CmdBus.Register(&createfranchisee.CreateFranchiseeCommand{},
+		createfranchisee.NewHandler(p.FranchiseRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatefranchisee.UpdateFranchiseeCommand{},
+		updatefranchisee.NewHandler(p.FranchiseRepo, p.FranchiseRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createagreement.CreateAgreementCommand{},
+		createagreement.NewHandler(p.FranchiseRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updateagreement.UpdateAgreementCommand{},
+		updateagreement.NewHandler(p.FranchiseRepo, p.FranchiseRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createroyaltypay.CreateRoyaltyPaymentCommand{},
+		createroyaltypay.NewHandler(p.FranchiseRepo, p.FranchiseRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&markroyaltypaid.MarkRoyaltyPaidCommand{},
+		markroyaltypaid.NewHandler(p.FranchiseRepo, p.FranchiseRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&createotherrev.CreateOtherRevenueCommand{},
+		createotherrev.NewHandler(p.FranchiseRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updateotherrev.UpdateOtherRevenueCommand{},
+		updateotherrev.NewHandler(p.FranchiseRepo, p.FranchiseRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deleteotherrev.DeleteOtherRevenueCommand{},
+		deleteotherrev.NewHandler(p.FranchiseRepo)); err != nil {
+		return err
+	}
+	listFranchiseesH := listfranchisees.NewHandler(p.FranchiseRepo)
+	if err := p.QryBus.Register(&listfranchisees.ListFranchiseesQuery{}, adaptQueryHandler(listFranchiseesH.Handle)); err != nil {
+		return err
+	}
+	getFranchiseeH := getfranchisee.NewHandler(p.FranchiseRepo)
+	if err := p.QryBus.Register(&getfranchisee.GetFranchiseeQuery{}, adaptQueryHandler(getFranchiseeH.Handle)); err != nil {
+		return err
+	}
+	getAgreementH := getagreement.NewHandler(p.FranchiseRepo)
+	if err := p.QryBus.Register(&getagreement.GetAgreementQuery{}, adaptQueryHandler(getAgreementH.Handle)); err != nil {
+		return err
+	}
+	listRoyaltyPaysH := listroyaltypays.NewHandler(p.FranchiseRepo)
+	if err := p.QryBus.Register(&listroyaltypays.ListRoyaltyPaymentsQuery{}, adaptQueryHandler(listRoyaltyPaysH.Handle)); err != nil {
+		return err
+	}
+	listOtherRevH := listotherrev.NewHandler(p.FranchiseRepo)
+	if err := p.QryBus.Register(&listotherrev.ListOtherRevenueQuery{}, adaptQueryHandler(listOtherRevH.Handle)); err != nil {
 		return err
 	}
 

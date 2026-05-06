@@ -3828,3 +3828,4 @@
 | 12:19 | Fix CourseFormPage: replace wrong fields with correct mastercourse API fields, add SearchableSelect for 'field', TagInput for core_competencies | web-dashboard/src/pages/Course/CourseFormPage.tsx | done | ~800 |
 | 12:20 | Session end: 16 writes across 12 files (FranchiseeListPage.tsx, FranchiseeFormPage.test.tsx, FranchiseeFormPage.tsx, lead-source.service.ts, 2026-05-06-talentpool-job-vacancy-design.md) | 18 reads | ~45723 tok |
 | 12:21 | Created docs/superpowers/plans/2026-05-06-talentpool-job-vacancy.md | — | ~24577 |
+| 10:35 | FE-T1: Created franchisee service layer with TDD (test first, then implementation) | franchisee.service.ts, franchisee.service.test.ts | 4/4 tests passing, commit 94d0a83a | ~2100 |

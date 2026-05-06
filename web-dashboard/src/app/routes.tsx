@@ -138,6 +138,11 @@ const ProjectionReportsPage  = lazy(() => import('@/pages/BusinessDev/Projection
 const DelegationPage         = lazy(() => import('@/pages/BusinessDev/DelegationPage'))
 const PartnerDetailPage      = lazy(() => import('@/pages/BusinessDev/PartnerDetailPage'))
 
+// Franchisee
+const FranchiseeListPage   = lazy(() => import('@/pages/Franchisee/FranchiseeListPage'))
+const FranchiseeFormPage   = lazy(() => import('@/pages/Franchisee/FranchiseeFormPage'))
+const FranchiseeDetailPage = lazy(() => import('@/pages/Franchisee/FranchiseeDetailPage'))
+
 // Projects
 const ProjectListPage   = lazy(() => import('@/pages/Projects/ProjectListPage'))
 const ProjectDetailPage = lazy(() => import('@/pages/Projects/ProjectDetailPage'))
@@ -326,6 +331,12 @@ const singleTenantRoutes = [
       { path: 'business-development/projections',     element: <S><ProjectionReportsPage /></S> },
       { path: 'business-development/delegation',      element: <S><DelegationPage /></S> },
       { path: 'business-development/partners/:partnerId', element: <S><PartnerDetailPage /></S> },
+
+      // ── Franchisee ─────────────────────────────────────────────────────────
+      { path: 'pengembangan/franchisees',          element: <S><FranchiseeListPage /></S> },
+      { path: 'pengembangan/franchisees/new',      element: <S><FranchiseeFormPage /></S> },
+      { path: 'pengembangan/franchisees/:id',      element: <S><FranchiseeDetailPage /></S> },
+      { path: 'pengembangan/franchisees/:id/edit', element: <S><FranchiseeFormPage /></S> },
 
       // ── CMS ────────────────────────────────────────────────────────────────
       { path: 'cms',                                  element: <S><CmsPage /></S> },
