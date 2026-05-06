@@ -25,6 +25,8 @@ type MasterCourseReadModel struct {
 	Description      string   `json:"description"`
 	Status           string   `json:"status"`
 	SupportingAppUrl *string  `json:"supporting_app_url"`
+	DepartmentID     *string  `json:"department_id"`
+	OwnerID          *string  `json:"owner_id"`
 	CreatedAt        int64    `json:"created_at"`
 	UpdatedAt        int64    `json:"updated_at"`
 }
@@ -57,6 +59,15 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 
 // toReadModel mengonversi domain entity ke read model.
 func toReadModel(mc *mastercourse.MasterCourse) *MasterCourseReadModel {
+	var deptID, ownerID *string
+	if mc.DepartmentID != nil {
+		s := mc.DepartmentID.String()
+		deptID = &s
+	}
+	if mc.OwnerID != nil {
+		s := mc.OwnerID.String()
+		ownerID = &s
+	}
 	return &MasterCourseReadModel{
 		ID:               mc.ID.String(),
 		CourseCode:       mc.CourseCode,
@@ -66,6 +77,8 @@ func toReadModel(mc *mastercourse.MasterCourse) *MasterCourseReadModel {
 		Description:      mc.Description,
 		Status:           mc.Status,
 		SupportingAppUrl: mc.SupportingAppUrl,
+		DepartmentID:     deptID,
+		OwnerID:          ownerID,
 		CreatedAt:        mc.CreatedAt.Unix(),
 		UpdatedAt:        mc.UpdatedAt.Unix(),
 	}
