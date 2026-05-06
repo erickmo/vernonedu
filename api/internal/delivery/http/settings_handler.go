@@ -12,14 +12,18 @@ import (
 
 	createbranch "github.com/vernonedu/entrepreneurship-api/internal/command/create_branch"
 	createholiday "github.com/vernonedu/entrepreneurship-api/internal/command/create_holiday"
+	createleadsource "github.com/vernonedu/entrepreneurship-api/internal/command/create_lead_source"
 	deleteholiday "github.com/vernonedu/entrepreneurship-api/internal/command/delete_holiday"
+	deleteleadsource "github.com/vernonedu/entrepreneurship-api/internal/command/delete_lead_source"
 	updatebranch "github.com/vernonedu/entrepreneurship-api/internal/command/update_branch"
 	updatecommission "github.com/vernonedu/entrepreneurship-api/internal/command/update_commission_config"
+	updateleadsource "github.com/vernonedu/entrepreneurship-api/internal/command/update_lead_source"
 	upsertlevels "github.com/vernonedu/entrepreneurship-api/internal/command/upsert_facilitator_levels"
 	getcommission "github.com/vernonedu/entrepreneurship-api/internal/query/get_commission_config"
 	getlevels "github.com/vernonedu/entrepreneurship-api/internal/query/get_facilitator_levels"
 	listbranches "github.com/vernonedu/entrepreneurship-api/internal/query/list_branches"
 	listholidays "github.com/vernonedu/entrepreneurship-api/internal/query/list_holidays"
+	listleadsources "github.com/vernonedu/entrepreneurship-api/internal/query/list_lead_sources"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
 )
@@ -48,6 +52,22 @@ func RegisterSettingsRoutes(h *SettingsHandler, r chi.Router) {
 	r.Get("/api/v1/settings/holidays", h.ListHolidays)
 	r.Post("/api/v1/settings/holidays", h.CreateHoliday)
 	r.Delete("/api/v1/settings/holidays/{id}", h.DeleteHoliday)
+
+	r.Get("/api/v1/settings/lead-sources", h.ListLeadSources)
+	r.Post("/api/v1/settings/lead-sources", h.CreateLeadSource)
+	r.Put("/api/v1/settings/lead-sources/{id}", h.UpdateLeadSource)
+	r.Delete("/api/v1/settings/lead-sources/{id}", h.DeleteLeadSource)
+}
+
+// ─── Lead Source request structs ─────────────────────────────────────────────
+
+type CreateLeadSourceRequest struct {
+	Name string `json:"name"`
+}
+
+type UpdateLeadSourceRequest struct {
+	Name     string `json:"name"`
+	IsActive bool   `json:"is_active"`
 }
 
 // ─── Commission ───────────────────────────────────────────────────────────────
@@ -390,4 +410,68 @@ func (h *SettingsHandler) DeleteHoliday(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]string{"message": "holiday deleted"})
+}
+
+// ─── Lead Sources ─────────────────────────────────────────────────────────────
+
+func (h *SettingsHandler) ListLeadSources(w http.ResponseWriter, r *http.Request) {
+	result, err := h.qryBus.Execute(r.Context(), &listleadsources.ListLeadSourcesQuery{})
+	if err != nil {
+		log.Error().Err(err).Msg("failed to list lead sources")
+		writeError(w, http.StatusInternalServerError, "failed to list lead sources")
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *SettingsHandler) CreateLeadSource(w http.ResponseWriter, r *http.Request) {
+	var req CreateLeadSourceRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	cmd := &createleadsource.CreateLeadSourceCommand{Name: req.Name}
+	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
+		log.Error().Err(err).Msg("failed to create lead source")
+		writeError(w, http.StatusInternalServerError, "failed to create lead source")
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]string{"message": "lead source created"})
+}
+
+func (h *SettingsHandler) UpdateLeadSource(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid id")
+		return
+	}
+	var req UpdateLeadSourceRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	cmd := &updateleadsource.UpdateLeadSourceCommand{ID: id, Name: req.Name, IsActive: req.IsActive}
+	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
+		log.Error().Err(err).Msg("failed to update lead source")
+		writeError(w, http.StatusInternalServerError, "failed to update lead source")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"message": "lead source updated"})
+}
+
+func (h *SettingsHandler) DeleteLeadSource(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid id")
+		return
+	}
+	cmd := &deleteleadsource.DeleteLeadSourceCommand{ID: id}
+	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
+		log.Error().Err(err).Msg("failed to delete lead source")
+		writeError(w, http.StatusInternalServerError, "failed to delete lead source")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"message": "lead source deleted"})
 }
