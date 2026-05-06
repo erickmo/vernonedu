@@ -141,7 +141,7 @@ export default function LeadListPage() {
       fetcher={(params) => leadService.list(params)}
       columns={columns}
       rowActions={rowActions}
-      onRowClick={(row) => navigate(`/leads/${row.id}/edit`)}
+      onRowClick={(row) => navigate(`/leads/${row.id}`)}
       searchPlaceholder="Cari leads..."
       exportFilename="leads"
       emptyTitle="Belum ada leads"
