@@ -130,7 +130,7 @@ func (m *mockMarketingReadRepo) GetReferralPartnerByID(ctx context.Context, id u
 	}
 	return nil, marketing.ErrReferralPartnerNotFound
 }
-func (m *mockMarketingReadRepo) ListReferralPartners(ctx context.Context, offset, limit int, isActive *bool) ([]*marketing.ReferralPartner, int, error) {
+func (m *mockMarketingReadRepo) ListReferralPartners(ctx context.Context, offset, limit int, isActive *bool, search, sortBy, sortDir string) ([]*marketing.ReferralPartner, int, error) {
 	return m.refPartners, len(m.refPartners), nil
 }
 func (m *mockMarketingReadRepo) ListReferrals(ctx context.Context, partnerID uuid.UUID) ([]*marketing.Referral, error) {
