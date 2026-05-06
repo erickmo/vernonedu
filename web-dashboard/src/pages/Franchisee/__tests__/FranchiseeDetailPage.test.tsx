@@ -1,0 +1,80 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import FranchiseeDetailPage from '../FranchiseeDetailPage'
+
+vi.mock('@/services/franchisee.service', () => ({
+  franchiseeService: {
+    getById: vi.fn().mockResolvedValue({
+      id: 'f1', name: 'PT Edu Maju', branch_name: 'Cabang Jakarta', location: 'Jakarta Selatan',
+      contact: '08111222333', status: 'active', created_at: '2026-01-01',
+    }),
+    getAgreement: vi.fn().mockResolvedValue(null),
+    listRoyaltyPayments: vi.fn().mockResolvedValue({ items: [], total: 0 }),
+    listOtherRevenue: vi.fn().mockResolvedValue({ items: [], total: 0 }),
+    createAgreement: vi.fn().mockResolvedValue({
+      data: {
+        id: 'a1', franchisee_id: 'f1', buy_in_fee: 50000000, monthly_royalty: 5000000,
+        revenue_royalty_pct: 5, start_date: '2026-01-01', end_date: '2027-01-01',
+        status: 'active', created_at: '2026-01-01',
+      },
+    }),
+    updateAgreement: vi.fn().mockResolvedValue({
+      data: {
+        id: 'a1', franchisee_id: 'f1', buy_in_fee: 50000000, monthly_royalty: 5000000,
+        revenue_royalty_pct: 5, start_date: '2026-01-01', end_date: '2027-01-01',
+        status: 'active', created_at: '2026-01-01',
+      },
+    }),
+    createRoyaltyPayment: vi.fn().mockResolvedValue({ data: { id: 'r1' } }),
+    markRoyaltyPaid: vi.fn().mockResolvedValue(undefined),
+    createOtherRevenue: vi.fn().mockResolvedValue({ data: { id: 'o1' } }),
+    updateOtherRevenue: vi.fn().mockResolvedValue({ data: { id: 'o1' } }),
+    deleteOtherRevenue: vi.fn().mockResolvedValue(undefined),
+  },
+}))
+
+vi.mock('@/widgets/Toast/Toast', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}))
+
+vi.mock('@/widgets/DetailPageTemplate/DetailPageTemplate', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  DetailPageTemplate: ({ sections }: { sections?: any[] }) => (
+    <div data-testid="detail-page">
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      {sections?.flatMap((s: any) => s.tabs.map((t: any) => <div key={t.id}>{t.content}</div>))}
+    </div>
+  ),
+}))
+
+function wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+      <MemoryRouter initialEntries={['/pengembangan/franchisees/f1']}>
+        <Routes>
+          <Route path="/pengembangan/franchisees/:id" element={children} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
+  )
+}
+
+describe('FranchiseeDetailPage — AgreementFormModal', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('renders "Buat Perjanjian" button when no agreement', async () => {
+    render(<FranchiseeDetailPage />, { wrapper })
+    await waitFor(() => expect(screen.getByText('Buat Perjanjian')).toBeTruthy())
+  })
+
+  it('opens agreement modal on click', async () => {
+    const user = userEvent.setup()
+    render(<FranchiseeDetailPage />, { wrapper })
+    await waitFor(() => screen.getByText('Buat Perjanjian'))
+    await user.click(screen.getByText('Buat Perjanjian'))
+    expect(screen.getAllByText('Buat Perjanjian').length).toBeGreaterThan(1)
+  })
+})

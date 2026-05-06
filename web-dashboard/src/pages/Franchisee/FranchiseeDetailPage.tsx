@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Store, Pencil, FileText, DollarSign, TrendingUp } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { Store, Pencil, FileText, DollarSign, TrendingUp, Plus, X } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import type { PaginatedResponse } from '@/types/api.types'
+import { toast } from '@/widgets/Toast/Toast'
 import {
   franchiseeService,
   type Franchisee,
@@ -75,16 +77,34 @@ function FranchiseeInfoContent({ franchisee }: { franchisee: Franchisee | undefi
   )
 }
 
-function AgreementContent({ agreement }: { agreement: FranchiseAgreement | undefined }) {
-  if (!agreement) return <p style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-sm)' }}>Belum ada perjanjian.</p>
+function AgreementContent({ agreement, onEdit }: { agreement: FranchiseAgreement | undefined; onEdit: () => void }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <InfoRow label="Buy-in Fee" value={formatCurrency(agreement.buy_in_fee)} />
-      <InfoRow label="Royalti Bulanan" value={formatCurrency(agreement.monthly_royalty)} />
-      <InfoRow label="Royalti Pendapatan" value={`${agreement.revenue_royalty_pct ?? 0}%`} />
-      <InfoRow label="Tanggal Mulai" value={formatDate(agreement.start_date)} />
-      <InfoRow label="Tanggal Berakhir" value={formatDate(agreement.end_date)} />
-      <InfoRow label="Status" value={<StatusBadge status={agreement.status} />} />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-3)' }}>
+        <button
+          onClick={onEdit}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '6px 12px', borderRadius: 'var(--radius-md)',
+            background: 'var(--color-primary)', color: '#fff',
+            border: 'none', cursor: 'pointer', fontSize: 'var(--font-sm)', fontWeight: 500,
+          }}
+        >
+          {agreement ? <><Pencil size={13} />{'Edit Perjanjian'}</> : <><Plus size={13} />{'Buat Perjanjian'}</>}
+        </button>
+      </div>
+      {agreement ? (
+        <>
+          <InfoRow label="Buy-in Fee" value={formatCurrency(agreement.buy_in_fee)} />
+          <InfoRow label="Royalti Bulanan" value={formatCurrency(agreement.monthly_royalty)} />
+          <InfoRow label="Royalti Pendapatan" value={`${agreement.revenue_royalty_pct ?? 0}%`} />
+          <InfoRow label="Tanggal Mulai" value={formatDate(agreement.start_date)} />
+          <InfoRow label="Tanggal Berakhir" value={formatDate(agreement.end_date)} />
+          <InfoRow label="Status" value={<StatusBadge status={agreement.status} />} />
+        </>
+      ) : (
+        <p style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-sm)' }}>Belum ada perjanjian.</p>
+      )}
     </div>
   )
 }
@@ -161,6 +181,57 @@ function OtherRevenueContent({ revenues }: { revenues: OtherRevenue[] | undefine
 export default function FranchiseeDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  // ── Agreement modal state ──
+  const [agreementModalOpen, setAgreementModalOpen] = useState(false)
+  const [agreementForm, setAgreementForm] = useState({
+    buy_in_fee: '', monthly_royalty: '', revenue_royalty_pct: '',
+    start_date: '', end_date: '', status: 'active',
+  })
+  const [agreementSaving, setAgreementSaving] = useState(false)
+
+  function openAgreementModal() {
+    if (agreement) {
+      setAgreementForm({
+        buy_in_fee: String(agreement.buy_in_fee ?? ''),
+        monthly_royalty: String(agreement.monthly_royalty ?? ''),
+        revenue_royalty_pct: String(agreement.revenue_royalty_pct ?? ''),
+        start_date: agreement.start_date ?? '',
+        end_date: agreement.end_date ?? '',
+        status: agreement.status ?? 'active',
+      })
+    } else {
+      setAgreementForm({ buy_in_fee: '', monthly_royalty: '', revenue_royalty_pct: '', start_date: '', end_date: '', status: 'active' })
+    }
+    setAgreementModalOpen(true)
+  }
+
+  async function handleAgreementSubmit() {
+    setAgreementSaving(true)
+    try {
+      const payload = {
+        buy_in_fee: Number(agreementForm.buy_in_fee),
+        monthly_royalty: Number(agreementForm.monthly_royalty),
+        revenue_royalty_pct: Number(agreementForm.revenue_royalty_pct),
+        start_date: agreementForm.start_date,
+        end_date: agreementForm.end_date || undefined,
+        status: agreementForm.status,
+      }
+      if (agreement) {
+        await franchiseeService.updateAgreement(id!, agreement.id, payload)
+      } else {
+        await franchiseeService.createAgreement(id!, payload)
+      }
+      toast.success('Perjanjian berhasil disimpan')
+      await queryClient.invalidateQueries({ queryKey: ['franchisee-agreement', id] })
+      setAgreementModalOpen(false)
+    } catch {
+      toast.error('Gagal menyimpan perjanjian')
+    } finally {
+      setAgreementSaving(false)
+    }
+  }
 
   const { data: franchisee } = useQuery({
     queryKey: ['franchisee', id],
@@ -200,63 +271,162 @@ export default function FranchiseeDetailPage() {
   ]
 
   return (
-    <DetailPageTemplate
-      icon={<Store size={20} />}
-      title={franchisee?.name ?? 'Franchisee'}
-      onBack={() => navigate('/pengembangan/franchisees')}
-      backLabel="Franchisee"
-      badges={franchisee ? <StatusBadge status={franchisee.status} /> : undefined}
-      actions={actions}
-      sections={[
-        {
-          id: 'info',
-          label: 'Info',
-          icon: <Store size={14} />,
-          tabs: [
-            {
-              id: 'info-detail',
-              label: 'Detail',
-              content: <FranchiseeInfoContent franchisee={franchisee} />,
-            },
-          ],
-        },
-        {
-          id: 'agreement',
-          label: 'Perjanjian',
-          icon: <FileText size={14} />,
-          tabs: [
-            {
-              id: 'agreement-detail',
-              label: 'Perjanjian Franchise',
-              content: <AgreementContent agreement={agreement} />,
-            },
-          ],
-        },
-        {
-          id: 'royalty',
-          label: 'Royalty Payments',
-          icon: <DollarSign size={14} />,
-          tabs: [
-            {
-              id: 'royalty-list',
-              label: 'Pembayaran Royalti',
-              content: <RoyaltyContent payments={royaltyPayments} />,
-            },
-          ],
-        },
-        {
-          id: 'other-revenue',
-          label: 'Pendapatan Lain',
-          icon: <TrendingUp size={14} />,
-          tabs: [
-            {
-              id: 'other-revenue-list',
-              label: 'Pendapatan Lain',
-              content: <OtherRevenueContent revenues={otherRevenues} />,
-            },
-          ],
-        },
-      ]}
-    />
+    <>
+      <DetailPageTemplate
+        icon={<Store size={20} />}
+        title={franchisee?.name ?? 'Franchisee'}
+        onBack={() => navigate('/pengembangan/franchisees')}
+        backLabel="Franchisee"
+        badges={franchisee ? <StatusBadge status={franchisee.status} /> : undefined}
+        actions={actions}
+        sections={[
+          {
+            id: 'info',
+            label: 'Info',
+            icon: <Store size={14} />,
+            tabs: [
+              {
+                id: 'info-detail',
+                label: 'Detail',
+                content: <FranchiseeInfoContent franchisee={franchisee} />,
+              },
+            ],
+          },
+          {
+            id: 'agreement',
+            label: 'Perjanjian',
+            icon: <FileText size={14} />,
+            tabs: [
+              {
+                id: 'agreement-detail',
+                label: 'Perjanjian Franchise',
+                content: <AgreementContent agreement={agreement} onEdit={openAgreementModal} />,
+              },
+            ],
+          },
+          {
+            id: 'royalty',
+            label: 'Royalty Payments',
+            icon: <DollarSign size={14} />,
+            tabs: [
+              {
+                id: 'royalty-list',
+                label: 'Pembayaran Royalti',
+                content: <RoyaltyContent payments={royaltyPayments} />,
+              },
+            ],
+          },
+          {
+            id: 'other-revenue',
+            label: 'Pendapatan Lain',
+            icon: <TrendingUp size={14} />,
+            tabs: [
+              {
+                id: 'other-revenue-list',
+                label: 'Pendapatan Lain',
+                content: <OtherRevenueContent revenues={otherRevenues} />,
+              },
+            ],
+          },
+        ]}
+      />
+      {agreementModalOpen && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 400,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+          onClick={() => setAgreementModalOpen(false)}
+        >
+          <div
+            style={{
+              background: 'var(--color-surface-elevated)', borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--color-border)', width: 480, overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              padding: 'var(--space-4) var(--space-5)', borderBottom: '1px solid var(--color-border)',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            }}>
+              <h3 style={{ fontSize: 'var(--font-base)', fontWeight: 700 }}>
+                {agreement ? 'Edit Perjanjian' : 'Buat Perjanjian'}
+              </h3>
+              <button
+                onClick={() => setAgreementModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              {([
+                { label: 'Buy-in Fee (IDR)', name: 'buy_in_fee' as const, type: 'number' },
+                { label: 'Royalti Bulanan (IDR)', name: 'monthly_royalty' as const, type: 'number' },
+                { label: 'Royalti Pendapatan (%)', name: 'revenue_royalty_pct' as const, type: 'number' },
+                { label: 'Tanggal Mulai', name: 'start_date' as const, type: 'date' },
+                { label: 'Tanggal Berakhir (opsional)', name: 'end_date' as const, type: 'date' },
+              ]).map(({ label, name, type }) => (
+                <div key={name}>
+                  <label style={{ display: 'block', fontSize: 'var(--font-sm)', fontWeight: 500, marginBottom: 4 }}>{label}</label>
+                  <input
+                    type={type}
+                    name={name}
+                    value={agreementForm[name]}
+                    onChange={(e) => setAgreementForm(f => ({ ...f, [e.target.name]: e.target.value }))}
+                    style={{
+                      width: '100%', padding: '8px 10px', borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--color-border)', fontSize: 'var(--font-sm)',
+                      background: 'var(--color-surface)', boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              ))}
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--font-sm)', fontWeight: 500, marginBottom: 4 }}>Status</label>
+                <select
+                  value={agreementForm.status}
+                  onChange={(e) => setAgreementForm(f => ({ ...f, status: e.target.value }))}
+                  style={{
+                    width: '100%', padding: '8px 10px', borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border)', fontSize: 'var(--font-sm)',
+                    background: 'var(--color-surface)',
+                  }}
+                >
+                  <option value="active">Aktif</option>
+                  <option value="terminated">Diakhiri</option>
+                </select>
+              </div>
+            </div>
+            <div style={{
+              padding: 'var(--space-4) var(--space-5)', borderTop: '1px solid var(--color-border)',
+              display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)',
+            }}>
+              <button
+                onClick={() => setAgreementModalOpen(false)}
+                style={{
+                  padding: '8px 16px', borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--color-border)', background: 'var(--color-surface)',
+                  cursor: 'pointer', fontSize: 'var(--font-sm)',
+                }}
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleAgreementSubmit}
+                disabled={agreementSaving}
+                style={{
+                  padding: '8px 16px', borderRadius: 'var(--radius-md)', border: 'none',
+                  background: 'var(--color-primary)', color: '#fff',
+                  cursor: 'pointer', fontSize: 'var(--font-sm)', fontWeight: 500,
+                }}
+              >
+                {agreementSaving ? 'Menyimpan...' : 'Simpan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
