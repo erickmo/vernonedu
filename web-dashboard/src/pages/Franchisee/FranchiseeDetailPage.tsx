@@ -191,6 +191,34 @@ export default function FranchiseeDetailPage() {
   })
   const [agreementSaving, setAgreementSaving] = useState(false)
 
+  const { data: franchisee } = useQuery({
+    queryKey: ['franchisee', id],
+    queryFn: () => franchiseeService.getById(id!),
+    enabled: Boolean(id),
+  })
+
+  const { data: agreementData } = useQuery({
+    queryKey: ['franchisee-agreement', id],
+    queryFn: () => franchiseeService.getAgreement(id!),
+    enabled: Boolean(id),
+  })
+
+  const { data: royaltyData } = useQuery({
+    queryKey: ['franchisee-royalty', id],
+    queryFn: () => franchiseeService.listRoyaltyPayments(id!),
+    enabled: Boolean(id),
+  })
+
+  const { data: otherRevenueData } = useQuery({
+    queryKey: ['franchisee-other-revenue', id],
+    queryFn: () => franchiseeService.listOtherRevenue(id!),
+    enabled: Boolean(id),
+  })
+
+  const royaltyPayments = (royaltyData as PaginatedResponse<RoyaltyPayment> | undefined)?.items ?? []
+  const otherRevenues = (otherRevenueData as PaginatedResponse<OtherRevenue> | undefined)?.items ?? []
+  const agreement = (agreementData as { data: FranchiseAgreement } | FranchiseAgreement | undefined)?.data ?? agreementData
+
   function openAgreementModal() {
     if (agreement) {
       setAgreementForm({
@@ -232,34 +260,6 @@ export default function FranchiseeDetailPage() {
       setAgreementSaving(false)
     }
   }
-
-  const { data: franchisee } = useQuery({
-    queryKey: ['franchisee', id],
-    queryFn: () => franchiseeService.getById(id!),
-    enabled: Boolean(id),
-  })
-
-  const { data: agreementData } = useQuery({
-    queryKey: ['franchisee-agreement', id],
-    queryFn: () => franchiseeService.getAgreement(id!),
-    enabled: Boolean(id),
-  })
-
-  const { data: royaltyData } = useQuery({
-    queryKey: ['franchisee-royalty', id],
-    queryFn: () => franchiseeService.listRoyaltyPayments(id!),
-    enabled: Boolean(id),
-  })
-
-  const { data: otherRevenueData } = useQuery({
-    queryKey: ['franchisee-other-revenue', id],
-    queryFn: () => franchiseeService.listOtherRevenue(id!),
-    enabled: Boolean(id),
-  })
-
-  const royaltyPayments = (royaltyData as PaginatedResponse<RoyaltyPayment> | undefined)?.items ?? []
-  const otherRevenues = (otherRevenueData as PaginatedResponse<OtherRevenue> | undefined)?.items ?? []
-  const agreement = (agreementData as { data: FranchiseAgreement } | FranchiseAgreement | undefined)?.data ?? agreementData
 
   const actions: DetailPageAction[] = [
     {
