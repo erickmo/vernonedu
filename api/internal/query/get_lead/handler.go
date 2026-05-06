@@ -14,8 +14,7 @@ type LeadReadModel struct {
 	Name      string     `json:"name"`
 	Email     string     `json:"email"`
 	Phone     string     `json:"phone"`
-	Interest  string     `json:"interest"`
-	Source    string     `json:"source"`
+	SourceID  *uuid.UUID `json:"source_id"`
 	Notes     string     `json:"notes"`
 	Status    string     `json:"status"`
 	PicID     *uuid.UUID `json:"pic_id"`
@@ -50,8 +49,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		Name:      l.Name,
 		Email:     l.Email,
 		Phone:     l.Phone,
-		Interest:  l.Interest,
-		Source:    l.Source,
+		SourceID:  l.SourceID,
 		Notes:     l.Notes,
 		Status:    l.Status,
 		PicID:     l.PicID,

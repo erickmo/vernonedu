@@ -14,8 +14,7 @@ type LeadReadModel struct {
 	Name      string     `json:"name"`
 	Email     string     `json:"email"`
 	Phone     string     `json:"phone"`
-	Interest  string     `json:"interest"`
-	Source    string     `json:"source"`
+	SourceID  *uuid.UUID `json:"source_id"`
 	Notes     string     `json:"notes"`
 	Status    string     `json:"status"`
 	PicID     *uuid.UUID `json:"pic_id"`
@@ -46,7 +45,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		return nil, ErrInvalidQuery
 	}
 
-	leads, total, err := h.leadReadRepo.List(ctx, q.Offset, q.Limit, q.Status, q.Source, q.Interest, q.Search, q.SortBy, q.SortDir)
+	leads, total, err := h.leadReadRepo.List(ctx, q.Offset, q.Limit, q.Status, q.Source, q.Search, q.SortBy, q.SortDir)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to list leads")
 		return nil, err
@@ -59,8 +58,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 			Name:      l.Name,
 			Email:     l.Email,
 			Phone:     l.Phone,
-			Interest:  l.Interest,
-			Source:    l.Source,
+			SourceID:  l.SourceID,
 			Notes:     l.Notes,
 			Status:    l.Status,
 			PicID:     l.PicID,

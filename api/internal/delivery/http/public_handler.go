@@ -394,11 +394,10 @@ func (h *PublicHandler) Contact(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := &createlead.CreateLeadCommand{
-		Name:    body.Name,
-		Email:   body.Email,
-		Phone:   body.Phone,
-		Source:  "website_contact",
-		Notes:   body.Subject + "\n" + body.Message,
+		Name:  body.Name,
+		Email: body.Email,
+		Phone: body.Phone,
+		Notes: body.Subject + "\n" + body.Message,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to create lead from contact form")

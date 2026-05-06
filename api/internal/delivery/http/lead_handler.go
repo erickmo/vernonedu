@@ -39,8 +39,7 @@ type CreateLeadRequest struct {
 	Name     string  `json:"name" validate:"required"`
 	Email    string  `json:"email"`
 	Phone    string  `json:"phone"`
-	Interest string  `json:"interest"`
-	Source   string  `json:"source"`
+	SourceID *string `json:"source_id"`
 	Notes    string  `json:"notes"`
 	PicID    *string `json:"pic_id"`
 }
@@ -49,8 +48,7 @@ type UpdateLeadRequest struct {
 	Name     string  `json:"name" validate:"required"`
 	Email    string  `json:"email"`
 	Phone    string  `json:"phone"`
-	Interest string  `json:"interest"`
-	Source   string  `json:"source"`
+	SourceID *string `json:"source_id"`
 	Notes    string  `json:"notes"`
 	Status   string  `json:"status"`
 	PicID    *string `json:"pic_id"`
@@ -82,6 +80,16 @@ func (h *LeadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var sourceID *uuid.UUID
+	if req.SourceID != nil && *req.SourceID != "" {
+		parsed, err := uuid.Parse(*req.SourceID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "invalid source_id")
+			return
+		}
+		sourceID = &parsed
+	}
+
 	var picID *uuid.UUID
 	if req.PicID != nil && *req.PicID != "" {
 		parsed, err := uuid.Parse(*req.PicID)
@@ -96,8 +104,7 @@ func (h *LeadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Name:     req.Name,
 		Email:    req.Email,
 		Phone:    req.Phone,
-		Interest: req.Interest,
-		Source:   req.Source,
+		SourceID: sourceID,
 		Notes:    req.Notes,
 		PicID:    picID,
 	}
@@ -221,6 +228,16 @@ func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var sourceID *uuid.UUID
+	if req.SourceID != nil && *req.SourceID != "" {
+		parsed, err := uuid.Parse(*req.SourceID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "invalid source_id")
+			return
+		}
+		sourceID = &parsed
+	}
+
 	var picID *uuid.UUID
 	if req.PicID != nil && *req.PicID != "" {
 		parsed, err := uuid.Parse(*req.PicID)
@@ -236,8 +253,7 @@ func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Name:     req.Name,
 		Email:    req.Email,
 		Phone:    req.Phone,
-		Interest: req.Interest,
-		Source:   req.Source,
+		SourceID: sourceID,
 		Notes:    req.Notes,
 		Status:   req.Status,
 		PicID:    picID,
