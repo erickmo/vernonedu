@@ -303,7 +303,7 @@ export default function FranchiseeDetailPage() {
 
   const royaltyPayments = (royaltyData as PaginatedResponse<RoyaltyPayment> | undefined)?.items ?? []
   const otherRevenues = (otherRevenueData as PaginatedResponse<OtherRevenue> | undefined)?.items ?? []
-  const agreement = (agreementData as { data: FranchiseAgreement } | FranchiseAgreement | undefined)?.data ?? agreementData
+  const agreement = agreementData as FranchiseAgreement | null | undefined
 
   function openAgreementModal() {
     if (agreement) {
@@ -405,7 +405,7 @@ export default function FranchiseeDetailPage() {
       }
       toast.success('Pendapatan berhasil disimpan')
       await queryClient.invalidateQueries({ queryKey: ['franchisee-other-revenue', id] })
-      setOtherRevenueModalOpen(false)
+      closeOtherRevenueModal()
     } catch {
       toast.error('Gagal menyimpan pendapatan')
     } finally {
