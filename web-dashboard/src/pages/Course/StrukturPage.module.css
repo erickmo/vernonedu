@@ -5,29 +5,6 @@
   min-height: 100%;
 }
 
-.header {
-  padding: 16px 20px;
-  background: var(--color-surface-elevated);
-  border-bottom: 1px solid var(--color-border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.headerLeft {}
-
-.title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 0;
-}
-
-.subtitle {
-  font-size: var(--font-xs);
-  color: var(--color-text-secondary);
-  margin: 2px 0 0;
-}
 
 .viewToggle {
   display: flex;

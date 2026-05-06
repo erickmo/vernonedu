@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { hasAnyRole } from '@/types/auth.types'
 import { departmentService } from '@/services/department.service'
 import { courseBatchService } from '@/services/course-batch.service'
+import { PageHeader } from '@/layouts/PageHeader/PageHeader'
 import { DeptCard } from './components/DeptCard'
 import type { DeptSummary } from './components/DeptCard'
 import type { CourseSummary } from './components/CourseRow'
@@ -90,28 +91,30 @@ export default function StrukturPage() {
     localStorage.setItem(VIEW_KEY, v)
   }
 
+  const viewToggle = (
+    <div className={styles.viewToggle}>
+      <button
+        className={`${styles.toggleBtn} ${view === 'card' ? styles.active : ''}`}
+        onClick={() => handleSetView('card')}
+      >
+        ⊞ Card
+      </button>
+      <button
+        className={`${styles.toggleBtn} ${view === 'tree' ? styles.active : ''}`}
+        onClick={() => handleSetView('tree')}
+      >
+        ≡ Tree
+      </button>
+    </div>
+  )
+
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <h1 className={styles.title}>Struktur Pendidikan</h1>
-          <p className={styles.subtitle}>Departemen → Course → Kelas aktif</p>
-        </div>
-        <div className={styles.viewToggle}>
-          <button
-            className={`${styles.toggleBtn} ${view === 'card' ? styles.active : ''}`}
-            onClick={() => handleSetView('card')}
-          >
-            ⊞ Card
-          </button>
-          <button
-            className={`${styles.toggleBtn} ${view === 'tree' ? styles.active : ''}`}
-            onClick={() => handleSetView('tree')}
-          >
-            ≡ Tree
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Struktur Pendidikan"
+        subtitle="Departemen → Course → Kelas aktif"
+        actions={viewToggle}
+      />
 
       <div className={styles.body}>
         {loading && (
