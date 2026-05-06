@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-06T03:23:14.974Z
-> Files: 1735 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-06T03:53:44.164Z
+> Files: 1777 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../.claude/plans/
 
@@ -2144,6 +2144,84 @@
 - `LocationFormPage.tsx` — formatDate — renders form (~2530 tok)
 - `LocationListPage.tsx` — columns (~1636 tok)
 
+## .worktrees/feature/franchisee/api/internal/command/create_agreement/
+
+- `command.go` — Struct: CreateAgreementCommand (~96 tok)
+- `errors.go` (~28 tok)
+- `handler.go` — Struct: Handler (~277 tok)
+
+## .worktrees/feature/franchisee/api/internal/command/create_franchisee/
+
+- `command.go` — Struct: CreateFranchiseeCommand (~70 tok)
+- `errors.go` (~28 tok)
+- `handler.go` — Struct: Handler (~245 tok)
+
+## .worktrees/feature/franchisee/api/internal/command/create_other_revenue/
+
+- `command.go` — Struct: CreateOtherRevenueCommand (~84 tok)
+- `errors.go` (~29 tok)
+- `handler.go` — Struct: Handler (~231 tok)
+
+## .worktrees/feature/franchisee/api/internal/command/create_royalty_payment/
+
+- `command.go` — Struct: CreateRoyaltyPaymentCommand (~67 tok)
+- `errors.go` (~29 tok)
+- `handler.go` — Struct: Handler (~374 tok)
+
+## .worktrees/feature/franchisee/api/internal/command/delete_other_revenue/
+
+- `command.go` — Struct: DeleteOtherRevenueCommand (~38 tok)
+- `errors.go` (~29 tok)
+- `handler.go` — Struct: Handler (~151 tok)
+
+## .worktrees/feature/franchisee/api/internal/command/mark_royalty_paid/
+
+- `command.go` — Struct: MarkRoyaltyPaidCommand (~38 tok)
+- `errors.go` (~49 tok)
+- `handler.go` — Struct: Handler (~222 tok)
+
+## .worktrees/feature/franchisee/api/internal/command/update_agreement/
+
+- `command.go` — Struct: UpdateAgreementCommand (~102 tok)
+- `errors.go` (~28 tok)
+- `handler.go` — Struct: Handler (~250 tok)
+
+## .worktrees/feature/franchisee/api/internal/command/update_franchisee/
+
+- `command.go` — Struct: UpdateFranchiseeCommand (~83 tok)
+- `errors.go` (~28 tok)
+- `handler.go` — Struct: Handler (~235 tok)
+
+## .worktrees/feature/franchisee/api/internal/command/update_other_revenue/
+
+- `command.go` — Struct: UpdateOtherRevenueCommand (~76 tok)
+- `errors.go` (~29 tok)
+- `handler.go` — Struct: Handler (~226 tok)
+
+## .worktrees/feature/franchisee/api/internal/domain/franchise/
+
+- `franchise.go` — Interface: WriteRepository (~787 tok)
+
+## .worktrees/feature/franchisee/api/internal/query/get_agreement/
+
+- `query.go` — Struct: GetAgreementQuery (~421 tok)
+
+## .worktrees/feature/franchisee/api/internal/query/get_franchisee/
+
+- `query.go` — Struct: GetFranchiseeQuery (~353 tok)
+
+## .worktrees/feature/franchisee/api/internal/query/list_franchisees/
+
+- `query.go` — Struct: ListFranchiseesQuery (~451 tok)
+
+## .worktrees/feature/franchisee/api/internal/query/list_other_revenue/
+
+- `query.go` — Struct: ListOtherRevenueQuery (~373 tok)
+
+## .worktrees/feature/franchisee/api/internal/query/list_royalty_payments/
+
+- `query.go` — Struct: ListRoyaltyPaymentsQuery (~492 tok)
+
 ## .worktrees/leads-refactor/api/cmd/api/
 
 - `main.go` (~30298 tok)
@@ -2262,7 +2340,7 @@
 - `department_repository.go` — Struct: DepartmentRepository (~3704 tok)
 - `enrollment_repository.go` — Struct: EnrollmentRepository (~2438 tok)
 - `hrm_repository.go` — Struct: HrmRepository (~5373 tok)
-- `lead_repository.go` — Struct: LeadRepository (~1914 tok)
+- `lead_repository.go` — Struct: LeadRepository (~1921 tok)
 - `mastercourse_repository.go` — Struct: BatchRecord (~2697 tok)
 - `notification_repository.go` — Struct: NotificationRepository (~1568 tok)
 - `partner_repository.go` — Struct: PartnerRepository (~4046 tok)
@@ -2653,6 +2731,7 @@
 - `057_add_courseversion_approval_workflow.sql` — Curriculum iter-1f-c: Add Course Version approval workflow. (~243 tok)
 - `076_create_hrm.sql` — 076: HRM Module — Employees, Staff Attendance, Leave Requests, Payroll (~1238 tok)
 - `077_create_calendar_events.sql` — SQL: tables: calendar_events (~210 tok)
+- `080_create_franchise_tables.sql` — 080_create_franchise_tables.sql (~747 tok)
 
 ## api/pkg/sortutil/
 
@@ -3139,9 +3218,12 @@
 - `2026-05-05-location-list-page-fix.md` — Location List Page Fix — Implementation Plan (~6584 tok)
 - `2026-05-06-calendar-domain.md` — Calendar Domain Implementation Plan (~17828 tok)
 - `2026-05-06-delete-all-detail-pages.md` — Delete Action — All Entity Detail Pages (~3879 tok)
+- `2026-05-06-franchisee-api.md` — Franchisee API Implementation Plan (~17459 tok)
+- `2026-05-06-franchisee-frontend.md` — Franchisee Frontend Implementation Plan (~8762 tok)
 - `2026-05-06-leads-phone-source-interest.md` — Leads: Phone Mandatory + Source Entity + Interest Multi-Link — Implementation Plan (~22955 tok)
 - `2026-05-06-location-ownership.md` — Location Ownership Implementation Plan (~6046 tok)
 - `2026-05-06-struktur-pendidikan.md` — Struktur Pendidikan Implementation Plan (~9157 tok)
+- `2026-05-06-talentpool-nav-section.md` — TalentPool Nav Section Implementation Plan (~2563 tok)
 
 ## docs/superpowers/specs/
 
@@ -3160,10 +3242,12 @@
 - `2026-05-05-location-list-page-fix-design.md` — Design: Location List Page Fix (~1508 tok)
 - `2026-05-05-universal-list-query-design.md` — Universal List Query — Design Spec (~2485 tok)
 - `2026-05-06-calendar-domain-design.md` — Design: Calendar Domain — API + Frontend (~2338 tok)
+- `2026-05-06-franchisee-design.md` — Spec: Franchisee Feature (~1661 tok)
 - `2026-05-06-lead-source-pages-design.md` — Spec: Lead Source Pages — Settings (~982 tok)
 - `2026-05-06-leads-phone-source-interest-design.md` — Leads: Phone Mandatory + Source Entity + Interest Multi-Link (~2097 tok)
 - `2026-05-06-location-ownership-design.md` — Location Ownership — Design Spec (~917 tok)
 - `2026-05-06-struktur-pendidikan-design.md` — Spec: Halaman Struktur Pendidikan (~1055 tok)
+- `2026-05-06-talentpool-nav-section-design.md` — TalentPool Nav Section — Design Spec (~796 tok)
 
 ## frontend/
 
@@ -3364,7 +3448,7 @@
 
 - `ProtectedRoute.tsx` — RootRedirect (~736 tok)
 - `providers.tsx` — queryClient (~189 tok)
-- `routes.tsx` — LoginPage (~7392 tok)
+- `routes.tsx` — LoginPage (~7447 tok)
 
 ## web-dashboard/src/hooks/
 
@@ -3392,7 +3476,7 @@
 
 - `AppSidebar.module.css` — Styles: 40 rules (~1956 tok)
 - `AppSidebar.tsx` — ─── Component ────────────────────────────────────────────────────────────────── (~1273 tok)
-- `navItems.ts` — Exports NavItem, NavSection, NAV_SECTIONS, getFilteredSections, getActiveSection (~3175 tok)
+- `navItems.ts` — Exports NavItem, NavSection, NAV_SECTIONS, getFilteredSections, getActive (~3341 tok)
 
 ## web-dashboard/src/layouts/Navbar1/
 
@@ -3438,7 +3522,7 @@
 
 - `CertificateListPage.tsx` — TYPE_CONFIG (~2818 tok)
 - `CertificateTemplateEditorPage.tsx` — CertificateTemplateEditorPage — renders form (~1980 tok)
-- `CertificateTemplateListPage.tsx` — TYPE_LABELS (~978 tok)
+- `CertificateTemplateListPage.tsx` — TYPE_LABELS (~982 tok)
 - `IssueCompetencyPage.tsx` — IssueCompetencyPage — renders form (~1563 tok)
 - `IssueParticipantPage.tsx` — IssueParticipantPage — renders form (~1379 tok)
 
@@ -3469,8 +3553,8 @@
 - `CourseListPage.tsx` — columns (~1089 tok)
 - `CourseModulePage.tsx` — columns (~886 tok)
 - `CourseVersionPage.tsx` — columns (~1050 tok)
-- `StrukturPage.module.css` — Styles: 11 rules (~400 tok)
-- `StrukturPage.tsx` — VIEW_KEY (~1364 tok)
+- `StrukturPage.module.css` — Styles: 11 rules (~399 tok)
+- `StrukturPage.tsx` — VIEW_KEY (~1410 tok)
 - `VersionFormPage.tsx` — formatDate — renders form (~1986 tok)
 
 ## web-dashboard/src/pages/Course/__tests__/
@@ -3483,9 +3567,9 @@
 - `BatchChip.tsx` — BatchChip (~356 tok)
 - `CourseRow.module.css` — Styles: 20 rules (~638 tok)
 - `CourseRow.tsx` — CAN_ADD_BATCH (~961 tok)
-- `DeptCard.module.css` — Styles: 11 rules (~363 tok)
-- `DeptCard.tsx` — CAN_ADD_COURSE (~746 tok)
-- `StrukturTreeView.module.css` — Styles: 16 rules (~469 tok)
+- `DeptCard.module.css` — Styles: 18 rules (~668 tok)
+- `DeptCard.tsx` — CAN_ADD_COURSE (~920 tok)
+- `StrukturTreeView.module.css` — Styles: 16 rules (~497 tok)
 - `StrukturTreeView.tsx` — StrukturTreeView (~1192 tok)
 
 ## web-dashboard/src/pages/CourseBatch/
@@ -3565,7 +3649,7 @@
 
 - `LeadDetailPage.tsx` — Detail page for lead using DetailPageTemplate; shows lead info + CRM activity logs, actions: edit/convert-to-student/delete, status color badges, 2-section layout (~195 tok)
 - `LeadFormPage.tsx` — SOURCE_OPTIONS — renders form (~2229 tok)
-- `LeadListPage.tsx` — STATUS_COLORS (~1433 tok)
+- `LeadListPage.tsx` — STATUS_COLORS (~1428 tok)
 
 ## web-dashboard/src/pages/Login/
 
@@ -3578,7 +3662,7 @@
 - `PrContentFormPage.tsx` — MEDIA_TYPES — renders form (~1670 tok)
 - `PrContentListPage.tsx` — ListPageTemplate for PR/artikel; TYPE_CONFIG (press_release/article/blog/other), STATUS_CONFIG (draft/published/archived); Judul+Newspaper icon, Jenis, Status, Tanggal; delete via deletePr (~1400 tok)
 - `ReferralFormPage.tsx` — ReferralFormPage — renders form (~1596 tok)
-- `ReferralListPage.tsx` — ListPageTemplate for referral partners; hidePagination=true; Nama+Users icon, Jenis, Komisi%, Status active/inactive, Total Referral; no delete config (~1285 tok)
+- `ReferralListPage.tsx` — STATUS_CONFIG (~1235 tok)
 - `SocialPostFormPage.tsx` — PLATFORMS — renders form (~1850 tok)
 - `SocialPostListPage.tsx` — ListPageTemplate for social posts; PLATFORM_COLORS (instagram/facebook/tiktok/youtube), STATUS_CONFIG (draft/published/scheduled); Platform badge, Konten 80-char, Status, Tanggal; delete via deletePost (~1350 tok)
 
@@ -3608,10 +3692,11 @@
 
 - `ProjectDetailPage.tsx` — STATUS_CONFIG (~1941 tok)
 - `ProjectFormPage.tsx` — TYPE_OPTIONS — renders form (~2034 tok)
-- `ProjectListPage.tsx` — STATUS_CONFIG (~1112 tok)
+- `ProjectListPage.tsx` — STATUS_CONFIG (~1163 tok)
 
 ## web-dashboard/src/pages/Settings/
 
+- `LeadSourceListPage.tsx` — columns (~845 tok)
 - `SettingsPage.tsx` — BasisSelect — renders form, table (~2821 tok)
 
 ## web-dashboard/src/pages/Students/
@@ -3622,7 +3707,8 @@
 
 ## web-dashboard/src/pages/TalentPool/
 
-- `TalentPoolPage.tsx` — STATUS_CONFIG (~1400 tok)
+- `TalentPoolPage.tsx` — STATUS_CONFIG (~1388 tok)
+- `TalentPoolPlacedPage.tsx` — columns (~819 tok)
 
 ## web-dashboard/src/services/
 
@@ -3633,7 +3719,7 @@
 - `auth.service.ts` — API routes: GET (1 endpoints) (~118 tok)
 - `branch.service.ts` — Exports branchService (~48 tok)
 - `calendar.service.ts` — API routes: DELETE (1 endpoints) (~263 tok)
-- `certificate.service.ts` — Exports certificateService (~324 tok)
+- `certificate.service.ts` — Exports certificateService (~388 tok)
 - `chat.service.ts` — ─── Types ────────────────────────────────────────────────────────────────────── (~2387 tok)
 - `cms.service.ts` — API routes: DELETE (4 endpoints) (~544 tok)
 - `company-group.service.ts` — Multi-tenant service — not used in VernonEdu (single-tenant mode) (~35 tok)
@@ -3652,9 +3738,10 @@
 - `hrm.service.ts` — ─── Employees ───────────────────────────────────────────────────────────────── (~1110 tok)
 - `investment.service.ts` — Exports investmentService (~114 tok)
 - `invoice.service.ts` — Exports invoiceService (~305 tok)
-- `lead.service.ts` — API routes: DELETE (2 endpoints) (~561 tok)
+- `lead-source.service.ts` — API routes: POST, PUT, DELETE (3 endpoints) (~260 tok)
+- `lead.service.ts` — API routes: DELETE (2 endpoints) (~537 tok)
 - `location.service.ts` — API routes: DELETE (2 endpoints) (~435 tok)
-- `marketing.service.ts` — API routes: DELETE (2 endpoints) (~510 tok)
+- `marketing.service.ts` — API routes: DELETE (2 endpoints) (~574 tok)
 - `media.service.ts` — Media service untuk menangani file upload ke endpoint /api/v1/media/upload (~840 tok)
 - `notification.service.ts` — Exports Notification, notificationService (~215 tok)
 - `okr.service.ts` — Exports okrService (~66 tok)

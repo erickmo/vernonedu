@@ -70,11 +70,15 @@ export default function StrukturPage() {
         return acc
       }, {})
 
-      return deptList.map(d => ({
-        id: d.id,
-        name: d.name,
-        courses: coursesByDept[d.id] ?? [],
-      }))
+      return deptList
+        .map(d => ({
+          id: d.id,
+          name: d.name,
+          leaderName: d.leader_name ?? '',
+          isActive: d.is_active ?? true,
+          courses: coursesByDept[d.id] ?? [],
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'id'))
     },
   })
 

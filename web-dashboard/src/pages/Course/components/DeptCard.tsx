@@ -9,6 +9,8 @@ import styles from './DeptCard.module.css'
 export interface DeptSummary {
   id: string
   name: string
+  leaderName: string
+  isActive: boolean
   courses: CourseSummary[]
 }
 
@@ -40,12 +42,26 @@ export function DeptCard({ dept, user, defaultExpanded = true }: Props) {
       >
         <div className={styles.headerLeft}>
           <span>📁</span>
-          <span className={styles.headerName}>{dept.name}</span>
+          <div className={styles.headerInfo}>
+            <span className={styles.headerName}>{dept.name}</span>
+            {dept.leaderName && (
+              <span className={styles.headerLeader}>👤 {dept.leaderName}</span>
+            )}
+          </div>
         </div>
         <div className={styles.headerRight} onClick={e => e.stopPropagation()}>
+          <span className={dept.isActive ? styles.pillActive : styles.pillInactive}>
+            {dept.isActive ? 'Aktif' : 'Nonaktif'}
+          </span>
           {expanded ? (
             <>
               <span className={styles.countBadge}>{dept.courses.length} course</span>
+              <button
+                className={styles.detailBtn}
+                onClick={() => navigate(`/pendidikan/struktur/departments/${dept.id}`)}
+              >
+                Detail
+              </button>
               {canAddCourse && (
                 <button
                   className={styles.addCourseBtn}

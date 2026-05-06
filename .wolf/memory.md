@@ -3591,3 +3591,137 @@
 | 11:24 | Session end: 26 writes across 23 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 24 reads | ~24940 tok |
 | 11:24 | Session end: 26 writes across 23 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 24 reads | ~24940 tok |
 | 11:25 | Session end: 26 writes across 23 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 24 reads | ~24940 tok |
+| 11:26 | Session end: 26 writes across 23 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 24 reads | ~24940 tok |
+| 11:26 | Session end: 26 writes across 23 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 24 reads | ~24940 tok |
+
+## Session: 2026-05-06 11:27
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-05-06 11:28
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:28 | Created docs/superpowers/specs/2026-05-06-franchisee-design.md | — | ~1754 |
+| 11:28 | Session end: 1 writes across 1 files (2026-05-06-franchisee-design.md) | 0 reads | ~1879 tok |
+| 11:29 | Created docs/superpowers/specs/2026-05-06-talentpool-nav-section-design.md | — | ~850 |
+| 11:29 | Session end: 2 writes across 2 files (2026-05-06-franchisee-design.md, 2026-05-06-talentpool-nav-section-design.md) | 0 reads | ~2789 tok |
+| 11:29 | Edited docs/superpowers/specs/2026-05-06-franchisee-design.md | 5→5 lines | ~68 |
+| 11:29 | Edited docs/superpowers/specs/2026-05-06-franchisee-design.md | inline fix | ~23 |
+| 11:29 | Edited docs/superpowers/specs/2026-05-06-franchisee-design.md | 2→2 lines | ~39 |
+| 11:29 | Edited docs/superpowers/specs/2026-05-06-franchisee-design.md | 4→3 lines | ~22 |
+| 11:29 | Session end: 6 writes across 2 files (2026-05-06-franchisee-design.md, 2026-05-06-talentpool-nav-section-design.md) | 2 reads | ~7794 tok |
+| 11:30 | Created docs/superpowers/plans/2026-05-06-talentpool-nav-section.md | — | ~2734 |
+| 11:30 | Edited web-dashboard/src/layouts/AppSidebar/navItems.ts | expanded (+25 lines) | ~282 |
+| 11:31 | Edited web-dashboard/src/app/routes.tsx | 2→3 lines | ~55 |
+| 11:31 | Edited web-dashboard/src/app/routes.tsx | 2→3 lines | ~78 |
+| 11:31 | Edited web-dashboard/src/pages/TalentPool/TalentPoolPage.tsx | 11→11 lines | ~159 |
+| 11:32 | Created web-dashboard/src/pages/TalentPool/TalentPoolPlacedPage.tsx | — | ~819 |
+| 11:32 | Session end: 12 writes across 7 files (2026-05-06-franchisee-design.md, 2026-05-06-talentpool-nav-section-design.md, 2026-05-06-talentpool-nav-section.md, navItems.ts, routes.tsx) | 17 reads | ~35591 tok |
+| 11:33 | Session end: 12 writes across 7 files (2026-05-06-franchisee-design.md, 2026-05-06-talentpool-nav-section-design.md, 2026-05-06-talentpool-nav-section.md, navItems.ts, routes.tsx) | 19 reads | ~36935 tok |
+| 11:33 | Edited web-dashboard/src/pages/Course/StrukturPage.tsx | 5→7 lines | ~59 |
+| 11:33 | Edited web-dashboard/src/pages/Course/StrukturPage.module.css | 6→6 lines | ~24 |
+| 11:33 | Edited web-dashboard/src/pages/Course/components/DeptCard.module.css | expanded (+7 lines) | ~133 |
+| 11:33 | Edited web-dashboard/src/pages/Course/components/DeptCard.module.css | CSS: color | ~48 |
+| 11:33 | Edited web-dashboard/src/pages/Course/components/DeptCard.module.css | 3→3 lines | ~26 |
+| 11:33 | Edited web-dashboard/src/pages/Course/components/DeptCard.module.css | 3→3 lines | ~19 |
+| 11:33 | Edited web-dashboard/src/pages/Course/components/DeptCard.module.css | CSS: opacity | ~24 |
+| 11:34 | Edited web-dashboard/src/pages/Course/components/DeptCard.module.css | 6→6 lines | ~25 |
+| 11:34 | Edited web-dashboard/src/pages/Course/components/StrukturTreeView.module.css | CSS: border-left | ~86 |
+| 11:34 | Edited web-dashboard/src/pages/Course/components/StrukturTreeView.module.css | CSS: border | ~94 |
+| 11:34 | Edited web-dashboard/src/pages/Course/components/StrukturTreeView.module.css | 18→18 lines | ~98 |
+| 11:34 | StrukturPage: sort dept by name + spacing + lighter header (Option A: surface-alt bg + primary border-left) | StrukturPage.tsx, StrukturPage.module.css, DeptCard.module.css, StrukturTreeView.module.css | done | ~800 |
+| 11:34 | Created docs/superpowers/plans/2026-05-06-franchisee-api.md | — | ~18623 |
+| 11:34 | Session end: 24 writes across 12 files (2026-05-06-franchisee-design.md, 2026-05-06-talentpool-nav-section-design.md, 2026-05-06-talentpool-nav-section.md, navItems.ts, routes.tsx) | 22 reads | ~61092 tok |
+
+## Session: 2026-05-06 11:35
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:36 | Edited web-dashboard/src/pages/Course/components/DeptCard.tsx | expanded (+6 lines) | ~202 |
+| 11:36 | Edited web-dashboard/src/services/lead.service.ts | added 1 condition(s) | ~224 |
+| 11:36 | Edited web-dashboard/src/pages/Course/components/DeptCard.module.css | expanded (+15 lines) | ~90 |
+| 11:36 | Edited api/infrastructure/database/lead_repository.go | 6→7 lines | ~47 |
+| 11:36 | Edited api/infrastructure/database/lead_repository.go | 22→22 lines | ~202 |
+| 11:36 | Edited web-dashboard/src/pages/Leads/LeadListPage.tsx | 7→6 lines | ~33 |
+| 11:36 | Add Detail button to DeptCard → navigate to department detail page | DeptCard.tsx, DeptCard.module.css | done | ~300 |
+| 11:37 | Session end: 6 writes across 5 files (DeptCard.tsx, lead.service.ts, DeptCard.module.css, lead_repository.go, LeadListPage.tsx) | 8 reads | ~9430 tok |
+| 11:37 | fix(leads): 3 bugs — filter status (filters→direct param), search extend to phone+email, remove source sortable | lead.service.ts, lead_repository.go, LeadListPage.tsx | done | ~500 |
+| 11:37 | Session end: 6 writes across 5 files (DeptCard.tsx, lead.service.ts, DeptCard.module.css, lead_repository.go, LeadListPage.tsx) | 9 reads | ~16877 tok |
+| 11:37 | Created docs/superpowers/plans/2026-05-06-franchisee-frontend.md | — | ~9399 |
+| 11:37 | Edited docs/superpowers/plans/2026-05-06-franchisee-frontend.md | reduced (-10 lines) | ~74 |
+| 11:38 | Brainstormed + planned Franchisee feature (API + Frontend) | docs/superpowers/specs/2026-05-06-franchisee-design.md, plans/2026-05-06-franchisee-api.md, plans/2026-05-06-franchisee-frontend.md | committed 3 files | ~8000 |
+| 11:38 | Session end: 8 writes across 6 files (DeptCard.tsx, lead.service.ts, DeptCard.module.css, lead_repository.go, LeadListPage.tsx) | 10 reads | ~27350 tok |
+
+## Session: 2026-05-06 11:38
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:39 | Edited web-dashboard/src/pages/Course/components/DeptCard.tsx | CSS: leaderName | ~31 |
+| 11:39 | Session end: 1 writes across 1 files (DeptCard.tsx) | 2 reads | ~2257 tok |
+| 11:39 | Edited web-dashboard/src/pages/Course/components/DeptCard.tsx | 4→9 lines | ~98 |
+| 11:39 | Edited web-dashboard/src/pages/Course/components/DeptCard.module.css | CSS: flex-direction, color, opacity | ~91 |
+| 11:39 | Edited web-dashboard/src/pages/Course/StrukturPage.tsx | CSS: leaderName | ~54 |
+| 11:40 | add dept leader name to DeptCard header | DeptCard.tsx, DeptCard.module.css, StrukturPage.tsx | done | ~200 |
+| 11:40 | Session end: 4 writes across 3 files (DeptCard.tsx, DeptCard.module.css, StrukturPage.tsx) | 3 reads | ~3070 tok |
+
+## Session: 2026-05-06 11:41
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 11:43 | Created api/migrations/080_create_franchise_tables.sql | — | ~747 |
+| 11:43 | Session end: 1 writes across 1 files (080_create_franchise_tables.sql) | 3 reads | ~800 tok |
+| 11:45 | Migration 080 created and applied manually via psql | api/migrations/080_create_franchise_tables.sql | All 4 tables (franchisees, franchise_agreements, royalty_payment_records, branch_other_revenues) created successfully; commit: 34346254 | ~3000 |
+| 11:46 | Session end: 1 writes across 1 files (080_create_franchise_tables.sql) | 5 reads | ~1547 tok |
+| 11:46 | Edited web-dashboard/src/pages/Course/components/DeptCard.tsx | CSS: isActive | ~37 |
+| 11:46 | Edited web-dashboard/src/pages/Course/components/DeptCard.tsx | CSS: pillActive | ~103 |
+| 11:46 | Edited web-dashboard/src/pages/Course/components/DeptCard.module.css | expanded (+18 lines) | ~108 |
+| 11:46 | Edited web-dashboard/src/pages/Course/StrukturPage.tsx | CSS: isActive | ~59 |
+| 11:46 | add active/inactive pills to DeptCard | DeptCard.tsx, DeptCard.module.css, StrukturPage.tsx | done | ~100 |
+| 11:46 | Session end: 5 writes across 4 files (080_create_franchise_tables.sql, DeptCard.tsx, DeptCard.module.css, StrukturPage.tsx) | 5 reads | ~2601 tok |
+| 11:47 | Created .worktrees/feature/franchisee/api/internal/domain/franchise/franchise.go | — | ~787 |
+| 11:48 | Created .worktrees/feature/franchisee/api/internal/command/create_franchisee/errors.go | — | ~28 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/create_franchisee/command.go | — | ~70 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/create_franchisee/handler.go | — | ~245 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/update_franchisee/errors.go | — | ~28 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/update_franchisee/command.go | — | ~83 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/update_franchisee/handler.go | — | ~235 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/create_agreement/errors.go | — | ~28 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/create_agreement/command.go | — | ~96 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/create_agreement/handler.go | — | ~277 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/update_agreement/errors.go | — | ~28 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/update_agreement/command.go | — | ~102 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/update_agreement/handler.go | — | ~250 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/create_royalty_payment/errors.go | — | ~29 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/create_royalty_payment/command.go | — | ~67 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/create_royalty_payment/handler.go | — | ~374 |
+| 11:49 | Created .worktrees/feature/franchisee/api/internal/command/mark_royalty_paid/errors.go | — | ~49 |
+| 11:50 | Created .worktrees/feature/franchisee/api/internal/command/mark_royalty_paid/command.go | — | ~38 |
+| 11:50 | Created .worktrees/feature/franchisee/api/internal/command/mark_royalty_paid/handler.go | — | ~222 |
+| 11:50 | Created .worktrees/feature/franchisee/api/internal/command/create_other_revenue/errors.go | — | ~29 |
+| 11:50 | Created .worktrees/feature/franchisee/api/internal/command/create_other_revenue/command.go | — | ~84 |
+| 11:50 | Created .worktrees/feature/franchisee/api/internal/command/create_other_revenue/handler.go | — | ~231 |
+| 11:50 | Created .worktrees/feature/franchisee/api/internal/command/update_other_revenue/errors.go | — | ~29 |
+| 11:50 | Created .worktrees/feature/franchisee/api/internal/command/update_other_revenue/command.go | — | ~76 |
+| 11:50 | Edited web-dashboard/src/services/lead-source.service.ts | 11→16 lines | ~174 |
+| 11:50 | Created .worktrees/feature/franchisee/api/internal/command/update_other_revenue/handler.go | — | ~226 |
+| 11:50 | Created .worktrees/feature/franchisee/api/internal/command/delete_other_revenue/errors.go | — | ~29 |
+| 11:50 | Edited web-dashboard/src/services/certificate.service.ts | 2→5 lines | ~94 |
+| 11:50 | Created .worktrees/feature/franchisee/api/internal/command/delete_other_revenue/command.go | — | ~38 |
+| 11:50 | Edited web-dashboard/src/services/marketing.service.ts | 2→5 lines | ~125 |
+| 11:50 | Created .worktrees/feature/franchisee/api/internal/command/delete_other_revenue/handler.go | — | ~151 |
+| 11:50 | Edited web-dashboard/src/services/marketing.service.ts | 5→5 lines | ~98 |
+| 11:51 | Edited web-dashboard/src/pages/Settings/LeadSourceListPage.tsx | inline fix | ~17 |
+| 11:51 | Edited web-dashboard/src/pages/Certificates/CertificateTemplateListPage.tsx | inline fix | ~20 |
+| 11:51 | Edited web-dashboard/src/pages/Marketing/ReferralListPage.tsx | 5→1 lines | ~21 |
+| 11:51 | Edited web-dashboard/src/pages/Projects/ProjectListPage.tsx | added 2 import(s) | ~105 |
+| 11:51 | Edited web-dashboard/src/pages/Projects/ProjectListPage.tsx | CSS: params | ~83 |
+| 11:51 | Session end: 42 writes across 15 files (080_create_franchise_tables.sql, DeptCard.tsx, DeptCard.module.css, StrukturPage.tsx, franchise.go) | 25 reads | ~14212 tok |
+| 11:52 | Session end: 42 writes across 15 files (080_create_franchise_tables.sql, DeptCard.tsx, DeptCard.module.css, StrukturPage.tsx, franchise.go) | 25 reads | ~14212 tok |
+| 11:53 | Session end: 42 writes across 15 files (080_create_franchise_tables.sql, DeptCard.tsx, DeptCard.module.css, StrukturPage.tsx, franchise.go) | 25 reads | ~14212 tok |
+| 11:53 | Created .worktrees/feature/franchisee/api/internal/query/list_franchisees/query.go | — | ~451 |
+| 11:53 | Created .worktrees/feature/franchisee/api/internal/query/get_franchisee/query.go | — | ~353 |
+| 11:53 | Created .worktrees/feature/franchisee/api/internal/query/get_agreement/query.go | — | ~421 |
+| 11:53 | Created .worktrees/feature/franchisee/api/internal/query/list_royalty_payments/query.go | — | ~492 |
+| 11:53 | Created .worktrees/feature/franchisee/api/internal/query/list_other_revenue/query.go | — | ~373 |
