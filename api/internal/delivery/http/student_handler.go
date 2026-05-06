@@ -159,7 +159,7 @@ func (h *StudentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
+	writeJSON(w, http.StatusOK, map[string]any{"data": result})
 }
 
 // List godoc
@@ -299,7 +299,7 @@ func (h *StudentHandler) GetEnrollmentHistory(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
+	writeJSON(w, http.StatusOK, map[string]any{"data": result})
 }
 
 // GetRecommendations godoc
@@ -323,7 +323,7 @@ func (h *StudentHandler) GetRecommendations(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
+	writeJSON(w, http.StatusOK, map[string]any{"data": result})
 }
 
 // GetNotes godoc
@@ -347,7 +347,7 @@ func (h *StudentHandler) GetNotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
+	writeJSON(w, http.StatusOK, map[string]any{"data": result})
 }
 
 // AddNote godoc
@@ -394,8 +394,8 @@ func (h *StudentHandler) AddNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, map[string]interface{}{
-		"data": map[string]interface{}{
+	writeJSON(w, http.StatusCreated, map[string]any{
+		"data": map[string]any{
 			"id":          note.ID.String(),
 			"student_id":  note.StudentID.String(),
 			"author_id":   note.AuthorID,

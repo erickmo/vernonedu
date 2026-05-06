@@ -48,7 +48,7 @@ func NewHandler(readRepo student.ReadRepository) *Handler {
 	return &Handler{readRepo: readRepo}
 }
 
-func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, error) {
+func (h *Handler) Handle(ctx context.Context, query any) (any, error) {
 	q, ok := query.(*GetStudentQuery)
 	if !ok {
 		return nil, ErrInvalidQuery
