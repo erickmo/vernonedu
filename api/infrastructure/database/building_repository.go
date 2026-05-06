@@ -26,6 +26,8 @@ type buildingRow struct {
 	Name        string    `db:"name"`
 	Address     string    `db:"address"`
 	Description string    `db:"description"`
+	Ownership   string    `db:"ownership"`
+	PartnerID   *string   `db:"partner_id"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 }
@@ -35,6 +37,9 @@ type buildingWithRoomsRow struct {
 	Name          string    `db:"name"`
 	Address       string    `db:"address"`
 	Description   string    `db:"description"`
+	Ownership     string    `db:"ownership"`
+	PartnerID     *string   `db:"partner_id"`
+	PartnerName   *string   `db:"partner_name"`
 	CreatedAt     time.Time `db:"created_at"`
 	UpdatedAt     time.Time `db:"updated_at"`
 	RoomCount     int       `db:"room_count"`
@@ -53,23 +58,36 @@ func (row *buildingRow) toDomain() (*building.Building, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse building id: %w", err)
 	}
-	return &building.Building{
+	b := &building.Building{
 		ID:          id,
 		Name:        row.Name,
 		Address:     row.Address,
 		Description: row.Description,
+		Ownership:   row.Ownership,
 		CreatedAt:   row.CreatedAt,
 		UpdatedAt:   row.UpdatedAt,
-	}, nil
+	}
+	if row.PartnerID != nil {
+		pid, err := uuid.Parse(*row.PartnerID)
+		if err == nil {
+			b.PartnerID = &pid
+		}
+	}
+	return b, nil
 }
 
 func (r *BuildingRepository) Save(ctx context.Context, b *building.Building) error {
 	query := `
-		INSERT INTO buildings (id, name, address, description, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO buildings (id, name, address, description, ownership, partner_id, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 	`
+	var partnerID interface{}
+	if b.PartnerID != nil {
+		partnerID = b.PartnerID.String()
+	}
 	_, err := r.db.ExecContext(ctx, query,
-		b.ID.String(), b.Name, b.Address, b.Description, b.CreatedAt, b.UpdatedAt,
+		b.ID.String(), b.Name, b.Address, b.Description,
+		b.Ownership, partnerID, b.CreatedAt, b.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to save building: %w", err)
@@ -80,11 +98,15 @@ func (r *BuildingRepository) Save(ctx context.Context, b *building.Building) err
 func (r *BuildingRepository) Update(ctx context.Context, b *building.Building) error {
 	query := `
 		UPDATE buildings
-		SET name=$1, address=$2, description=$3, updated_at=$4
-		WHERE id=$5
+		SET name=$1, address=$2, description=$3, ownership=$4, partner_id=$5, updated_at=$6
+		WHERE id=$7
 	`
+	var partnerID interface{}
+	if b.PartnerID != nil {
+		partnerID = b.PartnerID.String()
+	}
 	_, err := r.db.ExecContext(ctx, query,
-		b.Name, b.Address, b.Description, b.UpdatedAt, b.ID.String(),
+		b.Name, b.Address, b.Description, b.Ownership, partnerID, b.UpdatedAt, b.ID.String(),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update building: %w", err)
@@ -102,11 +124,64 @@ func (r *BuildingRepository) Delete(ctx context.Context, id uuid.UUID) error {
 
 func (r *BuildingRepository) GetByID(ctx context.Context, id uuid.UUID) (*building.Building, error) {
 	var row buildingRow
-	query := `SELECT id, name, address, description, created_at, updated_at FROM buildings WHERE id=$1`
+	query := `SELECT id, name, address, description, ownership, partner_id, created_at, updated_at FROM buildings WHERE id=$1`
 	if err := r.db.GetContext(ctx, &row, query, id.String()); err != nil {
 		return nil, fmt.Errorf("failed to get building: %w", err)
 	}
 	return row.toDomain()
+}
+
+type buildingWithPartnerRow struct {
+	ID          string    `db:"id"`
+	Name        string    `db:"name"`
+	Address     string    `db:"address"`
+	Description string    `db:"description"`
+	Ownership   string    `db:"ownership"`
+	PartnerID   *string   `db:"partner_id"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
+	PartnerName *string   `db:"partner_name"`
+}
+
+func (r *BuildingRepository) GetByIDWithPartner(ctx context.Context, id uuid.UUID) (*building.BuildingWithPartner, error) {
+	var row buildingWithPartnerRow
+	query := `
+		SELECT b.id, b.name, b.address, b.description, b.ownership, b.partner_id,
+		       b.created_at, b.updated_at, p.name AS partner_name
+		FROM buildings b
+		LEFT JOIN partners p ON p.id = b.partner_id
+		WHERE b.id = $1
+	`
+	if err := r.db.GetContext(ctx, &row, query, id.String()); err != nil {
+		return nil, fmt.Errorf("failed to get building with partner: %w", err)
+	}
+	bid, err := uuid.Parse(row.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse building id: %w", err)
+	}
+	b := &building.Building{
+		ID:          bid,
+		Name:        row.Name,
+		Address:     row.Address,
+		Description: row.Description,
+		Ownership:   row.Ownership,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}
+	if row.PartnerID != nil {
+		pid, err := uuid.Parse(*row.PartnerID)
+		if err == nil {
+			b.PartnerID = &pid
+		}
+	}
+	result := &building.BuildingWithPartner{Building: *b}
+	if b.PartnerID != nil && row.PartnerName != nil {
+		result.Partner = &building.PartnerRef{
+			ID:   *b.PartnerID,
+			Name: *row.PartnerName,
+		}
+	}
+	return result, nil
 }
 
 func (r *BuildingRepository) List(ctx context.Context, offset, limit int) ([]*building.Building, int, error) {
@@ -117,7 +192,7 @@ func (r *BuildingRepository) List(ctx context.Context, offset, limit int) ([]*bu
 
 	var rows []buildingRow
 	query := `
-		SELECT id, name, address, description, created_at, updated_at
+		SELECT id, name, address, description, ownership, partner_id, created_at, updated_at
 		FROM buildings
 		ORDER BY name ASC
 		LIMIT $1 OFFSET $2
@@ -150,7 +225,8 @@ func (r *BuildingRepository) ListWithRooms(ctx context.Context, offset, limit in
 
 	query := `
 		SELECT
-			b.id, b.name, b.address, b.description, b.created_at, b.updated_at,
+			b.id, b.name, b.address, b.description, b.ownership, b.partner_id,
+			b.created_at, b.updated_at,
 			COUNT(rm.id)::int AS room_count,
 			COALESCE(SUM(rm.capacity), 0)::int AS total_capacity,
 			COALESCE(
@@ -159,11 +235,13 @@ func (r *BuildingRepository) ListWithRooms(ctx context.Context, offset, limit in
 					ORDER BY rm.name
 				) FILTER (WHERE rm.id IS NOT NULL),
 				'[]'::json
-			) AS rooms
+			) AS rooms,
+			p.name AS partner_name
 		FROM buildings b
 		LEFT JOIN rooms rm ON rm.building_id = b.id
+		LEFT JOIN partners p ON p.id = b.partner_id
 		WHERE ($3 = '' OR b.name ILIKE '%' || $3 || '%' OR b.address ILIKE '%' || $3 || '%')
-		GROUP BY b.id, b.name, b.address, b.description, b.created_at, b.updated_at
+		GROUP BY b.id, b.name, b.address, b.description, b.ownership, b.partner_id, b.created_at, b.updated_at, p.name
 		ORDER BY b.name ASC
 		LIMIT $1 OFFSET $2
 	`
@@ -200,15 +278,23 @@ func (r *BuildingRepository) ListWithRooms(ctx context.Context, offset, limit in
 			})
 		}
 
+		b := building.Building{
+			ID:          id,
+			Name:        row.Name,
+			Address:     row.Address,
+			Description: row.Description,
+			Ownership:   row.Ownership,
+			CreatedAt:   row.CreatedAt,
+			UpdatedAt:   row.UpdatedAt,
+		}
+		if row.PartnerID != nil {
+			pid, err := uuid.Parse(*row.PartnerID)
+			if err == nil {
+				b.PartnerID = &pid
+			}
+		}
 		result = append(result, building.BuildingWithRooms{
-			Building: building.Building{
-				ID:          id,
-				Name:        row.Name,
-				Address:     row.Address,
-				Description: row.Description,
-				CreatedAt:   row.CreatedAt,
-				UpdatedAt:   row.UpdatedAt,
-			},
+			Building:      b,
 			RoomCount:     row.RoomCount,
 			TotalCapacity: row.TotalCapacity,
 			Rooms:         rooms,
