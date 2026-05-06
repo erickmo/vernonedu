@@ -34,6 +34,7 @@ import {
   Network,
   Tag,
   Store,
+  Briefcase,
 } from 'lucide-react'
 
 // ─── Permission helpers ─────────────────────────────────────────────────────────
@@ -458,6 +459,13 @@ const TALENTPOOL_ITEMS: NavItem[] = [
     label: 'Ditempatkan',
     icon: Trophy,
     path: '/talentpool/placed',
+    hasAccess: (ctx) => canViewTalentPool(ctx),
+  },
+  {
+    key: 'talentpool-lowongan',
+    label: 'Lowongan',
+    icon: Briefcase,
+    path: '/talentpool/lowongan',
     hasAccess: (ctx) => canViewTalentPool(ctx),
   },
 ]

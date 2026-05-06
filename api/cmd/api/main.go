@@ -100,6 +100,14 @@ import (
 	createbatchschedule "github.com/vernonedu/entrepreneurship-api/internal/command/create_batch_schedule"
 	// batch schedule queries
 	listbatchschedules "github.com/vernonedu/entrepreneurship-api/internal/query/list_batch_schedules"
+	// job vacancy commands
+	createjobvacancy    "github.com/vernonedu/entrepreneurship-api/internal/command/create_job_vacancy"
+	updatejobvacancy    "github.com/vernonedu/entrepreneurship-api/internal/command/update_job_vacancy"
+	deletejobvacancy    "github.com/vernonedu/entrepreneurship-api/internal/command/delete_job_vacancy"
+	changevacancystatus "github.com/vernonedu/entrepreneurship-api/internal/command/change_vacancy_status"
+	// job vacancy queries
+	getjobvacancy    "github.com/vernonedu/entrepreneurship-api/internal/query/get_job_vacancy"
+	listjobvacancies "github.com/vernonedu/entrepreneurship-api/internal/query/list_job_vacancies"
 	// lead commands
 	addcrmlog "github.com/vernonedu/entrepreneurship-api/internal/command/add_crm_log"
 	addleadinterest "github.com/vernonedu/entrepreneurship-api/internal/command/add_lead_interest"
@@ -516,6 +524,9 @@ func main() {
 			func(db *sqlx.DB) *database.DelegationRepository {
 				return database.NewDelegationRepository(db)
 			},
+			func(db *sqlx.DB) *database.JobVacancyRepository {
+				return database.NewJobVacancyRepository(db)
+			},
 			func(db *sqlx.DB) *database.LeadRepository {
 				return database.NewLeadRepository(db)
 			},
@@ -633,6 +644,8 @@ func main() {
 			newEnrollmentHTTPHandler,
 			// Lead HTTP handler
 			newLeadHTTPHandler,
+			// Job Vacancy HTTP handler
+			newJobVacancyHTTPHandler,
 			// Location HTTP handler
 			newLocationHTTPHandler,
 			// BizDev HTTP handlers
@@ -787,6 +800,10 @@ func newLeadHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) 
 	return httphandler.NewLeadHandler(cmdBus, qryBus)
 }
 
+func newJobVacancyHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.JobVacancyHandler {
+	return httphandler.NewJobVacancyHandler(cmdBus, qryBus)
+}
+
 func newLocationHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.LocationHandler {
 	return httphandler.NewLocationHandler(cmdBus, qryBus)
 }
@@ -887,6 +904,7 @@ func newRouter(
 	talentPoolHandler *httphandler.TalentPoolHandler,
 	bmcHandler *httphandler.BmcHandler,
 	leadHandler *httphandler.LeadHandler,
+	jobVacancyHandler *httphandler.JobVacancyHandler,
 	locationHandler *httphandler.LocationHandler,
 	partnerHandler *httphandler.PartnerHandler,
 	franchiseHandler *httphandler.FranchiseHandler,
@@ -948,6 +966,8 @@ func newRouter(
 		httphandler.RegisterCourseModuleRoutes(courseModuleHandler, r)
 		httphandler.RegisterProgramKarirRoutes(programKarirHandler, r)
 		httphandler.RegisterTalentPoolRoutes(talentPoolHandler, r)
+		// Job Vacancy routes
+		httphandler.RegisterJobVacancyRoutes(jobVacancyHandler, r)
 		// BMC routes
 		httphandler.RegisterBmcRoutes(bmcHandler, r)
 		// Lead routes
@@ -1032,6 +1052,8 @@ type registerParams struct {
 	OkrRepo        *database.OkrRepository
 	InvestmentRepo *database.InvestmentRepository
 	DelegationRepo *database.DelegationRepository
+	// Job Vacancy repository
+	JobVacancyRepo *database.JobVacancyRepository
 	// Lead repository
 	LeadRepo         *database.LeadRepository
 	LeadSourceRepo   *database.LeadSourceRepository
@@ -1657,6 +1679,33 @@ func registerHandlers(p registerParams) error {
 	}
 	if err := p.CmdBus.Register(&removeleadinterest.RemoveLeadInterestCommand{},
 		removeleadinterest.NewHandler(p.LeadInterestRepo)); err != nil {
+		return err
+	}
+
+	// ===== JOB VACANCIES =====
+
+	if err := p.CmdBus.Register(&createjobvacancy.CreateJobVacancyCommand{},
+		createjobvacancy.NewHandler(p.JobVacancyRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updatejobvacancy.UpdateJobVacancyCommand{},
+		updatejobvacancy.NewHandler(p.JobVacancyRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deletejobvacancy.DeleteJobVacancyCommand{},
+		deletejobvacancy.NewHandler(p.JobVacancyRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&changevacancystatus.ChangeVacancyStatusCommand{},
+		changevacancystatus.NewHandler(p.JobVacancyRepo, p.EventBus)); err != nil {
+		return err
+	}
+	getJobVacancyH := getjobvacancy.NewHandler(p.JobVacancyRepo)
+	if err := p.QryBus.Register(&getjobvacancy.GetJobVacancyQuery{}, adaptQueryHandler(getJobVacancyH.Handle)); err != nil {
+		return err
+	}
+	listJobVacanciesH := listjobvacancies.NewHandler(p.JobVacancyRepo)
+	if err := p.QryBus.Register(&listjobvacancies.ListJobVacanciesQuery{}, adaptQueryHandler(listJobVacanciesH.Handle)); err != nil {
 		return err
 	}
 

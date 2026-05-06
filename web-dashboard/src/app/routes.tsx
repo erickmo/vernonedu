@@ -48,8 +48,9 @@ const StudentFormPage     = lazy(() => import('@/pages/Students/StudentFormPage'
 const StudentDashboardPage = lazy(() => import('@/pages/Students/StudentDashboardPage'))
 
 // Talent Pool
-const TalentPoolPage       = lazy(() => import('@/pages/TalentPool/TalentPoolPage'))
-const TalentPoolPlacedPage = lazy(() => import('@/pages/TalentPool/TalentPoolPlacedPage'))
+const TalentPoolPage         = lazy(() => import('@/pages/TalentPool/TalentPoolPage'))
+const TalentPoolPlacedPage   = lazy(() => import('@/pages/TalentPool/TalentPoolPlacedPage'))
+const TalentPoolLowonganPage = lazy(() => import('@/pages/TalentPool/TalentPoolLowonganPage'))
 
 // Certificates
 const CertificateListPage            = lazy(() => import('@/pages/Certificates/CertificateListPage'))
@@ -223,6 +224,7 @@ const singleTenantRoutes = [
       // ── Talent Pool ────────────────────────────────────────────────────────
       { path: 'talentpool',                           element: <S><TalentPoolPage /></S> },
       { path: 'talentpool/placed',                    element: <S><TalentPoolPlacedPage /></S> },
+      { path: 'talentpool/lowongan',                  element: <S><TalentPoolLowonganPage /></S> },
 
       // ── Certificates ───────────────────────────────────────────────────────
       { path: 'certificates',                         element: <S><CertificateListPage /></S> },
