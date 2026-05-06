@@ -227,7 +227,7 @@ func (h *CourseBatchHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Tags         course-batches
 // @Produce      json
 // @Param        id  path  string  true  "Course Batch ID (UUID)"
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  map[string]any
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth
@@ -248,7 +248,7 @@ func (h *CourseBatchHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
+	writeJSON(w, http.StatusOK, map[string]any{"data": result})
 }
 
 // List godoc
@@ -258,7 +258,7 @@ func (h *CourseBatchHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        offset  query  int  false  "Pagination offset"
 // @Param        limit   query  int  false  "Pagination limit (default 10)"
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  map[string]any
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth
 // @Router       /course-batches [get]
@@ -388,7 +388,7 @@ func (h *CourseBatchHandler) Delete(w http.ResponseWriter, r *http.Request) {
 // @Tags         course-batches
 // @Produce      json
 // @Param        id  path  string  true  "Course Batch ID (UUID)"
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  map[string]any
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth
@@ -409,7 +409,7 @@ func (h *CourseBatchHandler) GetDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
+	writeJSON(w, http.StatusOK, map[string]any{"data": result})
 }
 
 type AssignFacilitatorRequest struct {
@@ -519,7 +519,7 @@ func (h *CourseBatchHandler) CreateSchedule(w http.ResponseWriter, r *http.Reque
 // @Tags         course-batches
 // @Produce      json
 // @Param        id  path  string  true  "Course Batch ID (UUID)"
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  map[string]any
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth

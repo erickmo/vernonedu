@@ -138,7 +138,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 	newCourseBatch.Price = createCmd.Price
 
 	// Determine status based on creator role
-	if createCmd.CreatorRole == "operation_admin" || createCmd.CreatorRole == "course_owner" {
+	if createCmd.CreatorRole == creatorRoleOpAdmin || createCmd.CreatorRole == creatorRoleCourseOwner {
 		newCourseBatch.Status = coursebatch.CourseBatchStatusPending
 	} else {
 		newCourseBatch.Status = coursebatch.CourseBatchStatusActive
@@ -170,18 +170,18 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 	}
 
 	// Create approval request if needed
-	if createCmd.CreatorRole == "operation_admin" || createCmd.CreatorRole == "course_owner" {
+	if createCmd.CreatorRole == creatorRoleOpAdmin || createCmd.CreatorRole == creatorRoleCourseOwner {
 		initiatorID := createCmd.InitiatorID
 
 		var steps []approval.StepInput
 		switch createCmd.CreatorRole {
-		case "operation_admin":
+		case creatorRoleOpAdmin:
 			steps = []approval.StepInput{
 				{ApproverID: uuid.Nil, ApproverRole: "course_owner"},
 				{ApproverID: uuid.Nil, ApproverRole: "operation_leader"},
 				{ApproverID: uuid.Nil, ApproverRole: "dept_leader"},
 			}
-		case "course_owner":
+		case creatorRoleCourseOwner:
 			steps = []approval.StepInput{
 				{ApproverID: uuid.Nil, ApproverRole: "operation_leader"},
 				{ApproverID: uuid.Nil, ApproverRole: "dept_leader"},
