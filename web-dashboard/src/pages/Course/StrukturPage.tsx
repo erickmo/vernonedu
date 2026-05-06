@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth.store'
 import { hasAnyRole } from '@/types/auth.types'
 import { departmentService } from '@/services/department.service'
+import { courseService } from '@/services/course.service'
 import { courseBatchService } from '@/services/course-batch.service'
 import { PageHeader } from '@/layouts/PageHeader/PageHeader'
 import { DeptCard } from './components/DeptCard'
@@ -48,37 +49,35 @@ export default function StrukturPage() {
     const loadAll = async () => {
       setLoading(true)
       try {
-        const deptsRaw = await departmentService.list({ limit: 100 })
-        const deptList: any[] = deptsRaw.items ?? []
+        const [deptsRaw, coursesRaw, batchesRaw] = await Promise.all([
+          departmentService.list(),
+          courseService.list({ limit: 9999 }),
+          courseBatchService.list({ limit: 9999 }),
+        ])
 
-        const composed: DeptSummary[] = await Promise.all(
-          deptList.map(async (dept) => {
-            let courses: CourseSummary[] = []
-            try {
-              const rawCourses: any[] = await departmentService.getCourses(dept.id)
-              courses = await Promise.all(
-                rawCourses.map(async (c): Promise<CourseSummary> => {
-                  let batches: BatchSummary[] = []
-                  try {
-                    const batchRes = await courseBatchService.list({ course_id: c.id, limit: 10 })
-                    const batchList: any[] = (batchRes as any).data?.data
-                      ?? (batchRes as any).data
-                      ?? (batchRes as any).items
-                      ?? []
-                    batches = Array.isArray(batchList) ? batchList.map(toBatchSummary) : []
-                  } catch {
-                    batches = []
-                  }
-                  return { id: c.id, name: c.name, batches }
-                })
-              )
-            } catch {
-              courses = []
-            }
-            return { id: dept.id, name: dept.name, courses }
-          })
-        )
-        setDepts(composed)
+        const deptList: any[] = deptsRaw.items ?? []
+        const courseList: any[] = (coursesRaw as any).data ?? (coursesRaw as any).items ?? []
+        const batchList: any[] = (batchesRaw as any).items ?? (batchesRaw as any).data?.data ?? (batchesRaw as any).data ?? []
+
+        const batchesByCourse = batchList.reduce<Record<string, BatchSummary[]>>((acc, b) => {
+          const cid: string = b.course_id ?? b.courseId ?? ''
+          if (!acc[cid]) acc[cid] = []
+          acc[cid].push(toBatchSummary(b))
+          return acc
+        }, {})
+
+        const coursesByDept = courseList.reduce<Record<string, CourseSummary[]>>((acc, c) => {
+          const did: string = c.department_id ?? c.departmentId ?? ''
+          if (!acc[did]) acc[did] = []
+          acc[did].push({ id: c.id, name: c.name, batches: batchesByCourse[c.id] ?? [] })
+          return acc
+        }, {})
+
+        setDepts(deptList.map(d => ({
+          id: d.id,
+          name: d.name,
+          courses: coursesByDept[d.id] ?? [],
+        })))
       } finally {
         setLoading(false)
       }
