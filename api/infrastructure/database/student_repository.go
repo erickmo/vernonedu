@@ -29,32 +29,67 @@ type studentRecord struct {
 	DepartmentID *uuid.UUID `db:"department_id"`
 	JoinedAt     time.Time  `db:"joined_at"`
 	IsActive     bool       `db:"is_active"`
-	CreatedAt    time.Time  `db:"created_at"`
-	UpdatedAt    time.Time  `db:"updated_at"`
+	// Profile fields
+	Address               string     `db:"address"`
+	City                  string     `db:"city"`
+	Province              string     `db:"province"`
+	PostalCode            string     `db:"postal_code"`
+	BirthDate             *time.Time `db:"birth_date"`
+	Gender                string     `db:"gender"`
+	NIK                   string     `db:"nik"`
+	PhotoURL              string     `db:"photo_url"`
+	EducationLevel        string     `db:"education_level"`
+	SchoolName            string     `db:"school_name"`
+	EmergencyContactName  string     `db:"emergency_contact_name"`
+	EmergencyContactPhone string     `db:"emergency_contact_phone"`
+	CreatedAt             time.Time  `db:"created_at"`
+	UpdatedAt             time.Time  `db:"updated_at"`
 }
 
 func (rec *studentRecord) toDomain() *student.Student {
 	return &student.Student{
-		ID:           rec.ID,
-		Name:         rec.Name,
-		Email:        rec.Email,
-		Phone:        rec.Phone,
-		DepartmentID: rec.DepartmentID,
-		JoinedAt:     rec.JoinedAt,
-		IsActive:     rec.IsActive,
-		CreatedAt:    rec.CreatedAt,
-		UpdatedAt:    rec.UpdatedAt,
+		ID:                    rec.ID,
+		Name:                  rec.Name,
+		Email:                 rec.Email,
+		Phone:                 rec.Phone,
+		DepartmentID:          rec.DepartmentID,
+		JoinedAt:              rec.JoinedAt,
+		IsActive:              rec.IsActive,
+		Address:               rec.Address,
+		City:                  rec.City,
+		Province:              rec.Province,
+		PostalCode:            rec.PostalCode,
+		BirthDate:             rec.BirthDate,
+		Gender:                rec.Gender,
+		NIK:                   rec.NIK,
+		PhotoURL:              rec.PhotoURL,
+		EducationLevel:        rec.EducationLevel,
+		SchoolName:            rec.SchoolName,
+		EmergencyContactName:  rec.EmergencyContactName,
+		EmergencyContactPhone: rec.EmergencyContactPhone,
+		CreatedAt:             rec.CreatedAt,
+		UpdatedAt:             rec.UpdatedAt,
 	}
 }
 
 func (r *StudentRepository) Save(ctx context.Context, s *student.Student) error {
 	query := `
-		INSERT INTO students (id, name, email, phone, department_id, joined_at, is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-	`
+		INSERT INTO students (
+			id, name, email, phone, department_id, joined_at, is_active,
+			address, city, province, postal_code, birth_date, gender, nik, photo_url,
+			education_level, school_name, emergency_contact_name, emergency_contact_phone,
+			created_at, updated_at
+		) VALUES (
+			$1, $2, $3, $4, $5, $6, $7,
+			$8, $9, $10, $11, $12, $13, $14, $15,
+			$16, $17, $18, $19,
+			$20, $21
+		)`
 	_, err := r.db.ExecContext(ctx, query,
-		s.ID, s.Name, s.Email, s.Phone, s.DepartmentID,
-		s.JoinedAt, s.IsActive, s.CreatedAt, s.UpdatedAt,
+		s.ID, s.Name, s.Email, s.Phone, s.DepartmentID, s.JoinedAt, s.IsActive,
+		s.Address, s.City, s.Province, s.PostalCode, s.BirthDate, s.Gender, s.NIK, s.PhotoURL,
+		s.EducationLevel, s.SchoolName, s.EmergencyContactName, s.EmergencyContactPhone,
+		s.CreatedAt, s.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to save student: %w", err)
@@ -65,11 +100,18 @@ func (r *StudentRepository) Save(ctx context.Context, s *student.Student) error 
 func (r *StudentRepository) Update(ctx context.Context, s *student.Student) error {
 	query := `
 		UPDATE students
-		SET name = $1, email = $2, phone = $3, department_id = $4, is_active = $5, updated_at = $6
-		WHERE id = $7
-	`
+		SET name = $1, email = $2, phone = $3, department_id = $4, is_active = $5,
+		    address = $6, city = $7, province = $8, postal_code = $9, birth_date = $10,
+		    gender = $11, nik = $12, photo_url = $13, education_level = $14,
+		    school_name = $15, emergency_contact_name = $16, emergency_contact_phone = $17,
+		    updated_at = $18
+		WHERE id = $19`
 	_, err := r.db.ExecContext(ctx, query,
-		s.Name, s.Email, s.Phone, s.DepartmentID, s.IsActive, s.UpdatedAt, s.ID,
+		s.Name, s.Email, s.Phone, s.DepartmentID, s.IsActive,
+		s.Address, s.City, s.Province, s.PostalCode, s.BirthDate,
+		s.Gender, s.NIK, s.PhotoURL, s.EducationLevel,
+		s.SchoolName, s.EmergencyContactName, s.EmergencyContactPhone,
+		s.UpdatedAt, s.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to update student: %w", err)
@@ -88,7 +130,12 @@ func (r *StudentRepository) Delete(ctx context.Context, id uuid.UUID) error {
 
 func (r *StudentRepository) GetByID(ctx context.Context, id uuid.UUID) (*student.Student, error) {
 	var rec studentRecord
-	query := `SELECT id, name, email, phone, department_id, joined_at, is_active, created_at, updated_at FROM students WHERE id = $1`
+	query := `
+		SELECT id, name, email, phone, department_id, joined_at, is_active,
+		       address, city, province, postal_code, birth_date, gender, nik, photo_url,
+		       education_level, school_name, emergency_contact_name, emergency_contact_phone,
+		       created_at, updated_at
+		FROM students WHERE id = $1`
 	if err := r.db.GetContext(ctx, &rec, query, id); err != nil {
 		return nil, fmt.Errorf("failed to get student: %w", err)
 	}
@@ -103,7 +150,12 @@ func (r *StudentRepository) List(ctx context.Context, offset, limit int) ([]*stu
 	}
 
 	var recs []studentRecord
-	query := `SELECT id, name, email, phone, department_id, joined_at, is_active, created_at, updated_at FROM students ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	query := `
+		SELECT id, name, email, phone, department_id, joined_at, is_active,
+		       address, city, province, postal_code, birth_date, gender, nik, photo_url,
+		       education_level, school_name, emergency_contact_name, emergency_contact_phone,
+		       created_at, updated_at
+		FROM students ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 	if err := r.db.SelectContext(ctx, &recs, query, limit, offset); err != nil {
 		return nil, 0, fmt.Errorf("failed to list students: %w", err)
 	}
@@ -176,13 +228,19 @@ func (r *StudentRepository) ListWithCounts(ctx context.Context, offset, limit in
 	query := fmt.Sprintf(`
 		SELECT s.id, s.name, s.email, s.phone, s.department_id,
 		       s.joined_at, s.is_active, s.created_at, s.updated_at,
+		       s.address, s.city, s.province, s.postal_code, s.birth_date,
+		       s.gender, s.nik, s.photo_url, s.education_level, s.school_name,
+		       s.emergency_contact_name, s.emergency_contact_phone,
 		       COUNT(CASE WHEN e.status = 'active' THEN 1 END)     AS active_batch_count,
 		       COUNT(CASE WHEN e.status = 'completed' THEN 1 END)  AS completed_course_count
 		FROM students s
 		LEFT JOIN enrollments e ON e.student_id = s.id
 		WHERE ($1='' OR s.name ILIKE $1)
 		GROUP BY s.id, s.name, s.email, s.phone, s.department_id,
-		         s.joined_at, s.is_active, s.created_at, s.updated_at
+		         s.joined_at, s.is_active, s.created_at, s.updated_at,
+		         s.address, s.city, s.province, s.postal_code, s.birth_date,
+		         s.gender, s.nik, s.photo_url, s.education_level, s.school_name,
+		         s.emergency_contact_name, s.emergency_contact_phone
 		%s
 		LIMIT $2 OFFSET $3`, orderBy)
 
@@ -217,6 +275,9 @@ func (r *StudentRepository) GetDetail(ctx context.Context, id uuid.UUID) (*stude
 		SELECT s.id, s.name, s.email, s.phone, s.department_id,
 		       COALESCE(d.name, '') AS department_name,
 		       s.joined_at, s.is_active, s.created_at, s.updated_at,
+		       s.address, s.city, s.province, s.postal_code, s.birth_date,
+		       s.gender, s.nik, s.photo_url, s.education_level, s.school_name,
+		       s.emergency_contact_name, s.emergency_contact_phone,
 		       COUNT(e.id)                                           AS total_enrollments,
 		       COUNT(CASE WHEN e.status = 'completed' THEN 1 END)   AS completed_courses
 		FROM students s
@@ -224,7 +285,10 @@ func (r *StudentRepository) GetDetail(ctx context.Context, id uuid.UUID) (*stude
 		LEFT JOIN enrollments e ON e.student_id = s.id
 		WHERE s.id = $1
 		GROUP BY s.id, s.name, s.email, s.phone, s.department_id, d.name,
-		         s.joined_at, s.is_active, s.created_at, s.updated_at`
+		         s.joined_at, s.is_active, s.created_at, s.updated_at,
+		         s.address, s.city, s.province, s.postal_code, s.birth_date,
+		         s.gender, s.nik, s.photo_url, s.education_level, s.school_name,
+		         s.emergency_contact_name, s.emergency_contact_phone`
 	if err := r.db.GetContext(ctx, &rec, query, id); err != nil {
 		return nil, fmt.Errorf("failed to get student detail: %w", err)
 	}
