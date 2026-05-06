@@ -36,6 +36,15 @@ var ValidCertTypes = []string{
 	"career_certificate",
 }
 
+// ValidPriceTypes adalah daftar tipe harga yang diperbolehkan.
+var ValidPriceTypes = []string{
+	"per_student",             // ActualPrice × NumStudents = total
+	"per_batch",               // ActualPrice flat regardless of student count
+	"per_session",             // ActualPrice × NumSessions = total
+	"per_student_per_session", // ActualPrice × NumStudents × NumSessions
+	"by_request",              // negotiated, no preset price enforced
+}
+
 // ComponentFailureConfig mendefinisikan perilaku sistem ketika komponen program_karir gagal.
 // Berlaku khusus untuk tipe "program_karir".
 type ComponentFailureConfig struct {
@@ -65,6 +74,8 @@ type CourseType struct {
 	MinPrice               int64 // minimum/floor price that batch pricing can go down to
 	MinParticipants        int   // minimum participants required to run
 	MaxParticipants        int   // maximum participants allowed
+	MinSessions            int   // locked lower bound for batch NumSessions
+	MaxSessions            int   // locked upper bound for batch NumSessions
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
 }
@@ -91,7 +102,7 @@ func isValidCertType(certType string) bool {
 
 // NewCourseType membuat entitas CourseType baru dengan validasi awal.
 // Status awal selalu aktif (IsActive = true).
-func NewCourseType(masterCourseID uuid.UUID, typeName, priceType, priceCurrency, targetAudience, certType string, extraDocs []string, failureConfig *ComponentFailureConfig, normalPrice, minPrice int64, minParticipants, maxParticipants int) (*CourseType, error) {
+func NewCourseType(masterCourseID uuid.UUID, typeName, priceType, priceCurrency, targetAudience, certType string, extraDocs []string, failureConfig *ComponentFailureConfig, normalPrice, minPrice int64, minParticipants, maxParticipants, minSessions, maxSessions int) (*CourseType, error) {
 	if !isValidType(typeName) {
 		return nil, ErrInvalidTypeName
 	}
@@ -116,6 +127,8 @@ func NewCourseType(masterCourseID uuid.UUID, typeName, priceType, priceCurrency,
 		MinPrice:               minPrice,
 		MinParticipants:        minParticipants,
 		MaxParticipants:        maxParticipants,
+		MinSessions:            minSessions,
+		MaxSessions:            maxSessions,
 		CreatedAt:              time.Now(),
 		UpdatedAt:              time.Now(),
 	}, nil
@@ -169,7 +182,7 @@ func (ct *CourseType) UpdatePricing(normalPrice, minPrice int64) {
 }
 
 // Update memperbarui data konfigurasi course type.
-func (ct *CourseType) Update(targetAudience, certType string, extraDocs []string, failureConfig *ComponentFailureConfig, normalPrice, minPrice int64, minParticipants, maxParticipants int) error {
+func (ct *CourseType) Update(targetAudience, certType string, extraDocs []string, failureConfig *ComponentFailureConfig, normalPrice, minPrice int64, minParticipants, maxParticipants, minSessions, maxSessions int) error {
 	if certType != "" && !isValidCertType(certType) {
 		return ErrInvalidCertType
 	}
@@ -184,6 +197,8 @@ func (ct *CourseType) Update(targetAudience, certType string, extraDocs []string
 	ct.MinPrice = minPrice
 	ct.MinParticipants = minParticipants
 	ct.MaxParticipants = maxParticipants
+	ct.MinSessions = minSessions
+	ct.MaxSessions = maxSessions
 	ct.UpdatedAt = time.Now()
 	return nil
 }
