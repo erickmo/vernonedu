@@ -151,7 +151,9 @@ const FaqListPage         = lazy(() => import('@/pages/Cms/FaqListPage'))
 const FaqFormPage         = lazy(() => import('@/pages/Cms/FaqFormPage'))
 
 // Settings
-const SettingsPage = lazy(() => import('@/pages/Settings/SettingsPage'))
+const SettingsPage        = lazy(() => import('@/pages/Settings/SettingsPage'))
+const LeadSourceListPage  = lazy(() => import('@/pages/Settings/LeadSourceListPage'))
+const LeadSourceFormPage  = lazy(() => import('@/pages/Settings/LeadSourceFormPage'))
 
 // Notifications
 const NotificationPage = lazy(() => import('@/pages/Notifications/NotificationPage'))
@@ -345,6 +347,9 @@ const singleTenantRoutes = [
 
       // ── Settings ───────────────────────────────────────────────────────────
       { path: 'settings',                             element: <S><SettingsPage /></S> },
+      { path: 'settings/lead-sources',                element: <S><LeadSourceListPage /></S> },
+      { path: 'settings/lead-sources/new',            element: <S><LeadSourceFormPage /></S> },
+      { path: 'settings/lead-sources/:sourceId/edit', element: <S><LeadSourceFormPage /></S> },
     ],
   },
 ]
