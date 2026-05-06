@@ -134,12 +134,23 @@ export function ListPageTemplate<T extends { id: string }>({
     defaultSort,
   })
 
-  // Parse filter dan search dari URL saat pertama kali dimuat
+  // Parse filter, search, dan sort dari URL saat pertama kali dimuat
   useEffect(() => {
     if (urlFiltersApplied) return
 
     const initialSearch = searchParams.get('search')
     if (initialSearch) setSearch(initialSearch)
+
+    const urlSort = searchParams.get('sort')
+    if (urlSort) {
+      try {
+        const arr = JSON.parse(urlSort) as unknown[][]
+        if (Array.isArray(arr) && arr.length > 0) {
+          const [key, dir] = arr[0] as [string, number]
+          if (key) setSort({ key, order: dir === -1 ? 'desc' : 'asc' })
+        }
+      } catch { /* ignore malformed sort param */ }
+    }
 
     if (!filterDefs) {
       setUrlFiltersApplied(true)
@@ -153,7 +164,23 @@ export function ListPageTemplate<T extends { id: string }>({
       setFilters(activeFiltersToTuples(allFilters))
     }
     setUrlFiltersApplied(true)
-  }, [searchParams, filterDefs, urlFiltersApplied, setFilters, setSearch])
+  }, [searchParams, filterDefs, urlFiltersApplied, setFilters, setSearch, setSort])
+
+  function handleSortChange(s: { key: string; order: 'asc' | 'desc' } | undefined) {
+    setSort(s)
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (s) {
+          next.set('sort', JSON.stringify([[s.key, s.order === 'asc' ? 1 : -1]]))
+        } else {
+          next.delete('sort')
+        }
+        return next
+      },
+      { replace: true },
+    )
+  }
 
   function handleSearchChange(value: string) {
     setSearch(value)
@@ -255,7 +282,7 @@ export function ListPageTemplate<T extends { id: string }>({
           onPageChange={hidePagination ? undefined : setPage}
           onPageSizeChange={hidePagination ? undefined : setPageSize}
           sort={sort}
-          onSortChange={setSort}
+          onSortChange={handleSortChange}
           search={search}
           onSearchChange={handleSearchChange}
           searchPlaceholder={searchPlaceholder}

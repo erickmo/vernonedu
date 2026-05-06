@@ -155,6 +155,31 @@ src/
     └── UserFormPage.tsx         ← useForm hook
 ```
 
+### URL Query Param Format (ListPageTemplate)
+
+`ListPageTemplate` syncs state to URL so it survives refresh and can be bookmarked/shared.
+
+**Sort** — JSON-encoded array, mirrors the API `sort` param:
+```
+?sort=[["field",1]]          // asc
+?sort=[["field",-1]]         // desc
+?sort=[["a",1],["b",-1]]     // multi-column (future)
+```
+`1` = ascending, `-1` = descending. Only the first entry is read on mount.
+
+**Filters** — JSON-encoded array of `[field, operator, value]` tuples:
+```
+?filters=[["status","=","active"],["name","like","John"]]
+```
+Operators: `=`, `!=`, `like`, `in`, `>`, `>=`, `<`, `<=`, `between`, `is`.
+
+**Search**:
+```
+?search=keyword
+```
+
+All three update via `replace: true` (no browser history entry per keystroke).
+
 ## Environment Variables
 
 ```env
