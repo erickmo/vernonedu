@@ -4,8 +4,7 @@ type ListLeadQuery struct {
 	Offset   int
 	Limit    int
 	Status   string
-	Source   string
-	Interest string
+	SourceID string
 	Search   string
 	SortBy   string
 	SortDir  string
