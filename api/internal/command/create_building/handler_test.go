@@ -48,6 +48,7 @@ func TestCreateBuildingHandler_Success(t *testing.T) {
 		Name:        "Gedung Utama",
 		Address:     "Jl. Contoh No. 1",
 		Description: "Gedung administrasi",
+		Ownership:   "self",
 	}
 
 	if err := h.Handle(context.Background(), cmd); err != nil {
