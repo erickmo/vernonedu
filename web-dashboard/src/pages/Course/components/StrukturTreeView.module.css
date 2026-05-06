@@ -1,0 +1,101 @@
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.deptRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: var(--color-primary-subtle);
+  border-radius: 7px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.deptRow:hover {
+  background: rgba(77, 41, 117, 0.12);
+}
+
+.deptLabel {
+  font-weight: 700;
+  font-size: var(--font-sm);
+  color: var(--color-primary);
+  flex: 1;
+}
+
+.courseIndent {
+  margin-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 3px;
+}
+
+.courseRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: var(--color-surface-alt);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.courseRow:hover {
+  background: rgba(77, 41, 117, 0.08);
+}
+
+.courseLabel {
+  font-weight: 600;
+  font-size: var(--font-sm);
+  color: var(--color-primary);
+  flex: 1;
+}
+
+.batchIndent {
+  margin-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 3px;
+}
+
+.batchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  font-size: var(--font-xs);
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dotActive { background: var(--color-success); }
+.dotDone { background: var(--color-text-tertiary); }
+
+.batchMeta {
+  color: var(--color-text-secondary);
+}
+
+.badge {
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.toggleIcon {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
