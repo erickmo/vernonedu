@@ -125,7 +125,7 @@ func (h *CourseTypeHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Param        courseID  path  string  true  "Master Course ID (UUID)"
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  map[string]any
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth
@@ -156,7 +156,7 @@ func (h *CourseTypeHandler) ListByMasterCourse(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
+	writeJSON(w, http.StatusOK, map[string]any{"data": result})
 }
 
 // GetByID godoc
@@ -166,7 +166,7 @@ func (h *CourseTypeHandler) ListByMasterCourse(w http.ResponseWriter, r *http.Re
 // @Accept       json
 // @Produce      json
 // @Param        typeID  path  string  true  "Course Type ID (UUID)"
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  map[string]any
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth
@@ -187,7 +187,7 @@ func (h *CourseTypeHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
+	writeJSON(w, http.StatusOK, map[string]any{"data": result})
 }
 
 // Update godoc

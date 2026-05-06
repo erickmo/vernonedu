@@ -123,7 +123,7 @@ func (h *MasterCourseHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Param        limit   query  int     false  "Pagination limit (default 10)"
 // @Param        status  query  string  false  "Filter by status"
 // @Param        field   query  string  false  "Filter by field"
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  map[string]any
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth
 // @Router       /curriculum/courses [get]
@@ -168,7 +168,7 @@ func (h *MasterCourseHandler) List(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Param        id  path  string  true  "Master Course ID (UUID)"
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  map[string]any
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth
@@ -189,7 +189,7 @@ func (h *MasterCourseHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
+	writeJSON(w, http.StatusOK, map[string]any{"data": result})
 }
 
 // Update godoc
@@ -324,7 +324,7 @@ func (h *MasterCourseHandler) Delete(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Param        id  path  string  true  "Master Course ID (UUID)"
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  map[string]any
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth
@@ -367,7 +367,7 @@ func (h *MasterCourseHandler) ListBatches(w http.ResponseWriter, r *http.Request
 			EnrollmentCount: b.EnrollmentCount,
 		}
 	}
-	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
+	writeJSON(w, http.StatusOK, map[string]any{"data": result})
 }
 
 // ListStudents godoc
@@ -377,7 +377,7 @@ func (h *MasterCourseHandler) ListBatches(w http.ResponseWriter, r *http.Request
 // @Accept       json
 // @Produce      json
 // @Param        id  path  string  true  "Master Course ID (UUID)"
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  map[string]any
 // @Failure      400  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Security     BearerAuth
@@ -418,7 +418,7 @@ func (h *MasterCourseHandler) ListStudents(w http.ResponseWriter, r *http.Reques
 			EnrolledAt:    s.EnrolledAt.Format("2006-01-02"),
 		}
 	}
-	writeJSON(w, http.StatusOK, map[string]interface{}{"data": result})
+	writeJSON(w, http.StatusOK, map[string]any{"data": result})
 }
 
 // RegisterMasterCourseRoutes mendaftarkan semua route MasterCourse ke router.
