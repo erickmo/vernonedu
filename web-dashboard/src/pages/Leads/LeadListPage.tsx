@@ -9,19 +9,10 @@ interface Lead {
   name: string
   email: string
   phone: string
-  interest: string
-  source: string
+  source: { id: string; name: string } | null
   status: string
   notes: string
   created_at: number
-}
-
-const SOURCE_LABELS: Record<string, string> = {
-  referral: 'Referral',
-  social_media: 'Media Sosial',
-  walk_in: 'Walk In',
-  website: 'Website',
-  other: 'Lainnya',
 }
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
@@ -67,18 +58,11 @@ const columns: ColumnDef<Lead>[] = [
     render: (_v, row) => row.phone || '—',
   },
   {
-    key: 'interest',
-    header: 'Minat',
-    sortable: true,
-    width: 150,
-    render: (_v, row) => row.interest || '—',
-  },
-  {
     key: 'source',
     header: 'Sumber',
     sortable: true,
     width: 120,
-    render: (v, _row) => SOURCE_LABELS[v] || v || '—',
+    render: (_v, row) => row.source?.name ?? '—',
   },
   {
     key: 'status',
