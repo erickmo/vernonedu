@@ -38,6 +38,20 @@ type CreateCourseBatchCommand struct {
 	InitiatorID     uuid.UUID
 	// CourseVersionID, jika diisi, divalidasi harus sudah approval_status='approved'.
 	CourseVersionID *uuid.UUID
+	// CourseType-related fields
+	CourseTypeID      *uuid.UUID
+	PriceType         string
+	ActualPrice       *int64
+	DiscountedPrice   *int64
+	NumSessions       int
+	NumStudents       int
+	// CourseType bounds for validation (fetched by HTTP handler before dispatch)
+	CTMinPrice        int64
+	CTNormalPrice     int64
+	CTMinSessions     int
+	CTMaxSessions     int
+	CTMinParticipants int
+	CTMaxParticipants int
 }
 
 type Handler struct {
@@ -107,6 +121,13 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		newCourseBatch.Code = fmt.Sprintf("BATCH-%s-%04d", time.Now().Format("2006"), time.Now().UnixNano()%10000)
 	}
 
+	newCourseBatch.CourseTypeID    = createCmd.CourseTypeID
+	newCourseBatch.PriceType       = createCmd.PriceType
+	newCourseBatch.ActualPrice     = createCmd.ActualPrice
+	newCourseBatch.DiscountedPrice = createCmd.DiscountedPrice
+	newCourseBatch.NumSessions     = createCmd.NumSessions
+	newCourseBatch.NumStudents     = createCmd.NumStudents
+
 	newCourseBatch.MinParticipants = createCmd.MinParticipants
 	newCourseBatch.WebsiteVisible = true
 	if createCmd.PaymentMethod != "" && coursebatch.ValidPaymentMethods[createCmd.PaymentMethod] {
@@ -121,6 +142,26 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		newCourseBatch.Status = coursebatch.CourseBatchStatusPending
 	} else {
 		newCourseBatch.Status = coursebatch.CourseBatchStatusActive
+	}
+
+	if createCmd.CourseTypeID != nil {
+		if createCmd.PriceType != "by_request" && createCmd.ActualPrice != nil {
+			if *createCmd.ActualPrice < createCmd.CTMinPrice {
+				return coursebatch.ErrActualPriceTooLow
+			}
+			if *createCmd.ActualPrice > createCmd.CTNormalPrice {
+				return coursebatch.ErrActualPriceTooHigh
+			}
+			if createCmd.DiscountedPrice != nil && *createCmd.DiscountedPrice > *createCmd.ActualPrice {
+				return coursebatch.ErrDiscountedPriceTooHigh
+			}
+		}
+		if createCmd.NumSessions < createCmd.CTMinSessions || createCmd.NumSessions > createCmd.CTMaxSessions {
+			return coursebatch.ErrNumSessionsOutOfRange
+		}
+		if createCmd.NumStudents < createCmd.CTMinParticipants || createCmd.NumStudents > createCmd.CTMaxParticipants {
+			return coursebatch.ErrNumStudentsOutOfRange
+		}
 	}
 
 	if err := h.courseBatchWriteRepo.Save(ctx, newCourseBatch); err != nil {

@@ -17,6 +17,7 @@ import (
 	"github.com/vernonedu/entrepreneurship-api/internal/command/delete_course_batch"
 	"github.com/vernonedu/entrepreneurship-api/internal/command/update_course_batch"
 	"github.com/vernonedu/entrepreneurship-api/internal/domain/batchschedule"
+	"github.com/vernonedu/entrepreneurship-api/internal/domain/coursetype"
 	"github.com/vernonedu/entrepreneurship-api/internal/query/get_course_batch"
 	getcoursebatchdetail "github.com/vernonedu/entrepreneurship-api/internal/query/get_course_batch_detail"
 	"github.com/vernonedu/entrepreneurship-api/internal/query/list_course_batch"
@@ -28,14 +29,16 @@ import (
 )
 
 type CourseBatchHandler struct {
-	cmdBus commandbus.CommandBus
-	qryBus querybus.QueryBus
+	cmdBus         commandbus.CommandBus
+	qryBus         querybus.QueryBus
+	courseTypeRepo coursetype.ReadRepository
 }
 
-func NewCourseBatchHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *CourseBatchHandler {
+func NewCourseBatchHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus, courseTypeRepo coursetype.ReadRepository) *CourseBatchHandler {
 	return &CourseBatchHandler{
-		cmdBus: cmdBus,
-		qryBus: qryBus,
+		cmdBus:         cmdBus,
+		qryBus:         qryBus,
+		courseTypeRepo: courseTypeRepo,
 	}
 }
 
@@ -53,6 +56,11 @@ type CreateCourseBatchRequest struct {
 	WebsiteVisible  bool   `json:"website_visible"`
 	Price           int64  `json:"price"`
 	PaymentMethod   string `json:"payment_method"`
+	CourseTypeID    string `json:"course_type_id"`
+	ActualPrice     *int64 `json:"actual_price"`
+	DiscountedPrice *int64 `json:"discounted_price"`
+	NumSessions     int    `json:"num_sessions"`
+	NumStudents     int    `json:"num_students"`
 }
 
 func parseDate(s string) (time.Time, error) {
@@ -127,6 +135,34 @@ func (h *CourseBatchHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var (
+		courseTypeID                         *uuid.UUID
+		priceType                            string
+		ctMinPrice, ctNormalPrice            int64
+		ctMinSessions, ctMaxSessions         int
+		ctMinParticipants, ctMaxParticipants int
+	)
+	if req.CourseTypeID != "" {
+		ctID, err := uuid.Parse(req.CourseTypeID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "invalid course_type_id")
+			return
+		}
+		courseTypeID = &ctID
+		ct, err := h.courseTypeRepo.GetByID(r.Context(), ctID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "course type not found")
+			return
+		}
+		priceType         = ct.PriceType
+		ctMinPrice        = ct.MinPrice
+		ctNormalPrice     = ct.NormalPrice
+		ctMinSessions     = ct.MinSessions
+		ctMaxSessions     = ct.MaxSessions
+		ctMinParticipants = ct.MinParticipants
+		ctMaxParticipants = ct.MaxParticipants
+	}
+
 	// Extract creator role and initiator ID from context
 	roles := pkgmiddleware.GetRolesFromContext(r.Context())
 	creatorRole := ""
@@ -148,21 +184,33 @@ func (h *CourseBatchHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := &create_course_batch.CreateCourseBatchCommand{
-		CourseID:        courseID,
-		MasterCourseID:  masterCourseID,
-		BranchID:        branchID,
-		Code:            req.Code,
-		Name:            req.Name,
-		StartDate:       startDate,
-		EndDate:         endDate,
-		MinParticipants: req.MinParticipants,
-		MaxParticipants: req.MaxParticipants,
-		IsActive:        req.IsActive,
-		WebsiteVisible:  req.WebsiteVisible,
-		Price:           req.Price,
-		PaymentMethod:   req.PaymentMethod,
-		CreatorRole:     creatorRole,
-		InitiatorID:     initiatorID,
+		CourseID:          courseID,
+		MasterCourseID:    masterCourseID,
+		BranchID:          branchID,
+		Code:              req.Code,
+		Name:              req.Name,
+		StartDate:         startDate,
+		EndDate:           endDate,
+		MinParticipants:   req.MinParticipants,
+		MaxParticipants:   req.MaxParticipants,
+		IsActive:          req.IsActive,
+		WebsiteVisible:    req.WebsiteVisible,
+		Price:             req.Price,
+		PaymentMethod:     req.PaymentMethod,
+		CreatorRole:       creatorRole,
+		InitiatorID:       initiatorID,
+		CourseTypeID:      courseTypeID,
+		PriceType:         priceType,
+		ActualPrice:       req.ActualPrice,
+		DiscountedPrice:   req.DiscountedPrice,
+		NumSessions:       req.NumSessions,
+		NumStudents:       req.NumStudents,
+		CTMinPrice:        ctMinPrice,
+		CTNormalPrice:     ctNormalPrice,
+		CTMinSessions:     ctMinSessions,
+		CTMaxSessions:     ctMaxSessions,
+		CTMinParticipants: ctMinParticipants,
+		CTMaxParticipants: ctMaxParticipants,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute create course batch command")

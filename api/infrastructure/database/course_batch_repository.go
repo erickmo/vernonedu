@@ -36,6 +36,12 @@ type courseBatchRecord struct {
 	PaymentMethod   string     `db:"payment_method"`
 	IsActive        bool       `db:"is_active"`
 	Status          string     `db:"status"`
+	CourseTypeID    *uuid.UUID `db:"course_type_id"`
+	PriceTypeBatch  string     `db:"price_type_batch"`
+	ActualPrice     *int64     `db:"actual_price"`
+	DiscountedPrice *int64     `db:"discounted_price"`
+	NumSessions     int        `db:"num_sessions"`
+	NumStudents     int        `db:"num_students"`
 	CreatedAt       time.Time  `db:"created_at"`
 	UpdatedAt       time.Time  `db:"updated_at"`
 }
@@ -81,6 +87,12 @@ func (rec *courseBatchRecord) toDomain() *coursebatch.CourseBatch {
 		PaymentMethod:   rec.PaymentMethod,
 		IsActive:        rec.IsActive,
 		Status:          rec.Status,
+		CourseTypeID:    rec.CourseTypeID,
+		PriceType:       rec.PriceTypeBatch,
+		ActualPrice:     rec.ActualPrice,
+		DiscountedPrice: rec.DiscountedPrice,
+		NumSessions:     rec.NumSessions,
+		NumStudents:     rec.NumStudents,
 		CreatedAt:       rec.CreatedAt,
 		UpdatedAt:       rec.UpdatedAt,
 	}
@@ -88,13 +100,14 @@ func (rec *courseBatchRecord) toDomain() *coursebatch.CourseBatch {
 
 func (r *CourseBatchRepository) Save(ctx context.Context, cb *coursebatch.CourseBatch) error {
 	query := `
-		INSERT INTO course_batches (id, course_id, master_course_id, branch_id, code, name, start_date, end_date, facilitator_id, min_participants, max_participants, website_visible, price, payment_method, is_active, status, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+		INSERT INTO course_batches (id, course_id, master_course_id, branch_id, code, name, start_date, end_date, facilitator_id, min_participants, max_participants, website_visible, price, payment_method, is_active, status, course_type_id, price_type_batch, actual_price, discounted_price, num_sessions, num_students, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
 	`
 	_, err := r.db.ExecContext(ctx, query,
 		cb.ID, cb.CourseID, cb.MasterCourseID, cb.BranchID, cb.Code, cb.Name, cb.StartDate, cb.EndDate,
 		cb.FacilitatorID, cb.MinParticipants, cb.MaxParticipants, cb.WebsiteVisible, cb.Price, cb.PaymentMethod,
-		cb.IsActive, cb.Status, cb.CreatedAt, cb.UpdatedAt,
+		cb.IsActive, cb.Status, cb.CourseTypeID, cb.PriceType, cb.ActualPrice, cb.DiscountedPrice,
+		cb.NumSessions, cb.NumStudents, cb.CreatedAt, cb.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to save course batch: %w", err)
@@ -130,7 +143,7 @@ func (r *CourseBatchRepository) Delete(ctx context.Context, id uuid.UUID) error 
 
 func (r *CourseBatchRepository) GetByID(ctx context.Context, id uuid.UUID) (*coursebatch.CourseBatch, error) {
 	var rec courseBatchRecord
-	query := `SELECT id, course_id, COALESCE(master_course_id, NULL) as master_course_id, branch_id, COALESCE(code, '') as code, name, start_date, end_date, facilitator_id, COALESCE(min_participants, 0) as min_participants, max_participants, COALESCE(website_visible, true) as website_visible, COALESCE(price, 0) as price, COALESCE(payment_method, 'upfront') as payment_method, is_active, COALESCE(status, 'active') as status, created_at, updated_at FROM course_batches WHERE id = $1`
+	query := `SELECT id, course_id, COALESCE(master_course_id, NULL) as master_course_id, branch_id, COALESCE(code, '') as code, name, start_date, end_date, facilitator_id, COALESCE(min_participants, 0) as min_participants, max_participants, COALESCE(website_visible, true) as website_visible, COALESCE(price, 0) as price, COALESCE(payment_method, 'upfront') as payment_method, is_active, COALESCE(status, 'active') as status, course_type_id, COALESCE(price_type_batch, '') as price_type_batch, actual_price, discounted_price, COALESCE(num_sessions, 0) as num_sessions, COALESCE(num_students, 0) as num_students, created_at, updated_at FROM course_batches WHERE id = $1`
 	if err := r.db.GetContext(ctx, &rec, query, id); err != nil {
 		return nil, fmt.Errorf("failed to get course batch: %w", err)
 	}
@@ -282,7 +295,7 @@ func (r *CourseBatchRepository) List(ctx context.Context, offset, limit int, sea
 	}
 
 	orderBy := buildOrderBy(sortBy, sortDir, courseBatchSortCols, "cb.created_at DESC")
-	const sel = `SELECT id, course_id, COALESCE(master_course_id, NULL) as master_course_id, branch_id, COALESCE(code, '') as code, name, start_date, end_date, facilitator_id, COALESCE(min_participants, 0) as min_participants, max_participants, COALESCE(website_visible, true) as website_visible, COALESCE(price, 0) as price, COALESCE(payment_method, 'upfront') as payment_method, is_active, COALESCE(status, 'active') as status, created_at, updated_at FROM course_batches cb`
+	const sel = `SELECT id, course_id, COALESCE(master_course_id, NULL) as master_course_id, branch_id, COALESCE(code, '') as code, name, start_date, end_date, facilitator_id, COALESCE(min_participants, 0) as min_participants, max_participants, COALESCE(website_visible, true) as website_visible, COALESCE(price, 0) as price, COALESCE(payment_method, 'upfront') as payment_method, is_active, COALESCE(status, 'active') as status, course_type_id, COALESCE(price_type_batch, '') as price_type_batch, actual_price, discounted_price, COALESCE(num_sessions, 0) as num_sessions, COALESCE(num_students, 0) as num_students, created_at, updated_at FROM course_batches cb`
 	var recs []courseBatchRecord
 	var err error
 	if search != "" {

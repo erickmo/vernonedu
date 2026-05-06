@@ -764,8 +764,8 @@ func newCourseHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus
 	return httphandler.NewCourseHandler(cmdBus, qryBus)
 }
 
-func newCourseBatchHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus) *httphandler.CourseBatchHandler {
-	return httphandler.NewCourseBatchHandler(cmdBus, qryBus)
+func newCourseBatchHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus, courseTypeRepo *database.CourseTypeRepository) *httphandler.CourseBatchHandler {
+	return httphandler.NewCourseBatchHandler(cmdBus, qryBus, courseTypeRepo)
 }
 
 func newMasterCourseHTTPHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus, repo *database.MasterCourseRepository) *httphandler.MasterCourseHandler {

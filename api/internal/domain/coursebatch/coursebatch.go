@@ -28,10 +28,15 @@ var ValidPaymentMethods = map[string]bool{
 }
 
 var (
-	ErrInvalidName          = errors.New("invalid course batch name")
-	ErrInvalidDates         = errors.New("invalid course batch dates")
-	ErrCourseBatchNotFound  = errors.New("course batch not found")
-	ErrInvalidPaymentMethod = errors.New("invalid payment method")
+	ErrInvalidName           = errors.New("invalid course batch name")
+	ErrInvalidDates          = errors.New("invalid course batch dates")
+	ErrCourseBatchNotFound   = errors.New("course batch not found")
+	ErrInvalidPaymentMethod  = errors.New("invalid payment method")
+	ErrActualPriceTooLow     = errors.New("actual price below CourseType minimum price")
+	ErrActualPriceTooHigh    = errors.New("actual price above CourseType normal price")
+	ErrDiscountedPriceTooHigh = errors.New("discounted price must be <= actual price")
+	ErrNumSessionsOutOfRange  = errors.New("num_sessions out of CourseType range")
+	ErrNumStudentsOutOfRange  = errors.New("num_students out of CourseType range")
 )
 
 type CourseBatch struct {
@@ -51,6 +56,12 @@ type CourseBatch struct {
 	MaxParticipants int
 	IsActive        bool
 	Status          string
+	CourseTypeID    *uuid.UUID
+	PriceType       string
+	ActualPrice     *int64
+	DiscountedPrice *int64
+	NumSessions     int
+	NumStudents     int
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 }
