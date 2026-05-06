@@ -384,6 +384,12 @@ export default function FranchiseeDetailPage() {
     setOtherRevenueModalOpen(true)
   }
 
+  function closeOtherRevenueModal() {
+    setOtherRevenueModalOpen(false)
+    setEditingRevenue(null)
+    setOtherRevenueForm({ label: '', amount: '', revenue_date: '' })
+  }
+
   async function handleOtherRevenueSubmit() {
     setOtherRevenueSaving(true)
     try {
@@ -648,7 +654,7 @@ export default function FranchiseeDetailPage() {
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 400,
             display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onClick={() => setOtherRevenueModalOpen(false)}
+          onClick={() => closeOtherRevenueModal()}
         >
           <div
             style={{ background: 'var(--color-surface-elevated)', borderRadius: 'var(--radius-lg)',
@@ -660,7 +666,7 @@ export default function FranchiseeDetailPage() {
               <h3 style={{ fontSize: 'var(--font-base)', fontWeight: 700 }}>
                 {editingRevenue ? 'Edit Pendapatan Lain' : 'Tambah Pendapatan Lain'}
               </h3>
-              <button onClick={() => setOtherRevenueModalOpen(false)}
+              <button onClick={() => closeOtherRevenueModal()}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)' }}>
                 <X size={16} />
               </button>
@@ -686,7 +692,7 @@ export default function FranchiseeDetailPage() {
             </div>
             <div style={{ padding: 'var(--space-4) var(--space-5)', borderTop: '1px solid var(--color-border)',
               display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)' }}>
-              <button onClick={() => setOtherRevenueModalOpen(false)}
+              <button onClick={() => closeOtherRevenueModal()}
                 style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
                   background: 'var(--color-surface)', cursor: 'pointer', fontSize: 'var(--font-sm)' }}>
                 Batal
