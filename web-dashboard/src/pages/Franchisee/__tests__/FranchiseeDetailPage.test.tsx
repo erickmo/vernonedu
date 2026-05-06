@@ -78,3 +78,32 @@ describe('FranchiseeDetailPage — AgreementFormModal', () => {
     expect(screen.getAllByText('Buat Perjanjian').length).toBeGreaterThan(1)
   })
 })
+
+describe('FranchiseeDetailPage — RoyaltyPaymentFormModal', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('renders "Tambah Pembayaran" button in royalty section', async () => {
+    render(<FranchiseeDetailPage />, { wrapper })
+    await waitFor(() => expect(screen.getByText('Tambah Pembayaran')).toBeTruthy())
+  })
+
+  it('opens royalty modal on click', async () => {
+    const user = userEvent.setup()
+    render(<FranchiseeDetailPage />, { wrapper })
+    await waitFor(() => screen.getByText('Tambah Pembayaran'))
+    await user.click(screen.getByText('Tambah Pembayaran'))
+    expect(screen.getByText('Tambah Pembayaran Royalti')).toBeTruthy()
+  })
+
+  it('renders "Tandai Lunas" for unpaid royalty rows', async () => {
+    const { franchiseeService } = await import('@/services/franchisee.service')
+    vi.mocked(franchiseeService.listRoyaltyPayments).mockResolvedValueOnce({
+      items: [{ id: 'r1', franchisee_id: 'f1', period: '2026-01', gross_revenue: 10000000,
+        monthly_royalty: 5000000, revenue_royalty: 500000, total_royalty: 5500000,
+        status: 'unpaid', created_at: '2026-01-01' }],
+      total: 1, offset: 0, limit: 20,
+    })
+    render(<FranchiseeDetailPage />, { wrapper })
+    await waitFor(() => expect(screen.getByText('Tandai Lunas')).toBeTruthy())
+  })
+})

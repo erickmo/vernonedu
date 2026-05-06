@@ -116,34 +116,70 @@ const TABLE_CELL_STYLE: React.CSSProperties = {
   textAlign: 'left',
 }
 
-function RoyaltyContent({ payments }: { payments: RoyaltyPayment[] | undefined }) {
-  if (!payments || payments.length === 0) {
-    return <p style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-sm)' }}>Belum ada data royalti.</p>
-  }
+function RoyaltyContent({
+  payments, onAdd, onMarkPaid,
+}: {
+  payments: RoyaltyPayment[] | undefined
+  onAdd: () => void
+  onMarkPaid: (id: string) => void
+}) {
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ background: 'var(--color-surface-alt)' }}>
-            {['Periode', 'Pendapatan Kotor', 'Royalti Bulanan', 'Royalti Pendapatan', 'Total', 'Status', 'Dibayar'].map((h) => (
-              <th key={h} style={{ ...TABLE_CELL_STYLE, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {payments.map((p) => (
-            <tr key={p.id}>
-              <td style={TABLE_CELL_STYLE}>{p.period}</td>
-              <td style={TABLE_CELL_STYLE}>{formatCurrency(p.gross_revenue)}</td>
-              <td style={TABLE_CELL_STYLE}>{formatCurrency(p.monthly_royalty)}</td>
-              <td style={TABLE_CELL_STYLE}>{formatCurrency(p.revenue_royalty)}</td>
-              <td style={{ ...TABLE_CELL_STYLE, fontWeight: 600 }}>{formatCurrency(p.total_royalty)}</td>
-              <td style={TABLE_CELL_STYLE}><StatusBadge status={p.status} /></td>
-              <td style={TABLE_CELL_STYLE}>{formatDate(p.paid_at)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-3)' }}>
+        <button
+          onClick={onAdd}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '6px 12px', borderRadius: 'var(--radius-md)',
+            background: 'var(--color-primary)', color: '#fff',
+            border: 'none', cursor: 'pointer', fontSize: 'var(--font-sm)', fontWeight: 500,
+          }}
+        >
+          <Plus size={13} />{'Tambah Pembayaran'}
+        </button>
+      </div>
+      {(!payments || payments.length === 0) ? (
+        <p style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-sm)' }}>Belum ada data royalti.</p>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: 'var(--color-surface-alt)' }}>
+                {['Periode', 'Pendapatan Kotor', 'Royalti Bulanan', 'Royalti Pendapatan', 'Total', 'Status', 'Dibayar', ''].map((h) => (
+                  <th key={h} style={{ ...TABLE_CELL_STYLE, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((p) => (
+                <tr key={p.id}>
+                  <td style={TABLE_CELL_STYLE}>{p.period}</td>
+                  <td style={TABLE_CELL_STYLE}>{formatCurrency(p.gross_revenue)}</td>
+                  <td style={TABLE_CELL_STYLE}>{formatCurrency(p.monthly_royalty)}</td>
+                  <td style={TABLE_CELL_STYLE}>{formatCurrency(p.revenue_royalty)}</td>
+                  <td style={{ ...TABLE_CELL_STYLE, fontWeight: 600 }}>{formatCurrency(p.total_royalty)}</td>
+                  <td style={TABLE_CELL_STYLE}><StatusBadge status={p.status} /></td>
+                  <td style={TABLE_CELL_STYLE}>{formatDate(p.paid_at)}</td>
+                  <td style={TABLE_CELL_STYLE}>
+                    {p.status !== 'paid' && (
+                      <button
+                        onClick={() => onMarkPaid(p.id)}
+                        style={{
+                          padding: '4px 10px', borderRadius: 'var(--radius-md)',
+                          border: '1px solid var(--color-success)', background: 'var(--color-success-light)',
+                          color: 'var(--color-success-dark)', cursor: 'pointer', fontSize: 'var(--font-xs)', fontWeight: 500,
+                        }}
+                      >
+                        Tandai Lunas
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
@@ -182,6 +218,11 @@ export default function FranchiseeDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+
+  // ── Royalty payment modal state ──
+  const [royaltyModalOpen, setRoyaltyModalOpen] = useState(false)
+  const [royaltyForm, setRoyaltyForm] = useState({ period: '', gross_revenue: '' })
+  const [royaltySaving, setRoyaltySaving] = useState(false)
 
   // ── Agreement modal state ──
   const [agreementModalOpen, setAgreementModalOpen] = useState(false)
@@ -261,6 +302,34 @@ export default function FranchiseeDetailPage() {
     }
   }
 
+  async function handleRoyaltySubmit() {
+    setRoyaltySaving(true)
+    try {
+      await franchiseeService.createRoyaltyPayment(id!, {
+        period: royaltyForm.period,
+        gross_revenue: Number(royaltyForm.gross_revenue),
+      })
+      toast.success('Pembayaran royalti berhasil ditambahkan')
+      await queryClient.invalidateQueries({ queryKey: ['franchisee-royalty', id] })
+      setRoyaltyModalOpen(false)
+      setRoyaltyForm({ period: '', gross_revenue: '' })
+    } catch {
+      toast.error('Gagal menambahkan pembayaran royalti')
+    } finally {
+      setRoyaltySaving(false)
+    }
+  }
+
+  async function handleMarkPaid(paymentId: string) {
+    try {
+      await franchiseeService.markRoyaltyPaid(id!, paymentId)
+      toast.success('Pembayaran berhasil ditandai lunas')
+      await queryClient.invalidateQueries({ queryKey: ['franchisee-royalty', id] })
+    } catch {
+      toast.error('Gagal menandai pembayaran sebagai lunas')
+    }
+  }
+
   const actions: DetailPageAction[] = [
     {
       label: 'Edit Franchisee',
@@ -312,7 +381,7 @@ export default function FranchiseeDetailPage() {
               {
                 id: 'royalty-list',
                 label: 'Pembayaran Royalti',
-                content: <RoyaltyContent payments={royaltyPayments} />,
+                content: <RoyaltyContent payments={royaltyPayments} onAdd={() => setRoyaltyModalOpen(true)} onMarkPaid={handleMarkPaid} />,
               },
             ],
           },
@@ -422,6 +491,66 @@ export default function FranchiseeDetailPage() {
                 }}
               >
                 {agreementSaving ? 'Menyimpan...' : 'Simpan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {royaltyModalOpen && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 400,
+            display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setRoyaltyModalOpen(false)}
+        >
+          <div
+            style={{ background: 'var(--color-surface-elevated)', borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--color-border)', width: 440, overflow: 'hidden' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: 'var(--space-4) var(--space-5)', borderBottom: '1px solid var(--color-border)',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: 'var(--font-base)', fontWeight: 700 }}>Tambah Pembayaran Royalti</h3>
+              <button onClick={() => setRoyaltyModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)' }}>
+                <X size={16} />
+              </button>
+            </div>
+            <div style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--font-sm)', fontWeight: 500, marginBottom: 4 }}>Periode (YYYY-MM)</label>
+                <input
+                  type="text"
+                  placeholder="2026-01"
+                  value={royaltyForm.period}
+                  onChange={(e) => setRoyaltyForm(f => ({ ...f, period: e.target.value }))}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border)', fontSize: 'var(--font-sm)',
+                    background: 'var(--color-surface)', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 'var(--font-sm)', fontWeight: 500, marginBottom: 4 }}>Pendapatan Kotor (IDR)</label>
+                <input
+                  type="number"
+                  value={royaltyForm.gross_revenue}
+                  onChange={(e) => setRoyaltyForm(f => ({ ...f, gross_revenue: e.target.value }))}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border)', fontSize: 'var(--font-sm)',
+                    background: 'var(--color-surface)', boxSizing: 'border-box' }}
+                />
+              </div>
+            </div>
+            <div style={{ padding: 'var(--space-4) var(--space-5)', borderTop: '1px solid var(--color-border)',
+              display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)' }}>
+              <button onClick={() => setRoyaltyModalOpen(false)}
+                style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
+                  background: 'var(--color-surface)', cursor: 'pointer', fontSize: 'var(--font-sm)' }}>
+                Batal
+              </button>
+              <button onClick={handleRoyaltySubmit} disabled={royaltySaving}
+                style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', border: 'none',
+                  background: 'var(--color-primary)', color: '#fff', cursor: 'pointer', fontSize: 'var(--font-sm)', fontWeight: 500 }}>
+                {royaltySaving ? 'Menyimpan...' : 'Tambah'}
               </button>
             </div>
           </div>
