@@ -27,18 +27,28 @@ function buildQS(params?: Record<string, any>): string {
 export const leadService = {
   list: (params?: ListParams): Promise<PaginatedResponse<any>> => {
     const qs = buildQS(params)
-    return apiClient.get<any>(`leads${qs}`)
-      .then(r => toPaginated(unwrap(r), []))
+    return apiClient.get<any>(`leads${qs}`).then(r => toPaginated(unwrap(r), []))
   },
 
   getById: (id: string) =>
     apiClient.get<any>(`leads/${id}`).then(r => unwrap(r)),
 
-  create: (data: { name: string; email?: string; phone?: string; source: string; interest?: string; notes?: string }) =>
-    apiClient.post<any>('leads', data),
+  create: (data: {
+    name: string
+    phone: string
+    email?: string
+    source_id?: string
+    notes?: string
+  }) => apiClient.post<any>('leads', data),
 
-  update: (id: string, data: unknown) =>
-    apiClient.put<any>(`leads/${id}`, data),
+  update: (id: string, data: {
+    name: string
+    phone: string
+    email?: string
+    source_id?: string
+    status?: string
+    notes?: string
+  }) => apiClient.put<any>(`leads/${id}`, data),
 
   delete: (id: string) =>
     apiClient.delete(`leads/${id}`),
@@ -51,4 +61,10 @@ export const leadService = {
 
   convertToStudent: (id: string) =>
     apiClient.post<any>(`leads/${id}/convert`, {}),
+
+  addInterest: (leadId: string, data: { entity_type: string; entity_id: string }) =>
+    apiClient.post<any>(`leads/${leadId}/interests`, data),
+
+  removeInterest: (leadId: string, interestId: string) =>
+    apiClient.delete(`leads/${leadId}/interests/${interestId}`),
 }
