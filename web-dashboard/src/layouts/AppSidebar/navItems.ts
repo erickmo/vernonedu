@@ -434,6 +434,25 @@ const HRM_ITEMS: NavItem[] = [
   },
 ]
 
+// ─── TalentPool sub-nav items ───────────────────────────────────────────────────
+
+const TALENTPOOL_ITEMS: NavItem[] = [
+  {
+    key: 'talentpool-pipeline',
+    label: 'Dalam Pipeline',
+    icon: Users,
+    path: '/talentpool',
+    hasAccess: (ctx) => canViewTalentPool(ctx),
+  },
+  {
+    key: 'talentpool-placed',
+    label: 'Ditempatkan',
+    icon: Trophy,
+    path: '/talentpool/placed',
+    hasAccess: (ctx) => canViewTalentPool(ctx),
+  },
+]
+
 // ─── Section grouping ───────────────────────────────────────────────────────────
 
 export const NAV_SECTIONS: NavSection[] = [
@@ -447,7 +466,13 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'pendidikan',
     label: 'Pendidikan',
     icon: BookOpen,
-    items: ALL_ITEMS.slice(1, 8), // Kurikulum..Sertifikat
+    items: [...ALL_ITEMS.slice(1, 6), ALL_ITEMS[7]], // Kurikulum..Siswa + Sertifikat
+  },
+  {
+    key: 'talent-pool',
+    label: 'Talent Pool',
+    icon: Magnet,
+    items: TALENTPOOL_ITEMS,
   },
   {
     key: 'operasi',

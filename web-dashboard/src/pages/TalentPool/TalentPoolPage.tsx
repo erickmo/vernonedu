@@ -126,17 +126,17 @@ export default function TalentPoolPage() {
 
   return (
     <ListPageTemplate<TalentPoolEntry>
-      title="Talent Pool"
+      title="Dalam Pipeline"
       queryKey="talentpool"
       fetcher={(params) => talentPoolService.list(params)}
       columns={columns}
       rowActions={rowActions}
       searchPlaceholder="Cari talent..."
       exportFilename="talent-pool"
-      emptyTitle="Belum ada talent"
+      emptyTitle="Belum ada kandidat dalam pipeline"
       emptyDescription="Talent pool akan terisi dari pipeline Program Karir yang telah menyelesaikan tahap seleksi."
-      helpTitle="Talent Pool"
-      helpText="Talent Pool berisi kandidat dari Program Karir yang telah menyelesaikan tahap pembelajaran, magang, dan tes. Mereka siap untuk direkomendasikan ke partner."
+      helpTitle="Dalam Pipeline"
+      helpText="Daftar kandidat Program Karir yang sedang aktif dalam talent pool dan belum ditempatkan."
     />
   )
 }
