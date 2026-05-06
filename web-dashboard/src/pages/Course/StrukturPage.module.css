@@ -1,0 +1,100 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 100%;
+}
+
+.header {
+  padding: 16px 20px;
+  background: var(--color-surface-elevated);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerLeft {}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: var(--font-xs);
+  color: var(--color-text-secondary);
+  margin: 2px 0 0;
+}
+
+.viewToggle {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-surface-elevated);
+}
+
+.toggleBtn {
+  padding: 6px 14px;
+  font-size: var(--font-xs);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-text-secondary);
+  transition: background 0.15s, color 0.15s;
+}
+
+.toggleBtn + .toggleBtn {
+  border-left: 1px solid var(--color-border);
+}
+
+.toggleBtn.active {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.addDeptBtn {
+  border: 1.5px dashed var(--color-primary);
+  border-radius: 10px;
+  padding: 10px 14px;
+  text-align: center;
+  color: var(--color-primary);
+  font-size: var(--font-sm);
+  cursor: pointer;
+  background: var(--color-primary-subtle);
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.addDeptBtn:hover {
+  background: rgba(77, 41, 117, 0.12);
+}
+
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-text-tertiary);
+}
+
+.loadingRow {
+  height: 80px;
+  background: var(--color-surface-alt);
+  border-radius: 10px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
