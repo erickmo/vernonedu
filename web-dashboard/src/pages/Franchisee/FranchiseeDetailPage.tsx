@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Store, Pencil, FileText, DollarSign, TrendingUp, Plus, X } from 'lucide-react'
+import { Store, Pencil, FileText, DollarSign, TrendingUp, Plus, X, Trash2 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import type { PaginatedResponse } from '@/types/api.types'
@@ -184,30 +184,69 @@ function RoyaltyContent({
   )
 }
 
-function OtherRevenueContent({ revenues }: { revenues: OtherRevenue[] | undefined }) {
-  if (!revenues || revenues.length === 0) {
-    return <p style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-sm)' }}>Belum ada data pendapatan lain.</p>
-  }
+function OtherRevenueContent({
+  revenues, onAdd, onEdit, onDelete,
+}: {
+  revenues: OtherRevenue[] | undefined
+  onAdd: () => void
+  onEdit: (revenue: OtherRevenue) => void
+  onDelete: (id: string) => void
+}) {
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ background: 'var(--color-surface-alt)' }}>
-            {['Keterangan', 'Jumlah', 'Tanggal'].map((h) => (
-              <th key={h} style={{ ...TABLE_CELL_STYLE, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {revenues.map((r) => (
-            <tr key={r.id}>
-              <td style={TABLE_CELL_STYLE}>{r.label}</td>
-              <td style={{ ...TABLE_CELL_STYLE, fontWeight: 600 }}>{formatCurrency(r.amount)}</td>
-              <td style={TABLE_CELL_STYLE}>{formatDate(r.revenue_date)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-3)' }}>
+        <button
+          onClick={onAdd}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '6px 12px', borderRadius: 'var(--radius-md)',
+            background: 'var(--color-primary)', color: '#fff',
+            border: 'none', cursor: 'pointer', fontSize: 'var(--font-sm)', fontWeight: 500,
+          }}
+        >
+          <Plus size={13} />{'Tambah Pendapatan'}
+        </button>
+      </div>
+      {(!revenues || revenues.length === 0) ? (
+        <p style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-sm)' }}>Belum ada data pendapatan lain.</p>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: 'var(--color-surface-alt)' }}>
+                {['Keterangan', 'Jumlah', 'Tanggal', ''].map((h) => (
+                  <th key={h} style={{ ...TABLE_CELL_STYLE, fontWeight: 600, color: 'var(--color-text-secondary)' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {revenues.map((r) => (
+                <tr key={r.id}>
+                  <td style={TABLE_CELL_STYLE}>{r.label}</td>
+                  <td style={{ ...TABLE_CELL_STYLE, fontWeight: 600 }}>{formatCurrency(r.amount)}</td>
+                  <td style={TABLE_CELL_STYLE}>{formatDate(r.revenue_date)}</td>
+                  <td style={{ ...TABLE_CELL_STYLE, display: 'flex', gap: 'var(--space-1)' }}>
+                    <button
+                      data-testid={`edit-revenue-${r.id}`}
+                      onClick={() => onEdit(r)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', padding: 4 }}
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      data-testid={`delete-revenue-${r.id}`}
+                      onClick={() => onDelete(r.id)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-error)', padding: 4 }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
@@ -231,6 +270,12 @@ export default function FranchiseeDetailPage() {
   const [royaltyModalOpen, setRoyaltyModalOpen] = useState(false)
   const [royaltyForm, setRoyaltyForm] = useState({ period: '', gross_revenue: '' })
   const [royaltySaving, setRoyaltySaving] = useState(false)
+
+  // ── Other revenue modal state ──
+  const [otherRevenueModalOpen, setOtherRevenueModalOpen] = useState(false)
+  const [editingRevenue, setEditingRevenue] = useState<OtherRevenue | null>(null)
+  const [otherRevenueForm, setOtherRevenueForm] = useState({ label: '', amount: '', revenue_date: '' })
+  const [otherRevenueSaving, setOtherRevenueSaving] = useState(false)
 
   const { data: franchisee } = useQuery({
     queryKey: ['franchisee', id],
@@ -330,6 +375,49 @@ export default function FranchiseeDetailPage() {
     }
   }
 
+  function openOtherRevenueModal(revenue?: OtherRevenue) {
+    setEditingRevenue(revenue ?? null)
+    setOtherRevenueForm(revenue
+      ? { label: revenue.label, amount: String(revenue.amount), revenue_date: revenue.revenue_date }
+      : { label: '', amount: '', revenue_date: '' }
+    )
+    setOtherRevenueModalOpen(true)
+  }
+
+  async function handleOtherRevenueSubmit() {
+    setOtherRevenueSaving(true)
+    try {
+      const payload = {
+        label: otherRevenueForm.label,
+        amount: Number(otherRevenueForm.amount),
+        revenue_date: otherRevenueForm.revenue_date,
+      }
+      if (editingRevenue) {
+        await franchiseeService.updateOtherRevenue(id!, editingRevenue.id, payload)
+      } else {
+        await franchiseeService.createOtherRevenue(id!, payload)
+      }
+      toast.success('Pendapatan berhasil disimpan')
+      await queryClient.invalidateQueries({ queryKey: ['franchisee-other-revenue', id] })
+      setOtherRevenueModalOpen(false)
+    } catch {
+      toast.error('Gagal menyimpan pendapatan')
+    } finally {
+      setOtherRevenueSaving(false)
+    }
+  }
+
+  async function handleDeleteRevenue(revenueId: string) {
+    if (!window.confirm('Hapus pendapatan ini?')) return
+    try {
+      await franchiseeService.deleteOtherRevenue(id!, revenueId)
+      toast.success('Pendapatan berhasil dihapus')
+      await queryClient.invalidateQueries({ queryKey: ['franchisee-other-revenue', id] })
+    } catch {
+      toast.error('Gagal menghapus pendapatan')
+    }
+  }
+
   const actions: DetailPageAction[] = [
     {
       label: 'Edit Franchisee',
@@ -393,7 +481,7 @@ export default function FranchiseeDetailPage() {
               {
                 id: 'other-revenue-list',
                 label: 'Pendapatan Lain',
-                content: <OtherRevenueContent revenues={otherRevenues} />,
+                content: <OtherRevenueContent revenues={otherRevenues} onAdd={() => openOtherRevenueModal()} onEdit={openOtherRevenueModal} onDelete={handleDeleteRevenue} />,
               },
             ],
           },
@@ -551,6 +639,62 @@ export default function FranchiseeDetailPage() {
                 style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', border: 'none',
                   background: 'var(--color-primary)', color: '#fff', cursor: 'pointer', fontSize: 'var(--font-sm)', fontWeight: 500 }}>
                 {royaltySaving ? 'Menyimpan...' : 'Tambah'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {otherRevenueModalOpen && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 400,
+            display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setOtherRevenueModalOpen(false)}
+        >
+          <div
+            style={{ background: 'var(--color-surface-elevated)', borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--color-border)', width: 440, overflow: 'hidden' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: 'var(--space-4) var(--space-5)', borderBottom: '1px solid var(--color-border)',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: 'var(--font-base)', fontWeight: 700 }}>
+                {editingRevenue ? 'Edit Pendapatan Lain' : 'Tambah Pendapatan Lain'}
+              </h3>
+              <button onClick={() => setOtherRevenueModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)' }}>
+                <X size={16} />
+              </button>
+            </div>
+            <div style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              {([
+                { label: 'Keterangan', name: 'label', type: 'text' },
+                { label: 'Jumlah (IDR)', name: 'amount', type: 'number' },
+                { label: 'Tanggal', name: 'revenue_date', type: 'date' },
+              ] as const).map(({ label, name, type }) => (
+                <div key={name}>
+                  <label style={{ display: 'block', fontSize: 'var(--font-sm)', fontWeight: 500, marginBottom: 4 }}>{label}</label>
+                  <input
+                    type={type}
+                    value={otherRevenueForm[name]}
+                    onChange={(e) => setOtherRevenueForm(f => ({ ...f, [name]: e.target.value }))}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--color-border)', fontSize: 'var(--font-sm)',
+                      background: 'var(--color-surface)', boxSizing: 'border-box' }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div style={{ padding: 'var(--space-4) var(--space-5)', borderTop: '1px solid var(--color-border)',
+              display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)' }}>
+              <button onClick={() => setOtherRevenueModalOpen(false)}
+                style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
+                  background: 'var(--color-surface)', cursor: 'pointer', fontSize: 'var(--font-sm)' }}>
+                Batal
+              </button>
+              <button onClick={handleOtherRevenueSubmit} disabled={otherRevenueSaving}
+                style={{ padding: '8px 16px', borderRadius: 'var(--radius-md)', border: 'none',
+                  background: 'var(--color-primary)', color: '#fff', cursor: 'pointer', fontSize: 'var(--font-sm)', fontWeight: 500 }}>
+                {otherRevenueSaving ? 'Menyimpan...' : 'Simpan'}
               </button>
             </div>
           </div>

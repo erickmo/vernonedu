@@ -107,3 +107,32 @@ describe('FranchiseeDetailPage — RoyaltyPaymentFormModal', () => {
     await waitFor(() => expect(screen.getByText('Tandai Lunas')).toBeTruthy())
   })
 })
+
+describe('FranchiseeDetailPage — OtherRevenueFormModal', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('renders "Tambah Pendapatan" button', async () => {
+    render(<FranchiseeDetailPage />, { wrapper })
+    await waitFor(() => expect(screen.getByText('Tambah Pendapatan')).toBeTruthy())
+  })
+
+  it('opens other revenue modal on click', async () => {
+    const user = userEvent.setup()
+    render(<FranchiseeDetailPage />, { wrapper })
+    await waitFor(() => screen.getByText('Tambah Pendapatan'))
+    await user.click(screen.getByText('Tambah Pendapatan'))
+    expect(screen.getByText('Tambah Pendapatan Lain')).toBeTruthy()
+  })
+
+  it('renders edit and delete icons for each revenue row', async () => {
+    const { franchiseeService } = await import('@/services/franchisee.service')
+    vi.mocked(franchiseeService.listOtherRevenue).mockResolvedValueOnce({
+      items: [{ id: 'o1', franchisee_id: 'f1', label: 'Penjualan Alat', amount: 1000000, revenue_date: '2026-01-15', created_at: '2026-01-15' }],
+      total: 1, offset: 0, limit: 20,
+    })
+    render(<FranchiseeDetailPage />, { wrapper })
+    await waitFor(() => expect(screen.getByText('Penjualan Alat')).toBeTruthy())
+    expect(screen.getByTestId('edit-revenue-o1')).toBeTruthy()
+    expect(screen.getByTestId('delete-revenue-o1')).toBeTruthy()
+  })
+})
