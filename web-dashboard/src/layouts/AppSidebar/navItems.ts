@@ -350,6 +350,27 @@ const ALL_ITEMS: NavItem[] = [
   },
 ]
 
+// ─── Partner sub-nav items ───────────────────────────────────────────────────
+
+const PARTNER_ITEMS: NavItem[] = [
+  {
+    key: 'partners-list',
+    label: 'Daftar Partner',
+    icon: Handshake,
+    path: '/partners',
+    hasAccess: (ctx) =>
+      hasAnyRole(ctx, ['director', 'operation_leader', 'education_leader']),
+  },
+  {
+    key: 'partners-mous',
+    label: 'Perjanjian MOU',
+    icon: FileText,
+    path: '/partners/mous',
+    hasAccess: (ctx) =>
+      hasAnyRole(ctx, ['director', 'operation_leader', 'education_leader']),
+  },
+]
+
 // ─── Finance sub-nav items ──────────────────────────────────────────────────────
 
 const FINANCE_ITEMS: NavItem[] = [
@@ -501,7 +522,7 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'marketing',
     label: 'Marketing',
     icon: Megaphone,
-    items: ALL_ITEMS.slice(11, 14), // Marketing, CRM, Partner
+    items: [...ALL_ITEMS.slice(11, 13), ...PARTNER_ITEMS], // Marketing, CRM, Partner List, MOU
   },
   {
     key: 'keuangan',

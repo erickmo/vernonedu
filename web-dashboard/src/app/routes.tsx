@@ -127,8 +127,9 @@ const ReferralFormPage   = lazy(() => import('@/pages/Marketing/ReferralFormPage
 const CrmPage = lazy(() => import('@/pages/Crm/CrmPage'))
 
 // Partners
-const PartnerListPage   = lazy(() => import('@/pages/Partners/PartnerListPage'))
-const PartnerFormPage   = lazy(() => import('@/pages/Partners/PartnerFormPage'))
+const PartnerListPage    = lazy(() => import('@/pages/Partners/PartnerListPage'))
+const PartnerFormPage    = lazy(() => import('@/pages/Partners/PartnerFormPage'))
+const PartnerMOUListPage = lazy(() => import('@/pages/Partners/PartnerMOUListPage'))
 
 // Business Development
 const BusinessDevPage        = lazy(() => import('@/pages/BusinessDev/BusinessDevPage'))
@@ -277,6 +278,7 @@ const singleTenantRoutes = [
       // ── Partners ───────────────────────────────────────────────────────────
       { path: 'partners',                             element: <S><PartnerListPage /></S> },
       { path: 'partners/new',                         element: <S><PartnerFormPage /></S> },
+      { path: 'partners/mous',                        element: <S><PartnerMOUListPage /></S> },
       { path: 'partners/:partnerId',                  element: <S><PartnerDetailPage /></S> },
       { path: 'partners/:partnerId/edit',             element: <S><PartnerFormPage /></S> },
 
