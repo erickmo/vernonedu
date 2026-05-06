@@ -29,7 +29,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		return ErrInvalidCommand
 	}
 
-	b, err := building.NewBuilding(c.Name, c.Address, c.Description)
+	b, err := building.NewBuilding(c.Name, c.Address, c.Description, c.Ownership, c.PartnerID)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create building entity")
 		return err

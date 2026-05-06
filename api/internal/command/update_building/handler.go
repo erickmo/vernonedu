@@ -44,6 +44,8 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 	b.Name = c.Name
 	b.Address = c.Address
 	b.Description = c.Description
+	b.Ownership = c.Ownership
+	b.PartnerID = c.PartnerID
 	b.UpdatedAt = time.Now()
 
 	if err := h.buildingWriteRepo.Update(ctx, b); err != nil {
