@@ -3591,3 +3591,4 @@
 | 11:24 | Session end: 26 writes across 23 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 24 reads | ~24940 tok |
 | 11:24 | Session end: 26 writes across 23 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 24 reads | ~24940 tok |
 | 11:25 | Session end: 26 writes across 23 files (createEntityService.ts, StrukturPage.tsx, project.service.ts, course-batch.service.ts, delegation.service.ts) | 24 reads | ~24940 tok |
+| 10:35 | FE-T1: Created franchisee service layer with TDD (test first, then implementation) | franchisee.service.ts, franchisee.service.test.ts | 4/4 tests passing, commit 94d0a83a | ~2100 |

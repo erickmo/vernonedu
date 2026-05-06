@@ -84,33 +84,33 @@ export const franchiseeService = {
     apiClient.get<unknown>(`/franchisees${buildQueryString(params)}`).then(r => extractPaginated(r)),
 
   getById: (id: string): Promise<Franchisee> =>
-    apiClient.get<any>(`/franchisees/${id}`).then((r: any) => r?.data ?? r),
+    apiClient.get<{ data: Franchisee }>(`/franchisees/${id}`).then((r) => r?.data ?? r),
 
-  create: (data: CreateFranchiseePayload): Promise<any> =>
-    apiClient.post<any>('/franchisees', data),
+  create: (data: CreateFranchiseePayload): Promise<{ data: Franchisee }> =>
+    apiClient.post<{ data: Franchisee }>('/franchisees', data),
 
-  update: (id: string, data: CreateFranchiseePayload): Promise<any> =>
-    apiClient.put<any>(`/franchisees/${id}`, data),
+  update: (id: string, data: CreateFranchiseePayload): Promise<{ data: Franchisee }> =>
+    apiClient.put<{ data: Franchisee }>(`/franchisees/${id}`, data),
 
   delete: (id: string): Promise<void> =>
     apiClient.delete<void>(`/franchisees/${id}`),
 
   // Agreement endpoints
   getAgreement: (franchiseeId: string): Promise<FranchiseAgreement> =>
-    apiClient.get<any>(`/franchisees/${franchiseeId}/agreement`).then((r: any) => r?.data ?? r),
+    apiClient.get<{ data: FranchiseAgreement }>(`/franchisees/${franchiseeId}/agreement`).then((r) => r?.data ?? r),
 
-  createAgreement: (franchiseeId: string, data: CreateAgreementPayload): Promise<any> =>
-    apiClient.post<any>(`/franchisees/${franchiseeId}/agreement`, data),
+  createAgreement: (franchiseeId: string, data: CreateAgreementPayload): Promise<{ data: FranchiseAgreement }> =>
+    apiClient.post<{ data: FranchiseAgreement }>(`/franchisees/${franchiseeId}/agreement`, data),
 
-  updateAgreement: (franchiseeId: string, agreementId: string, data: CreateAgreementPayload): Promise<any> =>
-    apiClient.put<any>(`/franchisees/${franchiseeId}/agreement/${agreementId}`, data),
+  updateAgreement: (franchiseeId: string, agreementId: string, data: CreateAgreementPayload): Promise<{ data: FranchiseAgreement }> =>
+    apiClient.put<{ data: FranchiseAgreement }>(`/franchisees/${franchiseeId}/agreement/${agreementId}`, data),
 
   // Royalty payment endpoints
   listRoyaltyPayments: (franchiseeId: string, params?: ListParams): Promise<PaginatedResponse<RoyaltyPayment>> =>
     apiClient.get<unknown>(`/franchisees/${franchiseeId}/royalty-payments${buildQueryString(params)}`).then(r => extractPaginated(r)),
 
-  createRoyaltyPayment: (franchiseeId: string, data: CreateRoyaltyPaymentPayload): Promise<any> =>
-    apiClient.post<any>(`/franchisees/${franchiseeId}/royalty-payments`, data),
+  createRoyaltyPayment: (franchiseeId: string, data: CreateRoyaltyPaymentPayload): Promise<{ data: RoyaltyPayment }> =>
+    apiClient.post<{ data: RoyaltyPayment }>(`/franchisees/${franchiseeId}/royalty-payments`, data),
 
   markRoyaltyPaid: (franchiseeId: string, paymentId: string): Promise<void> =>
     apiClient.put<void>(`/franchisees/${franchiseeId}/royalty-payments/${paymentId}/mark-paid`, {}),
@@ -119,11 +119,11 @@ export const franchiseeService = {
   listOtherRevenue: (franchiseeId: string, params?: ListParams): Promise<PaginatedResponse<OtherRevenue>> =>
     apiClient.get<unknown>(`/franchisees/${franchiseeId}/other-revenue${buildQueryString(params)}`).then(r => extractPaginated(r)),
 
-  createOtherRevenue: (franchiseeId: string, data: CreateOtherRevenuePayload): Promise<any> =>
-    apiClient.post<any>(`/franchisees/${franchiseeId}/other-revenue`, data),
+  createOtherRevenue: (franchiseeId: string, data: CreateOtherRevenuePayload): Promise<{ data: OtherRevenue }> =>
+    apiClient.post<{ data: OtherRevenue }>(`/franchisees/${franchiseeId}/other-revenue`, data),
 
-  updateOtherRevenue: (franchiseeId: string, revenueId: string, data: CreateOtherRevenuePayload): Promise<any> =>
-    apiClient.put<any>(`/franchisees/${franchiseeId}/other-revenue/${revenueId}`, data),
+  updateOtherRevenue: (franchiseeId: string, revenueId: string, data: CreateOtherRevenuePayload): Promise<{ data: OtherRevenue }> =>
+    apiClient.put<{ data: OtherRevenue }>(`/franchisees/${franchiseeId}/other-revenue/${revenueId}`, data),
 
   deleteOtherRevenue: (franchiseeId: string, revenueId: string): Promise<void> =>
     apiClient.delete<void>(`/franchisees/${franchiseeId}/other-revenue/${revenueId}`),

@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Store, Pencil, FileText, DollarSign, TrendingUp } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
+import type { PaginatedResponse } from '@/types/api.types'
 import {
   franchiseeService,
   type Franchisee,
@@ -185,9 +186,9 @@ export default function FranchiseeDetailPage() {
     enabled: Boolean(id),
   })
 
-  const royaltyPayments = (royaltyData as any)?.data ?? royaltyData ?? []
-  const otherRevenues = (otherRevenueData as any)?.data ?? otherRevenueData ?? []
-  const agreement = (agreementData as any)?.data ?? agreementData
+  const royaltyPayments = (royaltyData as PaginatedResponse<RoyaltyPayment> | undefined)?.data ?? royaltyData ?? []
+  const otherRevenues = (otherRevenueData as PaginatedResponse<OtherRevenue> | undefined)?.data ?? otherRevenueData ?? []
+  const agreement = (agreementData as { data: FranchiseAgreement } | FranchiseAgreement | undefined)?.data ?? agreementData
 
   const actions: DetailPageAction[] = [
     {
