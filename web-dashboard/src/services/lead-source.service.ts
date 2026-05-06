@@ -21,6 +21,13 @@ export const leadSourceService = {
   update: (id: string, data: { name: string; is_active: boolean }) =>
     apiClient.put(`settings/lead-sources/${id}`, data),
 
+  getById: async (id: string): Promise<LeadSource> => {
+    const result = await leadSourceService.list()
+    const item = result.items.find((s) => s.id === id)
+    if (!item) throw new Error('Lead source tidak ditemukan')
+    return item
+  },
+
   delete: (id: string) =>
     apiClient.delete(`settings/lead-sources/${id}`),
 }

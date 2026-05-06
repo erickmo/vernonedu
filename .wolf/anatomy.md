@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-06T03:53:44.164Z
-> Files: 1777 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-06T04:21:05.515Z
+> Files: 1800 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../.claude/plans/
 
@@ -18,7 +18,7 @@
 ## ./
 
 - `.gitignore` — Git ignore rules (~39 tok)
-- `CLAUDE.md` — OpenWolf (~3347 tok)
+- `CLAUDE.md` — OpenWolf (~3403 tok)
 - `docker-compose.yml` — Docker Compose services (~227 tok)
 - `go.work` (~7 tok)
 - `go.work.sum` (~397 tok)
@@ -2144,6 +2144,18 @@
 - `LocationFormPage.tsx` — formatDate — renders form (~2530 tok)
 - `LocationListPage.tsx` — columns (~1636 tok)
 
+## .worktrees/feature/franchisee/api/
+
+- `CLAUDE.md` — VernonEdu API — CLAUDE.md (~5097 tok)
+
+## .worktrees/feature/franchisee/api/cmd/api/
+
+- `main.go` (~31532 tok)
+
+## .worktrees/feature/franchisee/api/infrastructure/database/
+
+- `franchise_repository.go` — Struct: FranchiseRepository (~3485 tok)
+
 ## .worktrees/feature/franchisee/api/internal/command/create_agreement/
 
 - `command.go` — Struct: CreateAgreementCommand (~96 tok)
@@ -2198,6 +2210,11 @@
 - `errors.go` (~29 tok)
 - `handler.go` — Struct: Handler (~226 tok)
 
+## .worktrees/feature/franchisee/api/internal/delivery/http/
+
+- `franchise_handler_test.go` — TestFranchiseeList_ReturnsOK, TestFranchiseeCreate_Returns201, TestFranchiseeGetByID_NotFound, TestF (~894 tok)
+- `franchise_handler.go` — Struct: FranchiseHandler (~6859 tok)
+
 ## .worktrees/feature/franchisee/api/internal/domain/franchise/
 
 - `franchise.go` — Interface: WriteRepository (~787 tok)
@@ -2221,6 +2238,33 @@
 ## .worktrees/feature/franchisee/api/internal/query/list_royalty_payments/
 
 - `query.go` — Struct: ListRoyaltyPaymentsQuery (~492 tok)
+
+## .worktrees/feature/franchisee/web-dashboard/src/app/
+
+- `routes.tsx` — LoginPage (~7659 tok)
+
+## .worktrees/feature/franchisee/web-dashboard/src/layouts/AppSidebar/
+
+- `navItems.ts` — Exports NavItem, NavSection, NAV_SECTIONS, getFilteredSections (~3404 tok)
+
+## .worktrees/feature/franchisee/web-dashboard/src/pages/Franchisee/
+
+- `FranchiseeDetailPage.tsx` — formatCurrency — renders table (~2948 tok)
+- `FranchiseeFormPage.tsx` — STATUS_OPTIONS — renders form (~1682 tok)
+- `FranchiseeListPage.tsx` — STATUS_CONFIG (~870 tok)
+
+## .worktrees/feature/franchisee/web-dashboard/src/pages/Franchisee/__tests__/
+
+- `FranchiseeFormPage.test.tsx` — wrapper (~462 tok)
+- `FranchiseeListPage.test.tsx` — wrapper (~314 tok)
+
+## .worktrees/feature/franchisee/web-dashboard/src/services/
+
+- `franchisee.service.ts` — Exports Franchisee, FranchiseAgreement, RoyaltyPayment, OtherRevenue + 5 more (~1333 tok)
+
+## .worktrees/feature/franchisee/web-dashboard/src/services/__tests__/
+
+- `franchisee.service.test.ts` — Declares payload (~487 tok)
 
 ## .worktrees/leads-refactor/api/cmd/api/
 
@@ -2319,7 +2363,7 @@
 ## api/
 
 - `.air.toml` (~102 tok)
-- `CLAUDE.md` — VernonEdu API — CLAUDE.md (~5289 tok)
+- `CLAUDE.md` — VernonEdu API — CLAUDE.md (~5280 tok)
 - `Makefile` (~785 tok)
 
 ## api/cmd/api/
@@ -2341,6 +2385,8 @@
 - `enrollment_repository.go` — Struct: EnrollmentRepository (~2438 tok)
 - `hrm_repository.go` — Struct: HrmRepository (~5373 tok)
 - `lead_repository.go` — Struct: LeadRepository (~1921 tok)
+- `lead_source_repository.go` — Struct: LeadSourceRepository (~863 tok)
+- `marketing_repository.go` — Struct: MarketingRepository (~6552 tok)
 - `mastercourse_repository.go` — Struct: BatchRecord (~2697 tok)
 - `notification_repository.go` — Struct: NotificationRepository (~1568 tok)
 - `partner_repository.go` — Struct: PartnerRepository (~4046 tok)
@@ -2463,7 +2509,7 @@
 - `coursetype_handler.go` — Struct: CourseTypeHandler (~3100 tok)
 - `courseversion_handler.go` — Struct: CourseVersionHandler (~4154 tok)
 - `delegation_handler.go` — Struct: DelegationHTTPHandler (~3543 tok)
-- `department_handler.go` — Struct: DepartmentHandler (~4216 tok)
+- `department_handler.go` — Struct: DepartmentHandler (~4235 tok)
 - `designthinking_handler.go` — Struct: DesignThinkingHandler (~2384 tok)
 - `enrollment_handler.go` — Struct: EnrollmentHandler (~3745 tok)
 - `finance_handler.go` — Struct: FinanceHandler (~4193 tok)
@@ -2471,9 +2517,9 @@
 - `hrm_handler.go` — Struct: HrmHandler (~8571 tok)
 - `investment_handler.go` — Struct: InvestmentHandler (~1965 tok)
 - `item_handler.go` — Struct: ItemHandler (~2092 tok)
-- `lead_handler.go` — Struct: LeadHandler (~3557 tok)
+- `lead_handler.go` — Struct: LeadHandler (~4330 tok)
 - `location_handler.go` — Struct: LocationHandler (~4583 tok)
-- `marketing_handler.go` — Struct: MarketingHandler (~6577 tok)
+- `marketing_handler.go` — Struct: MarketingHandler (~6683 tok)
 - `mastercourse_handler.go` — Struct: MasterCourseHandler (~3950 tok)
 - `notification_handler.go` — Struct: NotificationHandler (~1874 tok)
 - `okr_handler.go` — Struct: OkrHandler (~2305 tok)
@@ -2481,7 +2527,7 @@
 - `payable_handler.go` — Struct: PayableHandler (~2574 tok)
 - `programkarir_handler.go` — Struct: ProgramKarirHandler (~3847 tok)
 - `public_handler.go` — Struct: PublicHandler (~4318 tok)
-- `settings_handler.go` — Struct: SettingsHandler (~3940 tok)
+- `settings_handler.go` — Struct: SettingsHandler (~4959 tok)
 - `student_handler.go` — Interface: studentNoteWriter (~3652 tok)
 - `talentpool_handler.go` — Struct: TalentPoolHandler (~1760 tok)
 - `user_handler.go` — Struct: UserHandler (~2283 tok)
@@ -2543,11 +2589,11 @@
 
 ## api/internal/domain/lead/
 
-- `lead.go` — Interface: WriteRepository (~544 tok)
+- `lead.go` — Interface: WriteRepository (~958 tok)
 
 ## api/internal/domain/marketing/
 
-- `marketing.go` — Interface: WriteRepository (~1132 tok)
+- `marketing.go` — Interface: WriteRepository (~1140 tok)
 
 ## api/internal/domain/mastercourse/
 
@@ -2668,8 +2714,13 @@
 
 ## api/internal/query/list_lead/
 
-- `handler.go` — Struct: LeadReadModel (~498 tok)
+- `handler.go` — Struct: LeadSourceRM (~628 tok)
 - `query.go` — Struct: ListLeadQuery (~48 tok)
+
+## api/internal/query/list_lead_sources/
+
+- `handler.go` — Struct: LeadSourceReadModel (~288 tok)
+- `query.go` — Struct: ListLeadSourcesQuery (~53 tok)
 
 ## api/internal/query/list_leave_requests/
 
@@ -2710,6 +2761,10 @@
 
 - `handler.go` — Struct: ListPostsQuery (~547 tok)
 
+## api/internal/query/list_referral_partners/
+
+- `handler.go` — Struct: ListReferralPartnersQuery (~634 tok)
+
 ## api/internal/query/list_student/
 
 - `handler.go` — Struct: ListStudentQuery (~625 tok)
@@ -2732,6 +2787,10 @@
 - `076_create_hrm.sql` — 076: HRM Module — Employees, Staff Attendance, Leave Requests, Payroll (~1238 tok)
 - `077_create_calendar_events.sql` — SQL: tables: calendar_events (~210 tok)
 - `080_create_franchise_tables.sql` — 080_create_franchise_tables.sql (~747 tok)
+
+## api/pkg/filterutil/
+
+- `filterutil.go` — Struct: Filter (~346 tok)
 
 ## api/pkg/sortutil/
 
@@ -3223,6 +3282,7 @@
 - `2026-05-06-leads-phone-source-interest.md` — Leads: Phone Mandatory + Source Entity + Interest Multi-Link — Implementation Plan (~22955 tok)
 - `2026-05-06-location-ownership.md` — Location Ownership Implementation Plan (~6046 tok)
 - `2026-05-06-struktur-pendidikan.md` — Struktur Pendidikan Implementation Plan (~9157 tok)
+- `2026-05-06-talentpool-job-vacancy.md` — TalentPool Job Vacancy Implementation Plan (~23041 tok)
 - `2026-05-06-talentpool-nav-section.md` — TalentPool Nav Section Implementation Plan (~2563 tok)
 
 ## docs/superpowers/specs/
@@ -3247,6 +3307,7 @@
 - `2026-05-06-leads-phone-source-interest-design.md` — Leads: Phone Mandatory + Source Entity + Interest Multi-Link (~2097 tok)
 - `2026-05-06-location-ownership-design.md` — Location Ownership — Design Spec (~917 tok)
 - `2026-05-06-struktur-pendidikan-design.md` — Spec: Halaman Struktur Pendidikan (~1055 tok)
+- `2026-05-06-talentpool-job-vacancy-design.md` — TalentPool — Job Vacancy Feature Design Spec (~1500 tok)
 - `2026-05-06-talentpool-nav-section-design.md` — TalentPool Nav Section — Design Spec (~796 tok)
 
 ## frontend/
@@ -3447,8 +3508,8 @@
 ## web-dashboard/src/app/
 
 - `ProtectedRoute.tsx` — RootRedirect (~736 tok)
-- `providers.tsx` — queryClient (~189 tok)
-- `routes.tsx` — LoginPage (~7447 tok)
+- `providers.tsx` — queryClient (~187 tok)
+- `routes.tsx` — LoginPage (~7501 tok)
 
 ## web-dashboard/src/hooks/
 
@@ -3549,7 +3610,7 @@
 
 - `CourseApprovalsPage.tsx` — formatDate (~1026 tok)
 - `CourseDashboardPage.tsx` — CourseDashboardPage (~2458 tok)
-- `CourseFormPage.tsx` — formatDate — renders form (~3166 tok)
+- `CourseFormPage.tsx` — Fields: course_code (create-only), course_name, field (SearchableSelect predefined), core_competencies (TagInput), description, supporting_app_url. Maps to /curriculum/courses API. (~2600 tok)
 - `CourseListPage.tsx` — columns (~1089 tok)
 - `CourseModulePage.tsx` — columns (~886 tok)
 - `CourseVersionPage.tsx` — columns (~1050 tok)
@@ -3696,7 +3757,8 @@
 
 ## web-dashboard/src/pages/Settings/
 
-- `LeadSourceListPage.tsx` — columns (~845 tok)
+- `LeadSourceDetailPage.tsx` — InfoCard (~1099 tok)
+- `LeadSourceListPage.tsx` — columns (~844 tok)
 - `SettingsPage.tsx` — BasisSelect — renders form, table (~2821 tok)
 
 ## web-dashboard/src/pages/Students/
@@ -3738,8 +3800,8 @@
 - `hrm.service.ts` — ─── Employees ───────────────────────────────────────────────────────────────── (~1110 tok)
 - `investment.service.ts` — Exports investmentService (~114 tok)
 - `invoice.service.ts` — Exports invoiceService (~305 tok)
-- `lead-source.service.ts` — API routes: POST, PUT, DELETE (3 endpoints) (~260 tok)
-- `lead.service.ts` — API routes: DELETE (2 endpoints) (~537 tok)
+- `lead-source.service.ts` — API routes: POST, PUT, DELETE (3 endpoints) (~330 tok)
+- `lead.service.ts` — API routes: DELETE (2 endpoints) (~432 tok)
 - `location.service.ts` — API routes: DELETE (2 endpoints) (~435 tok)
 - `marketing.service.ts` — API routes: DELETE (2 endpoints) (~574 tok)
 - `media.service.ts` — Media service untuk menangani file upload ke endpoint /api/v1/media/upload (~840 tok)

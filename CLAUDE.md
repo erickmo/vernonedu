@@ -287,6 +287,8 @@ cd app-mentors && flutter run --dart-define=BASE_URL=http://localhost:8081/api/v
 | Location (Dashboard) | `web-dashboard/src/**/*[Ll]ocation*`, `web-dashboard/src/**/*[Rr]oom*` |
 | COA (API) | `api/internal/domain/coa/**`, `api/internal/command/*coa*/**`, `api/internal/query/*coa*/**`, `api/internal/delivery/http/coa_handler*`, `api/infrastructure/database/*coa*` |
 | COA (Dashboard) | `web-dashboard/src/**/*[Cc]oa*`, `web-dashboard/src/**/*[Cc]hart[Oo]f[Aa]ccounts*` |
+| Lead Source (API) | `api/internal/query/list_lead_sources/**`, `api/internal/command/*lead_source*/**`, `api/infrastructure/database/*lead_source*` |
+| Lead Source (Dashboard) | `web-dashboard/src/**/*[Ll]ead[Ss]ource*` |
 
 > **Rule:** Sebelum mengedit file apapun yang termasuk dalam LOCKED FILES, tampilkan file yang akan diubah dan tanyakan konfirmasi terlebih dahulu. Jangan langsung edit.
 

@@ -61,7 +61,7 @@ export default function LeadSourceListPage() {
       fetcher={(params) => leadSourceService.list(params)}
       columns={columns}
       rowActions={rowActions}
-      onRowClick={(row) => navigate(`/settings/lead-sources/${row.id}/edit`)}
+      onRowClick={(row) => navigate(`/settings/lead-sources/${row.id}`)}
       searchPlaceholder="Cari sumber..."
       exportFilename="lead-sources"
       emptyTitle="Belum ada sumber lead"
