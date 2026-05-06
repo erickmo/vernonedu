@@ -28,6 +28,8 @@ type MasterCourse struct {
 	Description      string
 	Status           string    // active | archived
 	SupportingAppUrl *string   // optional URL to supporting app (e.g. app-entrepreneur, app-blockcoding)
+	DepartmentID     *uuid.UUID // nullable — assignable after creation
+	OwnerID          *uuid.UUID // nullable — user with role course_owner
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 }
@@ -73,6 +75,20 @@ func (mc *MasterCourse) Archive() error {
 	mc.Status = "archived"
 	mc.UpdatedAt = time.Now()
 	return nil
+}
+
+// AssignDepartment menetapkan department untuk master course ini.
+// Kirim nil untuk menghapus assignment department.
+func (mc *MasterCourse) AssignDepartment(id *uuid.UUID) {
+	mc.DepartmentID = id
+	mc.UpdatedAt = time.Now()
+}
+
+// AssignOwner menetapkan owner (user dengan role course_owner) untuk master course ini.
+// Kirim nil untuk menghapus assignment owner.
+func (mc *MasterCourse) AssignOwner(id *uuid.UUID) {
+	mc.OwnerID = id
+	mc.UpdatedAt = time.Now()
 }
 
 // Update memperbarui data master course.
