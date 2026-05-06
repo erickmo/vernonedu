@@ -383,6 +383,24 @@ POST   /api/v1/partner-groups
 PUT    /api/v1/partner-groups/{id}
 ```
 
+### Franchise
+```
+GET    /api/v1/franchisees                              ?offset, limit, status, search
+GET    /api/v1/franchisees/{id}
+POST   /api/v1/franchisees
+PUT    /api/v1/franchisees/{id}
+GET    /api/v1/franchisees/{id}/agreement
+POST   /api/v1/franchisees/{id}/agreement
+PUT    /api/v1/franchisees/{id}/agreement/{agrId}
+GET    /api/v1/franchisees/{id}/royalty-payments        ?period (YYYY-MM)
+POST   /api/v1/franchisees/{id}/royalty-payments
+PUT    /api/v1/franchisees/{id}/royalty-payments/{rpId}/mark-paid
+GET    /api/v1/franchisees/{id}/other-revenue           ?period
+POST   /api/v1/franchisees/{id}/other-revenue
+PUT    /api/v1/franchisees/{id}/other-revenue/{revId}
+DELETE /api/v1/franchisees/{id}/other-revenue/{revId}
+```
+
 ### CMS (Website Content Management)
 ```
 # Pages (home, program pages, segment pages)
