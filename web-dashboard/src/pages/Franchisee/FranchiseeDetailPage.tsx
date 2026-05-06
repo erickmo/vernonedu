@@ -219,11 +219,6 @@ export default function FranchiseeDetailPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  // ── Royalty payment modal state ──
-  const [royaltyModalOpen, setRoyaltyModalOpen] = useState(false)
-  const [royaltyForm, setRoyaltyForm] = useState({ period: '', gross_revenue: '' })
-  const [royaltySaving, setRoyaltySaving] = useState(false)
-
   // ── Agreement modal state ──
   const [agreementModalOpen, setAgreementModalOpen] = useState(false)
   const [agreementForm, setAgreementForm] = useState({
@@ -231,6 +226,11 @@ export default function FranchiseeDetailPage() {
     start_date: '', end_date: '', status: 'active',
   })
   const [agreementSaving, setAgreementSaving] = useState(false)
+
+  // ── Royalty payment modal state ──
+  const [royaltyModalOpen, setRoyaltyModalOpen] = useState(false)
+  const [royaltyForm, setRoyaltyForm] = useState({ period: '', gross_revenue: '' })
+  const [royaltySaving, setRoyaltySaving] = useState(false)
 
   const { data: franchisee } = useQuery({
     queryKey: ['franchisee', id],
