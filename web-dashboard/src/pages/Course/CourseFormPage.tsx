@@ -12,6 +12,7 @@ import { SearchableSelect, type SelectOption } from '@/widgets/SearchableSelect/
 import { TagInput } from '@/widgets/TagInput/TagInput'
 import { toast } from '@/widgets/Toast/Toast'
 import { courseService } from '@/services/course.service'
+import { apiClient } from '@/services/api.client'
 import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
 
 const FIELD_OPTIONS: SelectOption[] = [
@@ -32,6 +33,24 @@ async function fetchFieldOptions(search: string): Promise<SelectOption[]> {
   return q
     ? FIELD_OPTIONS.filter(o => o.label.toLowerCase().includes(q))
     : FIELD_OPTIONS
+}
+
+async function fetchDepartments(search: string): Promise<SelectOption[]> {
+  const params = search ? `?search=${encodeURIComponent(search)}&limit=20` : '?limit=20'
+  const res = await apiClient.get<any>(`/departments${params}`)
+  const outer = (res as any).data ?? res
+  const items: any[] = Array.isArray(outer) ? outer : (outer?.data ?? outer?.items ?? [])
+  return items.map((d: any) => ({ value: d.id, label: d.name }))
+}
+
+async function fetchOwners(search: string): Promise<SelectOption[]> {
+  const params = search
+    ? `?role=course_owner&search=${encodeURIComponent(search)}&limit=20`
+    : '?role=course_owner&limit=20'
+  const res = await apiClient.get<any>(`/users${params}`)
+  const outer = (res as any).data ?? res
+  const items: any[] = Array.isArray(outer) ? outer : (outer?.data ?? outer?.items ?? [])
+  return items.map((u: any) => ({ value: u.id, label: u.name ?? u.full_name ?? u.email }))
 }
 
 function formatDate(ts: number | undefined) {
@@ -55,6 +74,10 @@ export default function CourseFormPage() {
   const [coreCompetencies, setCoreCompetencies] = useState<string[]>([])
   const [description, setDescription] = useState('')
   const [supportingAppUrl, setSupportingAppUrl] = useState('')
+  const [departmentId, setDepartmentId] = useState('')
+  const [departmentLabel, setDepartmentLabel] = useState('')
+  const [ownerId, setOwnerId] = useState('')
+  const [ownerLabel, setOwnerLabel] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverError, setServerError] = useState('')
@@ -74,6 +97,10 @@ export default function CourseFormPage() {
       setCoreCompetencies(course.core_competencies ?? [])
       setDescription(course.description ?? '')
       setSupportingAppUrl(course.supporting_app_url ?? '')
+      setDepartmentId(course.department_id ?? '')
+      setDepartmentLabel(course.department_name ?? course.department_id ?? '')
+      setOwnerId(course.owner_id ?? '')
+      setOwnerLabel(course.owner_name ?? course.owner_id ?? '')
     }
   }, [course])
 
@@ -102,6 +129,8 @@ export default function CourseFormPage() {
           core_competencies: coreCompetencies,
           description: description.trim(),
           supporting_app_url: supportingAppUrl.trim() || undefined,
+          department_id: departmentId || null,
+          owner_id: ownerId || null,
         })
         toast.success('Kursus berhasil diperbarui')
       } else {
@@ -112,6 +141,8 @@ export default function CourseFormPage() {
           core_competencies: coreCompetencies,
           description: description.trim(),
           supporting_app_url: supportingAppUrl.trim() || undefined,
+          department_id: departmentId || null,
+          owner_id: ownerId || null,
         })
         toast.success('Kursus berhasil dibuat')
       }
@@ -225,6 +256,32 @@ export default function CourseFormPage() {
                     onChange={(e) => setSupportingAppUrl(e.target.value)}
                     placeholder="https://..."
                     className={formStyles.input}
+                  />
+                </Field>
+
+                <Field label="Departemen">
+                  <SearchableSelect
+                    value={departmentId}
+                    displayLabel={departmentLabel}
+                    placeholder="Cari departemen..."
+                    fetchOptions={fetchDepartments}
+                    onSelect={(opt) => {
+                      setDepartmentId(opt?.value ?? '')
+                      setDepartmentLabel(opt?.label ?? '')
+                    }}
+                  />
+                </Field>
+
+                <Field label="Course Owner">
+                  <SearchableSelect
+                    value={ownerId}
+                    displayLabel={ownerLabel}
+                    placeholder="Cari course owner..."
+                    fetchOptions={fetchOwners}
+                    onSelect={(opt) => {
+                      setOwnerId(opt?.value ?? '')
+                      setOwnerLabel(opt?.label ?? '')
+                    }}
                   />
                 </Field>
               </FormColumn>
