@@ -6,6 +6,7 @@ import {
   RootRedirect,
   AuthRoute,
   GuestRoute,
+  RoleRoute,
   SuperuserRoute,
   GroupRoute,
   CompanyRoute,
@@ -222,10 +223,10 @@ const singleTenantRoutes = [
       { path: 'certificates/templates/:templateId/edit', element: <S><CertificateTemplateEditorPage /></S> },
 
       // ── Departments (under Pengembangan) ──────────────────────────────────
-      { path: 'pengembangan/departments',             element: <S><DepartmentListPage /></S> },
-      { path: 'pengembangan/departments/new',         element: <S><DepartmentFormPage /></S> },
-      { path: 'pengembangan/departments/:deptId',     element: <S><DepartmentDashboardPage /></S> },
-      { path: 'pengembangan/departments/:deptId/edit', element: <S><DepartmentFormPage /></S> },
+      { path: 'pengembangan/departments',             element: <RoleRoute role={['director','education_leader','dept_leader','course_owner','facilitator']}><S><DepartmentListPage /></S></RoleRoute> },
+      { path: 'pengembangan/departments/new',         element: <RoleRoute role={['director','education_leader']}><S><DepartmentFormPage /></S></RoleRoute> },
+      { path: 'pengembangan/departments/:deptId',     element: <RoleRoute role={['director','education_leader','dept_leader','course_owner','facilitator']}><S><DepartmentDashboardPage /></S></RoleRoute> },
+      { path: 'pengembangan/departments/:deptId/edit', element: <RoleRoute role={['director','education_leader']}><S><DepartmentFormPage /></S></RoleRoute> },
 
       // ── Leads ──────────────────────────────────────────────────────────────
       { path: 'leads',                                element: <S><LeadListPage /></S> },

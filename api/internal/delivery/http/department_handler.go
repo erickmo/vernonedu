@@ -21,6 +21,7 @@ import (
 	"github.com/vernonedu/entrepreneurship-api/internal/query/list_department"
 	listdeptsummary "github.com/vernonedu/entrepreneurship-api/internal/query/list_department_summary"
 	"github.com/vernonedu/entrepreneurship-api/pkg/commandbus"
+	pkgmiddleware "github.com/vernonedu/entrepreneurship-api/pkg/middleware"
 	"github.com/vernonedu/entrepreneurship-api/pkg/querybus"
 )
 
@@ -391,17 +392,21 @@ func (h *DepartmentHandler) GetTalentPool(w http.ResponseWriter, r *http.Request
 }
 
 func RegisterDepartmentRoutes(h *DepartmentHandler, r chi.Router) {
-	// Specific routes BEFORE parameterized /{id}
-	r.Get("/api/v1/departments/summaries", h.ListSummaries)
-	r.Post("/api/v1/departments", h.Create)
-	r.Get("/api/v1/departments", h.List)
-	r.Get("/api/v1/departments/{id}", h.GetByID)
-	r.Put("/api/v1/departments/{id}", h.Update)
-	r.Put("/api/v1/departments/{id}/leader", h.AssignLeader)
-	r.Delete("/api/v1/departments/{id}", h.Delete)
-	// Dashboard sub-routes
-	r.Get("/api/v1/departments/{id}/batches", h.GetBatches)
-	r.Get("/api/v1/departments/{id}/courses", h.GetCourses)
-	r.Get("/api/v1/departments/{id}/students", h.GetStudents)
-	r.Get("/api/v1/departments/{id}/talentpool", h.GetTalentPool)
+	eduRoles := pkgmiddleware.RequireRole("director", "education_leader", "dept_leader", "course_owner", "facilitator")
+	mgmtRoles := pkgmiddleware.RequireRole("director", "education_leader")
+
+	// Read-only (education + facilitator)
+	r.With(eduRoles).Get("/api/v1/departments/summaries", h.ListSummaries)
+	r.With(eduRoles).Get("/api/v1/departments", h.List)
+	r.With(eduRoles).Get("/api/v1/departments/{id}", h.GetByID)
+	r.With(eduRoles).Get("/api/v1/departments/{id}/batches", h.GetBatches)
+	r.With(eduRoles).Get("/api/v1/departments/{id}/courses", h.GetCourses)
+	r.With(eduRoles).Get("/api/v1/departments/{id}/students", h.GetStudents)
+	r.With(eduRoles).Get("/api/v1/departments/{id}/talentpool", h.GetTalentPool)
+
+	// Write (management only)
+	r.With(mgmtRoles).Post("/api/v1/departments", h.Create)
+	r.With(mgmtRoles).Put("/api/v1/departments/{id}", h.Update)
+	r.With(mgmtRoles).Put("/api/v1/departments/{id}/leader", h.AssignLeader)
+	r.With(mgmtRoles).Delete("/api/v1/departments/{id}", h.Delete)
 }

@@ -60,6 +60,7 @@ import (
 	assignbatchfacilitator "github.com/vernonedu/entrepreneurship-api/internal/command/assign_batch_facilitator"
 	createcoursebatch "github.com/vernonedu/entrepreneurship-api/internal/command/create_course_batch"
 	createcourse "github.com/vernonedu/entrepreneurship-api/internal/command/create_course"
+	assigndeptleader "github.com/vernonedu/entrepreneurship-api/internal/command/assign_department_leader"
 	createdepartment "github.com/vernonedu/entrepreneurship-api/internal/command/create_department"
 	createenrollment "github.com/vernonedu/entrepreneurship-api/internal/command/create_enrollment"
 	updateenrollmentpayment "github.com/vernonedu/entrepreneurship-api/internal/command/update_enrollment_payment_status"
@@ -1201,6 +1202,10 @@ func registerHandlers(p registerParams) error {
 	}
 	if err := p.CmdBus.Register(&deletedepartment.DeleteDepartmentCommand{},
 		deletedepartment.NewHandler(p.DepartmentRepo, p.EventBus)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&assigndeptleader.AssignDepartmentLeaderCommand{},
+		assigndeptleader.NewHandler(p.DepartmentRepo, p.DepartmentRepo, p.EventBus)); err != nil {
 		return err
 	}
 	getDepartmentH := getdepartment.NewHandler(p.DepartmentRepo)

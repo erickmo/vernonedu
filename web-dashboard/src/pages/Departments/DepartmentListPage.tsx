@@ -3,6 +3,8 @@ import { Pencil, Building2 } from 'lucide-react'
 import { ListPageTemplate } from '@/widgets/ListPageTemplate/ListPageTemplate'
 import type { ColumnDef, RowActionDef } from '@/widgets/DataTable/DataTable'
 import { departmentService } from '@/services/department.service'
+import { useAuthStore } from '@/stores/auth.store'
+import { hasAnyRole } from '@/types/auth.types'
 
 interface Department {
   id: string
@@ -98,23 +100,27 @@ const columns: ColumnDef<Department>[] = [
   },
 ]
 
+const MGMT_ROLES = ['director', 'education_leader'] as const
+
 export default function DepartmentListPage() {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
+  const canManage = hasAnyRole(user, [...MGMT_ROLES])
 
-  const rowActions: RowActionDef<Department>[] = [
+  const rowActions: RowActionDef<Department>[] = canManage ? [
     {
       key: 'edit',
       label: 'Edit',
       icon: <Pencil size={14} />,
       onClick: (row) => navigate(`/pengembangan/departments/${row.id}/edit`),
     },
-  ]
+  ] : []
 
   return (
     <ListPageTemplate<Department>
       title="Departemen"
-      addLabel="Tambah Departemen"
-      onAdd={() => navigate('/pengembangan/departments/new')}
+      addLabel={canManage ? 'Tambah Departemen' : undefined}
+      onAdd={canManage ? () => navigate('/pengembangan/departments/new') : undefined}
       queryKey="departments"
       fetcher={(params) => departmentService.list(params)}
       columns={columns}
@@ -126,13 +132,13 @@ export default function DepartmentListPage() {
       emptyDescription="Buat departemen pertama untuk mulai mengelola kursus."
       helpTitle="Departemen"
       helpText="Departemen mengelola kursus, batch, dan fasilitator. Setiap departemen dipimpin oleh Kepala Departemen yang ditunjuk oleh Education Leader."
-      deleteConfig={{
+      deleteConfig={canManage ? {
         onDelete: (row) => departmentService.delete(row.id),
         dialogTitle: 'Hapus Departemen?',
         dialogBody: (row) => `${row.name} akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.`,
         successMessage: (row) => `Departemen "${row.name}" berhasil dihapus`,
         errorMessage: 'Gagal menghapus departemen',
-      }}
+      } : undefined}
     />
   )
 }

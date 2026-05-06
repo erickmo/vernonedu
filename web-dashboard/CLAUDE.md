@@ -100,6 +100,30 @@ apiClient.put<User>('/api/users/1', data)
 apiClient.delete('/api/users/1')
 ```
 
+### API Response Shape
+
+`apiClient` returns raw JSON. The Go backend wraps every response in `{ "data": ... }`.
+
+**Single item endpoints** (GET by ID, POST, PUT):
+```json
+{ "data": { "id": "...", "name": "..." } }
+```
+→ extract: `res.data`
+
+**Paginated list/search endpoints**:
+```json
+{ "data": { "data": [...], "total": N, "offset": 0, "limit": 20 } }
+```
+→ extract: `res.data.data`
+
+**Standard extraction helper** (use when response shape is uncertain):
+```ts
+const outer = (res as any).data ?? res
+const items = Array.isArray(outer) ? outer : (outer?.data ?? outer?.items ?? [])
+```
+
+Do NOT use `res.data.items` — paginated responses use `.data` not `.items`.
+
 ### Toast notifications
 
 ```ts

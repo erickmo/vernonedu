@@ -1,16 +1,22 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Building2, BookOpen, Users, GraduationCap, Calendar, Pencil, UserPlus, X, Search, User } from 'lucide-react'
+import { Building2, BookOpen, Users, GraduationCap, Calendar, Pencil, UserPlus, X, Search, User, Plus } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DetailPageTemplate, type DetailPageAction, type DataConnectionItem } from '@/widgets/DetailPageTemplate/DetailPageTemplate'
 import { departmentService } from '@/services/department.service'
 import { apiClient } from '@/services/api.client'
 import { toast } from '@/widgets/Toast/Toast'
+import { useAuthStore } from '@/stores/auth.store'
+import { hasAnyRole } from '@/types/auth.types'
+
+const MGMT_ROLES = ['director', 'education_leader'] as const
 
 export default function DepartmentDashboardPage() {
   const { deptId } = useParams<{ deptId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+  const canManage = hasAnyRole(user, [...MGMT_ROLES])
 
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [leaderSearch, setLeaderSearch] = useState('')
@@ -40,9 +46,9 @@ export default function DepartmentDashboardPage() {
     queryKey: ['users-search', leaderSearch],
     queryFn: async () => {
       const res = await apiClient.get<any>(`/users/search?name=${encodeURIComponent(leaderSearch)}&limit=20`)
-      const data = (res as any).data ?? res
-      const users = Array.isArray(data) ? data : data?.items ?? []
-      return users.filter((u: any) => u.roles?.includes('dept_leader'))
+      const outer = (res as any).data ?? res
+      const data = Array.isArray(outer) ? outer : (outer?.data ?? outer?.items ?? [])
+      return Array.isArray(data) ? data : []
     },
     enabled: showAssignModal && leaderSearch.length >= 2,
   })
@@ -96,7 +102,7 @@ export default function DepartmentDashboardPage() {
     },
   ]
 
-  const actions: DetailPageAction[] = [
+  const actions: DetailPageAction[] = canManage ? [
     {
       label: 'Edit Departemen',
       icon: <Pencil size={14} />,
@@ -109,7 +115,7 @@ export default function DepartmentDashboardPage() {
       onClick: () => setShowAssignModal(true),
       variant: 'default',
     },
-  ]
+  ] : []
 
   function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number | string; color: string }) {
     return (
@@ -133,25 +139,39 @@ export default function DepartmentDashboardPage() {
 
   const batchTab = (
     <div>
-      <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
-        {[
-          { key: 'all', label: 'Semua' },
-          { key: 'ongoing', label: 'Berlangsung' },
-          { key: 'completed', label: 'Selesai' },
-        ].map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setBatchFilter(f.key)}
-            style={{
-              padding: '6px 14px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)',
-              background: batchFilter === f.key ? 'var(--color-primary)' : 'var(--color-surface-elevated)',
-              color: batchFilter === f.key ? '#fff' : 'var(--color-text-secondary)',
-              fontSize: 'var(--font-sm)', fontWeight: 600, cursor: 'pointer',
-            }}
-          >
-            {f.label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          {[
+            { key: 'all', label: 'Semua' },
+            { key: 'ongoing', label: 'Berlangsung' },
+            { key: 'completed', label: 'Selesai' },
+          ].map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setBatchFilter(f.key)}
+              style={{
+                padding: '6px 14px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)',
+                background: batchFilter === f.key ? 'var(--color-primary)' : 'var(--color-surface-elevated)',
+                color: batchFilter === f.key ? '#fff' : 'var(--color-text-secondary)',
+                fontSize: 'var(--font-sm)', fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => navigate('/course-batches/new')}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '6px 14px', borderRadius: 'var(--radius-full)',
+            border: 'none', background: 'var(--color-primary)', color: '#fff',
+            fontSize: 'var(--font-sm)', fontWeight: 600, cursor: 'pointer',
+          }}
+        >
+          <Plus size={14} />
+          Tambah Batch
+        </button>
       </div>
 
       {loadingBatches ? (
@@ -315,7 +335,7 @@ export default function DepartmentDashboardPage() {
               background: 'var(--color-primary-subtle)', color: 'var(--color-primary)',
             }}>
               <User size={12} />
-              Leader Ditetapkan
+              {dept.leader_name || dept.leader_id}
             </span>
           ) : (
             <span style={{
@@ -324,7 +344,7 @@ export default function DepartmentDashboardPage() {
               background: '#fef2f2', color: '#dc2626',
             }}>
               <User size={12} />
-              Belum ada Leader
+              Belum ditentukan
             </span>
           )}
         </>
@@ -378,7 +398,7 @@ export default function DepartmentDashboardPage() {
                 type="text"
                 value={leaderSearch}
                 onChange={(e) => setLeaderSearch(e.target.value)}
-                placeholder="Cari nama user (role: dept_leader)..."
+                placeholder="Cari nama user..."
                 autoFocus
                 style={{
                   width: '100%', padding: '8px 12px 8px 32px', borderRadius: 'var(--radius-md)',
@@ -395,7 +415,7 @@ export default function DepartmentDashboardPage() {
               </div>
             ) : leaderUsers.length === 0 ? (
               <div style={{ padding: 'var(--space-6)', textAlign: 'center', color: 'var(--color-text-tertiary)', fontSize: 'var(--font-sm)' }}>
-                Tidak ada user dengan role dept_leader ditemukan
+                Tidak ada user ditemukan
               </div>
             ) : (
               leaderUsers.map((u: any) => (

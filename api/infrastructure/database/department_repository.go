@@ -61,17 +61,18 @@ func NewDepartmentRepository(db *sqlx.DB) *DepartmentRepository {
 }
 
 type departmentRecord struct {
-	ID          uuid.UUID  `db:"id"`
-	Name        string     `db:"name"`
-	Description string     `db:"description"`
-	LeaderID    *uuid.UUID `db:"leader_id"`
-	IsActive    bool       `db:"is_active"`
-	CreatedAt   time.Time  `db:"created_at"`
-	UpdatedAt   time.Time  `db:"updated_at"`
+	ID          uuid.UUID      `db:"id"`
+	Name        string         `db:"name"`
+	Description string         `db:"description"`
+	LeaderID    *uuid.UUID     `db:"leader_id"`
+	LeaderName  sql.NullString `db:"leader_name"`
+	IsActive    bool           `db:"is_active"`
+	CreatedAt   time.Time      `db:"created_at"`
+	UpdatedAt   time.Time      `db:"updated_at"`
 }
 
 func (rec *departmentRecord) toDomain() *department.Department {
-	return &department.Department{
+	d := &department.Department{
 		ID:          rec.ID,
 		Name:        rec.Name,
 		Description: rec.Description,
@@ -80,6 +81,10 @@ func (rec *departmentRecord) toDomain() *department.Department {
 		CreatedAt:   rec.CreatedAt,
 		UpdatedAt:   rec.UpdatedAt,
 	}
+	if rec.LeaderName.Valid {
+		d.LeaderName = rec.LeaderName.String
+	}
+	return d
 }
 
 func (r *DepartmentRepository) Save(ctx context.Context, d *department.Department) error {
@@ -118,7 +123,12 @@ func (r *DepartmentRepository) Delete(ctx context.Context, id uuid.UUID) error {
 
 func (r *DepartmentRepository) GetByID(ctx context.Context, id uuid.UUID) (*department.Department, error) {
 	var rec departmentRecord
-	query := `SELECT id, name, description, leader_id, is_active, created_at, updated_at FROM departments WHERE id = $1`
+	query := `
+		SELECT d.id, d.name, d.description, d.leader_id, d.is_active, d.created_at, d.updated_at,
+		       u.name AS leader_name
+		FROM departments d
+		LEFT JOIN users u ON u.id = d.leader_id
+		WHERE d.id = $1`
 	if err := r.db.GetContext(ctx, &rec, query, id); err != nil {
 		return nil, fmt.Errorf("failed to get department: %w", err)
 	}
@@ -140,9 +150,9 @@ func (r *DepartmentRepository) List(ctx context.Context, offset, limit int, sear
 	orderBy := buildDeptOrderBy(sort)
 	var recs []departmentRecord
 	var err error
-	const sel = `SELECT id, name, description, leader_id, is_active, created_at, updated_at FROM departments`
+	const sel = `SELECT d.id, d.name, d.description, d.leader_id, d.is_active, d.created_at, d.updated_at, u.name AS leader_name FROM departments d LEFT JOIN users u ON u.id = d.leader_id`
 	if search != "" {
-		q := fmt.Sprintf(`%s WHERE name ILIKE $1 %s LIMIT $2 OFFSET $3`, sel, orderBy)
+		q := fmt.Sprintf(`%s WHERE d.name ILIKE $1 %s LIMIT $2 OFFSET $3`, sel, orderBy)
 		err = r.db.SelectContext(ctx, &recs, q, "%"+search+"%", limit, offset)
 	} else {
 		q := fmt.Sprintf(`%s %s LIMIT $1 OFFSET $2`, sel, orderBy)

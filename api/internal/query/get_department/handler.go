@@ -18,6 +18,7 @@ type DepartmentReadModel struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	LeaderID    string    `json:"leader_id"`
+	LeaderName  string    `json:"leader_name"`
 	IsActive    bool      `json:"is_active"`
 	CreatedAt   int64     `json:"created_at"`
 	UpdatedAt   int64     `json:"updated_at"`
@@ -55,6 +56,7 @@ func (h *Handler) Handle(ctx context.Context, query interface{}) (interface{}, e
 		Name:        d.Name,
 		Description: d.Description,
 		LeaderID:    leaderID,
+		LeaderName:  d.LeaderName,
 		IsActive:    d.IsActive,
 		CreatedAt:   d.CreatedAt.Unix(),
 		UpdatedAt:   d.UpdatedAt.Unix(),

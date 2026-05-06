@@ -18,6 +18,7 @@ type Department struct {
 	Name        string
 	Description string
 	LeaderID    *uuid.UUID
+	LeaderName  string
 	IsActive    bool
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
