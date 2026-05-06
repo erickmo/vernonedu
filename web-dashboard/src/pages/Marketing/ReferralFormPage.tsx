@@ -122,8 +122,9 @@ export default function ReferralFormPage() {
               <Field label="Telepon">
                 <input
                   type="tel"
+                  inputMode="numeric"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(e.target.value.replace(/[^0-9+]/g, ''))}
                   placeholder="081234567890"
                   className={formStyles.input}
                 />

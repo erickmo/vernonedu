@@ -9,6 +9,7 @@ import {
   FormColumn,
 } from '@/widgets/FormPageTemplate'
 import { toast } from '@/widgets/Toast/Toast'
+import { SearchableSelect } from '@/widgets/SearchableSelect/SearchableSelect'
 import { franchiseeService } from '@/services/franchisee.service'
 import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
 
@@ -152,15 +153,17 @@ export default function FranchiseeFormPage() {
 
               <FormColumn>
                 <Field label="Status">
-                  <select
+                  <SearchableSelect
                     value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className={formStyles.input}
-                  >
-                    {STATUS_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
+                    displayLabel={STATUS_OPTIONS.find((o) => o.value === status)?.label ?? ''}
+                    placeholder="— Pilih Status —"
+                    fetchOptions={(search) => Promise.resolve(
+                      STATUS_OPTIONS
+                        .filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
+                        .map((o) => ({ value: o.value, label: o.label }))
+                    )}
+                    onSelect={(opt) => setStatus(opt?.value ?? 'active')}
+                  />
                 </Field>
               </FormColumn>
             </FormGrid>

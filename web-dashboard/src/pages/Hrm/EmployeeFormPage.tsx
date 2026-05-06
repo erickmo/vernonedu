@@ -9,6 +9,7 @@ import {
   FormColumn,
 } from '@/widgets/FormPageTemplate'
 import { toast } from '@/widgets/Toast/Toast'
+import { SearchableSelect } from '@/widgets/SearchableSelect/SearchableSelect'
 import { hrmService } from '@/services/hrm.service'
 import { apiClient } from '@/services/api.client'
 import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
@@ -295,16 +296,17 @@ export default function EmployeeFormPage() {
                   />
                 </Field>
                 <Field label="Departemen">
-                  <select
+                  <SearchableSelect
                     value={departmentId}
-                    onChange={(e) => setDepartmentId(e.target.value)}
-                    className={formStyles.input}
-                  >
-                    <option value="">— Pilih Departemen —</option>
-                    {departments.map((d: any) => (
-                      <option key={d.id} value={d.id}>{d.name}</option>
-                    ))}
-                  </select>
+                    displayLabel={(departments as any[]).find((d: any) => d.id === departmentId)?.name ?? ''}
+                    placeholder="— Pilih Departemen —"
+                    fetchOptions={(search) => Promise.resolve(
+                      (departments as any[])
+                        .filter((d: any) => d.name.toLowerCase().includes(search.toLowerCase()))
+                        .map((d: any) => ({ value: d.id, label: d.name }))
+                    )}
+                    onSelect={(opt) => setDepartmentId(opt?.value ?? '')}
+                  />
                 </Field>
                 <Field label="Tanggal Masuk" required error={errors.hire_date}>
                   <input
@@ -325,9 +327,10 @@ export default function EmployeeFormPage() {
                 </Field>
                 <Field label="Telepon">
                   <input
-                    type="text"
+                    type="tel"
+                    inputMode="numeric"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9+]/g, ''))}
                     placeholder="08123456789"
                     className={formStyles.input}
                   />
@@ -344,15 +347,17 @@ export default function EmployeeFormPage() {
               </FormColumn>
               <FormColumn>
                 <Field label="Tipe Kontrak">
-                  <select
+                  <SearchableSelect
                     value={contractType}
-                    onChange={(e) => setContractType(e.target.value)}
-                    className={formStyles.input}
-                  >
-                    {CONTRACT_TYPES.map((ct) => (
-                      <option key={ct.value} value={ct.value}>{ct.label}</option>
-                    ))}
-                  </select>
+                    displayLabel={CONTRACT_TYPES.find((ct) => ct.value === contractType)?.label ?? ''}
+                    placeholder="— Pilih Tipe —"
+                    fetchOptions={(search) => Promise.resolve(
+                      CONTRACT_TYPES
+                        .filter((ct) => ct.label.toLowerCase().includes(search.toLowerCase()))
+                        .map((ct) => ({ value: ct.value, label: ct.label }))
+                    )}
+                    onSelect={(opt) => setContractType(opt?.value ?? 'permanent')}
+                  />
                 </Field>
                 {contractType === 'contract' && (
                   <Field label="Akhir Kontrak">

@@ -148,8 +148,9 @@ export default function StudentFormPage() {
                 <Field label="Telepon" hint="Opsional. Nomor HP/WA untuk komunikasi.">
                   <input
                     type="tel"
+                    inputMode="numeric"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9+]/g, ''))}
                     placeholder="cth. 08123456789"
                     className={formStyles.input}
                   />

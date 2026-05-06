@@ -9,6 +9,7 @@ import {
   FormColumn,
 } from '@/widgets/FormPageTemplate'
 import { toast } from '@/widgets/Toast/Toast'
+import { SearchableSelect } from '@/widgets/SearchableSelect/SearchableSelect'
 import { leadService } from '@/services/lead.service'
 import { leadSourceService } from '@/services/lead-source.service'
 import { apiClient } from '@/services/api.client'
@@ -62,7 +63,7 @@ export default function LeadFormPage() {
 
   const { data: sources = [] } = useQuery({
     queryKey: ['lead-sources'],
-    queryFn: () => leadSourceService.list(),
+    queryFn: () => leadSourceService.list().then((r) => r.items),
   })
 
   const activeSources = sources.filter((s) => s.is_active)
@@ -252,34 +253,35 @@ export default function LeadFormPage() {
             flexWrap: 'wrap',
           }}
         >
-          <select
-            value={interestEntityType}
-            onChange={(e) => {
-              setInterestEntityType(e.target.value)
-              setInterestEntityId('')
-            }}
-            className={formStyles.select}
-            style={{ width: 150 }}
-          >
-            {ENTITY_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={interestEntityId}
-            onChange={(e) => setInterestEntityId(e.target.value)}
-            className={formStyles.select}
-            style={{ flex: 1, minWidth: 200 }}
-          >
-            <option value="">Pilih...</option>
-            {getEntityOptions().map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <div style={{ width: 150 }}>
+            <SearchableSelect
+              value={interestEntityType}
+              displayLabel={ENTITY_TYPES.find((t) => t.value === interestEntityType)?.label ?? ''}
+              placeholder="Tipe"
+              fetchOptions={(search) => Promise.resolve(
+                ENTITY_TYPES
+                  .filter((t) => t.label.toLowerCase().includes(search.toLowerCase()))
+                  .map((t) => ({ value: t.value, label: t.label }))
+              )}
+              onSelect={(opt) => {
+                setInterestEntityType(opt?.value ?? 'master_course')
+                setInterestEntityId('')
+              }}
+            />
+          </div>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <SearchableSelect
+              value={interestEntityId}
+              displayLabel={getEntityOptions().find((o) => o.value === interestEntityId)?.label ?? ''}
+              placeholder="Pilih..."
+              fetchOptions={(search) => Promise.resolve(
+                getEntityOptions()
+                  .filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
+                  .map((o) => ({ value: o.value, label: o.label }))
+              )}
+              onSelect={(opt) => setInterestEntityId(opt?.value ?? '')}
+            />
+          </div>
           <button
             type="button"
             onClick={() => interestEntityId && addInterestMutation.mutate()}
@@ -336,8 +338,9 @@ export default function LeadFormPage() {
                 >
                   <input
                     type="tel"
+                    inputMode="numeric"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9+]/g, ''))}
                     placeholder="+62 xxx xxxx xxxx"
                     className={`${formStyles.input} ${errors.phone ? formStyles.inputError : ''}`}
                   />
@@ -354,32 +357,31 @@ export default function LeadFormPage() {
               </FormColumn>
               <FormColumn>
                 <Field label="Sumber" hint="Dari mana prospek mengetahui layanan kami.">
-                  <select
+                  <SearchableSelect
                     value={sourceId}
-                    onChange={(e) => setSourceId(e.target.value)}
-                    className={formStyles.select}
-                  >
-                    <option value="">— Pilih Sumber —</option>
-                    {activeSources.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
+                    displayLabel={activeSources.find((s) => s.id === sourceId)?.name ?? ''}
+                    placeholder="— Pilih Sumber —"
+                    fetchOptions={(search) => Promise.resolve(
+                      activeSources
+                        .filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
+                        .map((s) => ({ value: s.id, label: s.name }))
+                    )}
+                    onSelect={(opt) => setSourceId(opt?.value ?? '')}
+                  />
                 </Field>
                 {isEdit && (
                   <Field label="Status" hint="Tahap prospek saat ini.">
-                    <select
+                    <SearchableSelect
                       value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      className={formStyles.select}
-                    >
-                      {STATUS_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                      displayLabel={STATUS_OPTIONS.find((o) => o.value === status)?.label ?? ''}
+                      placeholder="— Pilih Status —"
+                      fetchOptions={(search) => Promise.resolve(
+                        STATUS_OPTIONS
+                          .filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
+                          .map((o) => ({ value: o.value, label: o.label }))
+                      )}
+                      onSelect={(opt) => setStatus(opt?.value ?? 'new')}
+                    />
                   </Field>
                 )}
               </FormColumn>

@@ -10,6 +10,7 @@ import {
   Toggle,
 } from '@/widgets/FormPageTemplate'
 import { toast } from '@/widgets/Toast/Toast'
+import { SearchableSelect } from '@/widgets/SearchableSelect/SearchableSelect'
 import { partnerService } from '@/services/partner.service'
 import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
 
@@ -176,16 +177,17 @@ export default function PartnerFormPage() {
                 </Field>
 
                 <Field label="Jenis Partner" hint="Opsional. Kategorikan tipe partner.">
-                  <select
+                  <SearchableSelect
                     value={type}
-                    onChange={(e) => setType(e.target.value)}
-                    className={formStyles.input}
-                  >
-                    <option value="">— Pilih tipe —</option>
-                    {PARTNER_TYPES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
+                    displayLabel={type}
+                    placeholder="— Pilih tipe —"
+                    fetchOptions={(search) => Promise.resolve(
+                      PARTNER_TYPES
+                        .filter((t) => t.toLowerCase().includes(search.toLowerCase()))
+                        .map((t) => ({ value: t, label: t }))
+                    )}
+                    onSelect={(opt) => setType(opt?.value ?? '')}
+                  />
                 </Field>
 
                 <Field label="Kontak Person" hint="Nama PIC dari partner.">
@@ -211,8 +213,9 @@ export default function PartnerFormPage() {
                 <Field label="Nomor Telepon">
                   <input
                     type="tel"
+                    inputMode="numeric"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9+]/g, ''))}
                     placeholder="cth. 08123456789"
                     className={formStyles.input}
                   />
