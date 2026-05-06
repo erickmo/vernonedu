@@ -3,14 +3,19 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Database,
+  Handshake,
   HeartHandshake,
   ShieldCheck,
   Sparkles,
   UserPlus,
   type LucideIcon,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/layouts/PageHeader/PageHeader'
 import { useAuthStore } from '@/stores/auth.store'
+import { partnerService } from '@/services/partner.service'
+import type { ExpiringMOU } from '@/types/partner.types'
 import styles from './DashboardPage.module.css'
 
 type MetricTone = 'teal' | 'green' | 'amber'
@@ -188,6 +193,68 @@ function ActivityItem({ title, description, time }: Activity) {
   )
 }
 
+interface MOUWidgetContentProps {
+  mous: ExpiringMOU[]
+  isLoading: boolean
+}
+
+function MOUWidgetContent({ mous, isLoading }: MOUWidgetContentProps) {
+  if (isLoading) {
+    return <p style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text-tertiary)', padding: '8px 0' }}>Memuat...</p>
+  }
+  if (mous.length === 0) {
+    return (
+      <p style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text-tertiary)', padding: '8px 0' }}>
+        Tidak ada MOU yang akan berakhir dalam 3 bulan ke depan.
+      </p>
+    )
+  }
+  return (
+    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+      {mous.map((mou) => (
+        <li key={mou.id} style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '8px 0', borderBottom: '1px solid var(--color-border)',
+          fontSize: 'var(--font-sm)',
+        }}>
+          <div>
+            <div style={{ fontWeight: 600 }}>{mou.partner_name}</div>
+            <div style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-xs)' }}>{mou.title}</div>
+          </div>
+          <span style={{ fontSize: 'var(--font-xs)', color: 'var(--color-text-tertiary)' }}>{mou.end_date}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function ExpiringMOUWidget() {
+  const { data: mous = [], isLoading } = useQuery({
+    queryKey: ['mous-expiring-widget'],
+    queryFn: () => partnerService.listExpiringMOUs(3),
+  })
+
+  return (
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <span className={styles.panelIcon}>
+          <Handshake size={18} aria-hidden="true" />
+        </span>
+        <div>
+          <p className={styles.panelEyebrow}>Monitoring MOU</p>
+          <h2 className={styles.panelTitle}>MOU Segera Berakhir</h2>
+        </div>
+      </div>
+      <MOUWidgetContent mous={mous.slice(0, 5)} isLoading={isLoading} />
+      <div style={{ marginTop: 'var(--space-3)', textAlign: 'right' }}>
+        <Link to="/partners/mous" style={{ fontSize: 'var(--font-xs)', color: 'var(--color-primary)' }}>
+          Lihat semua →
+        </Link>
+      </div>
+    </section>
+  )
+}
+
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user)
 
@@ -265,6 +332,8 @@ export default function DashboardPage() {
               ))}
             </div>
           </section>
+
+          <ExpiringMOUWidget />
         </aside>
       </div>
     </div>
