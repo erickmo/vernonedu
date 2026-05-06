@@ -186,8 +186,8 @@ export default function FranchiseeDetailPage() {
     enabled: Boolean(id),
   })
 
-  const royaltyPayments = (royaltyData as PaginatedResponse<RoyaltyPayment> | undefined)?.data ?? royaltyData ?? []
-  const otherRevenues = (otherRevenueData as PaginatedResponse<OtherRevenue> | undefined)?.data ?? otherRevenueData ?? []
+  const royaltyPayments = (royaltyData as PaginatedResponse<RoyaltyPayment> | undefined)?.items ?? []
+  const otherRevenues = (otherRevenueData as PaginatedResponse<OtherRevenue> | undefined)?.items ?? []
   const agreement = (agreementData as { data: FranchiseAgreement } | FranchiseAgreement | undefined)?.data ?? agreementData
 
   const actions: DetailPageAction[] = [

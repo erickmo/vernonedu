@@ -494,6 +494,10 @@ func (h *FranchiseHandler) MarkRoyaltyPaid(w http.ResponseWriter, r *http.Reques
 			writeError(w, http.StatusNotFound, "royalty payment record not found")
 			return
 		}
+		if errors.Is(err, markroyaltypaidcmd.ErrAlreadyPaid) {
+			writeError(w, http.StatusConflict, "royalty payment already paid")
+			return
+		}
 		log.Error().Err(err).Msg("failed to mark royalty paid")
 		writeError(w, http.StatusInternalServerError, "failed to mark royalty paid")
 		return

@@ -92,9 +92,6 @@ export const franchiseeService = {
   update: (id: string, data: CreateFranchiseePayload): Promise<{ data: Franchisee }> =>
     apiClient.put<{ data: Franchisee }>(`/franchisees/${id}`, data),
 
-  delete: (id: string): Promise<void> =>
-    apiClient.delete<void>(`/franchisees/${id}`),
-
   // Agreement endpoints
   getAgreement: (franchiseeId: string): Promise<FranchiseAgreement> =>
     apiClient.get<{ data: FranchiseAgreement }>(`/franchisees/${franchiseeId}/agreement`).then((r) => r?.data ?? r),
