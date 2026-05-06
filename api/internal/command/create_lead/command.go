@@ -5,9 +5,8 @@ import "github.com/google/uuid"
 type CreateLeadCommand struct {
 	Name     string     `validate:"required"`
 	Email    string
-	Phone    string
-	Interest string
-	Source   string
+	Phone    string     `validate:"required"`
+	SourceID *uuid.UUID
 	Notes    string
 	PicID    *uuid.UUID
 }

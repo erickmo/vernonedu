@@ -17,10 +17,7 @@ type Handler struct {
 }
 
 func NewHandler(leadWriteRepo lead.WriteRepository, eventBus eventbus.EventBus) *Handler {
-	return &Handler{
-		leadWriteRepo: leadWriteRepo,
-		eventBus:      eventBus,
-	}
+	return &Handler{leadWriteRepo: leadWriteRepo, eventBus: eventBus}
 }
 
 func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
@@ -33,8 +30,7 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		createCmd.Name,
 		createCmd.Email,
 		createCmd.Phone,
-		createCmd.Interest,
-		createCmd.Source,
+		createCmd.SourceID,
 		createCmd.Notes,
 		createCmd.PicID,
 	)
@@ -53,7 +49,6 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		LeadID:    newLead.ID,
 		Timestamp: time.Now().Unix(),
 	}
-
 	if err := h.eventBus.Publish(ctx, event); err != nil {
 		log.Error().Err(err).Msg("failed to publish LeadCreated event")
 		return err

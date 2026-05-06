@@ -19,11 +19,7 @@ type Handler struct {
 }
 
 func NewHandler(leadWriteRepo lead.WriteRepository, leadReadRepo lead.ReadRepository, eventBus eventbus.EventBus) *Handler {
-	return &Handler{
-		leadReadRepo:  leadReadRepo,
-		leadWriteRepo: leadWriteRepo,
-		eventBus:      eventBus,
-	}
+	return &Handler{leadReadRepo: leadReadRepo, leadWriteRepo: leadWriteRepo, eventBus: eventBus}
 }
 
 func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
@@ -41,11 +37,14 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		return err
 	}
 
+	if updateCmd.Phone == "" {
+		return lead.ErrPhoneRequired
+	}
+
 	existingLead.Name = updateCmd.Name
 	existingLead.Email = updateCmd.Email
 	existingLead.Phone = updateCmd.Phone
-	existingLead.Interest = updateCmd.Interest
-	existingLead.Source = updateCmd.Source
+	existingLead.SourceID = updateCmd.SourceID
 	existingLead.Notes = updateCmd.Notes
 	existingLead.Status = updateCmd.Status
 	existingLead.PicID = updateCmd.PicID
@@ -61,7 +60,6 @@ func (h *Handler) Handle(ctx context.Context, cmd commandbus.Command) error {
 		LeadID:    existingLead.ID,
 		Timestamp: time.Now().Unix(),
 	}
-
 	if err := h.eventBus.Publish(ctx, event); err != nil {
 		log.Error().Err(err).Msg("failed to publish LeadUpdated event")
 		return err
