@@ -44,18 +44,42 @@ func NewStudentHandler(cmdBus commandbus.CommandBus, qryBus querybus.QueryBus, n
 }
 
 type CreateStudentRequest struct {
-	Name         string `json:"name" validate:"required,min=1"`
-	Email        string `json:"email" validate:"required,email"`
-	Phone        string `json:"phone"`
-	DepartmentID string `json:"department_id"`
+	Name                  string `json:"name" validate:"required,min=1"`
+	Email                 string `json:"email" validate:"required,email"`
+	Phone                 string `json:"phone"`
+	DepartmentID          string `json:"department_id"`
+	Address               string `json:"address"`
+	City                  string `json:"city"`
+	Province              string `json:"province"`
+	PostalCode            string `json:"postal_code"`
+	BirthDate             string `json:"birth_date"` // "YYYY-MM-DD"
+	Gender                string `json:"gender"`
+	NIK                   string `json:"nik"`
+	PhotoURL              string `json:"photo_url"`
+	EducationLevel        string `json:"education_level"`
+	SchoolName            string `json:"school_name"`
+	EmergencyContactName  string `json:"emergency_contact_name"`
+	EmergencyContactPhone string `json:"emergency_contact_phone"`
 }
 
 type UpdateStudentRequest struct {
-	Name         string `json:"name" validate:"required,min=1"`
-	Email        string `json:"email" validate:"required,email"`
-	Phone        string `json:"phone"`
-	DepartmentID string `json:"department_id"`
-	IsActive     bool   `json:"is_active"`
+	Name                  string `json:"name" validate:"required,min=1"`
+	Email                 string `json:"email" validate:"required,email"`
+	Phone                 string `json:"phone"`
+	DepartmentID          string `json:"department_id"`
+	IsActive              bool   `json:"is_active"`
+	Address               string `json:"address"`
+	City                  string `json:"city"`
+	Province              string `json:"province"`
+	PostalCode            string `json:"postal_code"`
+	BirthDate             string `json:"birth_date"` // "YYYY-MM-DD"
+	Gender                string `json:"gender"`
+	NIK                   string `json:"nik"`
+	PhotoURL              string `json:"photo_url"`
+	EducationLevel        string `json:"education_level"`
+	SchoolName            string `json:"school_name"`
+	EmergencyContactName  string `json:"emergency_contact_name"`
+	EmergencyContactPhone string `json:"emergency_contact_phone"`
 }
 
 type AddNoteRequest struct {
@@ -82,10 +106,22 @@ func (h *StudentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := &create_student.CreateStudentCommand{
-		Name:         req.Name,
-		Email:        req.Email,
-		Phone:        req.Phone,
-		DepartmentID: req.DepartmentID,
+		Name:                  req.Name,
+		Email:                 req.Email,
+		Phone:                 req.Phone,
+		DepartmentID:          req.DepartmentID,
+		Address:               req.Address,
+		City:                  req.City,
+		Province:              req.Province,
+		PostalCode:            req.PostalCode,
+		BirthDate:             req.BirthDate,
+		Gender:                req.Gender,
+		NIK:                   req.NIK,
+		PhotoURL:              req.PhotoURL,
+		EducationLevel:        req.EducationLevel,
+		SchoolName:            req.SchoolName,
+		EmergencyContactName:  req.EmergencyContactName,
+		EmergencyContactPhone: req.EmergencyContactPhone,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute create student command")
@@ -185,12 +221,24 @@ func (h *StudentHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := &update_student.UpdateStudentCommand{
-		StudentID:    studentID,
-		Name:         req.Name,
-		Email:        req.Email,
-		Phone:        req.Phone,
-		DepartmentID: req.DepartmentID,
-		IsActive:     req.IsActive,
+		StudentID:             studentID,
+		Name:                  req.Name,
+		Email:                 req.Email,
+		Phone:                 req.Phone,
+		DepartmentID:          req.DepartmentID,
+		IsActive:              req.IsActive,
+		Address:               req.Address,
+		City:                  req.City,
+		Province:              req.Province,
+		PostalCode:            req.PostalCode,
+		BirthDate:             req.BirthDate,
+		Gender:                req.Gender,
+		NIK:                   req.NIK,
+		PhotoURL:              req.PhotoURL,
+		EducationLevel:        req.EducationLevel,
+		SchoolName:            req.SchoolName,
+		EmergencyContactName:  req.EmergencyContactName,
+		EmergencyContactPhone: req.EmergencyContactPhone,
 	}
 	if err := h.cmdBus.Execute(r.Context(), cmd); err != nil {
 		log.Error().Err(err).Msg("failed to execute update student command")
