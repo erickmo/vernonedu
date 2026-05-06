@@ -101,10 +101,15 @@ import (
 	listbatchschedules "github.com/vernonedu/entrepreneurship-api/internal/query/list_batch_schedules"
 	// lead commands
 	addcrmlog "github.com/vernonedu/entrepreneurship-api/internal/command/add_crm_log"
+	addleadinterest "github.com/vernonedu/entrepreneurship-api/internal/command/add_lead_interest"
 	convertleadtostudent "github.com/vernonedu/entrepreneurship-api/internal/command/convert_lead_to_student"
 	createlead "github.com/vernonedu/entrepreneurship-api/internal/command/create_lead"
+	createleadsource "github.com/vernonedu/entrepreneurship-api/internal/command/create_lead_source"
 	deletelead "github.com/vernonedu/entrepreneurship-api/internal/command/delete_lead"
+	deleteleadsource "github.com/vernonedu/entrepreneurship-api/internal/command/delete_lead_source"
+	removeleadinterest "github.com/vernonedu/entrepreneurship-api/internal/command/remove_lead_interest"
 	updatelead "github.com/vernonedu/entrepreneurship-api/internal/command/update_lead"
+	updateleadsource "github.com/vernonedu/entrepreneurship-api/internal/command/update_lead_source"
 	// location commands
 	createbuilding "github.com/vernonedu/entrepreneurship-api/internal/command/create_building"
 	deletebuilding "github.com/vernonedu/entrepreneurship-api/internal/command/delete_building"
@@ -230,6 +235,7 @@ import (
 	getlead "github.com/vernonedu/entrepreneurship-api/internal/query/get_lead"
 	listcrmlogs "github.com/vernonedu/entrepreneurship-api/internal/query/list_crm_logs"
 	listlead "github.com/vernonedu/entrepreneurship-api/internal/query/list_lead"
+	listleadsources "github.com/vernonedu/entrepreneurship-api/internal/query/list_lead_sources"
 	// location queries
 	checkroomavailability "github.com/vernonedu/entrepreneurship-api/internal/query/check_room_availability"
 	getbuilding "github.com/vernonedu/entrepreneurship-api/internal/query/get_building"
@@ -492,6 +498,12 @@ func main() {
 			},
 			func(db *sqlx.DB) *database.LeadRepository {
 				return database.NewLeadRepository(db)
+			},
+			func(db *sqlx.DB) *database.LeadSourceRepository {
+				return database.NewLeadSourceRepository(db)
+			},
+			func(db *sqlx.DB) *database.LeadInterestRepository {
+				return database.NewLeadInterestRepository(db)
 			},
 			// Location repositories
 			func(db *sqlx.DB) *database.BuildingRepository {
@@ -993,7 +1005,9 @@ type registerParams struct {
 	InvestmentRepo *database.InvestmentRepository
 	DelegationRepo *database.DelegationRepository
 	// Lead repository
-	LeadRepo *database.LeadRepository
+	LeadRepo         *database.LeadRepository
+	LeadSourceRepo   *database.LeadSourceRepository
+	LeadInterestRepo *database.LeadInterestRepository
 	// Location repositories
 	BuildingRepo *database.BuildingRepository
 	RoomRepo     *database.RoomRepository
@@ -1567,11 +1581,11 @@ func registerHandlers(p registerParams) error {
 		deletelead.NewHandler(p.LeadRepo, p.EventBus)); err != nil {
 		return err
 	}
-	getLeadH := getlead.NewHandler(p.LeadRepo)
+	getLeadH := getlead.NewHandler(p.LeadRepo, p.LeadSourceRepo, p.LeadInterestRepo)
 	if err := p.QryBus.Register(&getlead.GetLeadQuery{}, adaptQueryHandler(getLeadH.Handle)); err != nil {
 		return err
 	}
-	listLeadH := listlead.NewHandler(p.LeadRepo)
+	listLeadH := listlead.NewHandler(p.LeadRepo, p.LeadSourceRepo)
 	if err := p.QryBus.Register(&listlead.ListLeadQuery{}, adaptQueryHandler(listLeadH.Handle)); err != nil {
 		return err
 	}
@@ -1585,6 +1599,32 @@ func registerHandlers(p registerParams) error {
 	}
 	listCrmLogsH := listcrmlogs.NewHandler(p.LeadRepo)
 	if err := p.QryBus.Register(&listcrmlogs.ListCrmLogsQuery{}, adaptQueryHandler(listCrmLogsH.Handle)); err != nil {
+		return err
+	}
+	// Lead sources
+	if err := p.CmdBus.Register(&createleadsource.CreateLeadSourceCommand{},
+		createleadsource.NewHandler(p.LeadSourceRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&updateleadsource.UpdateLeadSourceCommand{},
+		updateleadsource.NewHandler(p.LeadSourceRepo, p.LeadSourceRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&deleteleadsource.DeleteLeadSourceCommand{},
+		deleteleadsource.NewHandler(p.LeadSourceRepo)); err != nil {
+		return err
+	}
+	listLeadSourcesH := listleadsources.NewHandler(p.LeadSourceRepo)
+	if err := p.QryBus.Register(&listleadsources.ListLeadSourcesQuery{}, adaptQueryHandler(listLeadSourcesH.Handle)); err != nil {
+		return err
+	}
+	// Lead interests
+	if err := p.CmdBus.Register(&addleadinterest.AddLeadInterestCommand{},
+		addleadinterest.NewHandler(p.LeadInterestRepo)); err != nil {
+		return err
+	}
+	if err := p.CmdBus.Register(&removeleadinterest.RemoveLeadInterestCommand{},
+		removeleadinterest.NewHandler(p.LeadInterestRepo)); err != nil {
 		return err
 	}
 
