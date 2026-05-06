@@ -13,6 +13,25 @@ import { toast } from '@/widgets/Toast/Toast'
 import { studentService } from '@/services/student.service'
 import formStyles from '@/widgets/FormPageTemplate/FormPageTemplate.module.css'
 
+const GENDER_OPTIONS = [
+  { value: '', label: 'Pilih...' },
+  { value: 'male', label: 'Laki-laki' },
+  { value: 'female', label: 'Perempuan' },
+]
+
+const EDUCATION_OPTIONS = [
+  { value: '', label: 'Pilih...' },
+  { value: 'SD', label: 'SD' },
+  { value: 'SMP', label: 'SMP' },
+  { value: 'SMA', label: 'SMA/SMK' },
+  { value: 'D1', label: 'D1' },
+  { value: 'D2', label: 'D2' },
+  { value: 'D3', label: 'D3' },
+  { value: 'S1', label: 'S1' },
+  { value: 'S2', label: 'S2' },
+  { value: 'S3', label: 'S3' },
+]
+
 function formatDate(ts: number | undefined) {
   if (!ts) return '—'
   return new Intl.DateTimeFormat('id-ID', {
@@ -27,10 +46,30 @@ export default function StudentFormPage() {
   const queryClient = useQueryClient()
   const isEdit = Boolean(studentId)
 
+  // Tab 1 — Informasi Umum
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [gender, setGender] = useState('')
+  const [birthDate, setBirthDate] = useState('')
+  const [nik, setNik] = useState('')
+  const [photoUrl, setPhotoUrl] = useState('')
   const [isActive, setIsActive] = useState(true)
+
+  // Tab 2 — Alamat
+  const [address, setAddress] = useState('')
+  const [city, setCity] = useState('')
+  const [province, setProvince] = useState('')
+  const [postalCode, setPostalCode] = useState('')
+
+  // Tab 3 — Pendidikan
+  const [educationLevel, setEducationLevel] = useState('')
+  const [schoolName, setSchoolName] = useState('')
+
+  // Tab 4 — Kontak Darurat
+  const [emergencyContactName, setEmergencyContactName] = useState('')
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState('')
+
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverError, setServerError] = useState('')
@@ -42,12 +81,23 @@ export default function StudentFormPage() {
   })
 
   useEffect(() => {
-    if (student) {
-      setName(student.name ?? '')
-      setEmail(student.email ?? '')
-      setPhone(student.phone ?? '')
-      setIsActive(student.is_active ?? true)
-    }
+    if (!student) return
+    setName(student.name ?? '')
+    setEmail(student.email ?? '')
+    setPhone(student.phone ?? '')
+    setGender(student.gender ?? '')
+    setBirthDate(student.birth_date ?? '')
+    setNik(student.nik ?? '')
+    setPhotoUrl(student.photo_url ?? '')
+    setIsActive(student.is_active ?? true)
+    setAddress(student.address ?? '')
+    setCity(student.city ?? '')
+    setProvince(student.province ?? '')
+    setPostalCode(student.postal_code ?? '')
+    setEducationLevel(student.education_level ?? '')
+    setSchoolName(student.school_name ?? '')
+    setEmergencyContactName(student.emergency_contact_name ?? '')
+    setEmergencyContactPhone(student.emergency_contact_phone ?? '')
   }, [student])
 
   function validate(): boolean {
@@ -63,25 +113,31 @@ export default function StudentFormPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!validate()) return
-
     setIsSubmitting(true)
     setServerError('')
-
     try {
+      const base = {
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim() || undefined,
+        gender: gender || undefined,
+        birth_date: birthDate || undefined,
+        nik: nik.trim() || undefined,
+        photo_url: photoUrl.trim() || undefined,
+        address: address.trim() || undefined,
+        city: city.trim() || undefined,
+        province: province.trim() || undefined,
+        postal_code: postalCode.trim() || undefined,
+        education_level: educationLevel || undefined,
+        school_name: schoolName.trim() || undefined,
+        emergency_contact_name: emergencyContactName.trim() || undefined,
+        emergency_contact_phone: emergencyContactPhone.trim() || undefined,
+      }
       if (isEdit) {
-        await studentService.update(studentId!, {
-          name: name.trim(),
-          email: email.trim(),
-          phone: phone.trim() || undefined,
-          is_active: isActive,
-        })
+        await studentService.update(studentId!, { ...base, is_active: isActive })
         toast.success('Data siswa berhasil diperbarui')
       } else {
-        await studentService.create({
-          name: name.trim(),
-          email: email.trim(),
-          phone: phone.trim() || undefined,
-        })
+        await studentService.create(base)
         toast.success('Siswa berhasil ditambahkan')
       }
       await queryClient.invalidateQueries({ queryKey: ['students'] })
@@ -158,7 +214,7 @@ export default function StudentFormPage() {
                     className={`${formStyles.input} ${errors.email ? formStyles.inputError : ''}`}
                   />
                 </Field>
-                <Field label="Telepon" hint="Opsional. Nomor HP/WA untuk komunikasi.">
+                <Field label="Telepon" hint="Nomor HP/WA untuk komunikasi.">
                   <input
                     type="tel"
                     inputMode="numeric"
@@ -168,8 +224,153 @@ export default function StudentFormPage() {
                     className={formStyles.input}
                   />
                 </Field>
+                <Field label="Jenis Kelamin">
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className={formStyles.input}
+                  >
+                    {GENDER_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Tanggal Lahir">
+                  <input
+                    type="date"
+                    value={birthDate}
+                    onChange={(e) => setBirthDate(e.target.value)}
+                    className={formStyles.input}
+                  />
+                </Field>
+                <Field label="NIK" hint="Nomor Induk Kependudukan (KTP).">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={nik}
+                    onChange={(e) => setNik(e.target.value.replace(/[^0-9]/g, '').slice(0, 16))}
+                    placeholder="16 digit NIK"
+                    className={formStyles.input}
+                  />
+                </Field>
+                <Field label="URL Foto" hint="Link foto profil (opsional).">
+                  <input
+                    type="url"
+                    value={photoUrl}
+                    onChange={(e) => setPhotoUrl(e.target.value)}
+                    placeholder="https://..."
+                    className={formStyles.input}
+                  />
+                </Field>
               </FormColumn>
               {sidebarContent}
+            </FormGrid>
+          ),
+        },
+        {
+          id: 'address',
+          label: 'Alamat',
+          content: (
+            <FormGrid>
+              <FormColumn>
+                <Field label="Alamat Lengkap">
+                  <textarea
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="cth. Jl. Merdeka No. 10, RT 02/RW 05"
+                    rows={3}
+                    className={formStyles.input}
+                    style={{ resize: 'vertical' }}
+                  />
+                </Field>
+                <Field label="Kota">
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="cth. Jakarta Selatan"
+                    className={formStyles.input}
+                  />
+                </Field>
+                <Field label="Provinsi">
+                  <input
+                    type="text"
+                    value={province}
+                    onChange={(e) => setProvince(e.target.value)}
+                    placeholder="cth. DKI Jakarta"
+                    className={formStyles.input}
+                  />
+                </Field>
+                <Field label="Kode Pos">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={postalCode}
+                    onChange={(e) => setPostalCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 5))}
+                    placeholder="cth. 12345"
+                    className={formStyles.input}
+                  />
+                </Field>
+              </FormColumn>
+            </FormGrid>
+          ),
+        },
+        {
+          id: 'education',
+          label: 'Pendidikan',
+          content: (
+            <FormGrid>
+              <FormColumn>
+                <Field label="Pendidikan Terakhir">
+                  <select
+                    value={educationLevel}
+                    onChange={(e) => setEducationLevel(e.target.value)}
+                    className={formStyles.input}
+                  >
+                    {EDUCATION_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Nama Sekolah / Universitas">
+                  <input
+                    type="text"
+                    value={schoolName}
+                    onChange={(e) => setSchoolName(e.target.value)}
+                    placeholder="cth. Universitas Indonesia"
+                    className={formStyles.input}
+                  />
+                </Field>
+              </FormColumn>
+            </FormGrid>
+          ),
+        },
+        {
+          id: 'emergency',
+          label: 'Kontak Darurat',
+          content: (
+            <FormGrid>
+              <FormColumn>
+                <Field label="Nama Kontak Darurat">
+                  <input
+                    type="text"
+                    value={emergencyContactName}
+                    onChange={(e) => setEmergencyContactName(e.target.value)}
+                    placeholder="cth. Siti Rahayu (Ibu)"
+                    className={formStyles.input}
+                  />
+                </Field>
+                <Field label="Telepon Kontak Darurat">
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    value={emergencyContactPhone}
+                    onChange={(e) => setEmergencyContactPhone(e.target.value.replace(/[^0-9+]/g, ''))}
+                    placeholder="cth. 08129876543"
+                    className={formStyles.input}
+                  />
+                </Field>
+              </FormColumn>
             </FormGrid>
           ),
         },
