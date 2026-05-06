@@ -170,8 +170,6 @@ func (h *LeadHandler) List(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 	status := r.URL.Query().Get("status")
-	source := r.URL.Query().Get("source")
-	interest := r.URL.Query().Get("interest")
 	search := r.URL.Query().Get("search")
 
 	sort := sortutil.Parse(r.URL.Query().Get("sort"))
@@ -185,8 +183,7 @@ func (h *LeadHandler) List(w http.ResponseWriter, r *http.Request) {
 		Offset:   offset,
 		Limit:    limit,
 		Status:   status,
-		Source:   source,
-		Interest: interest,
+		SourceID: r.URL.Query().Get("source_id"),
 		Search:   search,
 		SortBy:   sortBy,
 		SortDir:  sortDir,
